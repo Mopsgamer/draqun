@@ -2,48 +2,41 @@ package main
 
 import (
 	"log"
-
-	"github.com/gofiber/template/html/v2"
+	"restapp/internal/config"
+	"restapp/internal/handlers"
+	repository "restapp/internal/repositories"
+	"restapp/internal/services"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
-	"github.com/gofiber/fiber/v3/middleware/static"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// template engine
-	// https://docs.gofiber.io/template/html/
-	engine := html.New("./views", ".html")
-	engine.Debug(true)
-	engine.Reload(true)
-	declFuncs(engine)
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
 
-	// app
-	app := fiber.New(fiber.Config{
-		Views:             engine,
-		PassLocalsToViews: true,
+	config.InitDB()
+
+	userRepo := repository.NewDBUserRepository(config.DBConnection)
+	userService := services.NewUserService(userRepo)
+
+	app := fiber.New()
+
+	app.Use(logger.New())
+
+	app.Get("/", handlers.Index)
+	app.Get("/login", handlers.LoginPage)
+	app.Get("/register", handlers.RegisterPage)
+
+	// maybe better rename as "auth_handler, service etc"?
+	app.Post("/register", func(c fiber.Ctx) error {
+		return handlers.Register(c, userService)
+	})
+	app.Post("/login", func(c fiber.Ctx) error {
+		return handlers.Login(c, userService)
 	})
 
-	// logger
-	app.Get("*", logger.New())
-
-	// api
-	api := app.Route("/api")
-	api.Get(static.New("./api.html"))
-
-	// public
-	// app.Use("/*", static.New("./public")) // wont work
-	app.Get("/public/main.css", static.New("./public/main.css"))
-	app.Get("/public/js/htmx.min.js", static.New("./public/js/htmx.min.js"))
-
-	// main application page
-	app.Get("/", func(ctx fiber.Ctx) error {
-		return ctx.Render("index", fiber.Map{
-			"uri":     ctx.Context().URI(),
-			"content": "<b>test</b>",
-		})
-	})
-
-	// listen
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen(":8080"))
 }

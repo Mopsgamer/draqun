@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Register</title>
+</head>
+<body>
+    <div>
+        <h1>Register Account</h1>
+        
+        <form id="registerForm">
+            <div>
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+
+            <div>
+                <label for="tag">Tag</label>
+                <input type="text" id="tag" name="tag" required>
+            </div>
+
+            <div>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email">
+            </div>
+
+            <div>
+                <label for="phone">Phone</label>
+                <input type="tel" id="phone" name="phone">
+            </div>
+
+            <div>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <div>
+                <label for="avatar">Avatar URL (optional)</label>
+                <input id="avatar" name="avatar">
+            </div>
+
+            <div>
+                <button type="submit">
+                    Register
+                </button>
+            </div>
+        </form>
+
+        <div id="alert"></div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                tag: document.getElementById('tag').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                password: document.getElementById('password').value,
+                avatar: document.getElementById('avatar').value || ''
+            };
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                const alert = document.getElementById('alert');
+
+                if (response.ok) {
+                    alert.textContent = data.message;
+                    document.getElementById('registerForm').reset();
+                } else {
+                    alert.textContent = data.error || 'Registration failed';
+                }
+
+            } catch (error) {
+                const alert = document.getElementById('alert');
+                alert.textContent = 'Network error occurred';
+            }
+        });
+    </script>
+</body>
+</html>

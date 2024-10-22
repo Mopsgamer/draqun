@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login</title>
+</head>
+<body>
+    <div>
+        <h1>Login to Your Account</h1>
+        
+        <form id="loginForm">
+            <div>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <div>
+                <button type="submit">
+                    Login
+                </button>
+            </div>
+        </form>
+
+        <div id="alert"></div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                const alert = document.getElementById('alert');
+
+                if (response.ok) {
+                    alert.textContent = `Login successful! Token: ${data.token}`;
+                    document.getElementById('loginForm').reset();
+                } else {
+                    alert.textContent = data.error || 'Login failed';
+                }
+
+            } catch (error) {
+                const alert = document.getElementById('alert');
+                alert.textContent = 'Network error occurred';
+            }
+        });
+    </script>
+</body>
+</html>
