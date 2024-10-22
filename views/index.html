@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restapp</title>
-    <script src="/public/htmx.min.js"></script>
-    <script src="/public/main.css"></script>
+    <script src="/public/js/htmx.min.js"></script>
+    <link rel="stylesheet" href="/public/css/main.css">
 </head>
 <body>
-    You are at {{.uri}}.
+    Location: <code>{{.uri}}</code>.
+    Content: {{unescape .content}}.
 </body>
 </html>

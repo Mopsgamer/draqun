@@ -11,35 +11,39 @@ import (
 )
 
 func main() {
+	// template engine
 	// https://docs.gofiber.io/template/html/
 	engine := html.New("./views", ".html")
+	engine.Debug(true)
+	engine.Reload(true)
+	declFuncs(engine)
+
+	// app
 	app := fiber.New(fiber.Config{
 		Views:             engine,
 		PassLocalsToViews: true,
 	})
 
-	api := app.Route("/api")
-
 	// logger
 	app.Get("*", logger.New())
 
 	// api
+	api := app.Route("/api")
 	api.Get(static.New("./api.html"))
-	declApi(api)
 
 	// public
-	app.Use("/*", static.New("./public")) // wont work
+	// app.Use("/*", static.New("./public")) // wont work
+	app.Get("/public/main.css", static.New("./public/main.css"))
+	app.Get("/public/js/htmx.min.js", static.New("./public/js/htmx.min.js"))
 
 	// main application page
 	app.Get("/", func(ctx fiber.Ctx) error {
-		ctx.Locals("uri", ctx.OriginalURL())
-		return ctx.Render("index", fiber.Map{})
+		return ctx.Render("index", fiber.Map{
+			"uri":     ctx.Context().URI(),
+			"content": "<b>test</b>",
+		})
 	})
 
 	// listen
 	log.Fatal(app.Listen(":3000"))
-}
-
-func declApi(api fiber.Register) {
-
 }
