@@ -2,16 +2,16 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"os"
-	"restapp/internal/handlers"
-	repository "restapp/internal/repositories"
-	"restapp/internal/services"
+	"restapp/restapp"
 
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/gofiber/template/html/v2"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 )
@@ -23,26 +23,59 @@ func main() {
 
 	db := InitDB()
 
-	userRepo := repository.NewDBUserRepository(db)
-	userService := services.NewUserService(userRepo)
-
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		Views:             InitVE(),
+		PassLocalsToViews: true,
+	})
 
 	app.Use(logger.New())
 
-	app.Get("/", handlers.Index)
-	app.Get("/login", handlers.LoginPage)
-	app.Get("/register", handlers.RegisterPage)
+	// next code groups should be separated into different functions.
+	// + should avoid code repeating
 
-	// maybe better rename as "auth_handler, service etc"?
+	// static
+	// idk how to do it automatically, fiber
+	// '/*' static methods (file hosting) wont work with js and css but with html
+	app.Get("/static/js/htmx.min.js", func(c fiber.Ctx) error {
+		return c.SendFile("./web/static/js/htmx.min.js")
+	})
+	app.Get("/static/css/main.css", func(c fiber.Ctx) error {
+		return c.SendFile("./web/static/css/main.css")
+	})
+
+	// get
+	app.Get("/", func(c fiber.Ctx) error {
+		return c.Render("index", fiber.Map{})
+	})
+	app.Get("/login", func(c fiber.Ctx) error {
+		return c.Render("login", fiber.Map{})
+	})
+	app.Get("/register", func(c fiber.Ctx) error {
+		return c.Render("register", fiber.Map{})
+	})
+
+	// post
 	app.Post("/register", func(c fiber.Ctx) error {
-		return handlers.Register(c, userService)
+		return restapp.UserRegister(db, c)
 	})
 	app.Post("/login", func(c fiber.Ctx) error {
-		return handlers.Login(c, userService)
+		return restapp.UserLogin(db, c)
 	})
 
-	log.Fatal(app.Listen(":8080"))
+	log.Fatal(app.Listen(":3000"))
+}
+
+// also i dont like InitDB, InitVE functions inside main, so
+// they can be moved into init-db.go and init-ve.go
+
+func InitVE() *html.Engine {
+	engine := html.New("./web/templates", ".html")
+
+	engine.AddFunc("html", func(s string) template.HTML {
+		return template.HTML(s)
+	})
+
+	return engine
 }
 
 func InitDB() *sqlx.DB {

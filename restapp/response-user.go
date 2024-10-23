@@ -1,26 +1,18 @@
-package handlers
+package restapp
 
 import (
+	"errors"
+	"log"
 	"time"
 
-	"restapp/internal/models"
-	"restapp/internal/services"
-
 	"github.com/gofiber/fiber/v3"
+	"github.com/jmoiron/sqlx"
 )
 
-type RegisterRequest struct {
-	Name     string `json:"name"`
-	Tag      string `json:"tag"`
-	Email    string `json:"email"`
-	Phone    string `json:"phone"`
-	Password string `json:"password"`
-}
-
-func Register(c fiber.Ctx, us *services.UserService) error {
+func UserRegister(db *sqlx.DB, c fiber.Ctx) error {
 	req := new(RegisterRequest)
 	if err := c.Bind().JSON(req); err != nil {
-		//log.Println(err) // debug
+		log.Println(err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request payload",
 		})
@@ -32,16 +24,16 @@ func Register(c fiber.Ctx, us *services.UserService) error {
 		})
 	}
 
-	user := models.User{
+	user := User{
 		Name:      req.Name,
 		Tag:       req.Tag,
 		Email:     req.Email,
 		Phone:     req.Phone,
-		Password:  services.HashPassword(req.Password),
+		Password:  HashPassword(req.Password),
 		CreatedAt: time.Now(),
 	}
 
-	if err := us.CreateUser(user); err != nil {
+	if err := user.Save(db); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Unable to register user",
 		})
@@ -52,12 +44,7 @@ func Register(c fiber.Ctx, us *services.UserService) error {
 	})
 }
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-func Login(c fiber.Ctx, us *services.UserService) error {
+func UserLogin(db *sqlx.DB, c fiber.Ctx) error {
 	req := new(LoginRequest)
 	if err := c.Bind().JSON(req); err != nil {
 		//log.Println(err) // debug
@@ -72,15 +59,15 @@ func Login(c fiber.Ctx, us *services.UserService) error {
 		})
 	}
 
-	user, err := us.GetUserByEmail(req.Email)
-	if err != nil || !services.CheckPassword(user.Password, req.Password) {
+	user, err := UserByEmail(db, req.Email)
+	if err != nil || !CheckPassword(user.Password, req.Password) {
 		//log.Printf("Error: %s", err)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Invalid email or password",
 		})
 	}
 
-	token, err := services.GenerateJWT(*user)
+	token, err := user.GenerateJWT()
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Error generating token",
@@ -90,4 +77,17 @@ func Login(c fiber.Ctx, us *services.UserService) error {
 	return c.JSON(fiber.Map{
 		"token": token,
 	})
+}
+
+func UserByEmail(db *sqlx.DB, email string) (*User, error) {
+	var user = new(User)
+	query := `SELECT id, name, tag, email, phone, password, avatar, created_at 
+              FROM users WHERE email = ?`
+	err := db.Get(&user, query, email)
+	if err != nil {
+		log.Println(err)
+		log.Println(user)
+		return nil, errors.New("user not found")
+	}
+	return user, nil
 }
