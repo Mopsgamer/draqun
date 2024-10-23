@@ -3,14 +3,17 @@
 
 <head>
     <title>Register</title>
+    <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/json-enc.js"></script>
     <link rel="stylesheet" href="/static/css/main.css">
 </head>
 
 <body>
     <div>
         <h1>Register Account</h1>
+        <a href="/">Home page</a>
 
-        <form id="registerForm">
+        <form id="registerForm" hx-post="/register" hx-swap="textContent" hx-target="#error" hx-ext="json-enc">
             <div>
                 <label for="name">Full Name</label>
                 <input type="text" id="name" name="name" required>
@@ -40,55 +43,12 @@
                 <label for="avatar">Avatar URL (optional)</label>
                 <input id="avatar" name="avatar">
             </div>
-
+            <div id="error"></div>
             <div>
-                <button type="submit">
-                    Register
-                </button>
+                <button type="submit">Register</button>
             </div>
         </form>
-
-        <div id="alert"></div>
     </div>
-
-    <script>
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const formData = {
-                name: document.getElementById('name').value,
-                tag: document.getElementById('tag').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                password: document.getElementById('password').value,
-                avatar: document.getElementById('avatar').value || ''
-            };
-
-            try {
-                const response = await fetch('/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
-                const alert = document.getElementById('alert');
-
-                if (response.ok) {
-                    alert.textContent = data.message;
-                    document.getElementById('registerForm').reset();
-                } else {
-                    alert.textContent = data.error || 'Registration failed';
-                }
-
-            } catch (error) {
-                const alert = document.getElementById('alert');
-                alert.textContent = 'Network error occurred';
-            }
-        });
-    </script>
 </body>
 
 </html>

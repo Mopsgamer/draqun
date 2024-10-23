@@ -3,14 +3,17 @@
 
 <head>
     <title>Login</title>
+    <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/json-enc.js"></script>
     <link rel="stylesheet" href="/static/css/main.css">
 </head>
 
 <body>
     <div>
         <h1>Login to Your Account</h1>
+        <a href="/">Home page</a>
 
-        <form id="loginForm">
+        <form id="loginForm" hx-post="/login" hx-swap="textContent" hx-target="#error" hx-ext="json-enc">
             <div>
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" required>
@@ -20,51 +23,12 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
             </div>
-
+            <div id="error"></div>
             <div>
-                <button type="submit">
-                    Login
-                </button>
+                <button type="submit">Login</button>
             </div>
         </form>
-
-        <div id="alert"></div>
     </div>
-
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const formData = {
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value
-            };
-
-            try {
-                const response = await fetch('/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
-                const alert = document.getElementById('alert');
-
-                if (response.ok) {
-                    alert.textContent = `Login successful! Token: ${data.token}`;
-                    document.getElementById('loginForm').reset();
-                } else {
-                    alert.textContent = data.error || 'Login failed';
-                }
-
-            } catch (error) {
-                const alert = document.getElementById('alert');
-                alert.textContent = 'Network error occurred';
-            }
-        });
-    </script>
 </body>
 
 </html>

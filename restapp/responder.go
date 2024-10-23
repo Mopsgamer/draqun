@@ -8,68 +8,70 @@ import (
 
 type Responder struct{ Ctx fiber.Ctx }
 
+// Otherwise - json.
+func (c Responder) IsHTMX() bool {
+	return c.Ctx.Get("HX-Request", "") != ""
+}
+
 func (c Responder) UserRegister(db *Database) error {
 	req := new(RegisterRequest)
-	if err := c.Ctx.Bind().JSON(req); err != nil {
+	err := c.Ctx.Bind().JSON(req)
+	log.Println("Request struct:", req)
+	if err != nil {
 		log.Println(err)
-		return c.Ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request payload",
-		})
+		message := "Invalid request payload"
+		return c.Ctx.SendString(message)
 	}
 
 	if req.Name == "" || req.Email == "" || req.Password == "" {
-		log.Println(req)
-		return c.Ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Missing required fields",
-		})
+		message := "Missing required fields"
+		return c.Ctx.SendString(message)
 	}
 
 	user := req.CreateUser()
 
 	if err := db.UserSave(user); err != nil {
 		log.Println(err)
-		log.Println(req)
-		return c.Ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Unable to register user",
-		})
+		message := "Unable to register user"
+		return c.Ctx.SendString(message)
 	}
 
-	return c.Ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "User registered successfully",
-	})
+	return c.Ctx.Redirect().To("/")
 }
 
 func (c Responder) UserLogin(db *Database) error {
 	req := new(LoginRequest)
-	if err := c.Ctx.Bind().JSON(req); err != nil {
-		//log.Println(err) // debug
-		return c.Ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request payload",
-		})
+	err := c.Ctx.Bind().JSON(req)
+	log.Println("Request struct:", req)
+	if err != nil {
+		log.Println(err)
+		message := "Invalid request payload"
+		return c.Ctx.SendString(message)
 	}
 
 	if req.Email == "" || req.Password == "" {
-		return c.Ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Missing email or password",
-		})
+		message := "Missing email or password"
+		return c.Ctx.SendString(message)
 	}
 
 	user, err := db.UserByEmail(req.Email)
-	if err != nil || !CheckPassword(user.Password, req.Password) {
-		//log.Printf("Error: %s", err)
-		return c.Ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Invalid email or password",
-		})
+	if err != nil {
+		log.Println(err)
+		message := "User not found"
+		return c.Ctx.SendString(message)
+	}
+	if !CheckPassword(user.Password, req.Password) {
+		message := "Invalid email or password"
+		return c.Ctx.SendString(message)
 	}
 
 	token, err := user.GenerateJWT()
 	if err != nil {
-		return c.Ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Error generating token",
-		})
+		message := "Error generating token"
+		return c.Ctx.SendString(message)
 	}
 
-	return c.Ctx.JSON(fiber.Map{
-		"token": token,
-	})
+	// the client should save the token...
+	_ = token
+	return c.Ctx.Redirect().To("/")
 }
