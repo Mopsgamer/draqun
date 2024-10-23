@@ -33,7 +33,7 @@ func CreateEnv(option string) (hasOption bool) {
 		return makeEnv
 	}
 
-	err := os.WriteFile(".env", []byte(
+	err := os.WriteFile(path, []byte(
 		"DB_PASSWORD=\n"+
 			"DB_NAME=restapp\n"+
 			"DB_USER=root\n"+
@@ -44,6 +44,6 @@ func CreateEnv(option string) (hasOption bool) {
 		log.Println("Failed to write " + path)
 		return makeEnv
 	}
-	log.Println("Writed .env")
+	log.Println("Writed " + path)
 	return makeEnv
 }
