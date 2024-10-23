@@ -17,11 +17,34 @@ import (
 )
 
 func main() {
+	if app, err := InitServer(); err == nil {
+		log.Fatal(app.Listen(":3000"))
+	}
+}
+
+// also i dont like InitDB, InitVE functions inside main, so
+// they can be moved into init-db.go and init-ve.go
+
+func InitVE() *html.Engine {
+	engine := html.New("./web/templates", ".html")
+
+	engine.AddFunc("html", func(s string) template.HTML {
+		return template.HTML(s)
+	})
+
+	return engine
+}
+
+func InitServer() (*fiber.App, error) {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
+		return nil, err
 	}
 
-	db := InitDB()
+	db, err := InitDB()
+	if err != nil {
+		return nil, err
+	}
 
 	app := fiber.New(fiber.Config{
 		Views:             InitVE(),
@@ -34,8 +57,8 @@ func main() {
 	// + should avoid code repeating
 
 	// static
-	// idk how to do it automatically, fiber
-	// '/*' static methods (file hosting) wont work with js and css but with html
+	// idk how to do it automatically,
+	// fiber's static methods (file hosting) wont work with js and css
 	app.Get("/static/js/htmx.min.js", func(c fiber.Ctx) error {
 		return c.SendFile("./web/static/js/htmx.min.js")
 	})
@@ -56,29 +79,18 @@ func main() {
 
 	// post
 	app.Post("/register", func(c fiber.Ctx) error {
-		return restapp.UserRegister(db, c)
+		rc := restapp.Responder{Ctx: c}
+		return rc.UserRegister(db)
 	})
 	app.Post("/login", func(c fiber.Ctx) error {
-		return restapp.UserLogin(db, c)
+		rc := restapp.Responder{Ctx: c}
+		return rc.UserLogin(db)
 	})
 
-	log.Fatal(app.Listen(":3000"))
+	return app, nil
 }
 
-// also i dont like InitDB, InitVE functions inside main, so
-// they can be moved into init-db.go and init-ve.go
-
-func InitVE() *html.Engine {
-	engine := html.New("./web/templates", ".html")
-
-	engine.AddFunc("html", func(s string) template.HTML {
-		return template.HTML(s)
-	})
-
-	return engine
-}
-
-func InitDB() *sqlx.DB {
+func InitDB() (*restapp.Database, error) {
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
@@ -88,15 +100,17 @@ func InitDB() *sqlx.DB {
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		dbUser, dbPassword, dbHost, dbPort, dbName)
 
-	db, err := sqlx.Connect("mysql", connectionString)
+	connection, err := sqlx.Connect("mysql", connectionString)
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v\n", err)
+		return nil, err
 	}
 
-	if err := db.Ping(); err != nil {
+	if err := connection.Ping(); err != nil {
 		log.Fatalf("Unable to ping database: %v\n", err)
+		return nil, err
 	}
 
 	log.Println("Database connected successfully")
-	return db
+	return &restapp.Database{Sql: connection}, nil
 }
