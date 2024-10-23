@@ -23,16 +23,22 @@ func (c Responder) UserRegister(db *Database) error {
 		return c.Ctx.SendString(message)
 	}
 
-	if req.Name == "" || req.Email == "" || req.Password == "" {
+	if req.IsBad() {
 		message := "Missing required fields"
 		return c.Ctx.SendString(message)
 	}
 
-	user := req.CreateUser()
-
-	if err := db.UserSave(user); err != nil {
+	user, err := req.CreateUser()
+	if err != nil {
 		log.Println(err)
 		message := "Unable to register user"
+		return c.Ctx.SendString(message)
+	}
+
+	err = db.UserSave(user)
+	if err != nil {
+		log.Println(err)
+		message := "Unable to save user"
 		return c.Ctx.SendString(message)
 	}
 
@@ -49,7 +55,7 @@ func (c Responder) UserLogin(db *Database) error {
 		return c.Ctx.SendString(message)
 	}
 
-	if req.Email == "" || req.Password == "" {
+	if req.IsBad() {
 		message := "Missing email or password"
 		return c.Ctx.SendString(message)
 	}

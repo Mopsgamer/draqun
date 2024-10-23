@@ -1,8 +1,6 @@
 package restapp
 
-import (
-	"time"
-)
+import "time"
 
 type RegisterRequest struct {
 	Name     string `json:"name"`
@@ -12,18 +10,18 @@ type RegisterRequest struct {
 	Password string `json:"password"`
 }
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+func (req RegisterRequest) IsBad() bool {
+	return req.Name == "" || req.Email == "" || req.Password == ""
 }
 
-func (req RegisterRequest) CreateUser() User {
+func (req RegisterRequest) CreateUser() (User, error) {
+	hash, err := HashPassword(req.Password)
 	return User{
 		Name:      req.Name,
 		Tag:       req.Tag,
 		Email:     req.Email,
 		Phone:     req.Phone,
-		Password:  HashPassword(req.Password),
+		Password:  hash,
 		CreatedAt: time.Now(),
-	}
+	}, err
 }
