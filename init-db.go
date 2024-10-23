@@ -27,12 +27,12 @@ func InitDB() (*restapp.Database, error) {
 
 	connection, err := sqlx.Connect("mysql", connectionString)
 	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
+		log.Printf("Unable to connect to database: %v\n", err)
 		return nil, err
 	}
 
 	if err := connection.Ping(); err != nil {
-		log.Fatalf("Unable to ping database: %v\n", err)
+		log.Printf("Unable to ping database: %v\n", err)
 		return nil, err
 	}
 
