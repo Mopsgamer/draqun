@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>Register</title>
 </head>
+
 <body>
     <div>
         <h1>Register Account</h1>
-        
+
         <form id="registerForm">
             <div>
                 <label for="name">Full Name</label>
@@ -51,7 +53,7 @@
     <script>
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const formData = {
                 name: document.getElementById('name').value,
                 tag: document.getElementById('tag').value,
@@ -87,4 +89,5 @@
         });
     </script>
 </body>
+
 </html>

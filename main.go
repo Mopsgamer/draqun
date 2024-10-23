@@ -1,14 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"restapp/internal/config"
+	"os"
 	"restapp/internal/handlers"
 	repository "restapp/internal/repositories"
 	"restapp/internal/services"
 
+	_ "github.com/go-sql-driver/mysql"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 )
 
@@ -17,9 +21,9 @@ func main() {
 		log.Println("No .env file found")
 	}
 
-	config.InitDB()
+	db := InitDB()
 
-	userRepo := repository.NewDBUserRepository(config.DBConnection)
+	userRepo := repository.NewDBUserRepository(db)
 	userService := services.NewUserService(userRepo)
 
 	app := fiber.New()
@@ -39,4 +43,27 @@ func main() {
 	})
 
 	log.Fatal(app.Listen(":8080"))
+}
+
+func InitDB() *sqlx.DB {
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		dbUser, dbPassword, dbHost, dbPort, dbName)
+
+	db, err := sqlx.Connect("mysql", connectionString)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v\n", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Unable to ping database: %v\n", err)
+	}
+
+	log.Println("Database connected successfully")
+	return db
 }
