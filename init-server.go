@@ -1,20 +1,13 @@
 package main
 
 import (
-	"log"
 	"restapp/restapp"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
-	"github.com/joho/godotenv"
 )
 
 func InitServer() (*fiber.App, error) {
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
-		return nil, err
-	}
-
 	db, err := InitDB()
 	if err != nil {
 		return nil, err

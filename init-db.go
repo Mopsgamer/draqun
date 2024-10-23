@@ -7,9 +7,15 @@ import (
 	"restapp/restapp"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 )
 
 func InitDB() (*restapp.Database, error) {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+		return nil, err
+	}
+
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
