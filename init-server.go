@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/gofiber/fiber/v3/middleware/static"
 )
 
 func InitServer() (*fiber.App, error) {
@@ -24,17 +25,7 @@ func InitServer() (*fiber.App, error) {
 	// + should avoid code repeating
 
 	// static
-	// idk how to do it automatically,
-	// fiber's static methods (file hosting) wont work with js and css
-	app.Get("/static/js/htmx.min.js", func(c fiber.Ctx) error {
-		return c.SendFile("./web/static/js/htmx.min.js")
-	})
-	app.Get("/static/js/json-enc.js", func(c fiber.Ctx) error {
-		return c.SendFile("./web/static/js/json-enc.js")
-	})
-	app.Get("/static/css/main.css", func(c fiber.Ctx) error {
-		return c.SendFile("./web/static/css/main.css")
-	})
+	app.Get("/static/*", static.New("./web/static"))
 
 	// get
 	app.Get("/", func(c fiber.Ctx) error {
