@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="sl-theme-dark">
 
 <head>
     <meta charset="UTF-8">
@@ -7,12 +7,16 @@
     <title>{{.title}}</title>
     <script src="/static/js/htmx.min.js"></script>
     <script src="/static/js/json-enc.min.js"></script>
+    <script src="/static/js/tailwind.min.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.17.1/cdn/shoelace-autoloader.js"></script>
     <link rel="stylesheet" href="/static/css/main.css">
 </head>
 
 <body>
     {{template "partials/header" .}}
-    {{embed}}
+    <main id="main" class="p-4">
+        {{embed}}
+    </main>
     {{template "partials/footer" .}}
 </body>
 

@@ -1,40 +1,42 @@
-<div>
-    <h1>Register Account</h1>
-    <a href="/">Home page</a>
+<div class="flex box-content justify-center items-center h-80vh w-screen pt-5 pb-8">
+    <sl-card>
+        <h1 slot="header">Create new Account</h1>
 
-    <form id="registerForm" hx-post="/register" hx-swap="textContent" hx-target="#error" hx-ext="json-enc">
-        <div>
-            <label for="name">Full Name</label>
-            <input type="text" id="name" name="name" required>
-        </div>
+        <form id="registerForm" class="flex flex-col gap-4" hx-post="/register" hx-swap="textContent" hx-target="#error"
+            hx-ext="json-enc">
+            <div>
+                <label for="name">Full Name</label>
+                <sl-input type="text" id="name" name="name" required>
+            </div>
 
-        <div>
-            <label for="tag">Tag</label>
-            <input type="text" id="tag" name="tag" required>
-        </div>
+            <div>
+                <label for="tag">Tag</label>
+                <sl-input type="text" id="tag" name="tag" required>
+            </div>
 
-        <div>
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email">
-        </div>
+            <div>
+                <label for="email">Email</label>
+                <sl-input type="email" id="email" name="email">
+            </div>
 
-        <div>
-            <label for="phone">Phone</label>
-            <input type="tel" id="phone" name="phone">
-        </div>
+            <div>
+                <label for="phone">Phone</label>
+                <sl-input type="tel" id="phone" name="phone">
+            </div>
 
-        <div>
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
-        </div>
+            <div>
+                <label for="password">Password</label>
+                <sl-input type="password" id="password" name="password" required>
+            </div>
 
-        <div>
-            <label for="avatar">Avatar URL (optional)</label>
-            <input id="avatar" name="avatar">
-        </div>
-        <div id="error"></div>
-        <div>
-            <button type="submit">Register</button>
-        </div>
-    </form>
+            <div>
+                <label for="avatar">Avatar URL (optional)</label>
+                <sl-input id="avatar" name="avatar">
+            </div>
+            <div id="error"></div>
+            <div>
+                <sl-button type="submit">Register</sl-button>
+            </div>
+        </form>
+    </sl-card>
 </div>

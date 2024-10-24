@@ -1,8 +1,10 @@
-<header>
+<header id="topnav" class="p-4 bg-n50 flex justify-between">
     <nav>
-        <a href="/">Home</a>
-        <a href="/api">API</a>
-        <a href="/register">Register</a>
-        <a href="/login">Login</a>
+        <a class="link inline-flex" href="/">Home</a>
+        <a class="link inline-flex" href="/api">API</a>
+    </nav>
+    <nav>
+        <sl-button href="/register">Register</sl-button>
+        <sl-button href="/login"><sl-icon slot="prefix" name="person-circle"></sl-icon>Login</sl-button>
     </nav>
 </header>
