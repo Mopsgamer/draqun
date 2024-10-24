@@ -1,0 +1,18 @@
+<sl-dialog label="Dialog" id="login-dialog">
+    <h1 slot="label">Login to Your Account</h1>
+    <form class="flex flex-col gap-4" hx-post="/login" hx-swap="outerHTML" hx-target="#auth-error" hx-ext="json-enc">
+        <div>
+            <label for="email">Email</label>
+            <sl-input type="email" id="email" name="email" required>
+        </div>
+
+        <div>
+            <label for="password">Password</label>
+            <sl-input type="password" id="password" name="password" required>
+        </div>
+        <sl-alert id="auth-error" variant="warning"></sl-alert>
+        <div>
+            <sl-button type="submit">Login</sl-button>
+        </div>
+    </form>
+</sl-dialog>

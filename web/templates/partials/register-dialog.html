@@ -1,0 +1,39 @@
+<sl-dialog label="Dialog" id="register-dialog">
+    <h1 slot="label">Register Your new Account</h1>
+    <form class="flex flex-col gap-4" hx-post="/register" hx-swap="outerHTML" hx-target="#auth-error"
+        hx-ext="json-enc">
+        <div>
+            <label for="name">Full Name</label>
+            <sl-input type="text" id="name" name="name" required>
+        </div>
+
+        <div>
+            <label for="tag">Tag</label>
+            <sl-input type="text" id="tag" name="tag" required>
+        </div>
+
+        <div>
+            <label for="email">Email</label>
+            <sl-input type="email" id="email" name="email">
+        </div>
+
+        <div>
+            <label for="phone">Phone</label>
+            <sl-input type="tel" id="phone" name="phone">
+        </div>
+
+        <div>
+            <label for="password">Password</label>
+            <sl-input type="password" id="password" name="password" required>
+        </div>
+
+        <div>
+            <label for="avatar">Avatar URL (optional)</label>
+            <sl-input id="avatar" name="avatar">
+        </div>
+        <sl-alert id="auth-error" variant="warning"></sl-alert>
+        <div>
+            <sl-button type="submit">Register</sl-button>
+        </div>
+    </form>
+</sl-dialog>

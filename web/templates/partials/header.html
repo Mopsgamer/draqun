@@ -4,7 +4,28 @@
         <a class="link inline-flex" href="/api">API</a>
     </nav>
     <nav>
-        <sl-button href="/register">Register</sl-button>
-        <sl-button href="/login"><sl-icon slot="prefix" name="person-circle"></sl-icon>Login</sl-button>
+        <sl-button id="open-register-dialog">
+            Register
+        </sl-button>
+        <script>
+            document.getElementById("open-register-dialog")
+                .addEventListener("click", () => {
+                    const dialog = document.getElementById("register-dialog")
+                    dialog.open = true
+                })
+        </script>
+        <sl-button id="open-login-dialog">
+            <sl-icon slot="prefix" name="person-circle"></sl-icon>
+            Login
+        </sl-button>
+        <script>
+            document.getElementById("open-login-dialog")
+                .addEventListener("click", () => {
+                    const dialog = document.getElementById("login-dialog")
+                    dialog.open = true
+                })
+        </script>
     </nav>
 </header>
+{{template "partials/login-dialog" .}}
+{{template "partials/register-dialog" .}}

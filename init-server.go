@@ -34,12 +34,6 @@ func InitServer() (*fiber.App, error) {
 	app.Get("/api", func(c fiber.Ctx) error {
 		return c.Render("api", fiber.Map{}, "layouts/main")
 	})
-	app.Get("/login", func(c fiber.Ctx) error {
-		return c.Render("login", fiber.Map{}, "layouts/main")
-	})
-	app.Get("/register", func(c fiber.Ctx) error {
-		return c.Render("register", fiber.Map{}, "layouts/main")
-	})
 
 	// post
 	app.Post("/register", func(c fiber.Ctx) error {
