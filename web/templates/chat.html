@@ -1,0 +1,37 @@
+{{with .User.Email}}
+{{template "partials/chat"}}
+{{- else}}
+<!DOCTYPE html>
+<html lang="en" class="sl-theme-dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/json-enc.min.js"></script>
+    <script src="/static/js/tailwind.min.js"></script>
+    <script type="module"
+        src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.17.1/cdn/shoelace-autoloader.js"></script>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+
+<body>
+    {{template "partials/login-dialog"}}
+    <main id="main" class="p-4">
+        You're not logged in.
+        <sl-button variant="text" id="open-login-dialog-center">
+            Log In
+        </sl-button>
+        <script>
+            document.getElementById("open-login-dialog-center")
+                .addEventListener("click", () => {
+                    const dialog = document.getElementById("login-dialog")
+                    dialog.open = true
+                })
+        </script>
+    </main>
+</body>
+
+</html>
+{{- end}}

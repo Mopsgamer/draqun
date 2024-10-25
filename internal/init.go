@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"os"
 
@@ -40,11 +39,15 @@ func InitServer() (*fiber.App, error) {
 	// get
 	app.Get("/", func(c fiber.Ctx) error {
 		r := Responder{c}
-		return r.Render("index", fiber.Map{}, "layouts/main")
+		return r.Render("index", fiber.Map{"Title": "Restapp - Home"}, "partials/main")
+	})
+	app.Get("/chat", func(c fiber.Ctx) error {
+		r := Responder{c}
+		return r.Render("chat", fiber.Map{"Title": "Restapp - Chat"})
 	})
 	app.Get("/api", func(c fiber.Ctx) error {
 		r := Responder{c}
-		return r.Render("api", fiber.Map{}, "layouts/main")
+		return r.Render("api", fiber.Map{"Title": "Restapp - API Docs"}, "partials/main")
 	})
 
 	// post
@@ -94,10 +97,6 @@ func InitVE() *html.Engine {
 	engine := html.New("./web/templates", ".html")
 
 	engine.Reload(true)
-
-	engine.AddFunc("html", func(s string) template.HTML {
-		return template.HTML(s)
-	})
 
 	return engine
 }

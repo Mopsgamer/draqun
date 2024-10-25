@@ -13,12 +13,17 @@
 </head>
 
 <body>
-    {{template "partials/login-dialog" .}}
-    {{template "partials/header" .}}
+    {{log .}}
+    {{template "partials/login-dialog"}}
+    {{template "partials/header"}}
     <main id="main" class="p-4">
+        {{if .Content}}
+        {{.Content}}
+        {{- else}}
         {{embed}}
+        {{- end}}
     </main>
-    {{template "partials/footer" .}}
+    {{template "partials/footer"}}
 </body>
 
 </html>
