@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.title}}</title>
+    <title>{{.Title}}</title>
     <script src="/static/js/htmx.min.js"></script>
     <script src="/static/js/json-enc.min.js"></script>
     <script src="/static/js/tailwind.min.js"></script>
@@ -13,6 +13,7 @@
 </head>
 
 <body>
+    {{template "partials/login-dialog" .}}
     {{template "partials/header" .}}
     <main id="main" class="p-4">
         {{embed}}

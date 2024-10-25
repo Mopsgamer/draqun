@@ -1,5 +1,5 @@
-<sl-dialog label="Dialog" id="register-dialog">
-    <h1 slot="label">Register Your new Account</h1>
+<sl-dialog {{if .Open}} open {{- else}} {{- end}} label="Dialog" id="register-dialog">
+    <h1 slot="label">Sign Up</h1>
     <form id="register-form" class="flex flex-col gap-4" hx-post="/register" hx-swap="outerHTML" hx-target="#auth-error"
         hx-ext="json-enc">
         <div>
@@ -33,7 +33,14 @@
         </div>
         <sl-alert id="auth-error" variant="warning"></sl-alert>
     </form>
-    <div slot="footer">
-        <sl-button form="register-form" variant="primary" type="submit">Register</sl-button>
+    <div slot="footer" class="flex flex-col gap-2">
+        <div class="flex justify-end items-center">
+            Already a member?
+            <sl-button variant="text" hx-target="#register-dialog" hx-swap="outerHTML"
+                hx-get="/partials/login-dialog?open=true">Log In</a>
+        </div>
+        <div class="flex justify-end items-center">
+            <sl-button form="register-form" variant="primary" type="submit">Sign Up</sl-button>
+        </div>
     </div>
 </sl-dialog>

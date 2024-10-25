@@ -1,19 +1,9 @@
 <header id="topnav" class="p-4 bg-n50 flex justify-between">
     <nav>
-        <a class="link inline-flex" href="/">Home</a>
-        <a class="link inline-flex" href="/api">API</a>
+        <sl-button variant="text" href="/">Home</a>
+        <sl-button variant="text" href="/api">API</a>
     </nav>
     <nav>
-        <sl-button id="open-register-dialog">
-            Register
-        </sl-button>
-        <script>
-            document.getElementById("open-register-dialog")
-                .addEventListener("click", () => {
-                    const dialog = document.getElementById("register-dialog")
-                    dialog.open = true
-                })
-        </script>
         <sl-button id="open-login-dialog">
             <sl-icon slot="prefix" name="person-circle"></sl-icon>
             Login
@@ -27,5 +17,3 @@
         </script>
     </nav>
 </header>
-{{template "partials/login-dialog" .}}
-{{template "partials/register-dialog" .}}

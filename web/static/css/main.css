@@ -2,17 +2,6 @@
 @import url("./shoelace-light.css");
 @import url("./shoelace-dark.css");
 
-.link {
-    align-items: center;
-    min-height: 40px;
-    padding: 0 var(--sl-spacing-medium);
-    color: var(--sl-color-primary-400);
-}
-
-.link:hover {
-    color: var(--sl-color-primary-600);
-}
-
 .bg-n50 {
     background-color: var(--sl-color-neutral-50);
 }

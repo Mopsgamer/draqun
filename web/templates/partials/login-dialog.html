@@ -1,6 +1,7 @@
-<sl-dialog label="Dialog" id="login-dialog">
-    <h1 slot="label">Login to Your Account</h1>
-    <form id="login-form" class="flex flex-col gap-4" hx-post="/login" hx-swap="outerHTML" hx-target="#auth-error" hx-ext="json-enc">
+<sl-dialog {{if .Open}} open {{- else}} {{- end}} label="Dialog" id="login-dialog">
+    <h1 slot="label">Log In</h1>
+    <form id="login-form" class="flex flex-col gap-4" hx-post="/login" hx-swap="outerHTML" hx-target="#auth-error"
+        hx-ext="json-enc">
         <div>
             <label for="email">Email</label>
             <sl-input type="email" id="email" name="email" required>
@@ -12,7 +13,14 @@
         </div>
         <sl-alert id="auth-error" variant="warning"></sl-alert>
     </form>
-    <div slot="footer">
-        <sl-button form="login-form" variant="primary" type="submit">Login</sl-button>
+    <div slot="footer" class="flex flex-col gap-2">
+        <div class="flex justify-end items-center">
+            Not a member?
+            <sl-button variant="text" hx-target="#login-dialog" hx-swap="outerHTML"
+                hx-get="/partials/register-dialog?open=true">Sign Up</a>
+        </div>
+        <div class="flex justify-end items-center">
+            <sl-button form="login-form" variant="primary" type="submit">Log In</sl-button>
+        </div>
     </div>
 </sl-dialog>

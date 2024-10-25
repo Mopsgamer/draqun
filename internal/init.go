@@ -32,24 +32,29 @@ func InitServer() (*fiber.App, error) {
 
 	// static
 	app.Get("/static/*", static.New("./web/static"))
-	app.Get("/partials/*", static.New("./web/templates/partials"))
+	app.Get("/partials/*", func(c fiber.Ctx) error {
+		r := Responder{c}
+		return r.RenderTemplate()
+	})
 
 	// get
 	app.Get("/", func(c fiber.Ctx) error {
-		return c.Render("index", fiber.Map{}, "layouts/main")
+		r := Responder{c}
+		return r.Render("index", fiber.Map{}, "layouts/main")
 	})
 	app.Get("/api", func(c fiber.Ctx) error {
-		return c.Render("api", fiber.Map{}, "layouts/main")
+		r := Responder{c}
+		return r.Render("api", fiber.Map{}, "layouts/main")
 	})
 
 	// post
 	app.Post("/register", func(c fiber.Ctx) error {
-		rc := Responder{c}
-		return rc.UserRegister(db)
+		r := Responder{c}
+		return r.UserRegister(db)
 	})
 	app.Post("/login", func(c fiber.Ctx) error {
-		rc := Responder{c}
-		return rc.UserLogin(db)
+		r := Responder{c}
+		return r.UserLogin(db)
 	})
 
 	return app, nil
@@ -82,7 +87,7 @@ func InitDB() (*Database, error) {
 	}
 
 	log.Println("Database connected successfully")
-	return &Database{Sql: connection}, nil
+	return &Database{connection}, nil
 }
 
 func InitVE() *html.Engine {
