@@ -2,20 +2,32 @@ package internal
 
 import (
 	"log"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 )
 
-type Responder struct{ Ctx fiber.Ctx }
+type Responder struct{ fiber.Ctx }
 
 // Otherwise - json.
 func (c Responder) IsHTMX() bool {
 	return c.Ctx.Get("HX-Request", "") != ""
 }
 
+func (c Responder) Render(name string, bind fiber.Map, layouts ...string) error {
+	err := c.Ctx.Render(name, bind, layouts...)
+	if err != nil {
+		layoutsInfo := "."
+		if len(layouts) > 0 {
+			layoutsInfo = ", layouts: '" + strings.Join(layouts, "', '") + "'."
+		}
+		log.Println("Error while rendering '" + name + "'" + layoutsInfo)
+	}
+	return err
+}
+
 func (c Responder) RenderWarning(message, id string) error {
-	log.Println("rendering...")
-	return c.Ctx.Render("partials/warning", fiber.Map{
+	return c.Render("partials/warning", fiber.Map{
 		"Id":      id,
 		"Message": message,
 	})
@@ -51,7 +63,7 @@ func (c Responder) UserRegister(db *Database) error {
 		return c.RenderWarning(message, id)
 	}
 
-	return c.Ctx.Redirect().To("/")
+	return c.Redirect().To("/")
 }
 
 func (c Responder) UserLogin(db *Database) error {
@@ -89,5 +101,5 @@ func (c Responder) UserLogin(db *Database) error {
 
 	// the client should save the token...
 	_ = token
-	return c.Ctx.Redirect().To("/")
+	return c.Redirect().To("/")
 }

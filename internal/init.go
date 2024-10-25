@@ -44,11 +44,11 @@ func InitServer() (*fiber.App, error) {
 
 	// post
 	app.Post("/register", func(c fiber.Ctx) error {
-		rc := Responder{Ctx: c}
+		rc := Responder{c}
 		return rc.UserRegister(db)
 	})
 	app.Post("/login", func(c fiber.Ctx) error {
-		rc := Responder{Ctx: c}
+		rc := Responder{c}
 		return rc.UserLogin(db)
 	})
 
