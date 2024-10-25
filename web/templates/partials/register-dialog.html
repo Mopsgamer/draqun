@@ -1,6 +1,6 @@
 <sl-dialog label="Dialog" id="register-dialog">
     <h1 slot="label">Register Your new Account</h1>
-    <form class="flex flex-col gap-4" hx-post="/register" hx-swap="outerHTML" hx-target="#auth-error"
+    <form id="register-form" class="flex flex-col gap-4" hx-post="/register" hx-swap="outerHTML" hx-target="#auth-error"
         hx-ext="json-enc">
         <div>
             <label for="name">Full Name</label>
@@ -32,8 +32,8 @@
             <sl-input id="avatar" name="avatar">
         </div>
         <sl-alert id="auth-error" variant="warning"></sl-alert>
-        <div>
-            <sl-button type="submit">Register</sl-button>
-        </div>
     </form>
+    <div slot="footer">
+        <sl-button form="register-form" variant="primary" type="submit">Register</sl-button>
+    </div>
 </sl-dialog>
