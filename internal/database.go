@@ -1,4 +1,4 @@
-package restapp
+package internal
 
 import (
 	"errors"

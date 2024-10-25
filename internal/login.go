@@ -1,4 +1,4 @@
-package restapp
+package internal
 
 type LoginRequest struct {
 	Email    string `json:"email"`
