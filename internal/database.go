@@ -23,7 +23,7 @@ func (db Database) UserSave(user User) error {
 }
 
 func (db Database) UserByEmail(email string) (*User, error) {
-	log.Println("<" + email + ">")
+	//log.Println("<" + email + ">")
 	email = strings.TrimSpace(email)
 	var user = new(User)
 	query := `SELECT id, name, tag, email, phone, password, avatar, created_at 

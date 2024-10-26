@@ -111,7 +111,8 @@ func (r Responder) UserLogin(db *Database) error {
 		message := "User not found"
 		return r.RenderWarning(message, id)
 	}
-	if !CheckPassword(user.Password, req.Password) {
+
+	if !CheckPassword(user.Password, req.Password) { // NOTE: Better compare passwords and then get the user
 		message := "Invalid email or password"
 		return r.RenderWarning(message, id)
 	}
@@ -122,7 +123,7 @@ func (r Responder) UserLogin(db *Database) error {
 		return r.RenderWarning(message, id)
 	}
 
-	// the client should save the token...
-	_ = token
-	return r.Redirect().To("/")
+	return r.JSON(fiber.Map{
+		"token": token,
+	})
 }

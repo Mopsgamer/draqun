@@ -1,0 +1,14 @@
+# Directories
+root = "."
+tmp_dir = "tmp"
+
+# Color schema
+[color]
+  main = "cyan"
+  watcher = "yellow"
+
+# Params
+[build]
+  cmd = "go build -o tmp/main.exe ."
+  bin = "tmp/main.exe"
+  include_ext = ["go", "html"]

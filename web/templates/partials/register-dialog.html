@@ -3,18 +3,18 @@
     <form id="register-form" class="flex flex-col gap-4" hx-post="/register" hx-swap="outerHTML" hx-target="#auth-error"
         hx-ext="json-enc">
         <div>
-            <label for="name">Full Name</label>
+            <label for="name">Full Name*</label>
             <sl-input type="text" id="name" name="name" required>
         </div>
 
         <div>
             <label for="tag">Tag</label>
-            <sl-input type="text" id="tag" name="tag" required>
+            <sl-input type="text" id="tag" name="tag">
         </div>
 
         <div>
-            <label for="email">Email</label>
-            <sl-input type="email" id="email" name="email">
+            <label for="email">Email*</label>
+            <sl-input type="email" id="email" name="email" required>
         </div>
 
         <div>
@@ -25,12 +25,21 @@
         <div>
             <label for="password">Password</label>
             <sl-input type="password" id="password" name="password" required>
+                <sl-checkbox id="show-password">Show Password</sl-checkbox>
+            </sl-input>
         </div>
 
         <div>
+            <label for="confirm-password">Confirm Password</label>
+            <sl-input type="password" id="confirm-password" name="confirm-password" required>
+                <sl-checkbox id="show-confirm-password">Show Password</sl-checkbox>
+            </sl-input>
+        </div>
+
+        <!--div>
             <label for="avatar">Avatar URL (optional)</label>
             <sl-input id="avatar" name="avatar">
-        </div>
+        </div-->
         <sl-alert id="auth-error" variant="warning"></sl-alert>
     </form>
     <div slot="footer" class="flex flex-col gap-2">
@@ -44,3 +53,24 @@
         </div>
     </div>
 </sl-dialog>
+
+<script>
+    document.querySelectorAll('sl-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            const inputId = this.parentElement.id; 
+            const input = document.getElementById(inputId);
+            input.type = this.checked ? 'text' : 'password';
+        });
+    });
+
+    const form = document.getElementById('register-form');
+    form.addEventListener('submit', function (event) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        if (password !== confirmPassword) {
+            event.preventDefault(); 
+            document.getElementById('auth-error').innerText = "Passwords do not match!";
+        }
+    });
+</script>
