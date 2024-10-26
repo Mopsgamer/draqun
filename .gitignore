@@ -1,3 +1,5 @@
 
 .env
 .vscode/launch.json
+/tmp
+.air.toml

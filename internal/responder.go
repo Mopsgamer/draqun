@@ -1,10 +1,12 @@
 package internal
 
 import (
+	"fmt"
 	"log"
 	"regexp"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type Responder struct{ fiber.Ctx }
@@ -126,4 +128,48 @@ func (r Responder) UserLogin(db *Database) error {
 	return r.JSON(fiber.Map{
 		"token": token,
 	})
+}
+
+func (r Responder) GetUserData(db *Database) error {
+	authHeader := r.Ctx.Get("Authorization")
+	//log.Println(authHeader)
+	if authHeader == "" {
+		return r.JSON(fiber.Map{"error": "Authorization header missing"})
+	}
+
+	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
+		return r.JSON(fiber.Map{"error": "Invalid authorization format"})
+	}
+
+	tokenString := authHeader[7:]
+
+	//log.Println(tokenString)
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return secretKey, nil
+	})
+
+	if err != nil || !token.Valid {
+		return r.JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+
+	userIDFloat, ok := claims["user_id"].(float64)
+	if !ok {
+		return r.JSON(fiber.Map{"error": "User ID not found or is invalid"})
+	}
+	userID := int(userIDFloat)
+
+	user, err := db.UserByID(userID)
+	if err != nil {
+		return r.JSON(fiber.Map{"error": "User not found"})
+	}
+
+	//log.Println(user)
+
+	return r.JSON(user)
 }

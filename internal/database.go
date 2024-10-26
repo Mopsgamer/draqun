@@ -36,3 +36,15 @@ func (db Database) UserByEmail(email string) (*User, error) {
 	}
 	return user, nil
 }
+
+func (db Database) UserByID(userID int) (*User, error) {
+	var user = new(User)
+	query := `SELECT id, name, tag, email, phone, password, avatar, created_at 
+              FROM users WHERE id = ?`
+	err := db.Sql.Get(user, query, userID)
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("User not found")
+	}
+	return user, nil
+}

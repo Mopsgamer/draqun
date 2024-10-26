@@ -49,6 +49,10 @@ func InitServer() (*fiber.App, error) {
 		r := Responder{c}
 		return r.Render("api", fiber.Map{"Title": "Restapp - API Docs"}, "partials/main")
 	})
+	app.Get("/user-data", func(c fiber.Ctx) error {
+		r := Responder{c}
+		return r.GetUserData(db)
+	})
 
 	// post
 	app.Post("/register", func(c fiber.Ctx) error {
