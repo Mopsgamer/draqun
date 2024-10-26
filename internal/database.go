@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"log"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -21,15 +22,17 @@ func (db Database) UserSave(user User) error {
 	return nil
 }
 
-func (d Database) UserByEmail(email string) (*User, error) {
+func (db Database) UserByEmail(email string) (*User, error) {
+	log.Println("<" + email + ">")
+	email = strings.TrimSpace(email)
 	var user = new(User)
 	query := `SELECT id, name, tag, email, phone, password, avatar, created_at 
               FROM users WHERE email = ?`
-	err := d.Sql.Get(&user, query, email)
+	err := db.Sql.Get(user, query, email)
 	if err != nil {
 		log.Println(err)
 		log.Println(user)
-		return nil, errors.New("user not found")
+		return nil, errors.New("User not found")
 	}
 	return user, nil
 }

@@ -29,10 +29,12 @@ func CreateEnv(option string) (hasOption bool) {
 			"DB_HOST=localhost\n"+
 			"DB_PORT=3306\n",
 	), fs.ModeDevice)
+
 	if err != nil {
 		log.Println("Failed to write " + path)
 		return makeEnv
 	}
+
 	log.Println("Writed " + path)
 	return makeEnv
 }
