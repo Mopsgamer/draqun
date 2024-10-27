@@ -3,12 +3,12 @@ package internal
 import "time"
 
 type RegisterRequest struct {
-	Name            string `json:"name"`
-	Tag             string `json:"tag"`
-	Email           string `json:"email"`
-	Phone           string `json:"phone"`
-	Password        string `json:"password"`
-	ConfirmPassword string `json:"confirm-password"`
+	Name            string `form:"name"`
+	Tag             string `form:"tag"`
+	Email           string `form:"email"`
+	Phone           string `form:"phone"`
+	Password        string `form:"password"`
+	ConfirmPassword string `form:"confirm-password"`
 }
 
 func (req RegisterRequest) IsBadPasswordMatch() bool {

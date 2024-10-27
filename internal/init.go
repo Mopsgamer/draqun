@@ -51,7 +51,7 @@ func InitServer() (*fiber.App, error) {
 	})
 	app.Get("/user-data", func(c fiber.Ctx) error {
 		r := Responder{c}
-		return r.GetUserData(db)
+		return r.GiveUser(db)
 	})
 
 	// post

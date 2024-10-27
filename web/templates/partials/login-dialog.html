@@ -1,18 +1,12 @@
 <sl-dialog {{if .Open}} open {{- else}} {{- end}} label="Dialog" id="login-dialog">
     <h1 slot="label">Log In</h1>
-    <form id="login-form" class="flex flex-col gap-4" hx-post="/login" hx-swap="none" hx-target="#auth-error"
-        hx-ext="json-enc">
-        <div>
-            <label for="email">Email</label>
-            <sl-input type="email" id="email" name="email" required>
-            </sl-input>
-        </div>
+    <form id="login-form" name="login-form" class="flex flex-col gap-4" hx-post="/login" hx-swap="outerHTML"
+        hx-target="#auth-error">
+        <sl-input label="Email" type="email" id="login-email" name="email" required>
+        </sl-input>
 
-        <div>
-            <label for="password">Password</label>
-            <sl-input type="password" id="password" name="password" required>
-            </sl-input>
-        </div>
+        <sl-input label="Password" type="password" id="login-password" name="password" required password-toggle>
+        </sl-input>
         <sl-alert id="auth-error" variant="warning"></sl-alert>
     </form>
     <div slot="footer" class="flex flex-col gap-2">
@@ -26,14 +20,3 @@
         </div>
     </div>
 </sl-dialog>
-
-<script>
-    document.addEventListener('htmx:afterRequest', function (event) {
-        if (event.detail.xhr.response) {
-            const response = JSON.parse(event.detail.xhr.response);
-            if (response.token) {
-                localStorage.setItem('jwtToken', response.token);
-            }
-        }
-    });
-</script>

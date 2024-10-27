@@ -36,6 +36,7 @@ type HTMXPartialQuery struct {
 	Id      bool `query:"id"`
 	Message bool `query:"id"`
 	Open    bool `query:"open"`
+	Token   bool `query:"open"` // its safe
 }
 
 func (r Responder) RenderTemplate() error {
@@ -58,11 +59,17 @@ func (r Responder) RenderWarning(message, id string) error {
 	})
 }
 
+func (r Responder) RenderSuccess(message, id string) error {
+	return r.Render("partials/success", fiber.Map{
+		"Id":      id,
+		"Message": message,
+	})
+}
+
 func (r Responder) UserRegister(db *Database) error {
 	id := "auth-error"
 	req := new(RegisterRequest)
-	err := r.Ctx.Bind().JSON(req)
-	log.Println("Request struct:", req)
+	err := r.Ctx.Bind().Form(req)
 	if err != nil {
 		log.Println(err)
 		message := "Invalid request payload"
@@ -86,21 +93,13 @@ func (r Responder) UserRegister(db *Database) error {
 		return r.RenderWarning(message, id)
 	}
 
-	err = db.UserSave(user)
-	if err != nil {
-		log.Println(err)
-		message := "Unable to save user"
-		return r.RenderWarning(message, id)
-	}
-
-	return r.Redirect().To("/")
+	return r.GiveToken(id, user)
 }
 
 func (r Responder) UserLogin(db *Database) error {
 	id := "auth-error"
 	req := new(LoginRequest)
-	err := r.Ctx.Bind().JSON(req)
-	log.Println("Request struct:", req)
+	err := r.Ctx.Bind().Form(req)
 	if err != nil {
 		log.Println(err)
 		message := "Invalid request payload"
@@ -125,26 +124,32 @@ func (r Responder) UserLogin(db *Database) error {
 		return r.RenderWarning(message, id)
 	}
 
+	return r.GiveToken(id, *user)
+}
+
+func (r Responder) GiveToken(errorElementId string, user User) error {
 	token, err := user.GenerateJWT()
 	if err != nil {
 		message := "Error generating token"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(message, errorElementId)
 	}
 
-	return r.JSON(fiber.Map{
-		"token": token,
+	message := "Success!"
+	return r.Render("partials/success", fiber.Map{
+		"Id":      errorElementId,
+		"Message": message,
+		"Token":   token,
 	})
 }
 
-func (r Responder) GetUserData(db *Database) error {
+func (r Responder) GiveUser(db *Database) error {
 	authHeader := r.Ctx.Get("Authorization")
-	//log.Println(authHeader)
 	if authHeader == "" {
 		return r.JSON(fiber.Map{"error": "Authorization header missing"})
 	}
 
 	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
-		return r.JSON(fiber.Map{"error": "Invalid authorization format"})
+		return r.JSON(fiber.Map{"error": "Invalid authorization format. Expected Authorization header: Bearer and the token string"})
 	}
 
 	tokenString := authHeader[7:]

@@ -4,17 +4,9 @@
         <sl-button variant="text" href="/api">API</sl-button>
     </nav>
     <nav id="auth-nav">
-        <sl-button>
+        <sl-button onclick="document.getElementById('login-dialog').open = true">
             <sl-icon slot="prefix" name="person-circle"></sl-icon>
             Log In
         </sl-button>
     </nav>
 </header>
-
-<script>
-    const loginButton = document.createElement('sl-button');
-    loginButton.addEventListener("click", () => {
-        const dialog = document.getElementById("login-dialog");
-        dialog.open = true;
-    });
-</script>

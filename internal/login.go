@@ -1,8 +1,8 @@
 package internal
 
 type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `form:"email"`
+	Password string `form:"password"`
 }
 
 func (req LoginRequest) IsBad() bool {

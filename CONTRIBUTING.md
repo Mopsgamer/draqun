@@ -17,23 +17,25 @@ JavaScript should NOT be used, if possible. Possible reasons to add:
     - localStorage or cookies can not be manipulated or used by HTMX or changed by the server.
     - Shoelace components can not provide the specific functionality.
 
+Even if you use JavaScript, replace HTMX events with a script inside the html response.
+
 DOM manipulations should be provided through HTMX and the server. Cookies should be changed by the server, if possible.
 
 If the server can change something while the client not available, the client should send a request.
+
+Always send html as a response. Script tags available.
 
 ### About JSON
 
 Stop using it! We should use Query() and URI() intead of JSON() binds.
 
 Server and Client: use `/login?name=user0?password=hash_skdlklsdf` instead of json.
-Send HTML to client, and/or JSON if it is not DOM manipulation.
-
 
 ### About templates
 
 Files in web/templates can be rendered through Go's template language:
 https://pkg.go.dev/html/template
 
-This means, you can use specific syntax and replacements, but the variables should be declared by the server, such as User.
+This means, you can use specific syntax and replacements, but the variables should be declared by the server, such as `{{.User}}`.
 
-User variable should be used to generate user-specific content: logout button, profile, viewable app page.
+The User variable should be used to generate user-specific content: logout button, profile, viewable app page.
