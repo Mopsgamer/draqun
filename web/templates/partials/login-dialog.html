@@ -28,12 +28,11 @@
 </sl-dialog>
 
 <script>
-    document.addEventListener('htmx:afterRequest', function(event) {
+    document.addEventListener('htmx:afterRequest', function (event) {
         if (event.detail.xhr.response) {
             const response = JSON.parse(event.detail.xhr.response);
             if (response.token) {
                 localStorage.setItem('jwtToken', response.token);
-                window.location.href = '/';
             }
         }
     });

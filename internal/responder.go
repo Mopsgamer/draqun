@@ -69,7 +69,12 @@ func (r Responder) UserRegister(db *Database) error {
 		return r.RenderWarning(message, id)
 	}
 
-	if req.IsBad() {
+	if req.IsBadPasswordMatch() {
+		message := "Passwords do not match"
+		return r.RenderWarning(message, id)
+	}
+
+	if req.IsMissing() {
 		message := "Missing required fields"
 		return r.RenderWarning(message, id)
 	}
@@ -107,6 +112,7 @@ func (r Responder) UserLogin(db *Database) error {
 		return r.RenderWarning(message, id)
 	}
 
+	// NOTE: Better compare passwords and then get the user?
 	user, err := db.UserByEmail(req.Email)
 	if err != nil {
 		log.Println(err)
@@ -114,7 +120,7 @@ func (r Responder) UserLogin(db *Database) error {
 		return r.RenderWarning(message, id)
 	}
 
-	if !CheckPassword(user.Password, req.Password) { // NOTE: Better compare passwords and then get the user
+	if !CheckPassword(user.Password, req.Password) {
 		message := "Invalid email or password"
 		return r.RenderWarning(message, id)
 	}

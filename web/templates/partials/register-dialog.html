@@ -24,16 +24,12 @@
 
         <div>
             <label for="password">Password</label>
-            <sl-input type="password" id="password" name="password" required>
-                <sl-checkbox id="show-password">Show Password</sl-checkbox>
-            </sl-input>
+            <sl-input password-toggle type="password" id="password" name="password" required></sl-input>
         </div>
 
         <div>
             <label for="confirm-password">Confirm Password</label>
-            <sl-input type="password" id="confirm-password" name="confirm-password" required>
-                <sl-checkbox id="show-confirm-password">Show Password</sl-checkbox>
-            </sl-input>
+            <sl-input password-toggle type="password" id="confirm-password" name="confirm-password" required></sl-input>
         </div>
 
         <!--div>
@@ -53,24 +49,3 @@
         </div>
     </div>
 </sl-dialog>
-
-<script>
-    document.querySelectorAll('sl-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function () {
-            const inputId = this.parentElement.id; 
-            const input = document.getElementById(inputId);
-            input.type = this.checked ? 'text' : 'password';
-        });
-    });
-
-    const form = document.getElementById('register-form');
-    form.addEventListener('submit', function (event) {
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-
-        if (password !== confirmPassword) {
-            event.preventDefault(); 
-            document.getElementById('auth-error').innerText = "Passwords do not match!";
-        }
-    });
-</script>

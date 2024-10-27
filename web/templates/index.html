@@ -9,61 +9,16 @@
     <!--Heres main block i think-->
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const token = localStorage.getItem("jwtToken");
-        const url = "/user-data";
+<!--
+...Here was a js (shit) code, should implement using htmx, see CONTRIBUTING.md.
 
-        fetch(url, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => { // TODO: beautiful profile with buttons like navbar; without left-top paddings
-            if (data.error) {
-                document.getElementById('user-profile').hidden = true;
+Heres the new plan and gui idea:
 
-                document.getElementById('center-content').innerHTML = `
-                    <div class="user-profile flex flex-col items-center p-4">
-                        <h2 class="mt-2">Here's many text, like "${data.error}"</h2>
-                    </div>
-                `;
-            }
-            else {
-                document.getElementById('user-profile').innerHTML = `
-                    <div class="user-profile flex flex-col items-center p-4">
-                        <div class="avatar" style="width: 80px; height: 80px; border-radius: 50%; background-color: lightgray; overflow: hidden;">
-                            <img src="${data.avatar ? data.avatar : 'static/images/default-avatar.png'}" alt="User Avatar" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <h2 class="mt-2">${data.name}</h2>
-                        <sl-button variant="text" id="settings-button">Settings</sl-button>
-                        <sl-button href="/chat">Chat</sl-button>
-                    </div>
-                `;
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching user data:', error);
-        });
-    });
+Header: avatar, groups, friends, settings - available through fullscreen dialog.
+Center: chat
+Bottom: input
+Right or left: members and group/dm info
 
-    document.getElementById('settings-button').addEventListener('click', () => {
-        const settingsDialog = document.getElementById('settings-dialog'); 
-        settingsDialog.open = true;
-    });
-</script>
+Settings: logout
 
-<style>
-    .sidebar {
-        width: 250px; 
-        background-color: #282a2e; 
-        border-right: 1px solid #000000;
-    }
-</style>
+-->

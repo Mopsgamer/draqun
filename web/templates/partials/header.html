@@ -4,41 +4,17 @@
         <sl-button variant="text" href="/api">API</sl-button>
     </nav>
     <nav id="auth-nav">
-        
+        <sl-button>
+            <sl-icon slot="prefix" name="person-circle"></sl-icon>
+            Log In
+        </sl-button>
     </nav>
 </header>
 
 <script>
-    function updateAuthButton() {
-        const authNav = document.getElementById("auth-nav");
-        const token = localStorage.getItem('jwtToken'); 
-
-        authNav.innerHTML = '';
-
-        if (token) {
-            const logoutButton = document.createElement('sl-button'); // TODO: SET RED COLOR
-            logoutButton.innerHTML = 'Log Out';
-            logoutButton.addEventListener('click', () => {
-                localStorage.removeItem('jwtToken'); 
-                updateAuthButton(); 
-                window.location.reload()
-            });
-
-            authNav.appendChild(logoutButton);
-        } else {
-            const loginButton = document.createElement('sl-button');
-            loginButton.innerHTML = `
-                <sl-icon slot="prefix" name="person-circle"></sl-icon>
-                Log In
-            `;
-            loginButton.addEventListener("click", () => {
-                const dialog = document.getElementById("login-dialog");
-                dialog.open = true;
-            });
-
-            authNav.appendChild(loginButton);
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', updateAuthButton);
+    const loginButton = document.createElement('sl-button');
+    loginButton.addEventListener("click", () => {
+        const dialog = document.getElementById("login-dialog");
+        dialog.open = true;
+    });
 </script>
