@@ -23,7 +23,11 @@ If the server can change something while the client not available, the client sh
 
 ### About JSON
 
-Stop using it! We should use Query() and URI() intead of JSON() binds. Send all the data through query and url: `/login?name=user0?password=hash_skdlklsdf`
+Stop using it! We should use Query() and URI() intead of JSON() binds.
+
+Server and Client: use `/login?name=user0?password=hash_skdlklsdf` instead of json.
+Send HTML to client, and/or JSON if it is not DOM manipulation.
+
 
 ### About templates
 
