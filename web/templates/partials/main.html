@@ -18,23 +18,21 @@
     <script>
         document.addEventListener('htmx:beforeSend', function (event) {
             console.log("htmx:beforeSend\n%o", event)
+            const token = localStorage.getItem('jwtToken');
+            if(token) {
+                event.detail.requestConfig.headers["Authorization"] = `Bearer ${token}`
+            }
         });
-        // TODO: Send token always for htmx requests
-        // Server should send content based on this token.
-
-        // global variable, available for ather scripts
-        const token = localStorage.getItem('jwtToken');
     </script>
-    {{template "partials/login-dialog"}}
-    {{template "partials/header"}}
+    {{template "partials/login-dialog" .}}
+    {{template "partials/header" .}}
     <main id="main" class="p-4">
-        {{if .Content}}
-        {{.Content}}
-        {{- else}}
+        {{if .TokenError}}
+        {{template "partials/token-fallback" .}}
+        {{end}}
         {{embed}}
-        {{- end}}
     </main>
-    {{template "partials/footer"}}
+    {{template "partials/footer" .}}
 </body>
 
 </html>

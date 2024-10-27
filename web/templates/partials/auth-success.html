@@ -1,12 +1,14 @@
-{{template "partials/success"}}
+{{template "partials/success" .}}
 <template id="token">
-    {{.Token }}
+    {{.Token}}
 </template>
 <script>
     (() => {
+        console.log('auth')
         const token = document.getElementById("token").content.textContent
-        console.log(token)
         localStorage.setItem('jwtToken', token);
-        setTimeout(() => window.open('/'), 2000)
+        setTimeout(() => {
+            window.open('/', '_self')
+        }, 2000)
     })()
 </script>

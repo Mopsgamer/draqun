@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -9,7 +10,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type Responder struct{ fiber.Ctx }
+type Responder struct {
+	fiber.Ctx
+	DB Database
+}
 
 // Otherwise - json.
 func (r Responder) IsHTMX() bool {
@@ -23,6 +27,20 @@ func (r Responder) TemplateName() string {
 	return url
 }
 
+func (r Responder) RenderPage(templatePath, title string, layouts ...string) error {
+	user, err := r.GetOwner()
+	m := fiber.Map{
+		"Title":      "Restapp - " + title,
+		"User":       user,
+		"TokenError": err != nil,
+		"GoodUser":   user != nil,
+		"Message":    "LocalStorage token error",
+		"Id":         "local-token-error",
+	}
+	log.Println(m)
+	return r.Render(templatePath, m, layouts...)
+}
+
 // This type describes ALL values in EVERY partial, which can be passed into ./templates/partials
 // and used by htmx requests to replace DOM, using template generation through get requests
 // EXAMPLE:
@@ -33,15 +51,17 @@ func (r Responder) TemplateName() string {
 // NOTE: wont move this to internal/htmx.go
 // since its only for the RenderTemplate
 type HTMXPartialQuery struct {
-	Id      bool `query:"id"`
-	Message bool `query:"id"`
-	Open    bool `query:"open"`
-	Token   bool `query:"open"` // its safe
+	Id      string `query:"id"`
+	Message string `query:"id"`
+	Open    bool   `query:"open"`
+	Token   string `query:"token"` // its safe
+	User    User   `query:"user"`  // its safe
 }
 
 func (r Responder) RenderTemplate() error {
 	q := new(HTMXPartialQuery)
 	err := r.Bind().Query(q)
+	r.GetOwner()
 	if err != nil {
 		return err
 	}
@@ -49,6 +69,15 @@ func (r Responder) RenderTemplate() error {
 		"Id":      q.Id,
 		"Message": q.Message,
 		"Open":    q.Open,
+		"Token":   q.Token, // its safe
+		"User":    q.User,  // its safe
+	})
+}
+
+func (r Responder) RenderDanger(message, id string) error {
+	return r.Render("partials/danger", fiber.Map{
+		"Id":      id,
+		"Message": message,
 	})
 }
 
@@ -66,7 +95,7 @@ func (r Responder) RenderSuccess(message, id string) error {
 	})
 }
 
-func (r Responder) UserRegister(db *Database) error {
+func (r Responder) UserRegister() error {
 	id := "auth-error"
 	req := new(RegisterRequest)
 	err := r.Ctx.Bind().Form(req)
@@ -93,10 +122,10 @@ func (r Responder) UserRegister(db *Database) error {
 		return r.RenderWarning(message, id)
 	}
 
-	return r.GiveToken(id, user)
+	return r.GiveToken(id, *user)
 }
 
-func (r Responder) UserLogin(db *Database) error {
+func (r Responder) UserLogin() error {
 	id := "auth-error"
 	req := new(LoginRequest)
 	err := r.Ctx.Bind().Form(req)
@@ -112,7 +141,7 @@ func (r Responder) UserLogin(db *Database) error {
 	}
 
 	// NOTE: Better compare passwords and then get the user?
-	user, err := db.UserByEmail(req.Email)
+	user, err := r.DB.UserByEmail(req.Email)
 	if err != nil {
 		log.Println(err)
 		message := "User not found"
@@ -135,26 +164,25 @@ func (r Responder) GiveToken(errorElementId string, user User) error {
 	}
 
 	message := "Success!"
-	return r.Render("partials/success", fiber.Map{
+	return r.Render("partials/auth-success", fiber.Map{
 		"Id":      errorElementId,
 		"Message": message,
 		"Token":   token,
 	})
 }
 
-func (r Responder) GiveUser(db *Database) error {
+// Get the owner of the request using the "Authorization" header.
+func (r Responder) GetOwner() (*User, error) {
 	authHeader := r.Ctx.Get("Authorization")
 	if authHeader == "" {
-		return r.JSON(fiber.Map{"error": "Authorization header missing"})
+		return nil, errors.New("authorization header missing")
 	}
 
 	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
-		return r.JSON(fiber.Map{"error": "Invalid authorization format. Expected Authorization header: Bearer and the token string"})
+		return nil, errors.New("invalid authorization format. Expected Authorization header: Bearer and the token string")
 	}
 
 	tokenString := authHeader[7:]
-
-	//log.Println(tokenString)
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -164,23 +192,21 @@ func (r Responder) GiveUser(db *Database) error {
 	})
 
 	if err != nil || !token.Valid {
-		return r.JSON(fiber.Map{"error": "Invalid token"})
+		return nil, errors.New("invalid token")
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
 
 	userIDFloat, ok := claims["user_id"].(float64)
 	if !ok {
-		return r.JSON(fiber.Map{"error": "User ID not found or is invalid"})
+		return nil, errors.New("user ID not found or is invalid")
 	}
 	userID := int(userIDFloat)
 
-	user, err := db.UserByID(userID)
+	user, err := r.DB.UserByID(userID)
 	if err != nil {
-		return r.JSON(fiber.Map{"error": "User not found"})
+		return nil, errors.New("user not found")
 	}
 
-	//log.Println(user)
-
-	return r.JSON(user)
+	return user, nil
 }

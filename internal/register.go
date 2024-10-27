@@ -19,14 +19,17 @@ func (req RegisterRequest) IsMissing() bool {
 	return req.Name == "" || req.Email == "" || req.Password == ""
 }
 
-func (req RegisterRequest) CreateUser() (User, error) {
+func (req RegisterRequest) CreateUser() (*User, error) {
 	hash, err := HashPassword(req.Password)
-	return User{
+	if err != nil {
+		return nil, err
+	}
+	return &User{
 		Name:      req.Name,
 		Tag:       req.Tag,
 		Email:     req.Email,
 		Phone:     req.Phone,
 		Password:  hash,
 		CreatedAt: time.Now(),
-	}, err
+	}, nil
 }

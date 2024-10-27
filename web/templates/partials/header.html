@@ -4,9 +4,16 @@
         <sl-button variant="text" href="/api">API</sl-button>
     </nav>
     <nav id="auth-nav">
+        {{if .GoodUser}}
+        <sl-button variant="danger" onclick="localStorage.removeItem('jwtToken')">
+            <sl-icon slot="prefix" name="leave"></sl-icon>
+            Log Out
+        </sl-button>
+        {{else}}
         <sl-button onclick="document.getElementById('login-dialog').open = true">
             <sl-icon slot="prefix" name="person-circle"></sl-icon>
             Log In
         </sl-button>
+        {{end}}
     </nav>
 </header>

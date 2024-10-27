@@ -32,36 +32,32 @@ func InitServer() (*fiber.App, error) {
 	// static
 	app.Get("/static/*", static.New("./web/static"))
 	app.Get("/partials/*", func(c fiber.Ctx) error {
-		r := Responder{c}
+		r := Responder{c, *db}
 		return r.RenderTemplate()
 	})
 
 	// get
 	app.Get("/", func(c fiber.Ctx) error {
-		r := Responder{c}
-		return r.Render("index", fiber.Map{"Title": "Restapp - Home"}, "partials/main")
+		r := Responder{c, *db}
+		return r.RenderPage("index", "Home page")
 	})
 	app.Get("/chat", func(c fiber.Ctx) error {
-		r := Responder{c}
-		return r.Render("chat", fiber.Map{"Title": "Restapp - Chat"})
+		r := Responder{c, *db}
+		return r.RenderPage("chat", "Chat")
 	})
 	app.Get("/api", func(c fiber.Ctx) error {
-		r := Responder{c}
-		return r.Render("api", fiber.Map{"Title": "Restapp - API Docs"}, "partials/main")
-	})
-	app.Get("/user-data", func(c fiber.Ctx) error {
-		r := Responder{c}
-		return r.GiveUser(db)
+		r := Responder{c, *db}
+		return r.RenderPage("api", "API Documentation")
 	})
 
 	// post
 	app.Post("/register", func(c fiber.Ctx) error {
-		r := Responder{c}
-		return r.UserRegister(db)
+		r := Responder{c, *db}
+		return r.UserRegister()
 	})
 	app.Post("/login", func(c fiber.Ctx) error {
-		r := Responder{c}
-		return r.UserLogin(db)
+		r := Responder{c, *db}
+		return r.UserLogin()
 	})
 
 	return app, nil

@@ -1,5 +1,5 @@
-{{with .User.Email}}
-{{template "partials/chat"}}
+{{if .GoodUser}}
+{{template "partials/chat" .}}
 {{- else}}
 <!DOCTYPE html>
 <html lang="en" class="sl-theme-dark">
@@ -17,8 +17,11 @@
 </head>
 
 <body class="h-screen">
-    {{template "partials/login-dialog"}}
+    {{template "partials/login-dialog" .}}
     <main id="main" class="p-4 h-screen flex flex-col justify-center items-center">
+        {{if .TokenError}}
+        {{template "partials/token-fallback" .}}
+        {{end}}
         <div>
             You're not logged in.
             <sl-button variant="text" id="open-login-dialog-center">
@@ -39,4 +42,4 @@
 </body>
 
 </html>
-{{- end}}
+{{end}}

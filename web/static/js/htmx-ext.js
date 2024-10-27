@@ -33,7 +33,6 @@ htmx.defineExtension('shoelace', {
 					} else {
 						evt.detail.parameters.set(elt.name, elt.value)
 					}
-					console.log(elt.value)
 				}
 			})
 			// Prevent form submission if one or more fields are invalid. 
