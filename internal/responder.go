@@ -37,6 +37,7 @@ func (r Responder) RenderPage(templatePath, title string, layouts ...string) err
 		"GoodUser":   user != nil,
 		"Message":    "Authorization error",
 		"Id":         "local-token-error",
+		"IsChatPage": r.Path() == "/chat",
 	}
 	return r.Render(templatePath, m, layouts...)
 }

@@ -5,16 +5,6 @@
         <sl-button variant="text" href="/api">API</sl-button>
     </nav>
     <nav id="auth-nav">
-        {{if .GoodUser}}
-        <sl-button variant="danger" hx-put="/logout" hx-swap="innerHTML">
-            <sl-icon slot="prefix" name="box-arrow-right"></sl-icon>
-            Log Out
-        </sl-button>
-        {{else}}
-        <sl-button onclick="document.getElementById('login-dialog').open = true">
-            <sl-icon slot="prefix" name="person-circle"></sl-icon>
-            Log In
-        </sl-button>
-        {{end}}
+        {{template "partials/avatar-context-menu" .}}
     </nav>
 </header>
