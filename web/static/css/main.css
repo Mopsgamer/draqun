@@ -2,6 +2,20 @@
 @import url("./shoelace-light.css");
 @import url("./shoelace-dark.css");
 
+sl-dialog::part(panel) {
+    transition: .2s;
+}
+
+sl-dialog.fullscreen-base::part(panel) {
+    width: 100vw;
+    height: 100vh;
+    min-width: 100vw;
+    min-height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+}
+
 .bg-n50 {
     background-color: var(--sl-color-neutral-50);
 }

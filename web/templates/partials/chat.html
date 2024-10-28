@@ -6,38 +6,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Title}}</title>
     <script src="/static/js/htmx.min.js"></script>
-    <script src="/static/js/htmx-ext.min.js"></script>
+    <script src="/static/js/htmx-ext.js"></script>
     <script src="/static/js/tailwind.min.js"></script>
     <script type="module"
         src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.17.1/cdn/shoelace-autoloader.js"></script>
     <link rel="stylesheet" href="/static/css/main.css">
 </head>
 
-<body>
-    <header id="header">
-        <!-- TODO: implement header panel with servers, friends and settings -->
-        <nav>
-            <sl-button variant="text" href="/">Home</a>
-        </nav>
-        <nav>
-        </nav>
-    </header>
-    <div id="center">
-        <main id="chat" class="p-4">
-            Chat
-            <!-- messages going here -->
-        </main>
-        <div>
-            <!-- input, smile menu, send button -->
-            <sl-input id="chat-input"></sl-input>
-            <!-- TODO: implement sending endpoint (POST) -->
-            <sl-button hx-post="/">
-                <sl-icon name="send" slot="prefix"></sl-icon>
-            </sl-button>
+<body class="max-h-screen h-screen overflow-hidden">
+    {{template "partials/settings-dialog" .}}
+    <div class="flex flex-col h-full">
+        <header id="header" class="flex h-fit justify-between p-2">
+            <!-- TODO: implement header panel with servers, friends and settings -->
+            <nav class="flex items-center">
+                <sl-button variant="text" href="/">Home</a>
+            </nav>
+            <nav class="flex items-center">
+                {{template "partials/avatar-context-menu" .}}
+            </nav>
+        </header>
+        <div id="content" class="flex flex-row h-full">
+            <div id="center" class="flex flex-col h-full w-full">
+                <main id="chat" class="p-2 h-full">
+                    <!-- messages going here -->
+                </main>
+                <div class="flex w-full h-fit gap-1 p-2">
+                    <!-- input, smile menu, send button -->
+                    <sl-input id="chat-input" class="w-full"></sl-input>
+                    <!-- TODO: implement sending endpoint (POST) -->
+                    <sl-button hx-post="/">
+                        <sl-icon name="send" slot="prefix"></sl-icon>
+                    </sl-button>
+                </div>
+            </div>
+            <div id="right" class="flex h-full w-56 visible max-[420px]:hidden">
+                <!-- TODO: implement friends list -->
+            </div>
         </div>
-    </div>
-    <div id="right">
-        <!-- TODO: implement friends list -->
     </div>
 </body>
 

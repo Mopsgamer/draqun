@@ -1,0 +1,22 @@
+<sl-dropdown placement="bottom-end">
+    <sl-icon-button id="avatar-button" slot="trigger" name="person-circle" class="text-3xl cursor-pointer">
+    </sl-icon-button>
+    <sl-menu>
+        {{if .GoodUser}}
+        <sl-menu-item onclick="document.getElementById('settings-dialog').open = true">
+            <sl-icon slot="prefix" name="gear"></sl-icon>
+            Settings
+        </sl-menu-item>
+        <sl-divider></sl-divider>
+        <sl-menu-item hx-put="/logout" hx-swap="innerHTML">
+            <sl-icon slot="prefix" name="box-arrow-right"></sl-icon>
+            Log Out
+        </sl-menu-item>
+        {{else}}
+        <sl-menu-item onclick="document.getElementById('login-dialog').open = true">
+            <sl-icon slot="prefix" name="person-circle"></sl-icon>
+            Log In
+        </sl-menu-item>
+        {{end}}
+    </sl-menu>
+</sl-popup>

@@ -189,7 +189,6 @@ func (r Responder) GiveToken(errorElementId string, user User) error {
 // Returns (nil, nil), if the header is empty.
 func (r Responder) GetOwner() (*User, error) {
 	authHeader := r.Cookies("Authorization")
-	log.Println("auth header:", authHeader)
 	if authHeader == "" {
 		return nil, nil
 	}
