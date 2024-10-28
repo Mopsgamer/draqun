@@ -39,7 +39,7 @@ func InitServer() (*fiber.App, error) {
 	// get
 	app.Get("/", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
-		return r.RenderPage("index", "Home page")
+		return r.RenderPage("index", "Home page", "partials/main")
 	})
 	app.Get("/chat", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
@@ -47,7 +47,7 @@ func InitServer() (*fiber.App, error) {
 	})
 	app.Get("/api", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
-		return r.RenderPage("api", "API Documentation")
+		return r.RenderPage("api", "API Documentation", "partials/main")
 	})
 
 	// post
@@ -58,6 +58,12 @@ func InitServer() (*fiber.App, error) {
 	app.Post("/login", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.UserLogin()
+	})
+
+	// put
+	app.Put("/logout", func(c fiber.Ctx) error {
+		r := Responder{c, *db}
+		return r.UserLogout()
 	})
 
 	return app, nil

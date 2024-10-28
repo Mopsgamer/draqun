@@ -15,15 +15,6 @@
 </head>
 
 <body hx-ext="shoelace">
-    <script>
-        document.addEventListener('htmx:beforeSend', function (event) {
-            console.log("htmx:beforeSend\n%o", event)
-            const token = localStorage.getItem('jwtToken');
-            if(token) {
-                event.detail.requestConfig.headers["Authorization"] = `Bearer ${token}`
-            }
-        });
-    </script>
     {{template "partials/login-dialog" .}}
     {{template "partials/header" .}}
     <main id="main" class="p-4">

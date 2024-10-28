@@ -3,12 +3,5 @@
     {{.Token}}
 </template>
 <script>
-    (() => {
-        console.log('auth')
-        const token = document.getElementById("token").content.textContent
-        localStorage.setItem('jwtToken', token);
-        setTimeout(() => {
-            window.open('/', '_self')
-        }, 2000)
-    })()
+    window.open(location.href, '_self')
 </script>

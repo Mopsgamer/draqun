@@ -1,12 +1,13 @@
 <header id="header" class="p-4 bg-n50 flex justify-between">
     <nav>
         <sl-button variant="text" href="/">Home</sl-button>
+        <sl-button variant="text" href="/chat">Chat</sl-button>
         <sl-button variant="text" href="/api">API</sl-button>
     </nav>
     <nav id="auth-nav">
         {{if .GoodUser}}
-        <sl-button variant="danger" onclick="localStorage.removeItem('jwtToken')">
-            <sl-icon slot="prefix" name="leave"></sl-icon>
+        <sl-button variant="danger" hx-put="/logout" hx-swap="innerHTML">
+            <sl-icon slot="prefix" name="box-arrow-right"></sl-icon>
             Log Out
         </sl-button>
         {{else}}

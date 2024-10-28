@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
@@ -15,7 +16,7 @@ type Responder struct {
 	DB Database
 }
 
-// Otherwise - json.
+// Otherwise graphql or something.
 func (r Responder) IsHTMX() bool {
 	return r.Ctx.Get("HX-Request", "") != ""
 }
@@ -34,10 +35,9 @@ func (r Responder) RenderPage(templatePath, title string, layouts ...string) err
 		"User":       user,
 		"TokenError": err != nil,
 		"GoodUser":   user != nil,
-		"Message":    "LocalStorage token error",
+		"Message":    "Authorization error",
 		"Id":         "local-token-error",
 	}
-	log.Println(m)
 	return r.Render(templatePath, m, layouts...)
 }
 
@@ -140,7 +140,6 @@ func (r Responder) UserLogin() error {
 		return r.RenderWarning(message, id)
 	}
 
-	// NOTE: Better compare passwords and then get the user?
 	user, err := r.DB.UserByEmail(req.Email)
 	if err != nil {
 		log.Println(err)
@@ -156,6 +155,16 @@ func (r Responder) UserLogin() error {
 	return r.GiveToken(id, *user)
 }
 
+func (r Responder) UserLogout() error {
+	r.Cookie(&fiber.Cookie{
+		Name:    "Authorization",
+		Value:   "",
+		Expires: time.Now(),
+	})
+
+	return r.Render("partials/auth-logout", fiber.Map{})
+}
+
 func (r Responder) GiveToken(errorElementId string, user User) error {
 	token, err := user.GenerateJWT()
 	if err != nil {
@@ -163,7 +172,12 @@ func (r Responder) GiveToken(errorElementId string, user User) error {
 		return r.RenderWarning(message, errorElementId)
 	}
 
-	message := "Success!"
+	message := "Success! Redirecting..."
+	r.Cookie(&fiber.Cookie{
+		Name:    "Authorization",
+		Value:   "Bearer " + token,
+		Expires: time.Now().Add(30 * 24 * time.Hour), // 30 days
+	})
 	return r.Render("partials/auth-success", fiber.Map{
 		"Id":      errorElementId,
 		"Message": message,
@@ -172,10 +186,12 @@ func (r Responder) GiveToken(errorElementId string, user User) error {
 }
 
 // Get the owner of the request using the "Authorization" header.
+// Returns (nil, nil), if the header is empty.
 func (r Responder) GetOwner() (*User, error) {
-	authHeader := r.Ctx.Get("Authorization")
+	authHeader := r.Cookies("Authorization")
+	log.Println("auth header:", authHeader)
 	if authHeader == "" {
-		return nil, errors.New("authorization header missing")
+		return nil, nil
 	}
 
 	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {

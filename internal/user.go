@@ -24,7 +24,7 @@ type User struct {
 	Tag       string    `json:"tag" db:"tag"`
 	Email     string    `json:"email" db:"email"`
 	Phone     string    `json:"phone" db:"phone"`
-	Password  string    `json:"-" db:"password"`
+	Password  string    `json:"password" db:"password"`
 	Avatar    string    `json:"avatar" db:"avatar"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
