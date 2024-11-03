@@ -8,8 +8,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// The SQL DB wrapper.
 type Database struct{ Sql *sqlx.DB }
 
+// Save the user as a DB record.
 func (db Database) UserSave(user User) error {
 	query := `INSERT INTO users (name, tag, email, phone, password, avatar, created_at) 
               VALUES (?, ?, ?, ?, ?, ?, ?)`
@@ -22,6 +24,7 @@ func (db Database) UserSave(user User) error {
 	return nil
 }
 
+// Get the user by his email.
 func (db Database) UserByEmail(email string) (*User, error) {
 	//log.Println("<" + email + ">")
 	email = strings.TrimSpace(email)
@@ -37,6 +40,7 @@ func (db Database) UserByEmail(email string) (*User, error) {
 	return user, nil
 }
 
+// Get the user by his identificator.
 func (db Database) UserByID(userID int) (*User, error) {
 	var user = new(User)
 	query := `SELECT id, name, tag, email, phone, password, avatar, created_at 

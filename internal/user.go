@@ -8,16 +8,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// The server's secret key.
 var secretKey = []byte(os.Getenv("JWT_KEY"))
+
+// User token expiration: 24 Hours.
 var tokenExpiration = 24 * time.Hour
 
-type Claims struct {
-	UserID uint   `json:"user_id"`
-	Email  string `json:"email"`
-	Name   string `json:"name"`
-	jwt.RegisteredClaims
-}
+// The user token validator.
+var tokenValidator = jwt.NewValidator()
 
+// The user as a json or
 type User struct {
 	ID        uint      `json:"id" db:"id"`
 	Name      string    `json:"name" db:"name"`
@@ -29,27 +29,50 @@ type User struct {
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
 
-func (user User) GenerateJWT() (string, error) {
-	claims := Claims{
-		UserID: user.ID,
-		Email:  user.Email,
-		Name:   user.Name,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenExpiration)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			NotBefore: jwt.NewNumericDate(time.Now()),
-			Issuer:    "restapp",
-			Subject:   user.Email,
-		},
-	}
+func (c User) GetAudience() (jwt.ClaimStrings, error) {
+	return []string{c.Email}, nil
+}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+func (c User) GetExpirationTime() (*jwt.NumericDate, error) {
+	return jwt.NewNumericDate(time.Now().Add(tokenExpiration)), nil
+}
+
+func (c User) GetIssuedAt() (*jwt.NumericDate, error) {
+	return jwt.NewNumericDate(time.Now()), nil
+}
+
+func (c User) GetNotBefore() (*jwt.NumericDate, error) {
+	return jwt.NewNumericDate(time.Now()), nil
+}
+
+func (c User) GetIssuer() (string, error) {
+	return "restapp", nil
+}
+
+func (c User) GetSubject() (string, error) {
+	return c.Email, nil
+}
+
+// Encode the password.
+func (user User) HashPassword() (string, error) {
+	return HashPassword(user.Password)
+}
+
+// Check the encoded password with the current user struct password.
+func (user User) CheckPassword(hashedPassword string) bool {
+	return CheckPassword(hashedPassword, user.Password)
+}
+
+// Get the token for the current user.
+func (user User) GenerateToken() (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, user)
 
 	return token.SignedString(secretKey)
 }
 
-func (user User) HashPassword() (string, error) {
-	return HashPassword(user.Password)
+// Validate the token for the current user.
+func (user User) ValidateToken(tokenString string) error {
+	return tokenValidator.Validate(user)
 }
 
 func HashPassword(password string) (string, error) {
@@ -57,26 +80,6 @@ func HashPassword(password string) (string, error) {
 	return string(hashedPassword), err
 }
 
-func (user User) CheckPassword(hashedPassword string) bool {
-	return CheckPassword(hashedPassword, user.Password)
-}
-
 func CheckPassword(hashedPassword, password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) == nil
-}
-
-func ValidateToken(tokenString string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return secretKey, nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims, nil
-	}
-
-	return nil, jwt.ErrSignatureInvalid
 }

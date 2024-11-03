@@ -10,9 +10,9 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/static"
 	"github.com/gofiber/template/html/v2"
 	"github.com/jmoiron/sqlx"
-	"github.com/joho/godotenv"
 )
 
+// Initialize gofiber application, including DB and view engine.
 func InitServer() (*fiber.App, error) {
 	db, err := InitDB()
 	if err != nil {
@@ -69,12 +69,8 @@ func InitServer() (*fiber.App, error) {
 	return app, nil
 }
 
+// Initialize the DB wrapper.
 func InitDB() (*Database, error) {
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
-		return nil, err
-	}
-
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
@@ -122,6 +118,7 @@ func InitDB() (*Database, error) {
 	return &Database{Sql: connection}, nil
 }
 
+// Initialize the view engine.
 func InitVE() *html.Engine {
 	engine := html.New("./web/templates", ".html")
 

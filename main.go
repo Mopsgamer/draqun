@@ -5,10 +5,15 @@ import (
 	"restapp/internal"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	if internal.CreateEnv("--make-env") {
+		return
+	}
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
 		return
 	}
 	if app, err := internal.InitServer(); err == nil {

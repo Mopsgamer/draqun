@@ -16,7 +16,7 @@ type Responder struct {
 	DB Database
 }
 
-// Otherwise graphql or something.
+// Otherwise json, graphql or something.
 func (r Responder) IsHTMX() bool {
 	return r.Ctx.Get("HX-Request", "") != ""
 }
@@ -28,6 +28,7 @@ func (r Responder) TemplateName() string {
 	return url
 }
 
+// Render a page using a template.
 func (r Responder) RenderPage(templatePath, title string, layouts ...string) error {
 	user, err := r.GetOwner()
 	m := fiber.Map{
@@ -44,10 +45,11 @@ func (r Responder) RenderPage(templatePath, title string, layouts ...string) err
 
 // This type describes ALL values in EVERY partial, which can be passed into ./templates/partials
 // and used by htmx requests to replace DOM, using template generation through get requests
+//
 // EXAMPLE:
 //
 //	<div hx-get="/partials/settings">
-//	<div hx-get="/partials/chat?class=compact">
+//	<div hx-get="/partials/chat?mode=compact">
 //
 // NOTE: wont move this to internal/htmx.go
 // since its only for the RenderTemplate
@@ -59,6 +61,7 @@ type HTMXPartialQuery struct {
 	User    User   `query:"user"`  // its safe
 }
 
+// Renders a template, requested by a client.
 func (r Responder) RenderTemplate() error {
 	q := new(HTMXPartialQuery)
 	err := r.Bind().Query(q)
@@ -75,6 +78,7 @@ func (r Responder) RenderTemplate() error {
 	})
 }
 
+// Renders the danger message html element.
 func (r Responder) RenderDanger(message, id string) error {
 	return r.Render("partials/danger", fiber.Map{
 		"Id":      id,
@@ -82,6 +86,7 @@ func (r Responder) RenderDanger(message, id string) error {
 	})
 }
 
+// Renders the warning message html element.
 func (r Responder) RenderWarning(message, id string) error {
 	return r.Render("partials/warning", fiber.Map{
 		"Id":      id,
@@ -89,6 +94,7 @@ func (r Responder) RenderWarning(message, id string) error {
 	})
 }
 
+// Renders the success message html element.
 func (r Responder) RenderSuccess(message, id string) error {
 	return r.Render("partials/success", fiber.Map{
 		"Id":      id,
@@ -96,6 +102,7 @@ func (r Responder) RenderSuccess(message, id string) error {
 	})
 }
 
+// Uses the current request information.
 func (r Responder) UserRegister() error {
 	id := "auth-error"
 	req := new(RegisterRequest)
@@ -126,6 +133,7 @@ func (r Responder) UserRegister() error {
 	return r.GiveToken(id, *user)
 }
 
+// Uses the current request information.
 func (r Responder) UserLogin() error {
 	id := "auth-error"
 	req := new(LoginRequest)
@@ -156,6 +164,7 @@ func (r Responder) UserLogin() error {
 	return r.GiveToken(id, *user)
 }
 
+// Uses the current request information.
 func (r Responder) UserLogout() error {
 	r.Cookie(&fiber.Cookie{
 		Name:    "Authorization",
@@ -166,8 +175,9 @@ func (r Responder) UserLogout() error {
 	return r.Render("partials/auth-logout", fiber.Map{})
 }
 
+// Authorize the user, using the current request information and new cookies.
 func (r Responder) GiveToken(errorElementId string, user User) error {
-	token, err := user.GenerateJWT()
+	token, err := user.GenerateToken()
 	if err != nil {
 		message := "Error generating token"
 		return r.RenderWarning(message, errorElementId)
@@ -177,7 +187,7 @@ func (r Responder) GiveToken(errorElementId string, user User) error {
 	r.Cookie(&fiber.Cookie{
 		Name:    "Authorization",
 		Value:   "Bearer " + token,
-		Expires: time.Now().Add(30 * 24 * time.Hour), // 30 days
+		Expires: time.Now().Add(tokenExpiration),
 	})
 	return r.Render("partials/auth-success", fiber.Map{
 		"Id":      errorElementId,

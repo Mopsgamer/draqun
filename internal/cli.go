@@ -7,6 +7,7 @@ import (
 	"slices"
 )
 
+// Creates the .env file, if provided the '--make-env' option.
 func CreateEnv(option string) (hasOption bool) {
 	path := ".env"
 	makeEnv := slices.Contains(os.Args, option)
@@ -24,6 +25,7 @@ func CreateEnv(option string) (hasOption bool) {
 
 	err := os.WriteFile(path, []byte(
 		"DB_PASSWORD=\n"+
+			"JWT_KEY=\n"+
 			"DB_NAME=restapp\n"+
 			"DB_USER=root\n"+
 			"DB_HOST=localhost\n"+
