@@ -30,11 +30,18 @@ func (r Responder) TemplateName() string {
 
 // Render a page using a template.
 func (r Responder) RenderPage(templatePath, title string, layouts ...string) error {
-	user, err := r.GetOwner()
+	user, errToken := r.GetOwner()
+	if errToken != nil {
+		r.Cookie(&fiber.Cookie{
+			Name:    "Authorization",
+			Value:   "",
+			Expires: time.Now(),
+		})
+	}
 	m := fiber.Map{
 		"Title":      "Restapp - " + title,
 		"User":       user,
-		"TokenError": err != nil,
+		"TokenError": errToken != nil,
 		"GoodUser":   user != nil,
 		"Message":    "Authorization error",
 		"Id":         "local-token-error",
