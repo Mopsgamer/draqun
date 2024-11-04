@@ -2,6 +2,7 @@
     "nodeModulesDir": "auto",
     "tasks": {
         "serve": "go run .",
+        "init": "go run . --init",
         "build": "deno task --cwd ./web build"
     },
     "imports": {

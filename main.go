@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	if internal.CreateEnv("--make-env") {
+	if internal.InitProject() {
 		return
 	}
 	if err := godotenv.Load(); err != nil {

@@ -14,14 +14,33 @@ Requirements:
 
 ### Preparing
 
-Creating the `.env` file:
+Creating project files:
 ```bash
-go run . -- --make-env
+go run . -- --init
 # or
-deno task serve -- --make-env
-
-# then fill it by in your editor
+deno task init
 ```
+
+After this command you will get the `.env` file in your project's root.
+Fill this file manually.
+
+Force option overrides your existing files:
+```bash
+go run . -- --init --force
+# or
+deno task init --force
+```
+
+### Starting the server
+
+Running the server
+```bash
+go run .
+# or
+deno task serve
+```
+
+### Changing the code base
 
 Bundling the web statics and assets:
 ```bash
@@ -34,12 +53,3 @@ The command above should be used when:
 - Deno dependencies (js libraries) has been updated.
 - Changed any html template and potentially used new tailwind classnames, Otherwise it may not work partially.
 - CSS or JS code has been changed: `./web/src`.
-
-### Starting the server
-
-Running the server
-```bash
-go run .
-# or
-deno task serve
-```

@@ -7,20 +7,24 @@ import (
 	"slices"
 )
 
-// Creates the .env file, if provided the '--make-env' option.
-func CreateEnv(option string) (hasOption bool) {
+// Creates the .env file, if provided the '--init' option.
+func InitProject() (hasOption bool) {
+
+	optionInit := "--init"
+	optionForce := "--force"
+
 	path := ".env"
-	makeEnv := slices.Contains(os.Args, option)
-	if !makeEnv {
-		return makeEnv
+	isInit := slices.Contains(os.Args, optionInit)
+	if !isInit {
+		return isInit
 	}
 
-	force := slices.Contains(os.Args, "--force")
+	force := slices.Contains(os.Args, optionForce)
 	_, errstat := os.Stat(path)
 	exists := !os.IsNotExist(errstat)
 	if exists && !force {
-		log.Println("Failed to write " + path + " - already exists, use --force")
-		return makeEnv
+		log.Println("Failed to write " + path + " - already exists, use " + optionForce)
+		return isInit
 	}
 
 	err := os.WriteFile(path, []byte(
@@ -34,9 +38,9 @@ func CreateEnv(option string) (hasOption bool) {
 
 	if err != nil {
 		log.Println("Failed to write " + path)
-		return makeEnv
+		return isInit
 	}
 
 	log.Println("Writed " + path)
-	return makeEnv
+	return isInit
 }
