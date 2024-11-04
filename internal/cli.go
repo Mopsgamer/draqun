@@ -5,11 +5,12 @@ import (
 	"bytes"
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"os/exec"
 	"slices"
 	"strings"
+
+	"github.com/gofiber/fiber/v3/log"
 )
 
 // Creates the .env file, if provided the '--init' option.
@@ -28,8 +29,7 @@ func InitProjectFiles() {
 	_, errstat := os.Stat(path)
 	exists := !os.IsNotExist(errstat)
 	if exists && !force {
-		log.Println("Failed to write " + path + " - already exists, use " + optionForce)
-		os.Exit(1)
+		log.Fatal("Failed to write " + path + " - already exists, use " + optionForce)
 	}
 
 	err := os.WriteFile(path, []byte(
@@ -42,15 +42,14 @@ func InitProjectFiles() {
 	), fs.ModeDevice)
 
 	if err != nil {
-		log.Println("Failed to write " + path)
-		os.Exit(1)
+		log.Fatal("Failed to write " + path)
 	}
 
-	log.Println("Writed " + path)
+	log.Info("Writed " + path)
 
-	log.Println("Executing deno build task...")
+	log.Info("Executing deno build task...")
 	ExecDeno("task", "build")
-	log.Println("Deno tasks completed successfully.")
+	log.Info("Deno tasks completed successfully.")
 	os.Exit(0)
 }
 

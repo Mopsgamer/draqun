@@ -2,10 +2,10 @@ package internal
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/log"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/static"
 	"github.com/gofiber/template/html/v2"
@@ -67,9 +67,9 @@ func InitServer() (*fiber.App, error) {
 		return r.UserLogout()
 	})
 
-	log.Println("Creating file listeners for bundling...")
+	log.Info("Creating file listeners for bundling...")
 	WaitForBundleWatch()
-	log.Println("Watching for file changes while starting the server...")
+	log.Info("Watching for file changes while starting the server...")
 
 	return app, nil
 }
@@ -87,16 +87,16 @@ func InitDB() (*Database, error) {
 
 	connection, err := sqlx.Connect("mysql", connectionString)
 	if err != nil {
-		log.Printf("Unable to connect to database: %v\n", err)
+		log.Error("Unable to connect to database: %v\n", err)
 		return nil, err
 	}
 
 	if err := connection.Ping(); err != nil {
-		log.Printf("Unable to ping database: %v\n", err)
+		log.Error("Unable to ping database: %v\n", err)
 		return nil, err
 	}
 
-	log.Println("Database connected successfully")
+	log.Info("Database connected successfully")
 
 	createTableQuery := `
 	CREATE TABLE IF NOT EXISTS users (
@@ -115,11 +115,11 @@ func InitDB() (*Database, error) {
 `
 
 	if _, err := connection.Exec(createTableQuery); err != nil {
-		log.Printf("Error creating users table: %v\n", err)
+		log.Error("Error creating users table: %v\n", err)
 		return nil, err
 	}
 
-	log.Println("Users table ensured to exist")
+	log.Info("Users table ensured to exist")
 	return &Database{Sql: connection}, nil
 }
 

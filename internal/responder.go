@@ -3,11 +3,11 @@ package internal
 import (
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/log"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -115,7 +115,7 @@ func (r Responder) UserRegister() error {
 	req := new(RegisterRequest)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		message := "Invalid request payload"
 		return r.RenderWarning(message, id)
 	}
@@ -132,7 +132,7 @@ func (r Responder) UserRegister() error {
 
 	user, err := req.CreateUser()
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		message := "Unable to register user"
 		return r.RenderWarning(message, id)
 	}
@@ -146,7 +146,7 @@ func (r Responder) UserLogin() error {
 	req := new(LoginRequest)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		message := "Invalid request payload"
 		return r.RenderWarning(message, id)
 	}
@@ -158,7 +158,7 @@ func (r Responder) UserLogin() error {
 
 	user, err := r.DB.UserByEmail(req.Email)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		message := "User not found"
 		return r.RenderWarning(message, id)
 	}

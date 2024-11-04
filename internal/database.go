@@ -2,9 +2,9 @@ package internal
 
 import (
 	"errors"
-	"log"
 	"strings"
 
+	"github.com/gofiber/fiber/v3/log"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -17,8 +17,8 @@ func (db Database) UserSave(user User) error {
               VALUES (?, ?, ?, ?, ?, ?, ?)`
 	_, err := db.Sql.Exec(query, user.Name, user.Tag, user.Email, user.Phone, user.Password, user.Avatar, user.CreatedAt)
 	if err != nil {
-		log.Println(err)
-		log.Println(user)
+		log.Error(err)
+		log.Info(user)
 		return err
 	}
 	return nil
@@ -26,15 +26,14 @@ func (db Database) UserSave(user User) error {
 
 // Get the user by his email.
 func (db Database) UserByEmail(email string) (*User, error) {
-	//log.Println("<" + email + ">")
 	email = strings.TrimSpace(email)
 	var user = new(User)
 	query := `SELECT id, name, tag, email, phone, password, avatar, created_at 
               FROM users WHERE email = ?`
 	err := db.Sql.Get(user, query, email)
 	if err != nil {
-		log.Println(err)
-		log.Println(user)
+		log.Error(err)
+		log.Info(user)
 		return nil, errors.New("User not found")
 	}
 	return user, nil
@@ -47,7 +46,7 @@ func (db Database) UserByID(userID int) (*User, error) {
               FROM users WHERE id = ?`
 	err := db.Sql.Get(user, query, userID)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		return nil, errors.New("User not found")
 	}
 	return user, nil
