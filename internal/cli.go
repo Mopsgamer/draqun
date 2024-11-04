@@ -1,14 +1,19 @@
 package internal
 
 import (
+	"bufio"
+	"bytes"
+	"fmt"
 	"io/fs"
 	"log"
 	"os"
+	"os/exec"
 	"slices"
+	"strings"
 )
 
 // Creates the .env file, if provided the '--init' option.
-func InitProject() (hasOption bool) {
+func InitProjectFiles() {
 
 	optionInit := "--init"
 	optionForce := "--force"
@@ -16,7 +21,7 @@ func InitProject() (hasOption bool) {
 	path := ".env"
 	isInit := slices.Contains(os.Args, optionInit)
 	if !isInit {
-		return isInit
+		return
 	}
 
 	force := slices.Contains(os.Args, optionForce)
@@ -24,7 +29,7 @@ func InitProject() (hasOption bool) {
 	exists := !os.IsNotExist(errstat)
 	if exists && !force {
 		log.Println("Failed to write " + path + " - already exists, use " + optionForce)
-		return isInit
+		os.Exit(1)
 	}
 
 	err := os.WriteFile(path, []byte(
@@ -38,9 +43,50 @@ func InitProject() (hasOption bool) {
 
 	if err != nil {
 		log.Println("Failed to write " + path)
-		return isInit
+		os.Exit(1)
 	}
 
 	log.Println("Writed " + path)
-	return isInit
+
+	log.Println("Executing deno build task...")
+	ExecDeno("task", "build")
+	log.Println("Deno tasks completed successfully.")
+	os.Exit(0)
+}
+
+// Creates the instance. Checks if the deno command exists: exits with 1 if it doesn't.
+// Uses default system's output.
+func ExecDeno(arg ...string) *exec.Cmd {
+	_, err := exec.LookPath("deno")
+	if err != nil {
+		fmt.Println("Deno is not installed or not available in PATH.")
+		os.Exit(1)
+	}
+
+	cmd := exec.Command("deno", arg...)
+
+	return cmd
+}
+
+func WaitForBundleWatch() {
+	deno := ExecDeno("task", "build", "--watch")
+
+	reader, err := deno.StdoutPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	scanner := bufio.NewScanner(reader)
+	var buffer bytes.Buffer
+	deno.Start()
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		buffer.WriteString(line + "\n")
+
+		if strings.Contains(line, "watching") {
+			break
+		}
+	}
 }

@@ -67,6 +67,10 @@ func InitServer() (*fiber.App, error) {
 		return r.UserLogout()
 	})
 
+	log.Println("Creating file listeners for bundling...")
+	WaitForBundleWatch()
+	log.Println("Watching for file changes while starting the server...")
+
 	return app, nil
 }
 

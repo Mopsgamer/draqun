@@ -9,9 +9,7 @@ import (
 )
 
 func main() {
-	if internal.InitProject() {
-		return
-	}
+	internal.InitProjectFiles()
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
 		return
