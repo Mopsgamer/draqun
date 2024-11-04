@@ -1,5 +1,6 @@
 import * as esbuild from "esbuild";
 import { copy as copyPlugin } from "esbuild-plugin-copy";
+import { tailwindPlugin } from "esbuild-plugin-tailwindcss";
 import { Listr, type ListrTask } from "listr2";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { dirname } from "jsr:@std/path";
@@ -12,7 +13,7 @@ type BuildOptions = esbuild.SameShape<
 
 const options: BuildOptions = {
     bundle: true,
-    minify: true,
+    minify: false,
     platform: "browser",
     format: "esm",
     target: [
@@ -78,6 +79,9 @@ const progress = new Listr(
                         ...options,
                         outfile: "./static/css/main.css",
                         entryPoints: ["./src/css/main.css"],
+                        plugins: [
+                            tailwindPlugin()
+                        ]
                     }),
                     copyTask(
                         "../node_modules/@shoelace-style/shoelace/dist/assets/**/*",

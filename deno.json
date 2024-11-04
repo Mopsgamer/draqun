@@ -1,7 +1,7 @@
 {
     "nodeModulesDir": "auto",
     "tasks": {
-        "start": "go run .",
+        "serve": "go run .",
         "build": "deno task --cwd ./web build"
     },
     "imports": {
@@ -11,6 +11,7 @@
         "@std/path": "jsr:@std/path@^1.0.8",
         "esbuild": "npm:esbuild@^0.24.0",
         "esbuild-plugin-copy": "npm:esbuild-plugin-copy@^2.1.1",
+        "esbuild-plugin-tailwindcss": "npm:esbuild-plugin-tailwindcss@^1.2.1",
         "htmx.org": "npm:htmx.org@^1.9.12",
         "listr2": "npm:listr2@^8.2.5",
         "tailwindcss": "npm:tailwindcss@^3.4.14"

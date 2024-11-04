@@ -8,24 +8,32 @@ Definitely a cool chat application.
 ## Building from source
 
 Requirements:
-- MySql@>=2
+- MySql@>=5.0
 - go@>=1.23
-
-Optional:
-- Deno@>=2 (optional, for web rebuilds)
+- Deno@>=2.0
 
 ### Preparing
 
 Creating the `.env` file:
 ```bash
-go run . --make-env
+go run . -- --make-env
+# or
+deno task serve -- --make-env
+
 # then fill it by in your editor
 ```
 
-Bundling the web (optional, use only when updating deno dependencies):
+Bundling the web statics and assets:
 ```bash
 deno task build
 ```
+
+The command above should be used when:
+
+- Repository has been cloned.
+- Deno dependencies (js libraries) has been updated.
+- Changed any html template and potentially used new tailwind classnames, Otherwise it may not work partially.
+- CSS or JS code has been changed: `./web/src`.
 
 ### Starting the server
 
