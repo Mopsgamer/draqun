@@ -31,6 +31,7 @@ func InitServer() (*fiber.App, error) {
 
 	// static
 	app.Get("/static/*", static.New("./web/static"))
+	app.Get("/assets/*", static.New("./web/assets"))
 	app.Get("/partials/*", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.RenderTemplate()

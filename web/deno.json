@@ -1,0 +1,10 @@
+{
+    "exclude": ["./static"],
+    "fmt": {
+        "indentWidth": 4,
+        "include": ["**/*.ts", "./src/js"]
+    },
+    "tasks": {
+        "build": "deno run --allow-write --allow-net=deno.land,registry.npmjs.org --allow-sys --allow-env --allow-read --allow-run ./build.ts"
+    }
+}

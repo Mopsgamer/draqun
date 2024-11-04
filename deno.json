@@ -1,0 +1,26 @@
+{
+    "nodeModulesDir": "auto",
+    "tasks": {
+        "start": "go run .",
+        "build": "deno task --cwd ./web build"
+    },
+    "imports": {
+        "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.0",
+        "@shoelace-style/shoelace": "npm:@shoelace-style/shoelace@^2.18.0",
+        "@std/fs": "jsr:@std/fs@^1.0.5",
+        "@std/path": "jsr:@std/path@^1.0.8",
+        "esbuild": "npm:esbuild@^0.24.0",
+        "esbuild-plugin-copy": "npm:esbuild-plugin-copy@^2.1.1",
+        "htmx.org": "npm:htmx.org@^1.9.12",
+        "listr2": "npm:listr2@^8.2.5",
+        "tailwindcss": "npm:tailwindcss@^3.4.14"
+    },
+    "lint": {
+        "include": ["./web/**/*.ts", "./web/src/js"]
+    },
+    "fmt": {
+        "indentWidth": 4,
+        "include": ["./web/**/*.ts", "./web/src/js"]
+    },
+    "workspace": ["./web"]
+}

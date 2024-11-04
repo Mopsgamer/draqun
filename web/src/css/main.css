@@ -1,0 +1,60 @@
+@import url("../../node_modules/@shoelace-style/shoelace/dist/themes/light.css");
+@import url("../../node_modules/@shoelace-style/shoelace/dist/themes/dark.css");
+
+sl-dialog::part(panel) {
+    transition: 0.2s;
+}
+
+sl-dialog.fullscreen-base::part(panel) {
+    width: 100vw;
+    height: 100vh;
+    min-width: 100vw;
+    min-height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+}
+
+.bg-n50 {
+    background-color: var(--sl-color-neutral-50);
+}
+
+.bg-n100 {
+    background-color: var(--sl-color-neutral-100);
+}
+
+.bg-n200 {
+    background-color: var(--sl-color-neutral-200);
+}
+
+.bg-n300 {
+    background-color: var(--sl-color-neutral-300);
+}
+
+.bg-n400 {
+    background-color: var(--sl-color-neutral-400);
+}
+
+.bg-n500 {
+    background-color: var(--sl-color-neutral-500);
+}
+
+.bg-n500 {
+    background-color: var(--sl-color-neutral-500);
+}
+
+.bg-n600 {
+    background-color: var(--sl-color-neutral-600);
+}
+
+.bg-n700 {
+    background-color: var(--sl-color-neutral-700);
+}
+
+.bg-n800 {
+    background-color: var(--sl-color-neutral-800);
+}
+
+.bg-n900 {
+    background-color: var(--sl-color-neutral-900);
+}
