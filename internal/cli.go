@@ -85,12 +85,12 @@ func WaitForBundleWatch() {
 		return
 	}
 
-	log.Info("Creating file listeners for bundling js, css and assets...")
-
 	var deno *exec.Cmd
 	if isWatch {
+		log.Info("Creating file listeners for bundling js, css and assets...")
 		deno = ExecDeno("task", "build", "--watch")
 	} else {
+		log.Info("Bundling js, css and assets...")
 		deno = ExecDeno("task", "build")
 	}
 
@@ -108,7 +108,17 @@ func WaitForBundleWatch() {
 
 		buffer.WriteString(line + "\n")
 
-		if strings.Contains(line, "watching") {
+		if isWatch {
+			// see ./web/build.ts file
+			if strings.Contains(line, "watching") {
+				break
+			}
+
+			continue
+		}
+
+		// see ./web/build.ts file
+		if strings.Contains(line, "bundled") {
 			break
 		}
 	}

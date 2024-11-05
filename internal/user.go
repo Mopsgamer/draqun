@@ -70,11 +70,6 @@ func (user User) GenerateToken() (string, error) {
 	return token.SignedString(secretKey)
 }
 
-// Validate the token for the current user.
-func (user User) ValidateToken(tokenString string) error {
-	return tokenValidator.Validate(user)
-}
-
 func HashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(hashedPassword), err

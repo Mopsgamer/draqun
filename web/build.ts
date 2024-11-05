@@ -95,5 +95,7 @@ await Promise.all(taskList)
 
 if (isWatch) {
     console.log('watching for file changes...')
+} else {
+    console.log('bundled successfully...')
 }
 

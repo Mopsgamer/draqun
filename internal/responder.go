@@ -231,7 +231,7 @@ func (r Responder) GetOwner() (*User, error) {
 
 	claims := token.Claims.(jwt.MapClaims)
 
-	userIDFloat, ok := claims["user_id"].(float64)
+	userIDFloat, ok := claims["id"].(float64)
 	if !ok {
 		return nil, errors.New("user ID not found or is invalid")
 	}
