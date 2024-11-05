@@ -14,6 +14,8 @@ import (
 
 // Initialize gofiber application, including DB and view engine.
 func InitServer() (*fiber.App, error) {
+	WaitForBundleWatch()
+
 	db, err := InitDB()
 	if err != nil {
 		return nil, err
@@ -66,10 +68,6 @@ func InitServer() (*fiber.App, error) {
 		r := Responder{c, *db}
 		return r.UserLogout()
 	})
-
-	log.Info("Creating file listeners for bundling...")
-	WaitForBundleWatch()
-	log.Info("Watching for file changes while starting the server...")
 
 	return app, nil
 }

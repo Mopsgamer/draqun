@@ -68,7 +68,31 @@ func ExecDeno(arg ...string) *exec.Cmd {
 }
 
 func WaitForBundleWatch() {
-	deno := ExecDeno("task", "build", "--watch")
+
+	optionWatch := "--watch"
+	optionBuild := "--build"
+
+	isBuild := slices.Contains(os.Args, optionBuild)
+	isWatch := slices.Contains(os.Args, optionWatch)
+
+	if !isBuild && !isWatch {
+		log.Info("You can use --build or --watch option to bundle js, css and assets before running server.")
+		return
+	}
+
+	if !isBuild && !isWatch {
+		log.Fatal("Use --build or --watch, if you want to bundle while running the server. You have used both.")
+		return
+	}
+
+	log.Info("Creating file listeners for bundling js, css and assets...")
+
+	var deno *exec.Cmd
+	if isWatch {
+		deno = ExecDeno("task", "build", "--watch")
+	} else {
+		deno = ExecDeno("task", "build")
+	}
 
 	reader, err := deno.StdoutPipe()
 	if err != nil {
@@ -88,4 +112,5 @@ func WaitForBundleWatch() {
 			break
 		}
 	}
+	log.Info("Watching for file changes while starting the server...")
 }

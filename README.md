@@ -42,13 +42,20 @@ deno task serve
 
 ### Changing the code base
 
-Bundling the web statics and assets:
+Bundling js, css and assets without running server:
 ```bash
 deno task build
 ```
 
-This command automatically runs when running the server.
-The command above should be used when:
+Bundling js, css and assets and running server:
+```bash
+# single bundle
+go run . --build
+# bundle automatically
+go run . --watch
+```
+
+The commands above should be used when:
 
 - Repository has been cloned.
 - Deno dependencies (js libraries) has been updated.
