@@ -2,7 +2,6 @@ package internal
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -57,6 +56,7 @@ func WaitForBundleWatch() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	readerErr, err := deno.StderrPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -64,34 +64,38 @@ func WaitForBundleWatch() {
 
 	scanner := bufio.NewScanner(reader)
 	scannerErr := bufio.NewScanner(readerErr)
-	var buffer bytes.Buffer
 	err = deno.Start()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	go func() {
+		for scannerErr.Scan() {
+			line := scannerErr.Text()
+
+			fmt.Println(line)
+
+			// see ./web/build.ts file
+			if strings.Contains(line, "Error") {
+				go func() {
+					deno.Wait()
+					os.Exit(1)
+				}()
+				continue
+			}
+		}
+	}()
+
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		log.Info(line)
-		buffer.WriteString(line + "\n")
+		fmt.Println(line)
 
 		// see ./web/build.ts file
 		if strings.Contains(line, "Done:") {
+			log.Info("Now starting the server...")
 			break
 		}
 	}
 
-	isErr := false
-	for scannerErr.Scan() {
-		isErr = true
-		line := scannerErr.Text()
-		buffer.WriteString(line + "\n")
-	}
-
-	if isErr {
-		log.Fatal(buffer.String())
-	}
-
-	log.Info("Now starting the server...")
 }
