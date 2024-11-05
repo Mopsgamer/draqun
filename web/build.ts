@@ -84,13 +84,13 @@ const taskList = [
     buildTask({
         ...options,
         outdir: "./static/js",
-        entryPoints: ["./src/js/main.js"],
+        entryPoints: ["./src/ts/main.ts"],
         plugins: [...denoPlugins()],
     }),
     buildTask({
         ...options,
         outfile: "./static/css/main.css",
-        entryPoints: ["./src/css/main.css"],
+        entryPoints: ["./src/tailwindcss/main.css"],
         plugins: [
             tailwindPlugin(),
         ],

@@ -22,5 +22,13 @@
     "fmt": {
         "indentWidth": 4
     },
-    "workspace": ["./web"]
+    "workspace": ["./web"],
+    "compilerOptions": {
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "dom.asynciterable",
+            "deno.ns"
+        ]
+    }
 }
