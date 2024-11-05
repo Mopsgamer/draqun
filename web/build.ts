@@ -7,12 +7,11 @@ import { exists, existsSync } from "jsr:@std/fs";
 
 const isWatch = Deno.args.includes("--watch");
 
-type BuildOptions = esbuild.SameShape<
-    esbuild.BuildOptions,
-    esbuild.BuildOptions
->;
+type BuildOptions = esbuild.BuildOptions & {
+    whenChange?: string | string[]
+};
 
-const options: BuildOptions = {
+const options: esbuild.BuildOptions = {
     bundle: true,
     minify: false,
     platform: "browser",
@@ -27,7 +26,7 @@ const options: BuildOptions = {
 };
 
 async function buildTask(options: BuildOptions, title?: string): Promise<void> {
-    const { outdir, outfile, entryPoints = [] } = options;
+    const { outdir, outfile, entryPoints = [], whenChange = [] } = options;
     title ??= outdir ?? outfile;
     const badEntryPoints = (
         Array.isArray(entryPoints)
@@ -57,11 +56,24 @@ async function buildTask(options: BuildOptions, title?: string): Promise<void> {
         console.log("Cleaning " + directory);
         await Deno.remove(directory, { recursive: true });
     }
-    const ctx = await esbuild.context(options);
+    const safeOptions = options
+    delete safeOptions.whenChange
+    const ctx = await esbuild.context(safeOptions as esbuild.BuildOptions);
     await ctx.rebuild();
     if (isWatch) {
         await ctx.watch();
         console.log("Listening for changes: " + directory);
+        if (whenChange.length > 0) {
+            const watcher = Deno.watchFs(whenChange, { recursive: true });
+            (async () => {
+                for await (const event of watcher) {
+                    if (event.kind !== "modify") {
+                        continue
+                    }
+                    ctx.rebuild()
+                }
+            })()
+        }
         return;
     }
     await ctx.dispose();
@@ -91,6 +103,7 @@ const taskList = [
         ...options,
         outfile: "./static/css/main.css",
         entryPoints: ["./src/tailwindcss/main.css"],
+        whenChange: "./templates",
         plugins: [
             tailwindPlugin(),
         ],
