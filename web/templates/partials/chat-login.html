@@ -8,7 +8,7 @@
     {{template "partials/scripts" .}}
 </head>
 
-<body class="h-screen">
+<body hx-ext="shoelace" class="h-screen">
     {{template "partials/login-dialog" .}}
     <main id="main" class="p-4 h-screen flex flex-col justify-center items-center">
         {{if .TokenError}}

@@ -32,6 +32,7 @@ func (r Responder) TemplateName() string {
 func (r Responder) RenderPage(templatePath, title string, layouts ...string) error {
 	user, errToken := r.GetOwner()
 	if errToken != nil {
+		log.Error(errToken)
 		r.Cookie(&fiber.Cookie{
 			Name:    "Authorization",
 			Value:   "",

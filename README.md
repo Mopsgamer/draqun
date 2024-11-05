@@ -47,6 +47,7 @@ Bundling the web statics and assets:
 deno task build
 ```
 
+This command automatically runs when running the server.
 The command above should be used when:
 
 - Repository has been cloned.

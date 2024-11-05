@@ -37,14 +37,12 @@ htmx.defineExtension("shoelace", {
         ) {
             evt.detail.elt.querySelectorAll(slTypes).forEach((elt) => {
                 if (shouldInclude(elt)) {
+                    console.log("evt %o", evt)
+                    let key = elt.name, value = elt.value
                     if (["SL-RATING", "SL-INPUT"].includes(elt.tagName)) {
-                        evt.detail.parameters.set(
-                            elt.getAttribute("name"),
-                            elt.value,
-                        );
-                    } else {
-                        evt.detail.parameters.set(elt.name, elt.value);
+                        key = elt.getAttribute("name")
                     }
+                    evt.detail.parameters[key] = value;
                 }
             });
             // Prevent form submission if one or more fields are invalid.
