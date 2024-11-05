@@ -3,7 +3,7 @@ import { copy as copyPlugin } from "esbuild-plugin-copy";
 import { tailwindPlugin } from "esbuild-plugin-tailwindcss";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { dirname } from "jsr:@std/path";
-import { exists } from "jsr:@std/fs";
+import { exists, existsSync } from "jsr:@std/fs";
 
 const isWatch = Deno.args.includes("--watch");
 
@@ -27,8 +27,18 @@ const options: BuildOptions = {
 };
 
 async function buildTask(options: BuildOptions, title?: string): Promise<void> {
-    const { outdir, outfile } = options;
+    const { outdir, outfile, entryPoints = [] } = options;
     title ??= outdir ?? outfile;
+    const badEntryPoints = (
+        Array.isArray(entryPoints)
+            ? entryPoints
+            : Object.keys(entryPoints)
+    ).filter(
+        entry => !existsSync(typeof entry === "string" ? entry : entry.in)
+    )
+    if (badEntryPoints.length > 0) {
+        throw new Error(`File expected to exist: ${badEntryPoints.join(', ')}`)
+    }
 
     if (!outfile && !outdir) {
         throw new Error(

@@ -57,14 +57,23 @@ func WaitForBundleWatch() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	readerErr, err := deno.StderrPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	scanner := bufio.NewScanner(reader)
+	scannerErr := bufio.NewScanner(readerErr)
 	var buffer bytes.Buffer
-	deno.Start()
+	err = deno.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	for scanner.Scan() {
 		line := scanner.Text()
 
+		log.Info(line)
 		buffer.WriteString(line + "\n")
 
 		// see ./web/build.ts file
@@ -72,5 +81,17 @@ func WaitForBundleWatch() {
 			break
 		}
 	}
-	log.Info("Watching for file changes while starting the server...")
+
+	isErr := false
+	for scannerErr.Scan() {
+		isErr = true
+		line := scannerErr.Text()
+		buffer.WriteString(line + "\n")
+	}
+
+	if isErr {
+		log.Fatal(buffer.String())
+	}
+
+	log.Info("Now starting the server...")
 }
