@@ -8,6 +8,7 @@ Definitely a cool chat application.
 ## Building from source
 
 Requirements:
+
 - MySql@>=5.0
 - go@>=1.23
 - Deno@>=2.0
@@ -15,49 +16,49 @@ Requirements:
 ### Preparing
 
 Creating project files:
+
 ```bash
-go run . -- --init
-# or
 deno task init
 ```
 
-After this command you will get the `.env` file in your project's root.
-Fill this file manually.
+After this command you will get the `.env` file in your project's root. Fill
+this file manually.
 
 Force option overrides your existing files:
+
 ```bash
-go run . -- --init --force
-# or
 deno task init --force
 ```
 
 ### Starting the server
 
 Running the server
+
 ```bash
-go run .
-# or
 deno task serve
 ```
 
 ### Changing the code base
 
 Bundling js, css and assets without running server:
+
 ```bash
 deno task build
 ```
 
 Bundling js, css and assets and running server:
+
 ```bash
 # single bundle
-go run . --build
+deno task serve:build
 # bundle automatically
-go run . --watch
+deno task serve:watch
 ```
 
 The commands above should be used when:
 
 - Repository has been cloned.
 - Deno dependencies (js libraries) has been updated.
-- Changed any html template and potentially used new tailwind classnames, Otherwise it may not work partially.
+- Changed any html template and potentially used new tailwind classnames,
+  Otherwise it may not work partially.
 - CSS or JS code has been changed: `./web/src`.

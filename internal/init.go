@@ -85,12 +85,12 @@ func InitDB() (*Database, error) {
 
 	connection, err := sqlx.Connect("mysql", connectionString)
 	if err != nil {
-		log.Error("Unable to connect to database: %v\n", err)
+		log.Error(err)
 		return nil, err
 	}
 
 	if err := connection.Ping(); err != nil {
-		log.Error("Unable to ping database: %v\n", err)
+		log.Error(err)
 		return nil, err
 	}
 
@@ -113,7 +113,7 @@ func InitDB() (*Database, error) {
 `
 
 	if _, err := connection.Exec(createTableQuery); err != nil {
-		log.Error("Error creating users table: %v\n", err)
+		log.Error(err)
 		return nil, err
 	}
 

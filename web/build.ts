@@ -5,7 +5,7 @@ import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { dirname } from "jsr:@std/path";
 import { exists } from "jsr:@std/fs";
 
-const isWatch = Deno.args.includes('--watch')
+const isWatch = Deno.args.includes("--watch");
 
 type BuildOptions = esbuild.SameShape<
     esbuild.BuildOptions,
@@ -44,14 +44,18 @@ async function buildTask(options: BuildOptions, title?: string): Promise<void> {
 
     const directory = outdir || dirname(outfile!);
     if (await exists(directory)) {
-        console.log("removing " + directory);
+        console.log("Cleaning " + directory);
         await Deno.remove(directory, { recursive: true });
     }
     const ctx = await esbuild.context(options);
-    await ctx.rebuild()
+    await ctx.rebuild();
     if (isWatch) {
-        await ctx.watch()
+        await ctx.watch();
+        console.log("Listening for changes: " + directory);
+        return;
     }
+    await ctx.dispose();
+    console.log("Bundled: " + directory);
 }
 
 function copyTask(from: string, to: string) {
@@ -78,8 +82,8 @@ const taskList = [
         outfile: "./static/css/main.css",
         entryPoints: ["./src/css/main.css"],
         plugins: [
-            tailwindPlugin()
-        ]
+            tailwindPlugin(),
+        ],
     }),
     copyTask(
         "../node_modules/@shoelace-style/shoelace/dist/assets/**/*",
@@ -89,13 +93,12 @@ const taskList = [
         "../src/assets/**/*",
         "./static/assets",
     ),
-]
+];
 
-await Promise.all(taskList)
+await Promise.all(taskList);
 
 if (isWatch) {
-    console.log('watching for file changes...')
+    console.log("Done: Watching for file changes...");
 } else {
-    console.log('bundled successfully...')
+    console.log("Done: Bundled all files.");
 }
-

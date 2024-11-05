@@ -2,7 +2,7 @@
  * @type {import("tailwindcss").Config}
  */
 const config = {
-    content: ['./templates/**/*.html'],
+    content: ["./templates/**/*.html"],
     theme: {
         extend: {
             colors: {
@@ -16,8 +16,8 @@ const config = {
                 n700: "var(--sl-color-neutral-700)",
                 n800: "var(--sl-color-neutral-800)",
                 n900: "var(--sl-color-neutral-900)",
-            }
-        }
-    }
-}
-export default config
+            },
+        },
+    },
+};
+export default config;

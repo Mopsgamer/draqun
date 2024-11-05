@@ -18,8 +18,9 @@ Use the special Responder.IsHTMX() method to avoid separated api enpoints: use
 sigle url for html responses.
 
 JavaScript should NOT be used, if possible. Possible reasons to add:
-- localStorage or cookies can not be manipulated or used by HTMX or changed by the
-server.
+
+- localStorage or cookies can not be manipulated or used by HTMX or changed by
+  the server.
 - Shoelace components can not provide the specific functionality.
 
 Even if you use JavaScript, replace HTMX events with a script inside the html

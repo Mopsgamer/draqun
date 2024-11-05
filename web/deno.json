@@ -1,15 +1,14 @@
 {
     "exclude": [
-        "./static"
+        "assets",
+        "templates",
+        "static"
     ],
     "fmt": {
-        "indentWidth": 4,
-        "include": [
-            "**/*.ts",
-            "./src/js"
-        ]
+        "indentWidth": 4
     },
     "tasks": {
-        "build": "deno run --allow-write --allow-net=deno.land,registry.npmjs.org --allow-sys --allow-env --allow-read --allow-run ./build.ts"
+        "build": "deno run --allow-write --allow-net=deno.land,registry.npmjs.org --allow-sys --allow-env --allow-read --allow-run ./build.ts",
+        "watch": "deno task build --watch"
     }
 }

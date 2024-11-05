@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/fs"
 	"os"
 	"os/exec"
 	"slices"
@@ -12,46 +11,6 @@ import (
 
 	"github.com/gofiber/fiber/v3/log"
 )
-
-// Creates the .env file, if provided the '--init' option.
-func InitProjectFiles() {
-
-	optionInit := "--init"
-	optionForce := "--force"
-
-	path := ".env"
-	isInit := slices.Contains(os.Args, optionInit)
-	if !isInit {
-		return
-	}
-
-	force := slices.Contains(os.Args, optionForce)
-	_, errstat := os.Stat(path)
-	exists := !os.IsNotExist(errstat)
-	if exists && !force {
-		log.Fatal("Failed to write " + path + " - already exists, use " + optionForce)
-	}
-
-	err := os.WriteFile(path, []byte(
-		"DB_PASSWORD=\n"+
-			"JWT_KEY=\n"+
-			"DB_NAME=restapp\n"+
-			"DB_USER=root\n"+
-			"DB_HOST=localhost\n"+
-			"DB_PORT=3306\n",
-	), fs.ModeDevice)
-
-	if err != nil {
-		log.Fatal("Failed to write " + path)
-	}
-
-	log.Info("Writed " + path)
-
-	log.Info("Executing deno build task...")
-	ExecDeno("task", "build")
-	log.Info("Deno tasks completed successfully.")
-	os.Exit(0)
-}
 
 // Creates the instance. Checks if the deno command exists: exits with 1 if it doesn't.
 // Uses default system's output.
@@ -108,17 +67,8 @@ func WaitForBundleWatch() {
 
 		buffer.WriteString(line + "\n")
 
-		if isWatch {
-			// see ./web/build.ts file
-			if strings.Contains(line, "watching") {
-				break
-			}
-
-			continue
-		}
-
 		// see ./web/build.ts file
-		if strings.Contains(line, "bundled") {
+		if strings.Contains(line, "Done:") {
 			break
 		}
 	}
