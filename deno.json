@@ -29,5 +29,9 @@
             "dom.asynciterable",
             "deno.ns"
         ]
-    }
+    },
+    "exclude": [
+        "web/templates/**/*",
+        "web/static/**/*"
+    ]
 }

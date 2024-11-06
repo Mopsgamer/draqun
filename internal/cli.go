@@ -76,13 +76,14 @@ func WaitForBundleWatch() {
 			fmt.Println(line)
 
 			// see ./web/build.ts file
-			if strings.Contains(line, "Error") {
-				go func() {
-					deno.Wait()
+			go func() {
+				err := deno.Wait()
+				if err != nil {
 					os.Exit(1)
-				}()
-				continue
-			}
+				} else {
+					os.Exit(0)
+				}
+			}()
 		}
 	}()
 

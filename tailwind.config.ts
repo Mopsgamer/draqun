@@ -1,12 +1,16 @@
-/**
- * @type {import("tailwindcss").Config}
- */
-const config = {
+import type { Config } from "tailwindcss";
+const config: Config = {
     content: [
-        "./web/templates/**/*.html"
+        "./web/templates/**/*.html",
     ],
     theme: {
         extend: {
+            transitionDuration: {
+                "1100": "1100ms",
+                "1200": "1200ms",
+                "1300": "1300ms",
+                "1400": "1400ms"
+            },
             colors: {
                 n50: "var(--sl-color-neutral-50)",
                 n100: "var(--sl-color-neutral-100)",
