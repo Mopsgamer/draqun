@@ -11,7 +11,7 @@
 <body hx-ext="shoelace">
     {{template "partials/login-dialog" .}}
     {{template "partials/header" .}}
-    <main id="main" class="p-4">
+    <main id="main">
         {{if .TokenError}}
         {{template "partials/token-fallback" .}}
         {{end}}

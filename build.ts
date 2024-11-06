@@ -95,26 +95,26 @@ function copyTask(from: string, to: string) {
 const taskList = [
     buildTask({
         ...options,
-        outdir: "./static/js",
-        entryPoints: ["./src/ts/main.ts"],
+        outdir: "./web/static/js",
+        entryPoints: ["./web/src/ts/main.ts"],
         plugins: [...denoPlugins()],
     }),
     buildTask({
         ...options,
-        outfile: "./static/css/main.css",
-        entryPoints: ["./src/tailwindcss/main.css"],
-        whenChange: "./templates",
+        outfile: "./web/static/css/main.css",
+        entryPoints: ["./web/src/tailwindcss/main.css"],
+        whenChange: "./web/templates",
         plugins: [
-            tailwindPlugin(),
+            tailwindPlugin({configPath: "./tailwind.config.js"}),
         ],
     }),
     copyTask(
-        "../node_modules/@shoelace-style/shoelace/dist/assets/**/*",
-        "./assets",
+        "./node_modules/@shoelace-style/shoelace/dist/assets/**/*",
+        "./web/assets",
     ),
     copyTask(
-        "../src/assets/**/*",
-        "./static/assets",
+        "./web/src/assets/**/*",
+        "./web/static/assets",
     ),
 ];
 

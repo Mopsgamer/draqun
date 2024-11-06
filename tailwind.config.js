@@ -3,7 +3,7 @@
  */
 const config = {
     content: [
-        "./templates/**/*.html"
+        "./web/templates/**/*.html"
     ],
     theme: {
         extend: {

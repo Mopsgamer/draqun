@@ -5,8 +5,8 @@
         "serve": "go run .",
         "serve:build": "deno task serve --build",
         "serve:watch": "deno task serve --watch",
-        "build": "deno task --cwd ./web build",
-        "watch": "deno task --cwd ./web watch"
+        "build": "deno run --allow-write --allow-net=deno.land,registry.npmjs.org --allow-sys --allow-env --allow-read --allow-run ./build.ts",
+        "watch": "deno task build --watch"
     },
     "imports": {
         "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.0",
@@ -22,7 +22,6 @@
     "fmt": {
         "indentWidth": 4
     },
-    "workspace": ["./web"],
     "compilerOptions": {
         "lib": [
             "dom",
