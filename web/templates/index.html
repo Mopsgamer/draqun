@@ -1,12 +1,11 @@
 <section class="super-sect relative flex items-center justify-center text-center py-16 bg-gradient-to-r from-n200 to-blue-500 h-screen">
-    <sl-icon name="chat-left-text" class="absolute text-7xl -rotate-12 -translate-x-40 -translate-y-44 -scale-x-100"></sl-icon>
-    <sl-icon name="chat-left-text" class="absolute text-8xl rotate-6 -translate-x-36 translate-y-28"></sl-icon>
-    <sl-icon name="chat-left-text" class="absolute text-6xl -rotate-3 translate-x-72 -translate-y-36"></sl-icon>
-    <sl-icon name="chat-left-text" class="absolute text-5xl rotate-2 translate-x-52 translate-y-12"></sl-icon>
     <div class="relative z-10">
         <h2 class="text-6xl font-semibold mb-4">Start Chatting</h2>
         <p class="text-blue-400 mb-6">Join conversations instantly with Restapp.</p>
-        <sl-button href="/chat" variant="primary" class="px-6 py-3">Start Chatting</sl-button>
+        <sl-button href="/chat" variant="primary" class="px-6 py-3">
+            <sl-icon slot="suffix" name="chat-right-text"></sl-icon>
+            Start Chatting
+        </sl-button>
     </div>
 </section>
 
@@ -52,7 +51,10 @@
     <div class="relative z-10">
         <h2 class="text-3xl font-semibold mb-4">Still not sure?</h2>
         <p class="text-blue-400 mb-6">Give it a try and start chatting now!</p>
-        <sl-button href="/chat" variant="primary" class="px-6 py-3">Start Chatting</sl-button>
+        <sl-button href="/chat" variant="primary" class="px-6 py-3">
+            <sl-icon slot="suffix" name="chat-right-text"></sl-icon>
+            Start Chatting
+        </sl-button>
     </div>
 </section>
 
