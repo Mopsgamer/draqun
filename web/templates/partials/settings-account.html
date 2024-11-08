@@ -1,0 +1,10 @@
+<h1>
+    Account settings
+</h1>
+<div class="settings">
+    <section>{{.User.Name}}#{{.User.Tag}}</section>
+    <section>
+        <span class="label">Email:</span>
+        <span class="value">{{hideEmail .User.Email}}</span>
+    </section>
+</div>

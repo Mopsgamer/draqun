@@ -1,4 +1,4 @@
-{{if .GoodUser}}
+{{if ne .User nil}}
 {{template "partials/chat" .}}
 {{- else}}
 {{template "partials/chat-login" .}}

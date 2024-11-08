@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
@@ -42,15 +43,43 @@ func InitServer() (*fiber.App, error) {
 	// get
 	app.Get("/", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
-		return r.RenderPage("index", "Home page", "partials/main")
+		return r.RenderPage(
+			"index",
+			fiber.Map{
+				"Title": "Restapp - Home page",
+			},
+			"partials/main",
+		)
+	})
+	app.Get("/settings", func(c fiber.Ctx) error {
+		r := Responder{c, *db}
+		return r.RenderPage(
+			"settings",
+			fiber.Map{
+				"Title": "Restapp - Settings",
+			},
+			"partials/main",
+		)
 	})
 	app.Get("/chat", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
-		return r.RenderPage("chat", "Chat")
+		return r.RenderPage(
+			"chat",
+			fiber.Map{
+				"Title":      "Restapp - Chat",
+				"IsChatPage": true,
+			},
+		)
 	})
 	app.Get("/api", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
-		return r.RenderPage("api", "API Documentation", "partials/main")
+		return r.RenderPage(
+			"api",
+			fiber.Map{
+				"Title": "API Docs",
+			},
+			"partials/main",
+		)
 	})
 
 	// post
@@ -126,6 +155,15 @@ func InitVE() *html.Engine {
 	engine := html.New("./web/templates", ".html")
 
 	engine.Reload(true)
+
+	engine.AddFunc("hideEmail", func(text string) string {
+		splits := strings.SplitAfter(text, "@")
+		return splits[0][:3] + strings.Repeat("*", len(splits[0][3:])-1) + "@" + splits[1]
+	})
+
+	engine.AddFunc("hide", func(text string) string {
+		return strings.Repeat("*", len(text))
+	})
 
 	return engine
 }

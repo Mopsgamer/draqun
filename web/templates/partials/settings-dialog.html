@@ -1,4 +1,5 @@
-<sl-dialog {{if .Open}} open {{- else}} {{- end}} label="Settings Dialog" id="settings-dialog"
+<sl-dialog {{if .OpenSettings}} open {{- end}} label="Settings Dialog" id="settings-dialog"
     class="fullscreen-base">
     <h1 slot="label">Settings</h1>
+    {{template "partials/settings-account" .}}
 </sl-dialog>

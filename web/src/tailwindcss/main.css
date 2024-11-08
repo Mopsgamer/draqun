@@ -1,63 +1,9 @@
 @import url("../../../node_modules/@shoelace-style/shoelace/dist/themes/light.css");
 @import url("../../../node_modules/@shoelace-style/shoelace/dist/themes/dark.css");
+@import url("./homepage.css");
 @import url("./shoelace-ext.css");
+@import url("./components.css");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@layer components {
-    section.super-sect {
-        @apply relative text-center py-16 flex justify-around items-center overflow-hidden;
-        sl-button {
-            @apply opacity-100 duration-1200 delay-300;
-        }
-        &:not(.appeared) {
-            sl-button {
-                @apply opacity-0;
-            }
-        }
-    }
-
-    section:is(.super-sect-1, .super-sect-2) {
-        @apply relative text-center py-16 flex justify-around items-center overflow-hidden;
-        sl-icon, .description {
-            @apply opacity-100 duration-1200 delay-300;
-        }
-        sl-icon {
-            @apply text-4xl w-1/4 drop-shadow-lg;
-        }
-        .description {
-            @apply relative z-10 w-3/4;
-        }
-        &:not(.appeared) {
-            sl-icon, .description {
-                @apply opacity-0;
-            }
-        }
-    }
-
-    section.super-sect-1 {
-        @apply bg-n100;
-        &:not(.appeared) {
-            sl-icon {
-                @apply -translate-x-24
-            }
-            .description {
-                @apply translate-x-24
-            }
-        }
-    }
-
-    section.super-sect-2 {
-        @apply bg-n300;
-        &:not(.appeared) {
-            sl-icon {
-                @apply translate-x-24
-            }
-            .description {
-                @apply -translate-x-24
-            }
-        }
-    }
-}

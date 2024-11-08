@@ -16,16 +16,10 @@
         {{end}}
         <div>
             You're not logged in.
-            <sl-button variant="text" id="open-login-dialog-center">
+            <sl-button variant="text" id="open-login-dialog-center"
+                onclick="document.getElementById('login-dialog').open = true">
                 Log In
             </sl-button>
-            <script>
-                document.getElementById("open-login-dialog-center")
-                    .addEventListener("click", () => {
-                        const dialog = document.getElementById("login-dialog")
-                        dialog.open = true
-                    })
-            </script>
         </div>
         <div>
             <sl-button variant="text" href="/">Home page</a>

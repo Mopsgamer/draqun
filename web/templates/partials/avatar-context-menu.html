@@ -1,36 +1,50 @@
-{{define "menu-home"}}
-{{if .IsChatPage}}
-<sl-menu-item onclick="location='/'">
-    <sl-icon slot="prefix" name="house-door"></sl-icon>
-    Home page
-</sl-menu-item>
-{{end}}
-{{end}}
 <sl-dropdown placement="bottom-end">
-    <sl-icon-button id="avatar-button" slot="trigger" name="person-circle" class="text-3xl cursor-pointer">
-    </sl-icon-button>
+    <sl-button id="avatar-button" variant="text" slot="trigger">
+        <div slot="prefix" class="bg-cover w-10 aspect-square"
+            style="background-image: url(/static/assets/default-avatar.png)">
+        </div>
+        </sl-icon-button>
+        {{if eq .User nil}}
+        Guest
+        {{else}}
+        {{.User.Name}}
+        {{end}}
+    </sl-button>
     <sl-menu>
-        {{if .GoodUser}}
-        {{if .IsChatPage}}
-        <sl-menu-item onclick="document.getElementById('settings-dialog').open = true">
+        {{if ne .User nil}}
+        {{if .IsChatPage }}
+        <sl-menu-item onclick="location='/chat#settings-dialog'">
             <sl-icon slot="prefix" name="gear"></sl-icon>
             Settings
         </sl-menu-item>
-        <sl-divider></sl-divider>
-        {{template "menu-home" .}}
-        <sl-menu-item hx-put="/logout" hx-swap="innerHTML">
-            <sl-icon slot="prefix" name="box-arrow-right"></sl-icon>
-            Log Out
-        </sl-menu-item>
         {{else}}
-        <sl-menu-item hx-put="/logout" hx-swap="innerHTML">
-            <sl-icon slot="prefix" name="box-arrow-right"></sl-icon>
-            Log Out
+        <sl-menu-item onclick="location='/settings'">
+            <sl-icon slot="prefix" name="gear"></sl-icon>
+            Settings
         </sl-menu-item>
         {{end}}
-        {{else}}
-        {{template "menu-home" .}}
+        {{end}}
+
+        <sl-divider></sl-divider>
+
+        {{if .IsChatPage }}
+        <sl-menu-item onclick="location='/'">
+            <sl-icon slot="prefix" name="house-door"></sl-icon>
+            Home page
         </sl-menu-item>
+        {{else}}
+        <sl-menu-item onclick="location='/chat'">
+            <sl-icon slot="prefix" name="chat-right-text"></sl-icon>
+            Chat
+        </sl-menu-item>
+        {{end}}
+
+        {{if ne .User nil}}
+        <sl-menu-item hx-put="/logout" hx-swap="innerHTML">
+            <sl-icon slot="prefix" name="box-arrow-right"></sl-icon>
+            Log Out
+        </sl-menu-item>
+        {{else}}
         <sl-menu-item onclick="document.getElementById('login-dialog').open = true">
             <sl-icon slot="prefix" name="person-circle"></sl-icon>
             Log In

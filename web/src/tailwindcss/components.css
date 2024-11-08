@@ -1,0 +1,16 @@
+@tailwind components;
+
+@layer components {
+    .settings {
+        .section {
+            @apply flex flex-col;
+        }
+    }
+
+    .dialog-footer {
+        @apply flex flex-col gap-2;
+        div {
+            @apply justify-end items-center;
+        }
+    }
+}

@@ -69,21 +69,27 @@ func WaitForBundleWatch() {
 		log.Fatal(err)
 	}
 
+	noExit := true
+	// see ./web/build.ts file
+	go func() {
+		err := deno.Wait()
+		if noExit {
+			return
+		}
+		if err != nil {
+			os.Exit(1)
+		} else {
+			os.Exit(0)
+		}
+	}()
 	go func() {
 		for scannerErr.Scan() {
 			line := scannerErr.Text()
 
+			if strings.Contains(line, "error") || strings.Contains(line, "Error") || strings.Contains(line, "ERR") {
+				noExit = false
+			}
 			fmt.Println(line)
-
-			// see ./web/build.ts file
-			go func() {
-				err := deno.Wait()
-				if err != nil {
-					os.Exit(1)
-				} else {
-					os.Exit(0)
-				}
-			}()
 		}
 	}()
 

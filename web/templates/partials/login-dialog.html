@@ -1,4 +1,5 @@
-<sl-dialog {{if .Open}} open {{- else}} {{- end}} label="Dialog" id="login-dialog">
+{{if eq .User nil}}
+<sl-dialog {{if .OpenLogin}} open {{- end}} label="Dialog" id="login-dialog">
     <h1 slot="label">Log In</h1>
     <form id="login-form" name="login-form" class="flex flex-col gap-4" hx-post="/login" hx-swap="outerHTML"
         hx-target="#auth-error">
@@ -9,14 +10,14 @@
         </sl-input>
         <sl-alert id="auth-error" variant="warning"></sl-alert>
     </form>
-    <div slot="footer" class="flex flex-col gap-2">
-        <div class="flex justify-end items-center">
+    <div slot="footer" class="dialog-footer">
+        <div>
             Not a member?
-            <sl-button variant="text" hx-target="#login-dialog" hx-swap="outerHTML"
-                hx-get="/partials/register-dialog?open=true">Sign Up</sl-button>
+            <sl-button href="#register-dialog">Sign Up</sl-button>
         </div>
-        <div class="flex justify-end items-center">
+        <div>
             <sl-button form="login-form" variant="primary" type="submit">Log In</sl-button>
         </div>
     </div>
 </sl-dialog>
+{{end}}

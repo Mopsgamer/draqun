@@ -1,4 +1,4 @@
 import "@shoelace-style/shoelace";
 import "htmx.org";
 
-import "./htmx-ext.ts";
+import "./shoelace-integration.ts";

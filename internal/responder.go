@@ -3,7 +3,6 @@ package internal
 import (
 	"errors"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -21,15 +20,39 @@ func (r Responder) IsHTMX() bool {
 	return r.Ctx.Get("HX-Request", "") != ""
 }
 
-// Get 'partials/x' from '/partials/x?text=hello'.
-func (r Responder) TemplateName() string {
-	url := r.OriginalURL()[1:]
-	url = regexp.MustCompilePOSIX("[a-zA-Z/-]+").FindString(url)
-	return url
+// Call it instead of Redirect().To().
+func (r Responder) HTMXRedirect(to string) {
+	r.Set("HX-Redirect", to)
+}
+
+func (r Responder) HTMXCurrentURL() string {
+	return r.Get("HX-Current-URL")
 }
 
 // Render a page using a template.
-func (r Responder) RenderPage(templatePath, title string, layouts ...string) error {
+func (r Responder) RenderPage(templatePath string, bind fiber.Map, layouts ...string) error {
+	return r.Render(templatePath, r.PageMap(bind), layouts...)
+}
+
+// This type describes ALL values in EVERY partial, which can be passed into ./templates/partials
+// and used by htmx requests to replace DOM, using template generation through get requests
+//
+// EXAMPLE:
+//
+//	<div hx-get="/partials/chat?mode=compact">
+//
+// NOTE: wont move this to internal/htmx.go
+// since its only for the RenderTemplate
+type HTMXPartialQuery struct {
+	Id           string `query:"id"`
+	Message      string `query:"message"`
+	OpenSettings bool   `query:"open-settings"`
+	OpenRegister bool   `query:"open-register"`
+	OpenLogin    bool   `query:"open-login"`
+	User         User   `query:"user"` // its safe
+}
+
+func (r *Responder) PageMap(bind fiber.Map) fiber.Map {
 	user, errToken := r.GetOwner()
 	if errToken != nil {
 		log.Error(errToken)
@@ -39,34 +62,19 @@ func (r Responder) RenderPage(templatePath, title string, layouts ...string) err
 			Expires: time.Now(),
 		})
 	}
-	m := fiber.Map{
-		"Title":      "Restapp - " + title,
-		"User":       user,
-		"TokenError": errToken != nil,
-		"GoodUser":   user != nil,
-		"Message":    "Authorization error",
-		"Id":         "local-token-error",
-		"IsChatPage": r.Path() == "/chat",
+	result := fiber.Map{}
+	if errToken != nil {
+		result["TokenError"] = true
+		result["Message"] = "Authorization error"
+		result["Id"] = "local-token-error"
+	} else {
+		result["User"] = user
 	}
-	return r.Render(templatePath, m, layouts...)
-}
 
-// This type describes ALL values in EVERY partial, which can be passed into ./templates/partials
-// and used by htmx requests to replace DOM, using template generation through get requests
-//
-// EXAMPLE:
-//
-//	<div hx-get="/partials/settings">
-//	<div hx-get="/partials/chat?mode=compact">
-//
-// NOTE: wont move this to internal/htmx.go
-// since its only for the RenderTemplate
-type HTMXPartialQuery struct {
-	Id      string `query:"id"`
-	Message string `query:"id"`
-	Open    bool   `query:"open"`
-	Token   string `query:"token"` // its safe
-	User    User   `query:"user"`  // its safe
+	for k, v := range bind {
+		result[k] = v
+	}
+	return result
 }
 
 // Renders a template, requested by a client.
@@ -77,13 +85,7 @@ func (r Responder) RenderTemplate() error {
 	if err != nil {
 		return err
 	}
-	return r.Render(r.TemplateName(), fiber.Map{
-		"Id":      q.Id,
-		"Message": q.Message,
-		"Open":    q.Open,
-		"Token":   q.Token, // its safe
-		"User":    q.User,  // its safe
-	})
+	return r.Render(r.Path()[1:], r.PageMap(fiber.Map{}))
 }
 
 // Renders the danger message html element.
@@ -169,6 +171,7 @@ func (r Responder) UserLogin() error {
 		return r.RenderWarning(message, id)
 	}
 
+	r.HTMXRedirect(r.HTMXCurrentURL())
 	return r.GiveToken(id, *user)
 }
 
@@ -180,6 +183,7 @@ func (r Responder) UserLogout() error {
 		Expires: time.Now(),
 	})
 
+	r.HTMXRedirect(r.HTMXCurrentURL())
 	return r.Render("partials/auth-logout", fiber.Map{})
 }
 

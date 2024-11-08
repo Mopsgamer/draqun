@@ -9,7 +9,7 @@ const config: Config = {
                 "1100": "1100ms",
                 "1200": "1200ms",
                 "1300": "1300ms",
-                "1400": "1400ms"
+                "1400": "1400ms",
             },
             colors: {
                 n50: "var(--sl-color-neutral-50)",
