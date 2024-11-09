@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"html/template"
 	"os"
 	"strings"
 
@@ -156,15 +157,33 @@ func InitVE() *html.Engine {
 
 	engine.Reload(true)
 
-	engine.AddFunc("hideEmail", func(text string) string {
-		splits := strings.SplitAfter(text, "@")
-		return text[:3] + strings.Repeat("*", len(splits[0][3:])-1) + "@" + splits[1]
-	})
-	engine.AddFunc("hidePhone", func(text string) string {
-		return text[:4] + strings.Repeat("*", len(text)-4)
-	})
-	engine.AddFunc("hide", func(text string) string {
-		return strings.Repeat("*", len(text))
+	engine.AddFuncMap(map[string]interface{}{
+		"hideEmail": func(text string) string {
+			splits := strings.Split(text, "@")
+			if len(splits) != 2 {
+				return template.HTMLEscapeString(text)
+			}
+			// a in a@b.c
+			before := splits[0]
+			// @b.c in a@b.c
+			after := "@" + splits[1]
+
+			if len(before) > 5 {
+				before = before[:3] + before[3:]
+			} else {
+				before = strings.Repeat("*", len(before))
+			}
+			return before + after
+		},
+		"hidePhone": func(text string) string {
+			if len(text) > 5 {
+				return text[:4] + strings.Repeat("*", len(text)-4)
+			}
+			return strings.Repeat("*", len(text))
+		},
+		"hide": func(text string) string {
+			return strings.Repeat("*", len(text))
+		},
 	})
 
 	return engine
