@@ -1,6 +1,9 @@
 {{if eq .User nil}}
 <sl-dialog {{if .OpenRegister}} open {{- end}} label="Dialog" id="register-dialog">
-    <h1 slot="label">Sign Up</h1>
+    <h1 slot="label" class="aligned">
+        <sl-icon name="box-arrow-in-right"></sl-icon>
+        Sign Up
+    </h1>
     <form id="register-form" name="register-form" hx-post="/register" hx-swap="outerHTML"
         hx-target="#auth-error">
         <sl-input label="Name" type="text" id="register-name" name="name" required></sl-input>

@@ -1,5 +1,8 @@
 <sl-dialog {{if .OpenChangeEmail}} open {{- end}} label="Dialog" id="change-email-dialog">
-    <h1 slot="label">Change email</h1>
+    <h1 slot="label" class="aligned">
+        <sl-icon name="mailbox"></sl-icon>
+        Change email
+    </h1>
     <form id="change-email-form" name="change-email-form" hx-post="/change-email" hx-swap="outerHTML"
         hx-target="#change-error">
         <sl-input label="Password" type="password" autocomplete="password" id="current-password" name="current-password" required password-toggle>
@@ -11,7 +14,7 @@
     </form>
     <div slot="footer" class="dialog-footer">
         <div>
-            <sl-button form="change-email-form" variant="primary" type="submit">Change</sl-button>
+            <sl-button form="change-email-form" variant="primary" type="submit">Change email</sl-button>
         </div>
     </div>
 </sl-dialog>

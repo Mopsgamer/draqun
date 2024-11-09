@@ -1,12 +1,17 @@
-<div class="flex flex-col gap-4">
+<div class="column gap-4">
     <h2 class="anchor-header">
+        <sl-icon name="person"></sl-icon>
         Account settings
     </h2>
     {{template "partials/change-email-dialog" .}}
     {{template "partials/change-password-dialog" .}}
     {{template "partials/change-phone-dialog" .}}
     <sl-card>
-        <div class="flex flex-col gap-4">
+        <h1 slot="header" class="aligned">
+            <sl-icon name="pen"></sl-icon>
+            Profile
+        </h1>
+        <div class="column gap-4">
             <form hx-put="/change-name" class="">
                 <sl-input label="Name" type="text" id="change-name" name="name" value="{{.User.Name}}"></sl-input>
                 <sl-input label="Tag" type="text" id="change-tag" name="tag" value="{{.User.Tag}}"></sl-input>
@@ -18,15 +23,33 @@
             </div>
         </div>
     </sl-card>
-    <div>
-        {{hideEmail .User.Email}}
-        <sl-button variant="primary" href="#change-email-dialog">Change</sl-button>
-    </div>
-    <div>
-        {{hidePhone .User.Phone}}
-        <sl-button variant="primary" href="#change-phone-dialog">Change</sl-button>
-    </div>
-    <div>
-        <sl-button variant="primary" href="#change-password-dialog">Change password</sl-button>
-    </div>
+    <sl-card>
+        <h1 slot="header" class="aligned">
+            <sl-icon name="mailbox"></sl-icon>
+            Email
+        </h1>
+        <div class="flex justify-between">
+            {{hideEmail .User.Email}}
+            <sl-button variant="primary" href="#change-email-dialog">Change email</sl-button>
+        </div>
+    </sl-card>
+    <sl-card>
+        <h1 slot="header" class="aligned">
+            <sl-icon name="telephone"></sl-icon>
+            Phone
+        </h1>
+        <div class="flex justify-between">
+            {{hidePhone .User.Phone}}
+            <sl-button variant="primary" href="#change-phone-dialog">Change phone</sl-button>
+        </div>
+    </sl-card>
+    <sl-card>
+        <h1 slot="header" class="aligned">
+            <sl-icon name="lock"></sl-icon>
+            Password
+        </h1>
+        <div class="flex justify-between">
+            <sl-button variant="primary" href="#change-password-dialog">Change password</sl-button>
+        </div>
+    </sl-card>
 </div>
