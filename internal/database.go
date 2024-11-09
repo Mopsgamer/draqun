@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/gofiber/fiber/v3/log"
@@ -33,8 +32,7 @@ func (db Database) UserByEmail(email string) (*User, error) {
 	err := db.Sql.Get(user, query, email)
 	if err != nil {
 		log.Error(err)
-		log.Info(user)
-		return nil, errors.New("User not found")
+		return nil, err
 	}
 	return user, nil
 }
@@ -47,7 +45,7 @@ func (db Database) UserByID(userID int) (*User, error) {
 	err := db.Sql.Get(user, query, userID)
 	if err != nil {
 		log.Error(err)
-		return nil, errors.New("User not found")
+		return nil, err
 	}
 	return user, nil
 }

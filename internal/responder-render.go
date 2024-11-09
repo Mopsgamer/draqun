@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/log"
 )
 
 // Render a page using a template.
@@ -15,7 +14,6 @@ func (r Responder) RenderPage(templatePath string, bind fiber.Map, layouts ...st
 func (r *Responder) PageMap(bind fiber.Map) fiber.Map {
 	user, errToken := r.GetOwner()
 	if errToken != nil {
-		log.Error(errToken)
 		r.Cookie(&fiber.Cookie{
 			Name:    "Authorization",
 			Value:   "",

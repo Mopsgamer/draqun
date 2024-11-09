@@ -14,9 +14,6 @@ var secretKey = []byte(os.Getenv("JWT_KEY"))
 // User token expiration: 24 Hours.
 var tokenExpiration = 24 * time.Hour
 
-// The user token validator.
-var tokenValidator = jwt.NewValidator()
-
 // The user as a json or
 type User struct {
 	ID        uint      `json:"id" db:"id"`

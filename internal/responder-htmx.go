@@ -3,8 +3,6 @@ package internal
 import (
 	"regexp"
 	"strings"
-
-	"github.com/gofiber/fiber/v3/log"
 )
 
 // Otherwise json, graphql or something.
@@ -36,7 +34,5 @@ func (r Responder) HTMXCurrentURLHash() string {
 // Get /path/to?key=val
 // from /path/to#element?key=val
 func (r Responder) HTMXCurrentPath() string {
-	result := strings.Replace(r.HTMXCurrentURL(), r.HTMXCurrentURLHash(), "", -1)
-	log.Info(result)
-	return result
+	return strings.Replace(r.HTMXCurrentURL(), r.HTMXCurrentURLHash(), "", -1)
 }

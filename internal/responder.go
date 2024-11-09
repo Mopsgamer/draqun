@@ -43,6 +43,9 @@ func (r Responder) UserRegister() error {
 		return r.RenderWarning(message, id)
 	}
 
+	r.DB.UserSave(*user)
+
+	r.HTMXRedirect(r.HTMXCurrentPath())
 	return r.GiveToken(id, *user)
 }
 
@@ -94,6 +97,7 @@ func (r Responder) UserLogout() error {
 func (r Responder) GiveToken(errorElementId string, user User) error {
 	token, err := user.GenerateToken()
 	if err != nil {
+		log.Error(err)
 		message := "Error generating token"
 		return r.RenderWarning(message, errorElementId)
 	}
@@ -120,33 +124,39 @@ func (r Responder) GetOwner() (*User, error) {
 	}
 
 	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
-		return nil, errors.New("invalid authorization format. Expected Authorization header: Bearer and the token string")
+		err := errors.New("invalid authorization format. Expected Authorization header: Bearer and the token string")
+		log.Error(err)
+		return nil, err
 	}
 
 	tokenString := authHeader[7:]
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			log.Error(err)
+			return nil, err
 		}
 		return secretKey, nil
 	})
 
-	if err != nil || !token.Valid {
-		return nil, errors.New("invalid token")
-	}
-
-	claims := token.Claims.(jwt.MapClaims)
-
-	userIDFloat, ok := claims["id"].(float64)
-	if !ok {
-		return nil, errors.New("user ID not found or is invalid")
-	}
-	userID := int(userIDFloat)
-
-	user, err := r.DB.UserByID(userID)
 	if err != nil {
-		return nil, errors.New("user not found")
+		log.Error(err)
+		return nil, err
+	}
+
+	if !token.Valid {
+		err = errors.New("invalid token")
+		log.Error(err)
+		return nil, err
+	}
+
+	email := (token.Claims.(jwt.MapClaims))["email"].(string)
+
+	user, err := r.DB.UserByEmail(email)
+	if err != nil {
+		log.Error(err)
+		return nil, err
 	}
 
 	return user, nil
