@@ -17,22 +17,17 @@ type Responder struct {
 
 // Uses the form request information.
 func (r Responder) UserRegister() error {
-	id := "auth-error"
+	id := "register-error"
 	req := new(UserRegister)
 	err := r.Bind().Form(req)
-	if err != nil {
+	if err != nil || req.IsBad() {
 		log.Error(err)
 		message := "Invalid request payload"
 		return r.RenderWarning(message, id)
 	}
 
-	if req.IsBadPasswordMatch() {
+	if req.ConfirmPassword != req.Password {
 		message := "Passwords do not match"
-		return r.RenderWarning(message, id)
-	}
-
-	if req.IsMissing() {
-		message := "Missing required fields"
 		return r.RenderWarning(message, id)
 	}
 
@@ -51,17 +46,12 @@ func (r Responder) UserRegister() error {
 
 // Uses the form request information.
 func (r Responder) UserLogin() error {
-	id := "auth-error"
+	id := "login-error"
 	req := new(UserLogin)
 	err := r.Bind().Form(req)
-	if err != nil {
+	if err != nil || req.IsBad() {
 		log.Error(err)
 		message := "Invalid request payload"
-		return r.RenderWarning(message, id)
-	}
-
-	if req.IsBad() {
-		message := "Missing email or password"
 		return r.RenderWarning(message, id)
 	}
 
@@ -72,8 +62,8 @@ func (r Responder) UserLogin() error {
 		return r.RenderWarning(message, id)
 	}
 
-	if !CheckPassword(user.Password, req.Password) {
-		message := "Invalid email or password"
+	if !user.CheckPassword(req.Password) {
+		message := "Invalid password"
 		return r.RenderWarning(message, id)
 	}
 
@@ -95,17 +85,12 @@ func (r Responder) UserLogout() error {
 
 // Uses the form request information.
 func (r Responder) UserChangeName() error {
-	id := "change-error"
+	id := "change-name-error"
 	req := new(UserChangeName)
 	err := r.Bind().Form(req)
-	if err != nil {
+	if err != nil || req.IsBad() {
 		log.Error(err)
 		message := "Invalid request payload"
-		return r.RenderWarning(message, id)
-	}
-
-	if req.IsBad() {
-		message := "Missing email or password"
 		return r.RenderWarning(message, id)
 	}
 
@@ -127,17 +112,12 @@ func (r Responder) UserChangeName() error {
 
 // Uses the form request information.
 func (r Responder) UserChangeEmail() error {
-	id := "change-error"
+	id := "change-email-error"
 	req := new(UserChangeEmail)
 	err := r.Bind().Form(req)
-	if err != nil {
+	if err != nil || req.IsBad() {
 		log.Error(err)
 		message := "Invalid request payload"
-		return r.RenderWarning(message, id)
-	}
-
-	if req.IsBad() {
-		message := "Missing email or password"
 		return r.RenderWarning(message, id)
 	}
 
@@ -148,8 +128,8 @@ func (r Responder) UserChangeEmail() error {
 		return r.RenderWarning(message, id)
 	}
 
-	if !CheckPassword(user.Password, req.CurrentPassword) {
-		message := "Invalid email or password"
+	if !user.CheckPassword(req.CurrentPassword) {
+		message := "Invalid current password"
 		return r.RenderWarning(message, id)
 	}
 
@@ -163,17 +143,12 @@ func (r Responder) UserChangeEmail() error {
 
 // Uses the form request information.
 func (r Responder) UserChangePhone() error {
-	id := "change-error"
+	id := "change-phone-error"
 	req := new(UserChangePhone)
 	err := r.Bind().Form(req)
-	if err != nil {
+	if err != nil || req.IsBad() {
 		log.Error(err)
 		message := "Invalid request payload"
-		return r.RenderWarning(message, id)
-	}
-
-	if req.IsBad() {
-		message := "Missing email or password"
 		return r.RenderWarning(message, id)
 	}
 
@@ -184,8 +159,8 @@ func (r Responder) UserChangePhone() error {
 		return r.RenderWarning(message, id)
 	}
 
-	if !CheckPassword(user.Password, req.CurrentPassword) {
-		message := "Invalid email or password"
+	if !user.CheckPassword(req.CurrentPassword) {
+		message := "Invalid current password"
 		return r.RenderWarning(message, id)
 	}
 
@@ -199,21 +174,16 @@ func (r Responder) UserChangePhone() error {
 
 // Uses the form request information.
 func (r Responder) UserChangePassword() error {
-	id := "change-error"
+	id := "change-password-error"
 	req := new(UserChangePassword)
 	err := r.Bind().Form(req)
-	if err != nil {
+	if err != nil || req.IsBad() {
 		log.Error(err)
 		message := "Invalid request payload"
 		return r.RenderWarning(message, id)
 	}
 
-	if req.IsBad() {
-		message := "Missing email or password"
-		return r.RenderWarning(message, id)
-	}
-
-	if req.IsBadPasswordMatch() {
+	if req.ConfirmPassword != req.NewPassword {
 		message := "Passwords do not match"
 		return r.RenderWarning(message, id)
 	}
@@ -225,8 +195,8 @@ func (r Responder) UserChangePassword() error {
 		return r.RenderWarning(message, id)
 	}
 
-	if !CheckPassword(user.Password, req.CurrentPassword) {
-		message := "Invalid email or password"
+	if !user.CheckPassword(req.CurrentPassword) {
+		message := "Invalid current password"
 		return r.RenderWarning(message, id)
 	}
 
@@ -235,7 +205,47 @@ func (r Responder) UserChangePassword() error {
 	r.DB.UserUpdate(*user)
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
-	return r.RenderSuccess("Email has been changed successfully.", id)
+	return r.RenderSuccess("Password has been changed successfully.", id)
+}
+
+// Uses the form request information.
+func (r Responder) UserDelete() error {
+	id := "account-delete-error"
+	req := new(UserDelete)
+	err := r.Bind().Form(req)
+	if err != nil || req.IsBad() {
+		log.Error(err)
+		message := "Invalid request payload"
+		return r.RenderWarning(message, id)
+	}
+
+	user, err := r.GetOwner()
+	if err != nil {
+		log.Error(err)
+		message := "User not found"
+		return r.RenderWarning(message, id)
+	}
+
+	if user.Name != req.ConfirmName {
+		log.Warn(user.Name)
+		message := "Names do not match"
+		return r.RenderWarning(message, id)
+	}
+
+	if !user.CheckPassword(req.CurrentPassword) {
+		message := "Invalid current password"
+		return r.RenderWarning(message, id)
+	}
+
+	r.DB.DeleteUser(*user)
+	r.Cookie(&fiber.Cookie{
+		Name:    "Authorization",
+		Value:   "",
+		Expires: time.Now(),
+	})
+
+	r.HTMXRedirect(r.HTMXCurrentPath())
+	return r.RenderSuccess("User has been deleted successfully.", id)
 }
 
 // Authorize the user, using the current request information and new cookies.

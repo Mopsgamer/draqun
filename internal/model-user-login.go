@@ -6,7 +6,7 @@ type UserLogin struct {
 	Password string `json:"password" form:"password"`
 }
 
-// Checks if the request contains invalid email and password fields.
+// Checks if the request contains invalid email or password fields.
 func (req UserLogin) IsBad() bool {
 	return req.Email == "" || req.Password == ""
 }

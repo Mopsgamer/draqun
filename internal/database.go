@@ -37,6 +37,17 @@ func (db Database) UserUpdate(user User) error {
 	return nil
 }
 
+// Delete the existing DB record.
+func (db Database) DeleteUser(user User) error {
+	query := `DELETE FROM users WHERE id = ?`
+	_, err := db.Sql.Exec(query, user.ID)
+	if err != nil {
+		log.Error("Error deleting user:", err)
+		return err
+	}
+	return nil
+}
+
 // Get the user by his email.
 func (db Database) UserByEmail(email string) (*User, error) {
 	email = strings.TrimSpace(email)

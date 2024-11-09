@@ -6,6 +6,7 @@
     {{template "partials/change-email-dialog" .}}
     {{template "partials/change-password-dialog" .}}
     {{template "partials/change-phone-dialog" .}}
+    {{template "partials/account-delete-dialog" .}}
     <sl-card>
         <h1 slot="header" class="aligned">
             <sl-icon name="pen"></sl-icon>
@@ -48,8 +49,17 @@
             <sl-icon name="lock"></sl-icon>
             Password
         </h1>
-        <div class="flex justify-between">
+        <div class="flex gap-2">
             <sl-button variant="primary" href="#change-password-dialog">Change password</sl-button>
+        </div>
+    </sl-card>
+    <sl-card>
+        <h1 slot="header" class="aligned">
+            <sl-icon name="exclamation-triangle"></sl-icon>
+            Danger zone
+        </h1>
+        <div class="flex gap-2">
+            <sl-button variant="danger" href="#account-delete-dialog">Delete account</sl-button>
         </div>
     </sl-card>
 </div>

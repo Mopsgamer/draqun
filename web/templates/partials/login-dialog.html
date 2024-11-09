@@ -5,13 +5,13 @@
         Log In
     </h1>
     <form id="login-form" name="login-form" hx-post="/login" hx-swap="outerHTML"
-        hx-target="#auth-error">
+        hx-target="#login-error">
         <sl-input label="Email" type="email" autocomplete="email" id="login-email" name="email" required>
         </sl-input>
 
         <sl-input label="Password" autocomplete="password" type="password" id="login-password" name="password" required password-toggle>
         </sl-input>
-        <sl-alert id="auth-error" variant="warning"></sl-alert>
+        <sl-alert id="login-error" variant="warning"></sl-alert>
     </form>
     <div slot="footer" class="dialog-footer">
         <div>

@@ -115,6 +115,12 @@ func InitServer() (*fiber.App, error) {
 		return r.UserLogout()
 	})
 
+	// delete
+	app.Delete("/account-delete", func(c fiber.Ctx) error {
+		r := Responder{c, *db}
+		return r.UserDelete()
+	})
+
 	return app, nil
 }
 

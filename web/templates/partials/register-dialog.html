@@ -5,7 +5,7 @@
         Sign Up
     </h1>
     <form id="register-form" name="register-form" hx-post="/register" hx-swap="outerHTML"
-        hx-target="#auth-error">
+        hx-target="#register-error">
         <sl-input label="Name" type="text" id="register-name" name="name" required></sl-input>
         <sl-input label="Tag" type="text" autocomplete="username" id="register-tag" name="tag" required></sl-input>
         <sl-input label="Email" type="email" autocomplete="email" id="register-email" name="email" required></sl-input>
@@ -17,7 +17,7 @@
         <!--
             <sl-input label="Avatar URL" id="avatar" name="avatar">
         -->
-        <sl-alert id="auth-error" variant="warning"></sl-alert>
+        <sl-alert id="register-error" variant="warning"></sl-alert>
     </form>
     <div slot="footer" class="dialog-footer">
         <div>

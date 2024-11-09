@@ -11,11 +11,8 @@ type UserRegister struct {
 	ConfirmPassword string `json:"confirm-password" form:"confirm-password"`
 }
 
-func (req UserRegister) IsBadPasswordMatch() bool {
-	return req.Password != req.ConfirmPassword
-}
-
-func (req UserRegister) IsMissing() bool {
+// Checks if the request contains invalid name, email or password fields.
+func (req UserRegister) IsBad() bool {
 	return req.Name == "" || req.Email == "" || req.Password == ""
 }
 

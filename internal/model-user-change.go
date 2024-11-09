@@ -6,7 +6,7 @@ type UserChangeName struct {
 	NewTag  string `json:"new-tag" form:"new-tag"`
 }
 
-// Checks if the request contains invalid email and password fields.
+// Checks if the request contains invalid new name or new tag fields.
 func (req UserChangeName) IsBad() bool {
 	return req.NewName == "" || req.NewTag == ""
 }
@@ -17,7 +17,7 @@ type UserChangeEmail struct {
 	NewEmail        string `json:"new-email" form:"new-email"`
 }
 
-// Checks if the request contains invalid email and password fields.
+// Checks if the request contains invalid new email or current password fields.
 func (req UserChangeEmail) IsBad() bool {
 	return req.CurrentPassword == "" || req.NewEmail == ""
 }
@@ -28,7 +28,7 @@ type UserChangePhone struct {
 	NewPhone        string `json:"new-phone" form:"new-phone"`
 }
 
-// Checks if the request contains invalid email and password fields.
+// Checks if the request contains invalid new phone or current password fields.
 func (req UserChangePhone) IsBad() bool {
 	return req.CurrentPassword == "" || req.NewPhone == ""
 }
@@ -40,11 +40,7 @@ type UserChangePassword struct {
 	ConfirmPassword string `json:"confirm-password" form:"confirm-password"`
 }
 
-// Checks if the request contains invalid email and password fields.
+// Checks if the request contains invalid new password, confirm password or current password fields.
 func (req UserChangePassword) IsBad() bool {
 	return req.CurrentPassword == "" || req.NewPassword == "" || req.ConfirmPassword == ""
-}
-
-func (req UserChangePassword) IsBadPasswordMatch() bool {
-	return req.NewPassword != req.ConfirmPassword
 }

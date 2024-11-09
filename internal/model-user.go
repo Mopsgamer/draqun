@@ -16,11 +16,12 @@ var tokenExpiration = 24 * time.Hour
 
 // The user as a json or
 type User struct {
-	ID        uint      `json:"id" db:"id"`
-	Name      string    `json:"name" db:"name"`
-	Tag       string    `json:"tag" db:"tag"`
-	Email     string    `json:"email" db:"email"`
-	Phone     string    `json:"phone" db:"phone"`
+	ID    uint   `json:"id" db:"id"`
+	Name  string `json:"name" db:"name"`
+	Tag   string `json:"tag" db:"tag"`
+	Email string `json:"email" db:"email"`
+	Phone string `json:"phone" db:"phone"`
+	// Hashed password string
 	Password  string    `json:"password" db:"password"`
 	Avatar    string    `json:"avatar" db:"avatar"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
@@ -50,14 +51,9 @@ func (c User) GetSubject() (string, error) {
 	return c.Email, nil
 }
 
-// Encode the password.
-func (user User) HashPassword() (string, error) {
-	return HashPassword(user.Password)
-}
-
 // Check the encoded password with the current user struct password.
-func (user User) CheckPassword(hashedPassword string) bool {
-	return CheckPassword(hashedPassword, user.Password)
+func (user User) CheckPassword(password string) bool {
+	return CheckPassword(user.Password, password)
 }
 
 // Get the token for the current user.
