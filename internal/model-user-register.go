@@ -2,7 +2,7 @@ package internal
 
 import "time"
 
-type RegisterRequest struct {
+type UserRegister struct {
 	Name            string `json:"name" form:"name"`
 	Tag             string `json:"tag" form:"tag"`
 	Email           string `json:"email" form:"email"`
@@ -11,15 +11,15 @@ type RegisterRequest struct {
 	ConfirmPassword string `json:"confirm-password" form:"confirm-password"`
 }
 
-func (req RegisterRequest) IsBadPasswordMatch() bool {
+func (req UserRegister) IsBadPasswordMatch() bool {
 	return req.Password != req.ConfirmPassword
 }
 
-func (req RegisterRequest) IsMissing() bool {
+func (req UserRegister) IsMissing() bool {
 	return req.Name == "" || req.Email == "" || req.Password == ""
 }
 
-func (req RegisterRequest) CreateUser() (*User, error) {
+func (req UserRegister) CreateUser() (*User, error) {
 	hash, err := HashPassword(req.Password)
 	if err != nil {
 		return nil, err

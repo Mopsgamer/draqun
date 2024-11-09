@@ -3,9 +3,9 @@
         <sl-icon name="mailbox"></sl-icon>
         Change email
     </h1>
-    <form id="change-email-form" name="change-email-form" hx-post="/change-email" hx-swap="outerHTML"
+    <form id="change-email-form" name="change-email-form" hx-put="/change-email" hx-swap="outerHTML"
         hx-target="#change-error">
-        <sl-input label="Password" type="password" autocomplete="password" id="current-password" name="current-password" required password-toggle>
+        <sl-input label="Current password" type="password" autocomplete="password" id="change-email-current-password" name="current-password" required password-toggle>
         </sl-input>
 
         <sl-input label="New email" type="text" id="new-email" name="new-email" required>

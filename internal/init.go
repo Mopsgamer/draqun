@@ -94,6 +94,22 @@ func InitServer() (*fiber.App, error) {
 	})
 
 	// put
+	app.Put("/change-name", func(c fiber.Ctx) error {
+		r := Responder{c, *db}
+		return r.UserChangeName()
+	})
+	app.Put("/change-email", func(c fiber.Ctx) error {
+		r := Responder{c, *db}
+		return r.UserChangeEmail()
+	})
+	app.Put("/change-phone", func(c fiber.Ctx) error {
+		r := Responder{c, *db}
+		return r.UserChangePhone()
+	})
+	app.Put("/change-password", func(c fiber.Ctx) error {
+		r := Responder{c, *db}
+		return r.UserChangePassword()
+	})
 	app.Put("/logout", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.UserLogout()

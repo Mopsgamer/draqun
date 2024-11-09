@@ -70,7 +70,6 @@ func WaitForBundleWatch() {
 	}
 
 	noExit := true
-	// see ./web/build.ts file
 	go func() {
 		err := deno.Wait()
 		if noExit {

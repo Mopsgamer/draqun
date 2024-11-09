@@ -10,11 +10,25 @@ import (
 // The SQL DB wrapper.
 type Database struct{ Sql *sqlx.DB }
 
-// Save the user as a DB record.
-func (db Database) UserSave(user User) error {
+// Create new DB record.
+func (db Database) UserCreate(user User) error {
 	query := `INSERT INTO users (name, tag, email, phone, password, avatar, created_at) 
               VALUES (?, ?, ?, ?, ?, ?, ?)`
 	_, err := db.Sql.Exec(query, user.Name, user.Tag, user.Email, user.Phone, user.Password, user.Avatar, user.CreatedAt)
+	if err != nil {
+		log.Error(err)
+		log.Info(user)
+		return err
+	}
+	return nil
+}
+
+// Change the existing DB record.
+func (db Database) UserUpdate(user User) error {
+	query := `UPDATE users 
+              SET name = ?, tag = ?, email = ?, phone = ?, password = ?, avatar = ?, created_at = ? 
+              WHERE id = ?`
+	_, err := db.Sql.Exec(query, user.Name, user.Tag, user.Email, user.Phone, user.Password, user.Avatar, user.CreatedAt, user.ID)
 	if err != nil {
 		log.Error(err)
 		log.Info(user)
