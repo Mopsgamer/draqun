@@ -1,12 +1,12 @@
 {{if eq .User nil}}
 <sl-dialog {{if .OpenLogin}} open {{- end}} label="Dialog" id="login-dialog">
     <h1 slot="label">Log In</h1>
-    <form id="login-form" name="login-form" class="flex flex-col gap-4" hx-post="/login" hx-swap="outerHTML"
+    <form id="login-form" name="login-form" hx-post="/login" hx-swap="outerHTML"
         hx-target="#auth-error">
-        <sl-input label="Email" type="email" id="login-email" name="email" required>
+        <sl-input label="Email" type="email" autocomplete="email" id="login-email" name="email" required>
         </sl-input>
 
-        <sl-input label="Password" type="password" id="login-password" name="password" required password-toggle>
+        <sl-input label="Password" autocomplete="password" type="password" id="login-password" name="password" required password-toggle>
         </sl-input>
         <sl-alert id="auth-error" variant="warning"></sl-alert>
     </form>

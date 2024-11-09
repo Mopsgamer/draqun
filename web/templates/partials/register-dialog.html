@@ -1,15 +1,15 @@
 {{if eq .User nil}}
 <sl-dialog {{if .OpenRegister}} open {{- end}} label="Dialog" id="register-dialog">
     <h1 slot="label">Sign Up</h1>
-    <form id="register-form" name="register-form" class="flex flex-col gap-4" hx-post="/register" hx-swap="outerHTML"
+    <form id="register-form" name="register-form" hx-post="/register" hx-swap="outerHTML"
         hx-target="#auth-error">
         <sl-input label="Name" type="text" id="register-name" name="name" required></sl-input>
-        <sl-input label="Tag" type="text" id="register-tag" name="tag" required></sl-input>
-        <sl-input label="Email" type="email" id="register-email" name="email" required></sl-input>
-        <sl-input label="Phone" type="tel" id="register-phone" name="phone"></sl-input>
-        <sl-input label="Password" password-toggle type="password" id="register-password" name="password"
+        <sl-input label="Tag" type="text" autocomplete="username" id="register-tag" name="tag" required></sl-input>
+        <sl-input label="Email" type="email" autocomplete="email" id="register-email" name="email" required></sl-input>
+        <sl-input label="Phone" type="tel" autocomplete="tel" id="register-phone" name="phone"></sl-input>
+        <sl-input label="Password" password-toggle type="password" autocomplete="new-password" id="register-password" name="password"
             required></sl-input>
-        <sl-input label="Confirm Password" password-toggle type="password" id="register-confirm-password"
+        <sl-input label="Confirm password" password-toggle type="current-password" id="register-confirm-password"
             name="confirm-password" required></sl-input>
         <!--
             <sl-input label="Avatar URL" id="avatar" name="avatar">

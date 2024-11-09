@@ -1,16 +1,18 @@
 @tailwind components;
 
 @layer components {
-    .settings {
-        .section {
-            @apply flex flex-col;
-        }
+    form {
+        @apply flex flex-col gap-4
+    }
+
+    h2.anchor-header {
+        @apply relative mx-0 mt-12 mb-6 border-b border-n200 text-3xl font-bold;
     }
 
     .dialog-footer {
         @apply flex flex-col gap-2;
         div {
-            @apply justify-end items-center;
+            @apply flex justify-end items-center gap-2;
         }
     }
 }

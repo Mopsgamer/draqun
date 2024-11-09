@@ -10,6 +10,7 @@
 
 <body hx-ext="shoelace" class="h-screen">
     {{template "partials/login-dialog" .}}
+    {{template "partials/register-dialog" .}}
     <main id="main" class="p-4 h-screen flex flex-col justify-center items-center">
         {{if .TokenError}}
         {{template "partials/token-fallback" .}}
@@ -17,7 +18,7 @@
         <div>
             You're not logged in.
             <sl-button variant="text" id="open-login-dialog-center"
-                onclick="document.getElementById('login-dialog').open = true">
+            onclick="location.hash='#login-dialog'">
                 Log In
             </sl-button>
         </div>

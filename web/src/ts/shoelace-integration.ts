@@ -1,6 +1,5 @@
 import htmx from "htmx.org";
 import type {
-    SlDialog,
     SlInput,
     SlRadioGroup,
     SlRating,
@@ -47,17 +46,9 @@ function onEvent(name: htmx.HtmxEvent, evt: CustomEvent) { // htmx type definiti
 
 htmx.defineExtension("shoelace", { onEvent });
 
-for (
-    const slDialog of Array.from(
-        document.querySelectorAll("sl-dialog"),
-    ) as SlDialog[]
-) {
-    openDialogIfHash(slDialog);
-    slDialog.addEventListener("sl-hide", () => removeHash());
-}
-
 function removeHash() {
     let scrollV, scrollH;
+
     if ("pushState" in history) {
         history.pushState(
             "",
@@ -77,28 +68,41 @@ function removeHash() {
     }
 }
 
-removeHash();
-
-function openDialogIfHash(dialog: SlDialog): void {
-    if (location.hash.startsWith(dialog.id)) {
-        console.log("opening %o", dialog);
-        dialog.open = true;
+function cleanHash() {
+    if (location.hash !== "") {
+        return;
     }
+    removeHash();
 }
 
 function openDialogFromHash() {
-    const hash = location.hash;
-    const id = /(?<=#)[a-zA-Z\d_-]+/.exec(hash)?.[0];
+    const id = /(?<=#)[a-zA-Z\d_-]+/.exec(location.hash)?.[0];
     if (!id) {
-        return;
-    }
-    const newDialog = document.getElementById(id) as SlDialog | null;
-    if (!newDialog) {
-        console.log(id);
+        cleanHash();
         return;
     }
 
-    newDialog.open = true;
+    let foundDialogFromHash = false;
+    for (const slDialog of document.querySelectorAll("sl-dialog")) {
+        if (slDialog.id === id || slDialog.querySelector("#"+id)) {
+            foundDialogFromHash = true;
+            slDialog.open = true;
+            slDialog.addEventListener("sl-after-hide", () => {
+                if (!location.hash.includes(slDialog.id)) {
+                    return;
+                }
+                const anotherOpened = document.querySelector("sl-dialog[open]:not([open=false])")
+                location.hash = anotherOpened?.id ?? ""
+                cleanHash();
+            }, { once: true });
+            continue;
+        }
+        slDialog.open = false;
+    }
+
+    if (!foundDialogFromHash) {
+        cleanHash();
+    }
 }
 
 addEventListener("hashchange", () => openDialogFromHash());

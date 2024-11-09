@@ -158,9 +158,11 @@ func InitVE() *html.Engine {
 
 	engine.AddFunc("hideEmail", func(text string) string {
 		splits := strings.SplitAfter(text, "@")
-		return splits[0][:3] + strings.Repeat("*", len(splits[0][3:])-1) + "@" + splits[1]
+		return text[:3] + strings.Repeat("*", len(splits[0][3:])-1) + "@" + splits[1]
 	})
-
+	engine.AddFunc("hidePhone", func(text string) string {
+		return text[:4] + strings.Repeat("*", len(text)-4)
+	})
 	engine.AddFunc("hide", func(text string) string {
 		return strings.Repeat("*", len(text))
 	})
