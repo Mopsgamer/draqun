@@ -7,7 +7,11 @@ import (
 )
 
 // Render a page using a template.
-func (r Responder) RenderPage(templatePath string, bind fiber.Map, layouts ...string) error {
+func (r Responder) RenderPage(guestRedirect string, templatePath string, bind fiber.Map, layouts ...string) error {
+	user, _ := r.GetOwner()
+	if guestRedirect != "" && user == nil {
+		return r.Redirect().To(guestRedirect)
+	}
 	return r.Render(templatePath, r.PageMap(bind), layouts...)
 }
 

@@ -45,6 +45,7 @@ func InitServer() (*fiber.App, error) {
 	app.Get("/", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.RenderPage(
+			"",
 			"index",
 			fiber.Map{
 				"Title": "Restapp - Home page",
@@ -55,6 +56,7 @@ func InitServer() (*fiber.App, error) {
 	app.Get("/settings", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.RenderPage(
+			"/",
 			"settings",
 			fiber.Map{
 				"Title": "Restapp - Settings",
@@ -65,6 +67,7 @@ func InitServer() (*fiber.App, error) {
 	app.Get("/chat", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.RenderPage(
+			"",
 			"chat",
 			fiber.Map{
 				"Title":      "Restapp - Chat",
@@ -75,6 +78,7 @@ func InitServer() (*fiber.App, error) {
 	app.Get("/api", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.RenderPage(
+			"",
 			"api",
 			fiber.Map{
 				"Title": "API Docs",
