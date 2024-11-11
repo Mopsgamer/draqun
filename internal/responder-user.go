@@ -301,9 +301,8 @@ func (r Responder) GetOwner() (*model.User, error) {
 		return nil, err
 	}
 
-	//email := (token.Claims.(jwt.MapClaims))["email"].(string)
+	email := (token.Claims.(jwt.MapClaims))["email"].(string)
 
-	user, err := r.DB.UserByEmail("sex")
-	log.Info("Should be true: ", user == nil)
+	user, err := r.DB.UserByEmail(email)
 	return user, err
 }
