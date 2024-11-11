@@ -121,7 +121,7 @@ func (r Responder) UserChangeName() error {
 		return err
 	}
 
-	r.HTMXRedirect(r.HTMXCurrentPath())
+	r.HTMXRefresh()
 	return r.RenderSuccess(messageSuccChangedProfile, id)
 }
 
@@ -150,7 +150,7 @@ func (r Responder) UserChangeEmail() error {
 		return err
 	}
 
-	r.HTMXRedirect(r.HTMXCurrentPath())
+	r.HTMXRefresh()
 	return r.RenderSuccess(messageSuccChangedEmail, id)
 }
 
@@ -179,7 +179,7 @@ func (r Responder) UserChangePhone() error {
 		return err
 	}
 
-	r.HTMXRedirect(r.HTMXCurrentPath())
+	r.HTMXRefresh()
 	return r.RenderSuccess(messageSuccChangedPhone, id)
 }
 
@@ -212,7 +212,7 @@ func (r Responder) UserChangePassword() error {
 		return err
 	}
 
-	r.HTMXRedirect(r.HTMXCurrentPath())
+	r.HTMXRefresh()
 	return r.RenderSuccess(messageSuccChangedPass, id)
 }
 

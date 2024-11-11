@@ -1,14 +1,15 @@
 <sl-dropdown placement="bottom-end">
-    <sl-button id="avatar-button" variant="text" slot="trigger">
-        <div slot="prefix" class="bg-cover w-10 aspect-square"
+    <sl-button id="avatar-button" variant="text" slot="trigger" class="no-end">
+        <span>
+            {{if eq .User nil}}
+            Guest
+            {{else}}
+            {{.User.Name}}
+            {{end}}
+        </span>
+        <div slot="suffix" class="bg-cover w-10 aspect-square"
             style="background-image: url(/static/assets/default-avatar.png)">
         </div>
-        </sl-icon-button>
-        {{if eq .User nil}}
-        Guest
-        {{else}}
-        {{.User.Name}}
-        {{end}}
     </sl-button>
     <sl-menu>
         {{if ne .User nil}}

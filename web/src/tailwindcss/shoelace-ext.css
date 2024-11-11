@@ -4,6 +4,12 @@
     sl-menu > sl-divider {
         @apply border-b border-n200;
     }
+    sl-button.no-end::part(base) {
+        padding-inline-end: 0;
+    }
+    sl-button.no-start::part(base) {
+        padding-inline-start: 0;
+    }
     sl-dialog.fullscreen-base::part(panel) {
         @apply w-screen h-screen border-r-0;
         min-width: 100vw;
