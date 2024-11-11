@@ -10,6 +10,28 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+var (
+	messageFatalCannotRegister  = "Unable to register."
+	messageFatalTokenGeneration = "Unable to create the token."
+)
+
+var (
+	messageErrInvalidRequest = "Invalid request payload."
+	messageErrBadPassConfirm = "Passwords are not same."
+	messageErrBadNameConfirm = "Name are not same."
+	messageErrBadPass        = "Invalid user password."
+	messageErrUserNotFound   = "User not found."
+)
+
+var (
+	messageSuccChangedProfile = "Successfully changed the user profile."
+	messageSuccChangedPass    = "Successfully changed the user password."
+	messageSuccChangedEmail   = "Successfully changed the user email."
+	messageSuccChangedPhone   = "Successfully changed the user phone."
+	messageSuccDeletedUser    = "Successfully deleted the user."
+	messageSuccLogin          = "Successfully logged in! Redirecting..."
+)
+
 type Responder struct {
 	fiber.Ctx
 	DB Database
@@ -21,21 +43,16 @@ func (r Responder) UserRegister() error {
 	req := new(UserRegister)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
-		log.Error(err)
-		message := "Invalid request payload"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrInvalidRequest, id)
 	}
 
 	if req.ConfirmPassword != req.Password {
-		message := "Passwords do not match"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrBadPassConfirm, id)
 	}
 
 	user, err := req.CreateUser()
 	if err != nil {
-		log.Error(err)
-		message := "Unable to register user"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageFatalCannotRegister, id)
 	}
 
 	r.DB.UserCreate(*user)
@@ -50,21 +67,16 @@ func (r Responder) UserLogin() error {
 	req := new(UserLogin)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
-		log.Error(err)
-		message := "Invalid request payload"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrInvalidRequest, id)
 	}
 
 	user, err := r.DB.UserByEmail(req.Email)
 	if err != nil {
-		log.Error(err)
-		message := "User not found"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrUserNotFound, id)
 	}
 
 	if !user.CheckPassword(req.Password) {
-		message := "Invalid password"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrBadPass, id)
 	}
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
@@ -80,7 +92,7 @@ func (r Responder) UserLogout() error {
 	})
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
-	return r.Render("partials/auth-logout", fiber.Map{})
+	return r.Render("partials/redirecting", fiber.Map{})
 }
 
 // Uses the form request information.
@@ -89,16 +101,12 @@ func (r Responder) UserChangeName() error {
 	req := new(UserChangeName)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
-		log.Error(err)
-		message := "Invalid request payload"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrInvalidRequest, id)
 	}
 
 	user, err := r.GetOwner()
 	if err != nil {
-		log.Error(err)
-		message := "User not found"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrUserNotFound, id)
 	}
 
 	user.Name = req.NewName
@@ -107,7 +115,7 @@ func (r Responder) UserChangeName() error {
 	r.DB.UserUpdate(*user)
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
-	return r.RenderSuccess("Profile has been changed successfully.", id)
+	return r.RenderSuccess(messageSuccChangedProfile, id)
 }
 
 // Uses the form request information.
@@ -116,21 +124,16 @@ func (r Responder) UserChangeEmail() error {
 	req := new(UserChangeEmail)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
-		log.Error(err)
-		message := "Invalid request payload"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrInvalidRequest, id)
 	}
 
 	user, err := r.GetOwner()
 	if err != nil {
-		log.Error(err)
-		message := "User not found"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrUserNotFound, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		message := "Invalid current password"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrBadPass, id)
 	}
 
 	user.Email = req.NewEmail
@@ -138,7 +141,7 @@ func (r Responder) UserChangeEmail() error {
 	r.DB.UserUpdate(*user)
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
-	return r.RenderSuccess("Email has been changed successfully.", id)
+	return r.RenderSuccess(messageSuccChangedEmail, id)
 }
 
 // Uses the form request information.
@@ -147,21 +150,16 @@ func (r Responder) UserChangePhone() error {
 	req := new(UserChangePhone)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
-		log.Error(err)
-		message := "Invalid request payload"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrInvalidRequest, id)
 	}
 
 	user, err := r.GetOwner()
 	if err != nil {
-		log.Error(err)
-		message := "User not found"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrUserNotFound, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		message := "Invalid current password"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrBadPass, id)
 	}
 
 	user.Phone = req.NewPhone
@@ -169,7 +167,7 @@ func (r Responder) UserChangePhone() error {
 	r.DB.UserUpdate(*user)
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
-	return r.RenderSuccess("Phone number has been changed successfully.", id)
+	return r.RenderSuccess(messageSuccChangedPhone, id)
 }
 
 // Uses the form request information.
@@ -178,26 +176,20 @@ func (r Responder) UserChangePassword() error {
 	req := new(UserChangePassword)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
-		log.Error(err)
-		message := "Invalid request payload"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrInvalidRequest, id)
 	}
 
 	if req.ConfirmPassword != req.NewPassword {
-		message := "Passwords do not match"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrBadPassConfirm, id)
 	}
 
 	user, err := r.GetOwner()
 	if err != nil {
-		log.Error(err)
-		message := "User not found"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrUserNotFound, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		message := "Invalid current password"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrBadPass, id)
 	}
 
 	user.Password = req.NewPassword
@@ -205,7 +197,7 @@ func (r Responder) UserChangePassword() error {
 	r.DB.UserUpdate(*user)
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
-	return r.RenderSuccess("Password has been changed successfully.", id)
+	return r.RenderSuccess(messageSuccChangedPass, id)
 }
 
 // Uses the form request information.
@@ -214,27 +206,21 @@ func (r Responder) UserDelete() error {
 	req := new(UserDelete)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
-		log.Error(err)
-		message := "Invalid request payload"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrInvalidRequest, id)
 	}
 
 	user, err := r.GetOwner()
 	if err != nil {
-		log.Error(err)
-		message := "User not found"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrUserNotFound, id)
 	}
 
 	if user.Name != req.ConfirmName {
 		log.Warn(user.Name)
-		message := "Names do not match"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrBadNameConfirm, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		message := "Invalid current password"
-		return r.RenderWarning(message, id)
+		return r.RenderWarning(messageErrBadPass, id)
 	}
 
 	r.DB.DeleteUser(*user)
@@ -245,29 +231,22 @@ func (r Responder) UserDelete() error {
 	})
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
-	return r.RenderSuccess("User has been deleted successfully.", id)
+	return r.RenderSuccess(messageSuccDeletedUser, id)
 }
 
 // Authorize the user, using the current request information and new cookies.
 func (r Responder) GiveToken(errorElementId string, user User) error {
 	token, err := user.GenerateToken()
 	if err != nil {
-		log.Error(err)
-		message := "Error generating token"
-		return r.RenderWarning(message, errorElementId)
+		return r.RenderWarning(messageFatalTokenGeneration, errorElementId)
 	}
 
-	message := "Success! Redirecting..."
 	r.Cookie(&fiber.Cookie{
 		Name:    "Authorization",
 		Value:   "Bearer " + token,
 		Expires: time.Now().Add(tokenExpiration),
 	})
-	return r.Render("partials/auth-success", fiber.Map{
-		"Id":      errorElementId,
-		"Message": message,
-		"Token":   token,
-	})
+	return r.RenderSuccess(messageSuccLogin, errorElementId)
 }
 
 // Get the owner of the request using the "Authorization" header.
@@ -280,7 +259,6 @@ func (r Responder) GetOwner() (*User, error) {
 
 	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
 		err := errors.New("invalid authorization format. Expected Authorization header: Bearer and the token string")
-		log.Error(err)
 		return nil, err
 	}
 
@@ -289,20 +267,17 @@ func (r Responder) GetOwner() (*User, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			log.Error(err)
 			return nil, err
 		}
 		return secretKey, nil
 	})
 
 	if err != nil {
-		log.Error(err)
 		return nil, err
 	}
 
 	if !token.Valid {
 		err = errors.New("invalid token")
-		log.Error(err)
 		return nil, err
 	}
 
@@ -310,7 +285,6 @@ func (r Responder) GetOwner() (*User, error) {
 
 	user, err := r.DB.UserByEmail(email)
 	if err != nil {
-		log.Error(err)
 		return nil, err
 	}
 

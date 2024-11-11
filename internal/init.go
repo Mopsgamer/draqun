@@ -20,6 +20,7 @@ func InitServer() (*fiber.App, error) {
 
 	db, err := InitDB()
 	if err != nil {
+		log.Error(err)
 		return nil, err
 	}
 
@@ -141,12 +142,10 @@ func InitDB() (*Database, error) {
 
 	connection, err := sqlx.Connect("mysql", connectionString)
 	if err != nil {
-		log.Error(err)
 		return nil, err
 	}
 
 	if err := connection.Ping(); err != nil {
-		log.Error(err)
 		return nil, err
 	}
 
@@ -169,7 +168,6 @@ func InitDB() (*Database, error) {
 `
 
 	if _, err := connection.Exec(createTableQuery); err != nil {
-		log.Error(err)
 		return nil, err
 	}
 
