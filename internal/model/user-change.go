@@ -1,4 +1,4 @@
-package internal
+package model
 
 // Supports: json, form.
 type UserChangeName struct {

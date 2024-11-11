@@ -1,4 +1,4 @@
-package internal
+package model
 
 import (
 	"os"
@@ -9,10 +9,10 @@ import (
 )
 
 // The server's secret key.
-var secretKey = []byte(os.Getenv("JWT_KEY"))
+var JwtKey = []byte(os.Getenv("JWT_KEY"))
 
 // User token expiration: 24 Hours.
-var tokenExpiration = 24 * time.Hour
+var UserTokenExpiration = 24 * time.Hour
 
 // The user as a json or
 type User struct {
@@ -32,7 +32,7 @@ func (c User) GetAudience() (jwt.ClaimStrings, error) {
 }
 
 func (c User) GetExpirationTime() (*jwt.NumericDate, error) {
-	return jwt.NewNumericDate(time.Now().Add(tokenExpiration)), nil
+	return jwt.NewNumericDate(time.Now().Add(UserTokenExpiration)), nil
 }
 
 func (c User) GetIssuedAt() (*jwt.NumericDate, error) {
@@ -60,7 +60,7 @@ func (user User) CheckPassword(password string) bool {
 func (user User) GenerateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, user)
 
-	return token.SignedString(secretKey)
+	return token.SignedString(JwtKey)
 }
 
 func HashPassword(password string) (string, error) {

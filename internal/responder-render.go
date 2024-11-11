@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"restapp/internal/model"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -49,12 +50,12 @@ func (r *Responder) PageMap(bind fiber.Map) fiber.Map {
 // NOTE: wont move this to internal/htmx.go
 // since its only for the RenderTemplate
 type HTMXPartialQuery struct {
-	Id           string `query:"id"`
-	Message      string `query:"message"`
-	OpenSettings bool   `query:"open-settings"`
-	OpenRegister bool   `query:"open-register"`
-	OpenLogin    bool   `query:"open-login"`
-	User         User   `query:"user"` // its safe
+	Id           string     `query:"id"`
+	Message      string     `query:"message"`
+	OpenSettings bool       `query:"open-settings"`
+	OpenRegister bool       `query:"open-register"`
+	OpenLogin    bool       `query:"open-login"`
+	User         model.User `query:"user"` // its safe
 }
 
 // Renders a template, requested by a client.

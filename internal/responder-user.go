@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"restapp/internal/model"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -40,7 +41,7 @@ type Responder struct {
 // Uses the form request information.
 func (r Responder) UserRegister() error {
 	id := "register-error"
-	req := new(UserRegister)
+	req := new(model.UserRegister)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
 		return r.RenderWarning(messageErrInvalidRequest, id)
@@ -64,7 +65,7 @@ func (r Responder) UserRegister() error {
 // Uses the form request information.
 func (r Responder) UserLogin() error {
 	id := "login-error"
-	req := new(UserLogin)
+	req := new(model.UserLogin)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
 		return r.RenderWarning(messageErrInvalidRequest, id)
@@ -98,7 +99,7 @@ func (r Responder) UserLogout() error {
 // Uses the form request information.
 func (r Responder) UserChangeName() error {
 	id := "change-name-error"
-	req := new(UserChangeName)
+	req := new(model.UserChangeName)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
 		return r.RenderWarning(messageErrInvalidRequest, id)
@@ -121,7 +122,7 @@ func (r Responder) UserChangeName() error {
 // Uses the form request information.
 func (r Responder) UserChangeEmail() error {
 	id := "change-email-error"
-	req := new(UserChangeEmail)
+	req := new(model.UserChangeEmail)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
 		return r.RenderWarning(messageErrInvalidRequest, id)
@@ -147,7 +148,7 @@ func (r Responder) UserChangeEmail() error {
 // Uses the form request information.
 func (r Responder) UserChangePhone() error {
 	id := "change-phone-error"
-	req := new(UserChangePhone)
+	req := new(model.UserChangePhone)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
 		return r.RenderWarning(messageErrInvalidRequest, id)
@@ -173,7 +174,7 @@ func (r Responder) UserChangePhone() error {
 // Uses the form request information.
 func (r Responder) UserChangePassword() error {
 	id := "change-password-error"
-	req := new(UserChangePassword)
+	req := new(model.UserChangePassword)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
 		return r.RenderWarning(messageErrInvalidRequest, id)
@@ -203,7 +204,7 @@ func (r Responder) UserChangePassword() error {
 // Uses the form request information.
 func (r Responder) UserDelete() error {
 	id := "account-delete-error"
-	req := new(UserDelete)
+	req := new(model.UserDelete)
 	err := r.Bind().Form(req)
 	if err != nil || req.IsBad() {
 		return r.RenderWarning(messageErrInvalidRequest, id)
@@ -235,7 +236,7 @@ func (r Responder) UserDelete() error {
 }
 
 // Authorize the user, using the current request information and new cookies.
-func (r Responder) GiveToken(errorElementId string, user User) error {
+func (r Responder) GiveToken(errorElementId string, user model.User) error {
 	token, err := user.GenerateToken()
 	if err != nil {
 		return r.RenderWarning(messageFatalTokenGeneration, errorElementId)
@@ -244,14 +245,14 @@ func (r Responder) GiveToken(errorElementId string, user User) error {
 	r.Cookie(&fiber.Cookie{
 		Name:    "Authorization",
 		Value:   "Bearer " + token,
-		Expires: time.Now().Add(tokenExpiration),
+		Expires: time.Now().Add(model.UserTokenExpiration),
 	})
 	return r.RenderSuccess(messageSuccLogin, errorElementId)
 }
 
 // Get the owner of the request using the "Authorization" header.
 // Returns (nil, nil), if the header is empty.
-func (r Responder) GetOwner() (*User, error) {
+func (r Responder) GetOwner() (*model.User, error) {
 	authHeader := r.Cookies("Authorization")
 	if authHeader == "" {
 		return nil, nil
@@ -269,7 +270,7 @@ func (r Responder) GetOwner() (*User, error) {
 			err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			return nil, err
 		}
-		return secretKey, nil
+		return model.JwtKey, nil
 	})
 
 	if err != nil {
