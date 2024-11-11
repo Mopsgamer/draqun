@@ -1,6 +1,9 @@
 @tailwind components;
 
 @layer components {
+    sl-menu > sl-divider {
+        @apply border-b border-n200;
+    }
     sl-dialog.fullscreen-base::part(panel) {
         @apply w-screen h-screen border-r-0;
         min-width: 100vw;
