@@ -56,7 +56,10 @@ func (r Responder) UserRegister() error {
 		return r.RenderWarning(messageFatalCannotRegister, id)
 	}
 
-	r.DB.UserCreate(*user)
+	err = r.DB.UserCreate(*user)
+	if err != nil {
+		return err
+	}
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
 	return r.GiveToken(id, *user)
@@ -113,7 +116,10 @@ func (r Responder) UserChangeName() error {
 	user.Name = req.NewName
 	user.Tag = req.NewTag
 
-	r.DB.UserUpdate(*user)
+	err = r.DB.UserUpdate(*user)
+	if err != nil {
+		return err
+	}
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
 	return r.RenderSuccess(messageSuccChangedProfile, id)
@@ -139,7 +145,10 @@ func (r Responder) UserChangeEmail() error {
 
 	user.Email = req.NewEmail
 
-	r.DB.UserUpdate(*user)
+	err = r.DB.UserUpdate(*user)
+	if err != nil {
+		return err
+	}
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
 	return r.RenderSuccess(messageSuccChangedEmail, id)
@@ -165,7 +174,10 @@ func (r Responder) UserChangePhone() error {
 
 	user.Phone = req.NewPhone
 
-	r.DB.UserUpdate(*user)
+	err = r.DB.UserUpdate(*user)
+	if err != nil {
+		return err
+	}
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
 	return r.RenderSuccess(messageSuccChangedPhone, id)
@@ -195,7 +207,10 @@ func (r Responder) UserChangePassword() error {
 
 	user.Password = req.NewPassword
 
-	r.DB.UserUpdate(*user)
+	err = r.DB.UserUpdate(*user)
+	if err != nil {
+		return err
+	}
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
 	return r.RenderSuccess(messageSuccChangedPass, id)
@@ -224,7 +239,11 @@ func (r Responder) UserDelete() error {
 		return r.RenderWarning(messageErrBadPass, id)
 	}
 
-	r.DB.DeleteUser(*user)
+	err = r.DB.DeleteUser(*user)
+	if err != nil {
+		return err
+	}
+
 	r.Cookie(&fiber.Cookie{
 		Name:    "Authorization",
 		Value:   "",
@@ -282,12 +301,9 @@ func (r Responder) GetOwner() (*model.User, error) {
 		return nil, err
 	}
 
-	email := (token.Claims.(jwt.MapClaims))["email"].(string)
+	//email := (token.Claims.(jwt.MapClaims))["email"].(string)
 
-	user, err := r.DB.UserByEmail(email)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
+	user, err := r.DB.UserByEmail("sex")
+	log.Info("Should be true: ", user == nil)
+	return user, err
 }
