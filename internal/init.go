@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"html/template"
 	"os"
 	"strings"
 
@@ -185,7 +184,7 @@ func InitVE() *html.Engine {
 		"hideEmail": func(text string) string {
 			splits := strings.Split(text, "@")
 			if len(splits) != 2 {
-				return template.HTMLEscapeString(text)
+				return strings.Repeat("*", len(text))
 			}
 			// a in a@b.c
 			before := splits[0]
@@ -193,7 +192,7 @@ func InitVE() *html.Engine {
 			after := "@" + splits[1]
 
 			if len(before) > 5 {
-				before = before[:3] + before[3:]
+				before = before[:3] + strings.Repeat("*", len(before[3:]))
 			} else {
 				before = strings.Repeat("*", len(before))
 			}
