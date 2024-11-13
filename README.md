@@ -15,7 +15,7 @@ Requirements:
 
 ### Preparing
 
-Creating project files:
+Creating/Updating project files:
 
 ```bash
 deno task init
@@ -23,12 +23,6 @@ deno task init
 
 After this command you will get the `.env` file in your project's root. Fill
 this file manually.
-
-Force option overrides your existing files:
-
-```bash
-deno task init --force
-```
 
 ### Starting the server
 
