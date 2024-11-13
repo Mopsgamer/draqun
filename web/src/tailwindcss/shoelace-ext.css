@@ -3,6 +3,9 @@
 @layer components {
     sl-menu > sl-divider {
         @apply border-b border-n200;
+        &:last-child, &:first-child, sl-divider + sl-divider {
+            @apply hidden
+        }
     }
     sl-button.no-end::part(base) {
         padding-inline-end: 0;
