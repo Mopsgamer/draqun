@@ -51,16 +51,17 @@ async function buildTask(options: BuildOptions, title?: string): Promise<void> {
 
     const directory = outdir || dirname(outfile!);
     if (await exists(directory)) {
-        console.log("Cleaning " + directory);
+        console.log("Cleaning: " + directory);
         await Deno.remove(directory, { recursive: true });
     }
     const safeOptions = options;
     delete safeOptions.whenChange;
     const ctx = await esbuild.context(safeOptions as esbuild.BuildOptions);
     await ctx.rebuild();
+    console.log("Bundled: " + directory);
     if (isWatch) {
         await ctx.watch();
-        console.log("Listening for changes: " + directory);
+        console.log("Listening: " + directory);
         if (whenChange.length > 0) {
             const watcher = Deno.watchFs(whenChange, { recursive: true });
             (async () => {
@@ -68,14 +69,14 @@ async function buildTask(options: BuildOptions, title?: string): Promise<void> {
                     if (event.kind !== "modify") {
                         continue;
                     }
-                    ctx.rebuild();
+                    await ctx.rebuild();
+                    console.log("Bundled: " + directory);
                 }
             })();
         }
         return;
     }
     await ctx.dispose();
-    console.log("Bundled: " + directory);
 }
 
 function copyTask(from: string, to: string) {

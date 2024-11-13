@@ -1,58 +1,57 @@
 package internal
 
 import (
-	"restapp/internal/model"
+	"fmt"
+	"restapp/internal/environment"
 
+	"github.com/gofiber/fiber/v3/log"
 	"github.com/jmoiron/sqlx"
 )
 
 // The SQL DB wrapper.
 type Database struct{ Sql *sqlx.DB }
 
-// Create new DB record.
-func (db Database) UserCreate(user model.User) error {
-	query := `INSERT INTO users (name, tag, email, phone, password, avatar, created_at) 
-              VALUES (?, ?, ?, ?, ?, ?, ?)`
-	_, err := db.Sql.Exec(query, user.Name, user.Tag, user.Email, user.Phone, user.Password, user.Avatar, user.CreatedAt)
-	return err
-}
+// Initialize the DB wrapper.
+func InitDB() (*Database, error) {
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		environment.DBUser,
+		environment.DBPassword,
+		environment.DBHost,
+		environment.DBPort,
+		environment.DBName,
+	)
 
-// Change the existing DB record.
-func (db Database) UserUpdate(user model.User) error {
-	query := `UPDATE users 
-              SET name = ?, tag = ?, email = ?, phone = ?, password = ?, avatar = ?, created_at = ? 
-              WHERE id = ?`
-	_, err := db.Sql.Exec(query, user.Name, user.Tag, user.Email, user.Phone, user.Password, user.Avatar, user.CreatedAt, user.ID)
-	return err
-}
-
-// Delete the existing DB record.
-func (db Database) DeleteUser(user model.User) error {
-	query := `DELETE FROM users WHERE id = ?`
-	_, err := db.Sql.Exec(query, user.ID)
-	return err
-}
-
-// Get the user by his email.
-func (db Database) UserByEmail(email string) (*model.User, error) {
-	user := new(model.User)
-	query := `SELECT id, name, tag, email, phone, password, avatar, created_at 
-	FROM users WHERE email = ?`
-	err := db.Sql.Get(user, query, email)
+	connection, err := sqlx.Connect("mysql", connectionString)
 	if err != nil {
-		user = nil
+		return nil, err
 	}
-	return user, err
-}
 
-// Get the user by his identificator.
-func (db Database) UserByID(userID int) (*model.User, error) {
-	user := new(model.User)
-	query := `SELECT id, name, tag, email, phone, password, avatar, created_at 
-	FROM users WHERE id = ?`
-	err := db.Sql.Get(user, query, userID)
-	if err != nil {
-		user = nil
+	if err := connection.Ping(); err != nil {
+		return nil, err
 	}
-	return user, err
+
+	log.Info("Database connected successfully")
+
+	createTableQuery := `
+	CREATE TABLE IF NOT EXISTS users (
+		id INT NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
+		name VARCHAR(255) DEFAULT NULL,
+		tag VARCHAR(255) DEFAULT NULL,
+		email VARCHAR(255) NOT NULL,
+		phone VARCHAR(255) DEFAULT NULL,
+		password VARCHAR(255) NOT NULL,
+		avatar VARCHAR(255) DEFAULT NULL,
+		created_at DATETIME DEFAULT NULL COMMENT 'Account create time',
+		last_seen DATETIME DEFAULT NULL COMMENT 'Last seen time',
+		registered TINYINT(1) DEFAULT '0',
+		PRIMARY KEY (id)
+	) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Users data'
+`
+
+	if _, err := connection.Exec(createTableQuery); err != nil {
+		return nil, err
+	}
+
+	log.Info("Users table ensured to exist")
+	return &Database{Sql: connection}, nil
 }

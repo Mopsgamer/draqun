@@ -15,14 +15,14 @@
         {{if .TokenError}}
         {{template "partials/token-fallback" .}}
         {{end}}
-        <div>
+        <div class="text-3xl font-bold">
             You're not logged in.
+        </div>
+        <div>
             <sl-button variant="text" id="open-login-dialog-center"
             onclick="location.hash='#login-dialog'">
                 Log In
             </sl-button>
-        </div>
-        <div>
             <sl-button variant="text" href="/">Home page</a>
         </div>
     </main>

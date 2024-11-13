@@ -1,4 +1,4 @@
-package internal
+package environment
 
 import (
 	"bufio"
@@ -6,13 +6,52 @@ import (
 	"os"
 	"os/exec"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v3/log"
+	"github.com/joho/godotenv"
 )
 
+var Environment int
+var JWTKey string
+var DBUser string
+var DBPassword string
+var DBName string
+var DBHost string
+var DBPort string
+
+const (
+	EnvironmentTest = iota
+	EnvironmentDevelopment
+	EnvironmentProduction
+)
+
+// Exits if any errors.
+func Load() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("No .env file found")
+	}
+
+	var err error
+	environmentString := "ENVIRONMENT"
+	Environment, err = strconv.Atoi(os.Getenv(environmentString))
+	if err != nil {
+		log.Fatalf(environmentString+" can not be '%v'. Should be an integer.", os.Getenv(environmentString))
+	}
+	if Environment < EnvironmentTest || Environment > EnvironmentProduction {
+		log.Fatalf(environmentString+" can not be %v. Should be in the range: %v - %v.", Environment, EnvironmentTest, EnvironmentProduction)
+	}
+	JWTKey = os.Getenv("JWT_KEY")
+	DBUser = os.Getenv("DB_USER")
+	DBPassword = os.Getenv("DB_PASSWORD")
+	DBName = os.Getenv("DB_NAME")
+	DBHost = os.Getenv("DB_HOST")
+	DBPort = os.Getenv("DB_PORT")
+}
+
 // Creates the instance. Checks if the deno command exists: exits with 1 if it doesn't.
-// Uses default system's output.
+// Uses default system's output. The instance should be started.
 func ExecDeno(arg ...string) *exec.Cmd {
 	_, err := exec.LookPath("deno")
 	if err != nil {
@@ -25,20 +64,23 @@ func ExecDeno(arg ...string) *exec.Cmd {
 	return cmd
 }
 
-func WaitForBundleWatch() {
+// Server can be started after this method called.
+// Implements --watch and --build flags.
+func WaitForBuild() {
 
 	optionWatch := "--watch"
 	optionBuild := "--build"
 
+	isProd := Environment == EnvironmentProduction
 	isBuild := slices.Contains(os.Args, optionBuild)
 	isWatch := slices.Contains(os.Args, optionWatch)
 
-	if !isBuild && !isWatch {
+	if !isBuild && !isWatch && isProd {
 		log.Info("You can use --build or --watch option to bundle js, css and assets before running server.")
 		return
 	}
 
-	if !isBuild && !isWatch {
+	if isBuild && isWatch {
 		log.Fatal("Use --build or --watch, if you want to bundle while running the server. You have used both.")
 		return
 	}
