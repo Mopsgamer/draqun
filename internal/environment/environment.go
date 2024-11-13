@@ -75,8 +75,15 @@ func WaitForBuild() {
 	isBuild := slices.Contains(os.Args, optionBuild)
 	isWatch := slices.Contains(os.Args, optionWatch)
 
-	if !isBuild && !isWatch && isProd {
-		log.Info("You can use --build or --watch option to bundle js, css and assets before running server.")
+	if !isBuild && !isWatch {
+		if !isProd {
+			log.Info("You can use --build or --watch option to bundle js, css and assets before running server.")
+		}
+		return
+	}
+
+	if isProd {
+		log.Warn("You can use --build and --watch options only within dev environment.")
 		return
 	}
 
