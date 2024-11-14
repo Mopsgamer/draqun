@@ -1,9 +1,5 @@
 import htmx from "htmx.org";
-import type {
-    SlInput,
-    SlRadioGroup,
-    SlRating,
-} from "@shoelace-style/shoelace";
+import type { SlInput, SlRadioGroup, SlRating } from "@shoelace-style/shoelace";
 
 function onEvent(name: htmx.HtmxEvent, evt: CustomEvent) { // htmx type definitions sucks
     if (name !== "htmx:configRequest") {
@@ -84,15 +80,17 @@ function openDialogFromHash() {
 
     let foundDialogFromHash = false;
     for (const slDialog of document.querySelectorAll("sl-dialog")) {
-        if (slDialog.id === id || slDialog.querySelector("#"+id)) {
+        if (slDialog.id === id || slDialog.querySelector("#" + id)) {
             foundDialogFromHash = true;
             slDialog.open = true;
             slDialog.addEventListener("sl-after-hide", () => {
                 if (!location.hash.includes(slDialog.id)) {
                     return;
                 }
-                const anotherOpened = document.querySelector("sl-dialog[open]:not([open=false])")
-                location.hash = anotherOpened?.id ?? ""
+                const anotherOpened = document.querySelector(
+                    "sl-dialog[open]:not([open=false])",
+                );
+                location.hash = anotherOpened?.id ?? "";
                 cleanHash();
             }, { once: true });
             continue;
