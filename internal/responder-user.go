@@ -17,11 +17,11 @@ var (
 )
 
 var (
-	messageErrInvalidRequest = "Invalid request payload."
-	messageErrBadPassConfirm = "Passwords are not same."
-	messageErrBadNameConfirm = "Name are not same."
-	messageErrBadPass        = "Invalid user password."
-	messageErrUserNotFound   = "User not found."
+	messageErrInvalidRequest     = "Invalid request payload."
+	messageErrBadPassConfirm     = "Passwords are not same."
+	messageErrBadUsernameConfirm = "Username are not same."
+	messageErrBadPass            = "Invalid user password."
+	messageErrUserNotFound       = "User not found."
 )
 
 var (
@@ -113,8 +113,8 @@ func (r Responder) UserChangeName() error {
 		return r.RenderWarning(messageErrUserNotFound, id)
 	}
 
-	user.Name = req.NewName
-	user.Tag = req.NewTag
+	user.Nickname = req.NewNickname
+	user.Username = req.NewUsername
 
 	err = r.DB.UserUpdate(*user)
 	if err != nil {
@@ -230,9 +230,9 @@ func (r Responder) UserDelete() error {
 		return r.RenderWarning(messageErrUserNotFound, id)
 	}
 
-	if user.Name != req.ConfirmName {
-		log.Warn(user.Name)
-		return r.RenderWarning(messageErrBadNameConfirm, id)
+	if user.Nickname != req.ConfirmUsername {
+		log.Warn(user.Nickname)
+		return r.RenderWarning(messageErrBadUsernameConfirm, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {

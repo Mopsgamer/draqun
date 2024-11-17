@@ -2,13 +2,13 @@ package model
 
 // Supports: json, form.
 type UserChangeName struct {
-	NewName string `json:"new-name" form:"new-name"`
-	NewTag  string `json:"new-tag" form:"new-tag"`
+	NewNickname string `json:"new-nickname" form:"new-nickname"`
+	NewUsername string `json:"new-username" form:"new-username"`
 }
 
-// Checks if the request contains invalid new name or new tag fields.
+// Checks if the request contains invalid new nickname or new username fields.
 func (req UserChangeName) IsBad() bool {
-	return req.NewName == "" || req.NewTag == ""
+	return req.NewNickname == "" || req.NewUsername == ""
 }
 
 // Supports: json, form.

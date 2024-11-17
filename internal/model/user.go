@@ -16,15 +16,16 @@ var UserTokenExpiration = 24 * time.Hour
 
 // The user as a json or
 type User struct {
-	ID    uint   `json:"id" db:"id"`
-	Name  string `json:"name" db:"name"`
-	Tag   string `json:"tag" db:"tag"`
-	Email string `json:"email" db:"email"`
-	Phone string `json:"phone" db:"phone"`
+	ID       uint   `json:"id" db:"id"`
+	Nickname string `json:"nickname" db:"nickname"`
+	Username string `json:"username" db:"username"`
+	Email    string `json:"email" db:"email"`
+	Phone    string `json:"phone" db:"phone"`
 	// Hashed password string
 	Password  string    `json:"password" db:"password"`
 	Avatar    string    `json:"avatar" db:"avatar"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	LastSeen  time.Time `json:"last_seen" db:"last_seen"`
 }
 
 func (c User) GetAudience() (jwt.ClaimStrings, error) {

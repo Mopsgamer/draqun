@@ -3,17 +3,17 @@ package model
 import "time"
 
 type UserRegister struct {
-	Name            string `json:"name" form:"name"`
-	Tag             string `json:"tag" form:"tag"`
+	Nickname        string `json:"nickname" form:"nickname"`
+	Username        string `json:"username" form:"username"`
 	Email           string `json:"email" form:"email"`
 	Phone           string `json:"phone" form:"phone"`
 	Password        string `json:"password" form:"password"`
 	ConfirmPassword string `json:"confirm-password" form:"confirm-password"`
 }
 
-// Checks if the request contains invalid name, email or password fields.
+// Checks if the request contains invalid Nickname, email or password fields.
 func (req UserRegister) IsBad() bool {
-	return req.Name == "" || req.Email == "" || req.Password == ""
+	return req.Nickname == "" || req.Email == "" || req.Password == ""
 }
 
 func (req UserRegister) CreateUser() (*User, error) {
@@ -22,11 +22,12 @@ func (req UserRegister) CreateUser() (*User, error) {
 		return nil, err
 	}
 	return &User{
-		Name:      req.Name,
-		Tag:       req.Tag,
+		Nickname:  req.Nickname,
+		Username:  req.Username,
 		Email:     req.Email,
 		Phone:     req.Phone,
 		Password:  hash,
 		CreatedAt: time.Now(),
+		LastSeen:  time.Now(),
 	}, nil
 }

@@ -35,15 +35,14 @@ func InitDB() (*Database, error) {
 	createTableQuery := `
 	CREATE TABLE IF NOT EXISTS users (
 		id INT NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
-		name VARCHAR(255) DEFAULT NULL,
-		tag VARCHAR(255) DEFAULT NULL,
+		nickname VARCHAR(255) DEFAULT NULL,
+		username VARCHAR(255) DEFAULT NULL,
 		email VARCHAR(255) NOT NULL,
 		phone VARCHAR(255) DEFAULT NULL,
 		password VARCHAR(255) NOT NULL,
 		avatar VARCHAR(255) DEFAULT NULL,
 		created_at DATETIME DEFAULT NULL COMMENT 'Account create time',
 		last_seen DATETIME DEFAULT NULL COMMENT 'Last seen time',
-		registered TINYINT(1) DEFAULT '0',
 		PRIMARY KEY (id)
 	) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Users data'
 `
