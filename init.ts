@@ -46,7 +46,7 @@ function initEnv(): void {
                 ([key, { value, comment }]) =>
                     `${
                         comment
-                            ? "# " + comment.replace("\n", "\n# ") + "\n"
+                            ? "# " + comment.replaceAll("\n", "\n# ") + "\n"
                             : ""
                     }${key}=${env[key] || value || ""}\n\n`,
             ).join(""),
