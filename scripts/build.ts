@@ -2,8 +2,9 @@ import * as esbuild from "esbuild";
 import { copy as copyPlugin } from "esbuild-plugin-copy";
 import { tailwindPlugin } from "esbuild-plugin-tailwindcss";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
-import { dirname } from "jsr:@std/path";
-import { exists, existsSync } from "jsr:@std/fs";
+import { dirname } from "@std/path";
+import { exists, existsSync } from "@std/fs";
+import { logBuild } from "./tool.ts";
 
 const isWatch = Deno.args.includes("--watch");
 
@@ -51,17 +52,17 @@ async function buildTask(options: BuildOptions, title?: string): Promise<void> {
 
     const directory = outdir || dirname(outfile!);
     if (await exists(directory)) {
-        console.log("Cleaning: " + directory);
+        logBuild.info("Cleaning: " + directory);
         await Deno.remove(directory, { recursive: true });
     }
     const safeOptions = options;
     delete safeOptions.whenChange;
     const ctx = await esbuild.context(safeOptions as esbuild.BuildOptions);
     await ctx.rebuild();
-    console.log("Bundled: " + directory);
+    logBuild.info("Bundled: " + directory);
     if (isWatch) {
         await ctx.watch();
-        console.log("Listening: " + directory);
+        logBuild.info("Listening: " + directory);
         if (whenChange.length > 0) {
             const watcher = Deno.watchFs(whenChange, { recursive: true });
             (async () => {
@@ -70,7 +71,7 @@ async function buildTask(options: BuildOptions, title?: string): Promise<void> {
                         continue;
                     }
                     await ctx.rebuild();
-                    console.log("Bundled: " + directory);
+                    logBuild.info("Bundled: " + directory);
                 }
             })();
         }
@@ -119,8 +120,7 @@ const taskList = [
 
 await Promise.all(taskList);
 
+logBuild.success("Done: Bundled all files.");
 if (isWatch) {
-    console.log("Done: Watching for file changes...");
-} else {
-    console.log("Done: Bundled all files.");
+    logBuild.success("Watching for file changes...");
 }

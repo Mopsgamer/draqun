@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 // @deno-types="npm:@types/mysql"
 import mysql from "mysql";
 import { existsSync } from "@std/fs";
+import { logInitDb, logInitFiles } from "./tool.ts";
 
 enum envKeys {
     ENVIRONMENT = "ENVIRONMENT",
@@ -39,7 +40,7 @@ function initMysqlTables(): void {
 
     connection.connect((err) => {
         if (err) throw err;
-        console.log("Connected to the database using .env confifuration.");
+        logInitDb.info("Connected to the database using .env confifuration.");
     });
 
     for (const query of queryList) {
@@ -47,15 +48,15 @@ function initMysqlTables(): void {
             query,
             (err) => {
                 if (err) throw err;
-                console.log("Created the 'users' table if not exists.");
+                logInitDb.info("Created the 'users' table if not exists.");
             },
         );
     }
 
     connection.end((err) => {
         if (err) throw err;
-        console.log("Disconnected from the database.");
-    },);
+        logInitDb.success("Disconnected from the database.");
+    });
 }
 
 function initEnvFile(): void {
@@ -69,7 +70,8 @@ function initEnvFile(): void {
         comment: "can be 0 (test), 1 (dev) or 2 (prod)\ndefault: 1",
     });
     defaultEnv.set(envKeys.JWT_KEY, {
-        comment: "use any online jwt generator to fill this value",
+        comment:
+            "use any online jwt generator to fill this value: https://jwtsecret.com/generate",
     });
     defaultEnv.set(envKeys.DB_PASSWORD, { comment: "connection password" });
     defaultEnv.set(envKeys.DB_NAME, {
@@ -113,8 +115,17 @@ function initEnvFile(): void {
         ),
     );
 
-    console.log("Writed " + path);
+    logInitFiles.success("Writed " + path);
 }
 
-initEnvFile();
-initMysqlTables();
+try {
+    initEnvFile();
+} catch (error) {
+    logInitFiles.error(error);
+}
+
+try {
+    initMysqlTables();
+} catch (error) {
+    logInitDb.error(error);
+}

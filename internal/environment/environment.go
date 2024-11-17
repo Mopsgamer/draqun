@@ -137,14 +137,14 @@ func WaitForBuild() {
 			if strings.Contains(line, "error") || strings.Contains(line, "Error") || strings.Contains(line, "ERR") {
 				noExit = false
 			}
-			fmt.Println(line)
+			log.Debug(line)
 		}
 	}()
 
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		fmt.Println(line)
+		log.Debug(line)
 
 		// see ./web/build.ts file
 		if strings.Contains(line, "Done:") {

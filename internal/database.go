@@ -30,7 +30,6 @@ func InitDB() (*Database, error) {
 		return nil, err
 	}
 
-	log.Info("Database connected successfully")
-	log.Info("Hope she is set up manually or by 'deno task init'")
+	log.Info("Database connected successfully. Hope she is set up manually or by 'deno task init'.")
 	return &Database{Sql: connection}, nil
 }

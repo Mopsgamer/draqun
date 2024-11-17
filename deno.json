@@ -13,6 +13,7 @@
         "@shoelace-style/shoelace": "npm:@shoelace-style/shoelace@^2.18.0",
         "@std/fs": "jsr:@std/fs@^1.0.5",
         "@std/path": "jsr:@std/path@^1.0.8",
+        "consola": "npm:consola@^3.2.3",
         "dotenv": "npm:dotenv@^16.4.5",
         "esbuild": "npm:esbuild@^0.24.0",
         "esbuild-plugin-copy": "npm:esbuild-plugin-copy@^2.1.1",
