@@ -51,7 +51,6 @@ deno task serve:watch
 
 The commands above should be used when:
 
-- Repository has been cloned.
 - Deno dependencies (js libraries) has been updated.
 - Changed any html template and potentially used new tailwind classnames,
   Otherwise it may not work partially.
