@@ -23,22 +23,22 @@ var (
 	MessageErrUsername           = "Invalid username pattern. " + model.MessageDetailUsername
 	MessageErrEmail              = "Invalid email pattern. " + model.MessageDetailEmail
 	MessageErrPhone              = "Invalid phone number pattern. " + model.MessageDetailPhone
-	messageErrBadPassConfirm     = "Passwords are not same."
-	messageErrBadUsernameConfirm = "Usernames are not same."
-	messageErrBadPass            = "Invalid user password."
-	messageErrUserNotFound       = "User not found."
-	messageErrUserExistsUsername = "This username is taken."
-	messageErrUserExistsEmail    = "This email is taken."
-	// messageErrUserExistsPhone    = "This phone number is taken."
+	MessageErrBadPassConfirm     = "Passwords are not same."
+	MessageErrBadUsernameConfirm = "Usernames are not same."
+	MessageErrBadPass            = "Invalid user password."
+	MessageErrUserNotFound       = "User not found."
+	MessageErrUserExistsUsername = "This username is taken."
+	MessageErrUserExistsEmail    = "This email is taken."
+	// MessageErrUserExistsPhone    = "This phone number is taken."
 )
 
 var (
-	messageSuccChangedProfile = "Successfully changed the user profile."
-	messageSuccChangedPass    = "Successfully changed the user password."
-	messageSuccChangedEmail   = "Successfully changed the user email."
-	messageSuccChangedPhone   = "Successfully changed the user phone."
-	messageSuccDeletedUser    = "Successfully deleted the user."
-	messageSuccLogin          = "Successfully logged in! Redirecting..."
+	MessageSuccChangedProfile = "Successfully changed the user profile."
+	MessageSuccChangedPass    = "Successfully changed the user password."
+	MessageSuccChangedEmail   = "Successfully changed the user email."
+	MessageSuccChangedPhone   = "Successfully changed the user phone."
+	MessageSuccDeletedUser    = "Successfully deleted the user."
+	MessageSuccLogin          = "Successfully logged in! Redirecting..."
 )
 
 type Responder struct {
@@ -64,7 +64,7 @@ func (r Responder) UserRegister() error {
 	}
 
 	if user, _ := r.DB.UserByUsername(req.Username); user != nil {
-		return r.RenderWarning(messageErrUserExistsUsername, id)
+		return r.RenderWarning(MessageErrUserExistsUsername, id)
 	}
 
 	if !model.ValidatePassword(req.Password) {
@@ -76,7 +76,7 @@ func (r Responder) UserRegister() error {
 	}
 
 	if user, _ := r.DB.UserByEmail(req.Email); user != nil {
-		return r.RenderWarning(messageErrUserExistsEmail, id)
+		return r.RenderWarning(MessageErrUserExistsEmail, id)
 	}
 
 	// TODO: Phone validation.
@@ -85,7 +85,7 @@ func (r Responder) UserRegister() error {
 	// }
 
 	if req.ConfirmPassword != req.Password {
-		return r.RenderWarning(messageErrBadPassConfirm, id)
+		return r.RenderWarning(MessageErrBadPassConfirm, id)
 	}
 
 	user, err := req.User()
@@ -121,11 +121,11 @@ func (r Responder) UserLogin() error {
 
 	user, err := r.DB.UserByEmail(req.Email)
 	if err != nil {
-		return r.RenderWarning(messageErrUserNotFound, id)
+		return r.RenderWarning(MessageErrUserNotFound, id)
 	}
 
 	if !user.CheckPassword(req.Password) {
-		return r.RenderWarning(messageErrBadPass, id)
+		return r.RenderWarning(MessageErrBadPass, id)
 	}
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
@@ -162,12 +162,12 @@ func (r Responder) UserChangeName() error {
 	}
 
 	if user, _ := r.DB.UserByUsername(req.NewUsername); user != nil {
-		return r.RenderWarning(messageErrUserExistsUsername, id)
+		return r.RenderWarning(MessageErrUserExistsUsername, id)
 	}
 
 	user, err := r.GetOwner()
 	if err != nil {
-		return r.RenderWarning(messageErrUserNotFound, id)
+		return r.RenderWarning(MessageErrUserNotFound, id)
 	}
 
 	user.Nickname = req.NewNickname
@@ -179,7 +179,7 @@ func (r Responder) UserChangeName() error {
 	}
 
 	r.HTMXRefresh()
-	return r.RenderSuccess(messageSuccChangedProfile, id)
+	return r.RenderSuccess(MessageSuccChangedProfile, id)
 }
 
 // Uses the form request information.
@@ -196,7 +196,7 @@ func (r Responder) UserChangeEmail() error {
 	}
 
 	if user, _ := r.DB.UserByEmail(req.NewEmail); user != nil {
-		return r.RenderWarning(messageErrUserExistsEmail, id)
+		return r.RenderWarning(MessageErrUserExistsEmail, id)
 	}
 
 	if !model.ValidatePassword(req.CurrentPassword) {
@@ -205,11 +205,11 @@ func (r Responder) UserChangeEmail() error {
 
 	user, err := r.GetOwner()
 	if err != nil {
-		return r.RenderWarning(messageErrUserNotFound, id)
+		return r.RenderWarning(MessageErrUserNotFound, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		return r.RenderWarning(messageErrBadPass, id)
+		return r.RenderWarning(MessageErrBadPass, id)
 	}
 
 	user.Email = req.NewEmail
@@ -220,7 +220,7 @@ func (r Responder) UserChangeEmail() error {
 	}
 
 	r.HTMXRefresh()
-	return r.RenderSuccess(messageSuccChangedEmail, id)
+	return r.RenderSuccess(MessageSuccChangedEmail, id)
 }
 
 // Uses the form request information.
@@ -239,11 +239,11 @@ func (r Responder) UserChangePhone() error {
 
 	user, err := r.GetOwner()
 	if err != nil {
-		return r.RenderWarning(messageErrUserNotFound, id)
+		return r.RenderWarning(MessageErrUserNotFound, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		return r.RenderWarning(messageErrBadPass, id)
+		return r.RenderWarning(MessageErrBadPass, id)
 	}
 
 	user.Phone = req.NewPhone
@@ -254,7 +254,7 @@ func (r Responder) UserChangePhone() error {
 	}
 
 	r.HTMXRefresh()
-	return r.RenderSuccess(messageSuccChangedPhone, id)
+	return r.RenderSuccess(MessageSuccChangedPhone, id)
 }
 
 // Uses the form request information.
@@ -271,16 +271,16 @@ func (r Responder) UserChangePassword() error {
 	}
 
 	if req.ConfirmPassword != req.NewPassword {
-		return r.RenderWarning(messageErrBadPassConfirm, id)
+		return r.RenderWarning(MessageErrBadPassConfirm, id)
 	}
 
 	user, err := r.GetOwner()
 	if err != nil {
-		return r.RenderWarning(messageErrUserNotFound, id)
+		return r.RenderWarning(MessageErrUserNotFound, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		return r.RenderWarning(messageErrBadPass, id)
+		return r.RenderWarning(MessageErrBadPass, id)
 	}
 
 	user.Password = req.NewPassword
@@ -291,7 +291,7 @@ func (r Responder) UserChangePassword() error {
 	}
 
 	r.HTMXRefresh()
-	return r.RenderSuccess(messageSuccChangedPass, id)
+	return r.RenderSuccess(MessageSuccChangedPass, id)
 }
 
 // Uses the form request information.
@@ -305,16 +305,16 @@ func (r Responder) UserDelete() error {
 
 	user, err := r.GetOwner()
 	if err != nil {
-		return r.RenderWarning(messageErrUserNotFound, id)
+		return r.RenderWarning(MessageErrUserNotFound, id)
 	}
 
 	if user.Nickname != req.ConfirmUsername {
 		log.Warn(user.Nickname)
-		return r.RenderWarning(messageErrBadUsernameConfirm, id)
+		return r.RenderWarning(MessageErrBadUsernameConfirm, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		return r.RenderWarning(messageErrBadPass, id)
+		return r.RenderWarning(MessageErrBadPass, id)
 	}
 
 	err = r.DB.DeleteUser(user.Id)
@@ -329,7 +329,7 @@ func (r Responder) UserDelete() error {
 	})
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
-	return r.RenderSuccess(messageSuccDeletedUser, id)
+	return r.RenderSuccess(MessageSuccDeletedUser, id)
 }
 
 // Authorize the user, using the current request information and new cookies.
@@ -344,7 +344,7 @@ func (r Responder) GiveToken(errorElementId string, user model.User) error {
 		Value:   "Bearer " + token,
 		Expires: time.Now().Add(model.UserTokenExpiration),
 	})
-	return r.RenderSuccess(messageSuccLogin, errorElementId)
+	return r.RenderSuccess(MessageSuccLogin, errorElementId)
 }
 
 // Get the owner of the request using the "Authorization" header.
