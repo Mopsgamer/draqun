@@ -32,6 +32,7 @@
         ]
     },
     "exclude": [
+        "web/assets/**/*",
         "web/templates/**/*",
         "web/**/*.css",
         "web/static/**/*"
