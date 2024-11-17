@@ -27,6 +27,9 @@ var (
 	messageErrBadUsernameConfirm = "Usernames are not same."
 	messageErrBadPass            = "Invalid user password."
 	messageErrUserNotFound       = "User not found."
+	messageErrUserExistsUsername = "This username is taken."
+	messageErrUserExistsEmail    = "This email is taken."
+	// messageErrUserExistsPhone    = "This phone number is taken."
 )
 
 var (
@@ -60,12 +63,20 @@ func (r Responder) UserRegister() error {
 		return r.RenderWarning(MessageErrUsername, id)
 	}
 
+	if user, _ := r.DB.UserByUsername(req.Username); user != nil {
+		return r.RenderWarning(messageErrUserExistsUsername, id)
+	}
+
 	if !model.ValidatePassword(req.Password) {
 		return r.RenderWarning(MessageErrPassword, id)
 	}
 
 	if !model.ValidateEmail(req.Email) {
 		return r.RenderWarning(MessageErrEmail, id)
+	}
+
+	if user, _ := r.DB.UserByEmail(req.Email); user != nil {
+		return r.RenderWarning(messageErrUserExistsEmail, id)
 	}
 
 	// TODO: Phone validation.
@@ -77,7 +88,7 @@ func (r Responder) UserRegister() error {
 		return r.RenderWarning(messageErrBadPassConfirm, id)
 	}
 
-	user, err := req.CreateUser()
+	user, err := req.User()
 	if err != nil {
 		return r.RenderWarning(MessageFatalCannotRegister, id)
 	}
@@ -150,6 +161,10 @@ func (r Responder) UserChangeName() error {
 		return r.RenderWarning(MessageErrUsername, id)
 	}
 
+	if user, _ := r.DB.UserByUsername(req.NewUsername); user != nil {
+		return r.RenderWarning(messageErrUserExistsUsername, id)
+	}
+
 	user, err := r.GetOwner()
 	if err != nil {
 		return r.RenderWarning(messageErrUserNotFound, id)
@@ -178,6 +193,10 @@ func (r Responder) UserChangeEmail() error {
 
 	if !model.ValidateEmail(req.NewEmail) {
 		return r.RenderWarning(MessageErrEmail, id)
+	}
+
+	if user, _ := r.DB.UserByEmail(req.NewEmail); user != nil {
+		return r.RenderWarning(messageErrUserExistsEmail, id)
 	}
 
 	if !model.ValidatePassword(req.CurrentPassword) {

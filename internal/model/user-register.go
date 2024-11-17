@@ -11,7 +11,8 @@ type UserRegister struct {
 	ConfirmPassword string `json:"confirm-password" form:"confirm-password"`
 }
 
-func (req UserRegister) CreateUser() (*User, error) {
+// Converts user register request to the User struct.
+func (req UserRegister) User() (*User, error) {
 	hash, err := HashPassword(req.Password)
 	if err != nil {
 		return nil, err

@@ -87,12 +87,12 @@ func (db Database) UserById(id int) (*model.User, error) {
 }
 
 // Get the user by his username.
-func (db Database) UserByUsername(username string) *model.User {
+func (db Database) UserByUsername(username string) (*model.User, error) {
 	user := new(model.User)
 	query := `SELECT * FROM users WHERE username = ?`
 	err := db.Sql.Get(user, query, username)
 	if err != nil {
 		user = nil
 	}
-	return user
+	return user, err
 }
