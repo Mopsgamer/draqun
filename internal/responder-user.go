@@ -12,14 +12,19 @@ import (
 )
 
 var (
-	messageFatalCannotRegister  = "Unable to register."
-	messageFatalTokenGeneration = "Unable to create the token."
+	MessageFatalCannotRegister  = "Unable to register."
+	MessageFatalTokenGeneration = "Unable to create the token."
 )
 
 var (
-	messageErrInvalidRequest     = "Invalid request payload."
+	MessageErrInvalidRequest     = "Invalid request payload."
+	MessageErrPassword           = "Invalid password pattern. " + model.MessageDetailPassword
+	MessageErrNickname           = "Invalid nickname pattern. " + model.MessageDetailNickname
+	MessageErrUsername           = "Invalid username pattern. " + model.MessageDetailUsername
+	MessageErrEmail              = "Invalid email pattern. " + model.MessageDetailEmail
+	MessageErrPhone              = "Invalid phone number pattern. " + model.MessageDetailPhone
 	messageErrBadPassConfirm     = "Passwords are not same."
-	messageErrBadUsernameConfirm = "Username are not same."
+	messageErrBadUsernameConfirm = "Usernames are not same."
 	messageErrBadPass            = "Invalid user password."
 	messageErrUserNotFound       = "User not found."
 )
@@ -43,9 +48,30 @@ func (r Responder) UserRegister() error {
 	id := "register-error"
 	req := new(model.UserRegister)
 	err := r.Bind().Form(req)
-	if err != nil || req.IsBad() {
-		return r.RenderWarning(messageErrInvalidRequest, id)
+	if err != nil {
+		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
+
+	if !model.ValidateNickname(req.Nickname) {
+		return r.RenderWarning(MessageErrNickname, id)
+	}
+
+	if !model.ValidateUsername(req.Username) {
+		return r.RenderWarning(MessageErrUsername, id)
+	}
+
+	if !model.ValidatePassword(req.Password) {
+		return r.RenderWarning(MessageErrPassword, id)
+	}
+
+	if !model.ValidateEmail(req.Email) {
+		return r.RenderWarning(MessageErrEmail, id)
+	}
+
+	// TODO: Phone validation.
+	// if !model.ValidatePhone(req.Phone) {
+	// 	return r.RenderWarning(MessageErrPhone, id)
+	// }
 
 	if req.ConfirmPassword != req.Password {
 		return r.RenderWarning(messageErrBadPassConfirm, id)
@@ -53,7 +79,7 @@ func (r Responder) UserRegister() error {
 
 	user, err := req.CreateUser()
 	if err != nil {
-		return r.RenderWarning(messageFatalCannotRegister, id)
+		return r.RenderWarning(MessageFatalCannotRegister, id)
 	}
 
 	err = r.DB.UserCreate(*user)
@@ -70,8 +96,16 @@ func (r Responder) UserLogin() error {
 	id := "login-error"
 	req := new(model.UserLogin)
 	err := r.Bind().Form(req)
-	if err != nil || req.IsBad() {
-		return r.RenderWarning(messageErrInvalidRequest, id)
+	if err != nil {
+		return r.RenderWarning(MessageErrInvalidRequest, id)
+	}
+
+	if !model.ValidatePassword(req.Password) {
+		return r.RenderWarning(MessageErrPassword, id)
+	}
+
+	if !model.ValidateEmail(req.Email) {
+		return r.RenderWarning(MessageErrEmail, id)
 	}
 
 	user, err := r.DB.UserByEmail(req.Email)
@@ -104,8 +138,16 @@ func (r Responder) UserChangeName() error {
 	id := "change-name-error"
 	req := new(model.UserChangeName)
 	err := r.Bind().Form(req)
-	if err != nil || req.IsBad() {
-		return r.RenderWarning(messageErrInvalidRequest, id)
+	if err != nil {
+		return r.RenderWarning(MessageErrInvalidRequest, id)
+	}
+
+	if !model.ValidateNickname(req.NewNickname) {
+		return r.RenderWarning(MessageErrNickname, id)
+	}
+
+	if !model.ValidateUsername(req.NewUsername) {
+		return r.RenderWarning(MessageErrUsername, id)
 	}
 
 	user, err := r.GetOwner()
@@ -130,8 +172,16 @@ func (r Responder) UserChangeEmail() error {
 	id := "change-email-error"
 	req := new(model.UserChangeEmail)
 	err := r.Bind().Form(req)
-	if err != nil || req.IsBad() {
-		return r.RenderWarning(messageErrInvalidRequest, id)
+	if err != nil {
+		return r.RenderWarning(MessageErrInvalidRequest, id)
+	}
+
+	if !model.ValidateEmail(req.NewEmail) {
+		return r.RenderWarning(MessageErrEmail, id)
+	}
+
+	if !model.ValidatePassword(req.CurrentPassword) {
+		return r.RenderWarning(MessageErrPassword, id)
 	}
 
 	user, err := r.GetOwner()
@@ -159,9 +209,14 @@ func (r Responder) UserChangePhone() error {
 	id := "change-phone-error"
 	req := new(model.UserChangePhone)
 	err := r.Bind().Form(req)
-	if err != nil || req.IsBad() {
-		return r.RenderWarning(messageErrInvalidRequest, id)
+	if err != nil {
+		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
+
+	// TODO: Phone validation.
+	// if !model.ValidatePhone(req.NewPhone) {
+	// 	return r.RenderWarning(MessageErrPhone, id)
+	// }
 
 	user, err := r.GetOwner()
 	if err != nil {
@@ -188,8 +243,12 @@ func (r Responder) UserChangePassword() error {
 	id := "change-password-error"
 	req := new(model.UserChangePassword)
 	err := r.Bind().Form(req)
-	if err != nil || req.IsBad() {
-		return r.RenderWarning(messageErrInvalidRequest, id)
+	if err != nil {
+		return r.RenderWarning(MessageErrInvalidRequest, id)
+	}
+
+	if !model.ValidatePassword(req.CurrentPassword) {
+		return r.RenderWarning(MessageErrPassword, id)
 	}
 
 	if req.ConfirmPassword != req.NewPassword {
@@ -221,8 +280,8 @@ func (r Responder) UserDelete() error {
 	id := "account-delete-error"
 	req := new(model.UserDelete)
 	err := r.Bind().Form(req)
-	if err != nil || req.IsBad() {
-		return r.RenderWarning(messageErrInvalidRequest, id)
+	if err != nil {
+		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
 	user, err := r.GetOwner()
@@ -239,7 +298,7 @@ func (r Responder) UserDelete() error {
 		return r.RenderWarning(messageErrBadPass, id)
 	}
 
-	err = r.DB.DeleteUser(*user)
+	err = r.DB.DeleteUser(user.Id)
 	if err != nil {
 		return err
 	}
@@ -258,7 +317,7 @@ func (r Responder) UserDelete() error {
 func (r Responder) GiveToken(errorElementId string, user model.User) error {
 	token, err := user.GenerateToken()
 	if err != nil {
-		return r.RenderWarning(messageFatalTokenGeneration, errorElementId)
+		return r.RenderWarning(MessageFatalTokenGeneration, errorElementId)
 	}
 
 	r.Cookie(&fiber.Cookie{

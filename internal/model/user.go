@@ -16,7 +16,7 @@ var UserTokenExpiration = 24 * time.Hour
 
 // The user as a json or
 type User struct {
-	ID       uint   `json:"id" db:"id"`
+	Id       uint   `json:"id" db:"id"`
 	Nickname string `json:"nickname" db:"nickname"`
 	Username string `json:"username" db:"username"`
 	Email    string `json:"email" db:"email"`

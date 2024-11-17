@@ -11,11 +11,6 @@ type UserRegister struct {
 	ConfirmPassword string `json:"confirm-password" form:"confirm-password"`
 }
 
-// Checks if the request contains invalid Nickname, email or password fields.
-func (req UserRegister) IsBad() bool {
-	return req.Nickname == "" || req.Email == "" || req.Password == ""
-}
-
 func (req UserRegister) CreateUser() (*User, error) {
 	hash, err := HashPassword(req.Password)
 	if err != nil {
