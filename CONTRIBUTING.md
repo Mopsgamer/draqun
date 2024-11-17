@@ -9,19 +9,23 @@ Resources:
 - <https://htmx.org/reference/>
 - <https://docs.gofiber.io/next/> - Should be NEXT! We use v3 not v2!
 
-We are using HTMX. That means we are using JS as an utility for
-importing libraries and extending DOM and web-components functionality (actually we are using TS).
-We are fetching HTML from the server instead of JSON - use the power of hypertext with HTMX.
+We are using HTMX. That means we are using JS as an utility for importing
+libraries and extending DOM and web-components functionality (actually we are
+using TS). We are fetching HTML from the server instead of JSON - use the power
+of hypertext with HTMX.
 
 TS should NOT be used, if possible. Possible reasons to add :
 
-- Importing new standalone library: HTMX, tailwind, any web-components library, etc.
-- Fixing or extending DOM features: make libraries to work together, adding new web-component, etc.
+- Importing new standalone library: HTMX, tailwind, any web-components library,
+  etc.
+- Fixing or extending DOM features: make libraries to work together, adding new
+  web-component, etc.
 
-> DOM manipulations should be provided through HTMX and the server. Cookies should
-be changed by the server, if possible.
+> DOM manipulations should be provided through HTMX and the server. Cookies
+> should be changed by the server, if possible.
 >
-> Always send HTML as a response, if the request initialized by HTMX. Script tags available.
+> Always send HTML as a response, if the request initialized by HTMX. Script
+> tags available.
 
 ### About templates
 

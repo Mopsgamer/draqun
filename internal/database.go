@@ -31,26 +31,6 @@ func InitDB() (*Database, error) {
 	}
 
 	log.Info("Database connected successfully")
-
-	createTableQuery := `
-	CREATE TABLE IF NOT EXISTS users (
-		id INT NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
-		nickname VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
-		username VARCHAR(255) NOT NULL COMMENT 'Customizable name',
-		email VARCHAR(255) NOT NULL,
-		phone VARCHAR(255) DEFAULT NULL,
-		password VARCHAR(255) NOT NULL,
-		avatar VARCHAR(255) DEFAULT NULL,
-		created_at DATETIME NOT NULL COMMENT 'Account create time',
-		last_seen DATETIME NOT NULL COMMENT 'Last seen time',
-		PRIMARY KEY (id)
-	) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Users data'
-`
-
-	if _, err := connection.Exec(createTableQuery); err != nil {
-		return nil, err
-	}
-
-	log.Info("Users table ensured to exist")
+	log.Info("Hope she is set up manually or by 'deno task init'")
 	return &Database{Sql: connection}, nil
 }
