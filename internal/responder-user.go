@@ -19,17 +19,22 @@ var (
 var (
 	MessageErrInvalidRequest     = "Invalid request payload."
 	MessageErrPassword           = "Invalid password pattern. " + model.MessageDetailPassword
+	MessageErrPasswordSame       = "The new password is the same as the old one."
 	MessageErrNickname           = "Invalid nickname pattern. " + model.MessageDetailNickname
+	MessageErrNicknameSame       = "The new nickname is the same as the old one."
 	MessageErrUsername           = "Invalid username pattern. " + model.MessageDetailUsername
+	MessageErrUsernameSame       = "The new username is the same as the old one."
 	MessageErrEmail              = "Invalid email pattern. " + model.MessageDetailEmail
+	MessageErrEmailSame          = "The new email is the same as the old one."
 	MessageErrPhone              = "Invalid phone number pattern. " + model.MessageDetailPhone
+	MessageErrPhoneSame          = "The new phone is the same as the old one."
 	MessageErrBadPassConfirm     = "Passwords are not same."
 	MessageErrBadUsernameConfirm = "Usernames are not same."
 	MessageErrBadPass            = "Invalid user password."
 	MessageErrUserNotFound       = "User not found."
 	MessageErrUserExistsUsername = "This username is taken."
 	MessageErrUserExistsEmail    = "This email is taken."
-	// MessageErrUserExistsPhone    = "This phone number is taken."
+	MessageErrUserExistsPhone    = "This phone number is taken."
 )
 
 var (
@@ -153,6 +158,15 @@ func (r Responder) UserChangeName() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
+	user, err := r.GetOwner()
+	if err != nil {
+		return r.RenderWarning(MessageErrUserNotFound, id)
+	}
+
+	if req.NewNickname == user.Nickname && req.NewUsername == user.Username {
+		return r.RenderWarning(MessageErrNicknameSame, id)
+	}
+
 	if !model.ValidateNickname(req.NewNickname) {
 		return r.RenderWarning(MessageErrNickname, id)
 	}
@@ -163,11 +177,6 @@ func (r Responder) UserChangeName() error {
 
 	if user, _ := r.DB.UserByUsername(req.NewUsername); user != nil {
 		return r.RenderWarning(MessageErrUserExistsUsername, id)
-	}
-
-	user, err := r.GetOwner()
-	if err != nil {
-		return r.RenderWarning(MessageErrUserNotFound, id)
 	}
 
 	user.Nickname = req.NewNickname
@@ -191,6 +200,15 @@ func (r Responder) UserChangeEmail() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
+	user, err := r.GetOwner()
+	if err != nil {
+		return r.RenderWarning(MessageErrUserNotFound, id)
+	}
+
+	if req.NewEmail == user.Email {
+		return r.RenderWarning(MessageErrEmailSame, id)
+	}
+
 	if !model.ValidateEmail(req.NewEmail) {
 		return r.RenderWarning(MessageErrEmail, id)
 	}
@@ -201,11 +219,6 @@ func (r Responder) UserChangeEmail() error {
 
 	if !model.ValidatePassword(req.CurrentPassword) {
 		return r.RenderWarning(MessageErrPassword, id)
-	}
-
-	user, err := r.GetOwner()
-	if err != nil {
-		return r.RenderWarning(MessageErrUserNotFound, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
@@ -232,15 +245,19 @@ func (r Responder) UserChangePhone() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
-	// TODO: Phone validation.
-	// if !model.ValidatePhone(req.NewPhone) {
-	// 	return r.RenderWarning(MessageErrPhone, id)
-	// }
-
 	user, err := r.GetOwner()
 	if err != nil {
 		return r.RenderWarning(MessageErrUserNotFound, id)
 	}
+
+	if req.NewPhone == user.Phone {
+		return r.RenderWarning(MessageErrPhoneSame, id)
+	}
+
+	// TODO: Phone validation.
+	// if !model.ValidatePhone(req.NewPhone) {
+	// 	return r.RenderWarning(MessageErrPhone, id)
+	// }
 
 	if !user.CheckPassword(req.CurrentPassword) {
 		return r.RenderWarning(MessageErrBadPass, id)
@@ -266,17 +283,21 @@ func (r Responder) UserChangePassword() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
+	user, err := r.GetOwner()
+	if err != nil {
+		return r.RenderWarning(MessageErrUserNotFound, id)
+	}
+
+	if req.NewPassword == user.Password {
+		return r.RenderWarning(MessageErrPasswordSame, id)
+	}
+
 	if !model.ValidatePassword(req.CurrentPassword) {
 		return r.RenderWarning(MessageErrPassword, id)
 	}
 
 	if req.ConfirmPassword != req.NewPassword {
 		return r.RenderWarning(MessageErrBadPassConfirm, id)
-	}
-
-	user, err := r.GetOwner()
-	if err != nil {
-		return r.RenderWarning(MessageErrUserNotFound, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
