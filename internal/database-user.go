@@ -7,7 +7,7 @@ import (
 // Create new DB record.
 func (db Database) UserCreate(user model.User) error {
 	query :=
-		`INSERT INTO users (
+		`INSERT INTO app_users (
 			nickname,
 			username,
 			email,
@@ -33,7 +33,7 @@ func (db Database) UserCreate(user model.User) error {
 // Change the existing DB record.
 func (db Database) UserUpdate(user model.User) error {
 	query :=
-		`UPDATE users
+		`UPDATE app_users
     	SET nickname = ?,
 		username = ?,
 		email = ?,
@@ -59,7 +59,7 @@ func (db Database) UserUpdate(user model.User) error {
 
 // Delete the existing DB record.
 func (db Database) DeleteUser(id uint) error {
-	query := `DELETE FROM users WHERE id = ?`
+	query := `DELETE FROM app_users WHERE id = ?`
 	_, err := db.Sql.Exec(query, id)
 	return err
 }
@@ -67,7 +67,7 @@ func (db Database) DeleteUser(id uint) error {
 // Get the user by his email.
 func (db Database) UserByEmail(email string) (*model.User, error) {
 	user := new(model.User)
-	query := `SELECT * FROM users WHERE email = ?`
+	query := `SELECT * FROM app_users WHERE email = ?`
 	err := db.Sql.Get(user, query, email)
 	if err != nil {
 		user = nil
@@ -78,7 +78,7 @@ func (db Database) UserByEmail(email string) (*model.User, error) {
 // Get the user by his identificator.
 func (db Database) UserById(id int) (*model.User, error) {
 	user := new(model.User)
-	query := `SELECT * FROM users WHERE id = ?`
+	query := `SELECT * FROM app_users WHERE id = ?`
 	err := db.Sql.Get(user, query, id)
 	if err != nil {
 		user = nil
@@ -89,7 +89,7 @@ func (db Database) UserById(id int) (*model.User, error) {
 // Get the user by his username.
 func (db Database) UserByUsername(username string) (*model.User, error) {
 	user := new(model.User)
-	query := `SELECT * FROM users WHERE username = ?`
+	query := `SELECT * FROM app_users WHERE username = ?`
 	err := db.Sql.Get(user, query, username)
 	if err != nil {
 		user = nil

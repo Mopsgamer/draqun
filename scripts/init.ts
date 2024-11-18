@@ -16,8 +16,8 @@ enum envKeys {
 
 function initMysqlTables(): void {
     const queryList = [
-        `CREATE TABLE IF NOT EXISTS users (
-		id INT NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
+        `CREATE TABLE IF NOT EXISTS app_users (
+		id UNSIGNED BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
 		nickname VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
 		username VARCHAR(255) NOT NULL COMMENT 'Customizable name',
 		email VARCHAR(255) NOT NULL,
@@ -27,7 +27,55 @@ function initMysqlTables(): void {
 		created_at DATETIME NOT NULL COMMENT 'Account create time',
 		last_seen DATETIME NOT NULL COMMENT 'Last seen time',
 		PRIMARY KEY (id)
-	    ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Users data'`,
+	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp users'`,
+
+        `CREATE TABLE IF NOT EXISTS app_groups (
+		id UNSIGNED BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
+		nickname VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
+		groupname VARCHAR(255) NOT NULL COMMENT 'Customizable name',
+        groupmode ENUM('dm', 'private', 'public') NOT NULL,
+		password VARCHAR(255) DEFAULT NULL,
+		avatar VARCHAR(255) DEFAULT NULL,
+		created_at DATETIME NOT NULL COMMENT 'Group create time',
+		PRIMARY KEY (id)
+	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp groups'`,
+
+        `CREATE TABLE IF NOT EXISTS app_group_roles (
+		group_id UNSIGNED BIGINT NOT NULL,
+        id UNSIGNED MEDIUMINT NOT NULL,
+        perm_chat_read BIT NOT NULL,
+        perm_chat_write BIT NOT NULL,
+        perm_chat_delete BIT NOT NULL,
+        perm_kick BIT NOT NULL,
+        perm_ban BIT NOT NULL,
+        perm_change_group BIT NOT NULL,
+        perm_change_member BIT NOT NULL,
+        PRIMARY KEY (group_id, id),
+        FOREIGN KEY (group_id) REFERENCES app_groups(id),
+	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp all groups roles'`,
+
+        `CREATE TABLE IF NOT EXISTS app_group_members (
+		group_id UNSIGNED BIGINT NOT NULL,
+        user_id UNSIGNED BIGINT NOT NULL,
+        role_id UNSIGNED MEDIUMINT NOT NULL,
+        is_owner BIT NOT NULL,
+        is_creator BIT NOT NULL,
+        is_banned BIT NOT NULL,
+        membername VARCHAR(255),
+        PRIMARY KEY (group_id, user_id),
+        FOREIGN KEY (group_id) REFERENCES app_groups(id),
+        FOREIGN KEY (user_id) REFERENCES app_users(id),
+        FOREIGN KEY (role_id) REFERENCES app_group_roles(id)
+	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp all groups members'`,
+
+        `CREATE TABLE IF NOT EXISTS app_messages (
+		group_id UNSIGNED BIGINT NOT NULL,
+        author_id UNSIGNED BIGINT NOT NULL,
+        content VARCHAR(40000) NOT NULL,
+        PRIMARY KEY (group_id, user_id),
+        FOREIGN KEY (group_id) REFERENCES app_groups(id),
+        FOREIGN KEY (author_id) REFERENCES app_users(id),
+	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp messages'`,
     ];
 
     const connection = mysql.createConnection({
