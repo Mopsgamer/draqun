@@ -16,9 +16,12 @@ enum envKeys {
 }
 
 async function initMysqlTables(): Promise<void> {
+
+    // Won't move queries to files: the sequence is matter.
     const queryList = [
+        // 1
         `CREATE TABLE IF NOT EXISTS app_users (
-		id UNSIGNED BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
+		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'User id',
 		nickname VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
 		username VARCHAR(255) NOT NULL COMMENT 'Customizable name',
 		email VARCHAR(255) NOT NULL,
@@ -30,8 +33,9 @@ async function initMysqlTables(): Promise<void> {
 		PRIMARY KEY (id)
 	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp users'`,
 
+        // 2
         `CREATE TABLE IF NOT EXISTS app_groups (
-		id UNSIGNED BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
+		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Group id',
 		nickname VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
 		groupname VARCHAR(255) NOT NULL COMMENT 'Customizable name',
         groupmode ENUM('dm', 'private', 'public') NOT NULL,
@@ -41,9 +45,10 @@ async function initMysqlTables(): Promise<void> {
 		PRIMARY KEY (id)
 	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp groups'`,
 
+        // 3
         `CREATE TABLE IF NOT EXISTS app_group_roles (
-		group_id UNSIGNED BIGINT NOT NULL,
-        id UNSIGNED MEDIUMINT NOT NULL,
+		group_id BIGINT UNSIGNED NOT NULL COMMENT 'Group id',
+        id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Role id',
         perm_chat_read BIT NOT NULL,
         perm_chat_write BIT NOT NULL,
         perm_chat_delete BIT NOT NULL,
@@ -51,31 +56,32 @@ async function initMysqlTables(): Promise<void> {
         perm_ban BIT NOT NULL,
         perm_change_group BIT NOT NULL,
         perm_change_member BIT NOT NULL,
-        PRIMARY KEY (group_id, id),
-        FOREIGN KEY (group_id) REFERENCES app_groups(id),
+        PRIMARY KEY (id),
+        FOREIGN KEY (group_id) REFERENCES app_groups(id)
 	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp all groups roles'`,
 
+        // 4
         `CREATE TABLE IF NOT EXISTS app_group_members (
-		group_id UNSIGNED BIGINT NOT NULL,
-        user_id UNSIGNED BIGINT NOT NULL,
-        role_id UNSIGNED MEDIUMINT NOT NULL,
+		group_id BIGINT UNSIGNED NOT NULL COMMENT 'Group id',
+        user_id BIGINT UNSIGNED NOT NULL COMMENT 'User id',
         is_owner BIT NOT NULL,
         is_creator BIT NOT NULL,
         is_banned BIT NOT NULL,
         membername VARCHAR(255),
         PRIMARY KEY (group_id, user_id),
         FOREIGN KEY (group_id) REFERENCES app_groups(id),
-        FOREIGN KEY (user_id) REFERENCES app_users(id),
-        FOREIGN KEY (role_id) REFERENCES app_group_roles(id)
-	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp all groups members'`,
+        FOREIGN KEY (user_id) REFERENCES app_users(id)
+	    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp all groups members'`,
 
-        `CREATE TABLE IF NOT EXISTS app_messages (
-		group_id UNSIGNED BIGINT NOT NULL,
-        author_id UNSIGNED BIGINT NOT NULL,
-        content VARCHAR(40000) NOT NULL,
-        PRIMARY KEY (group_id, user_id),
+        // 5
+        `CREATE TABLE IF NOT EXISTS app_groups_messages (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+		group_id BIGINT UNSIGNED NOT NULL COMMENT 'Group id',
+        author_id BIGINT UNSIGNED NOT NULL COMMENT 'User id',
+        content TEXT NOT NULL,
+        PRIMARY KEY (id),
         FOREIGN KEY (group_id) REFERENCES app_groups(id),
-        FOREIGN KEY (author_id) REFERENCES app_users(id),
+        FOREIGN KEY (author_id) REFERENCES app_users(id)
 	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp messages'`,
     ];
 
@@ -94,7 +100,9 @@ async function initMysqlTables(): Promise<void> {
     await connect()
     logInitDb.info("Connected to the database using .env confifuration.");
 
-    for (const query of queryList) {
+    for (const [index, query] of queryList.entries()) {
+        const queryPrintable = query.replaceAll(/\s+\(.+$/gs, '')
+        logInitDb.info(`Executing query ${index+1}: ${queryPrintable}...`);
         await execQuery(query)
     }
 
