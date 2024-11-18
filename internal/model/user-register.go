@@ -18,8 +18,8 @@ func (req UserRegister) User() (*User, error) {
 		return nil, err
 	}
 	return &User{
-		Nickname:  req.Nickname,
-		Username:  req.Username,
+		Nick:      req.Nickname,
+		Name:      req.Username,
 		Email:     req.Email,
 		Phone:     req.Phone,
 		Password:  hash,

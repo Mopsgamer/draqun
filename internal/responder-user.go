@@ -155,7 +155,7 @@ func (r Responder) UserChangeName() error {
 		return r.RenderWarning(MessageErrUserNotFound, id)
 	}
 
-	if req.NewNickname == user.Nickname && req.NewUsername == user.Username {
+	if req.NewNickname == user.Nick && req.NewUsername == user.Name {
 		return r.RenderWarning(MessageErrNicknameSame, id)
 	}
 
@@ -171,8 +171,8 @@ func (r Responder) UserChangeName() error {
 		return r.RenderWarning(MessageErrUserExistsUsername, id)
 	}
 
-	user.Nickname = req.NewNickname
-	user.Username = req.NewUsername
+	user.Nick = req.NewNickname
+	user.Name = req.NewUsername
 
 	err = r.DB.UserUpdate(*user)
 	if err != nil {
@@ -321,8 +321,8 @@ func (r Responder) UserDelete() error {
 		return r.RenderWarning(MessageErrUserNotFound, id)
 	}
 
-	if user.Nickname != req.ConfirmUsername {
-		log.Warn(user.Nickname)
+	if user.Nick != req.ConfirmUsername {
+		log.Warn(user.Nick)
 		return r.RenderWarning(MessageErrBadUsernameConfirm, id)
 	}
 
@@ -330,7 +330,9 @@ func (r Responder) UserDelete() error {
 		return r.RenderWarning(MessageErrBadPass, id)
 	}
 
-	err = r.DB.DeleteUser(user.Id)
+	// TODO: check if not owner of any group
+
+	err = r.DB.UserDelete(user.Id)
 	if err != nil {
 		return err
 	}

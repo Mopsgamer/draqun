@@ -18,8 +18,9 @@ func (db Database) UserCreate(user model.User) error {
 			last_seen
 		)
     	VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-	_, err := db.Sql.Exec(query, user.Nickname,
-		user.Username,
+	_, err := db.Sql.Exec(query,
+		user.Nick,
+		user.Name,
 		user.Email,
 		user.Phone,
 		user.Password,
@@ -44,8 +45,9 @@ func (db Database) UserUpdate(user model.User) error {
 		last_seen = ?
 
         WHERE id = ?`
-	_, err := db.Sql.Exec(query, user.Nickname,
-		user.Username,
+	_, err := db.Sql.Exec(query,
+		user.Nick,
+		user.Name,
 		user.Email,
 		user.Phone,
 		user.Password,
@@ -58,7 +60,7 @@ func (db Database) UserUpdate(user model.User) error {
 }
 
 // Delete the existing DB record.
-func (db Database) DeleteUser(id uint) error {
+func (db Database) UserDelete(id uint) error {
 	query := `DELETE FROM app_users WHERE id = ?`
 	_, err := db.Sql.Exec(query, id)
 	return err
@@ -76,7 +78,7 @@ func (db Database) UserByEmail(email string) (*model.User, error) {
 }
 
 // Get the user by his identificator.
-func (db Database) UserById(id int) (*model.User, error) {
+func (db Database) UserById(id uint) (*model.User, error) {
 	user := new(model.User)
 	query := `SELECT * FROM app_users WHERE id = ?`
 	err := db.Sql.Get(user, query, id)

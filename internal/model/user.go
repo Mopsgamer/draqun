@@ -13,11 +13,11 @@ var UserTokenExpiration = 24 * time.Hour
 
 // The user as a database entry
 type User struct {
-	Id       uint   `db:"id"`
-	Nickname string `db:"nickname"`
-	Username string `db:"username"`
-	Email    string `db:"email"`
-	Phone    string `db:"phone"`
+	Id    uint   `db:"id"`
+	Nick  string `db:"nickname"`
+	Name  string `db:"username"`
+	Email string `db:"email"`
+	Phone string `db:"phone"`
 	// Hashed password string
 	Password  string    `db:"password"`
 	Avatar    string    `db:"avatar"`
