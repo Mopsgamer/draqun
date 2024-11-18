@@ -1,6 +1,6 @@
 package model
 
-import "regexp"
+
 
 const (
 	RegexpPassword        string = "^[a-zA-Z0-9, .~\\-+%$^&*_!?()[\\]{}`]{8,255}$"
@@ -19,11 +19,6 @@ const (
 	RegexpPhone        string = "^()$"
 	MessageDetailPhone string = "Must be a valid phone number."
 )
-
-func ValidateString(str string, rg string) bool {
-	l := len(str)
-	return l >= 0 && l <= 255 && regexp.MustCompile(rg).MatchString(str)
-}
 
 func ValidatePassword(str string) bool {
 	return ValidateString(str, RegexpPassword)

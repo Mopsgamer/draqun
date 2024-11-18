@@ -21,12 +21,12 @@ Creating/Updating project files:
 deno task init
 ```
 
-After this command you will get the `.env` file in your project's root. Fill
-this file manually.
+After this command you will get the `.env` file in your project's root.
+Fill this file manually.
 
 ### Starting the server
 
-Running the server
+Running the server:
 
 ```bash
 deno task serve
@@ -34,13 +34,13 @@ deno task serve
 
 ### Changing the code base
 
-Bundling js, css and assets without running server:
+Bundling js, css and assets without running the server:
 
 ```bash
 deno task build
 ```
 
-Bundling js, css and assets and running server:
+Bundling js, css and assets and running the server:
 
 ```bash
 # single bundle
