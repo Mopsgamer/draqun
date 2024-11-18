@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import mysql from "mysql";
 import { existsSync } from "@std/fs";
 import { logInitDb, logInitFiles } from "./tool.ts";
+import {promisify} from "node:util";
 
 enum envKeys {
     ENVIRONMENT = "ENVIRONMENT",
@@ -14,7 +15,7 @@ enum envKeys {
     DB_PORT = "DB_PORT",
 }
 
-function initMysqlTables(): void {
+async function initMysqlTables(): Promise<void> {
     const queryList = [
         `CREATE TABLE IF NOT EXISTS app_users (
 		id UNSIGNED BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
@@ -86,25 +87,21 @@ function initMysqlTables(): void {
         port: Number(Deno.env.get(envKeys.DB_PORT)),
     });
 
-    connection.connect((err) => {
-        if (err) throw err;
-        logInitDb.info("Connected to the database using .env confifuration.");
-    });
+    const connect = promisify(connection.connect.bind(connection))
+    const execQuery = promisify(connection.query.bind(connection))
+    const disconnect = promisify(connection.end.bind(connection))
+
+    await connect()
+    logInitDb.info("Connected to the database using .env confifuration.");
 
     for (const query of queryList) {
-        connection.query(
-            query,
-            (err) => {
-                if (err) throw err;
-                logInitDb.info("Created the 'users' table if not exists.");
-            },
-        );
+        await execQuery(query)
     }
 
-    connection.end((err) => {
-        if (err) throw err;
-        logInitDb.success("Disconnected from the database.");
-    });
+    logInitDb.info("Initialized.");
+
+    await disconnect()
+    logInitDb.success("Disconnected from the database.");
 }
 
 function initEnvFile(): void {
@@ -169,11 +166,13 @@ function initEnvFile(): void {
 try {
     initEnvFile();
 } catch (error) {
-    logInitFiles.error(error);
+    logInitFiles.fatal(error);
+    Deno.exit(1)
 }
 
 try {
-    initMysqlTables();
+    await initMysqlTables();
 } catch (error) {
-    logInitDb.error(error);
+    logInitDb.fatal(error);
+    Deno.exit(1)
 }
