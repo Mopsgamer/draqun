@@ -22,8 +22,8 @@ async function initMysqlTables(): Promise<void> {
         // 1
         `CREATE TABLE IF NOT EXISTS app_users (
 		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'User id',
-		nickname VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
-		username VARCHAR(255) NOT NULL COMMENT 'Customizable name',
+		username VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
+		nickname VARCHAR(255) NOT NULL COMMENT 'Customizable name',
 		email VARCHAR(255) NOT NULL,
 		phone VARCHAR(255) DEFAULT NULL,
 		password VARCHAR(255) NOT NULL,
@@ -36,8 +36,8 @@ async function initMysqlTables(): Promise<void> {
         // 2
         `CREATE TABLE IF NOT EXISTS app_groups (
 		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Group id',
-		nickname VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
-		groupname VARCHAR(255) NOT NULL COMMENT 'Customizable name',
+		groupname VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
+		nickname VARCHAR(255) NOT NULL COMMENT 'Customizable name',
         groupmode ENUM('dm', 'private', 'public') NOT NULL,
 		password VARCHAR(255) DEFAULT NULL,
 		avatar VARCHAR(255) DEFAULT NULL,
