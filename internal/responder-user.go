@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"restapp/internal/environment"
 	"restapp/internal/model"
 	"time"
 
@@ -14,9 +15,7 @@ import (
 var (
 	MessageFatalCannotRegister  = "Unable to register."
 	MessageFatalTokenGeneration = "Unable to create the token."
-)
 
-var (
 	MessageErrInvalidRequest     = "Invalid request payload."
 	MessageErrPassword           = "Invalid password pattern. " + model.MessageDetailPassword
 	MessageErrPasswordSame       = "The new password is the same as the old one."
@@ -35,9 +34,7 @@ var (
 	MessageErrUserExistsUsername = "This username is taken."
 	MessageErrUserExistsEmail    = "This email is taken."
 	MessageErrUserExistsPhone    = "This phone number is taken."
-)
 
-var (
 	MessageSuccChangedProfile = "Successfully changed the user profile."
 	MessageSuccChangedPass    = "Successfully changed the user password."
 	MessageSuccChangedEmail   = "Successfully changed the user email."
@@ -45,11 +42,6 @@ var (
 	MessageSuccDeletedUser    = "Successfully deleted the user."
 	MessageSuccLogin          = "Successfully logged in! Redirecting..."
 )
-
-type Responder struct {
-	fiber.Ctx
-	DB Database
-}
 
 // Uses the form request information.
 func (r Responder) UserRegister() error {
@@ -388,7 +380,7 @@ func (r Responder) GetOwner() (*model.User, error) {
 			err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			return nil, err
 		}
-		return model.JwtKey, nil
+		return environment.JWTKey, nil
 	})
 
 	if err != nil {

@@ -14,17 +14,21 @@ import (
 )
 
 var Environment int
-var JWTKey string
-var DBUser string
-var DBPassword string
-var DBName string
-var DBHost string
-var DBPort string
 
 const (
 	EnvironmentTest = iota
 	EnvironmentDevelopment
 	EnvironmentProduction
+)
+
+var (
+	JWTKey string
+
+	DBUser     string
+	DBPassword string
+	DBName     string
+	DBHost     string
+	DBPort     string
 )
 
 // Exits if any errors.

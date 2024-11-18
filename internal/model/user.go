@@ -1,17 +1,14 @@
 package model
 
 import (
-	"os"
+	"restapp/internal/environment"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// The server's secret key.
-var JwtKey = []byte(os.Getenv("JWT_KEY"))
-
-// User token expiration: 24 Hours.
+// User token expiration: 24 hours.
 var UserTokenExpiration = 24 * time.Hour
 
 // The user as a database entry
@@ -52,7 +49,8 @@ func (c User) GetSubject() (string, error) {
 	return c.Email, nil
 }
 
-// Check the encoded password with the current user struct password.
+// Check the encoded password with the user's normal password.
+// The normal password should not be encoded.
 func (user User) CheckPassword(password string) bool {
 	return CheckPassword(user.Password, password)
 }
@@ -60,15 +58,17 @@ func (user User) CheckPassword(password string) bool {
 // Get the token for the current user.
 func (user User) GenerateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, user)
-
-	return token.SignedString(JwtKey)
+	return token.SignedString(environment.JWTKey)
 }
 
+// Encode the normal password string.
 func HashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(hashedPassword), err
 }
 
+// Check the encoded password with the user's normal password.
+// The normal password should not be encoded.
 func CheckPassword(hashedPassword, password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) == nil
 }
