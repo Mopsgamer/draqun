@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import mysql from "mysql";
 import { existsSync } from "@std/fs";
 import { logInitDb, logInitFiles } from "./tool.ts";
-import {promisify} from "node:util";
+import { promisify } from "node:util";
 
 enum envKeys {
     ENVIRONMENT = "ENVIRONMENT",
@@ -16,75 +16,15 @@ enum envKeys {
 }
 
 async function initMysqlTables(): Promise<void> {
-
-    // Won't move queries to files: the sequence is matter.
-    const queryList = [
-        // 1
-        `CREATE TABLE IF NOT EXISTS app_users (
-		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'User id',
-		nickname VARCHAR(255) NOT NULL COMMENT 'Customizable name',
-		username VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
-		email VARCHAR(255) NOT NULL,
-		phone VARCHAR(255) DEFAULT NULL,
-		password VARCHAR(255) NOT NULL,
-		avatar VARCHAR(255) DEFAULT NULL,
-		created_at DATETIME NOT NULL COMMENT 'Account create time',
-		last_seen DATETIME NOT NULL COMMENT 'Last seen time',
-		PRIMARY KEY (id)
-	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp users'`,
-
-        // 2
-        `CREATE TABLE IF NOT EXISTS app_groups (
-		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Group id',
-		nickname VARCHAR(255) NOT NULL COMMENT 'Customizable name',
-		groupname VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
-        groupmode ENUM('dm', 'private', 'public') NOT NULL,
-		password VARCHAR(255) DEFAULT NULL,
-		avatar VARCHAR(255) DEFAULT NULL,
-		created_at DATETIME NOT NULL COMMENT 'Group create time',
-		PRIMARY KEY (id)
-	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp groups'`,
-
-        // 3
-        `CREATE TABLE IF NOT EXISTS app_group_roles (
-		group_id BIGINT UNSIGNED NOT NULL COMMENT 'Group id',
-        id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Role id',
-        perm_chat_read BIT NOT NULL,
-        perm_chat_write BIT NOT NULL,
-        perm_chat_delete BIT NOT NULL,
-        perm_kick BIT NOT NULL,
-        perm_ban BIT NOT NULL,
-        perm_change_group BIT NOT NULL,
-        perm_change_member BIT NOT NULL,
-        PRIMARY KEY (id),
-        FOREIGN KEY (group_id) REFERENCES app_groups(id)
-	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp all groups roles'`,
-
-        // 4
-        `CREATE TABLE IF NOT EXISTS app_group_members (
-		group_id BIGINT UNSIGNED NOT NULL COMMENT 'Group id',
-        user_id BIGINT UNSIGNED NOT NULL COMMENT 'User id',
-        is_owner BIT NOT NULL,
-        is_creator BIT NOT NULL,
-        is_banned BIT NOT NULL,
-        membername VARCHAR(255),
-        PRIMARY KEY (group_id, user_id),
-        FOREIGN KEY (group_id) REFERENCES app_groups(id),
-        FOREIGN KEY (user_id) REFERENCES app_users(id)
-	    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp all groups members'`,
-
-        // 5
-        `CREATE TABLE IF NOT EXISTS app_groups_messages (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-		group_id BIGINT UNSIGNED NOT NULL COMMENT 'Group id',
-        author_id BIGINT UNSIGNED NOT NULL COMMENT 'User id',
-        content TEXT NOT NULL,
-        PRIMARY KEY (id),
-        FOREIGN KEY (group_id) REFERENCES app_groups(id),
-        FOREIGN KEY (author_id) REFERENCES app_users(id)
-	    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restapp messages'`,
+    logInitDb.info("We want to create tables.");
+    const sqlFileList = [
+        "./scripts/queries/create_users.sql",
+        "./scripts/queries/create_groups.sql",
+        "./scripts/queries/create_group_roles.sql",
+        "./scripts/queries/create_group_members.sql",
+        "./scripts/queries/create_group_member_roles.sql",
+        "./scripts/queries/create_group_messages.sql",
     ];
-
     const connection = mysql.createConnection({
         password: Deno.env.get(envKeys.DB_PASSWORD),
         database: Deno.env.get(envKeys.DB_NAME),
@@ -93,23 +33,22 @@ async function initMysqlTables(): Promise<void> {
         port: Number(Deno.env.get(envKeys.DB_PORT)),
     });
 
-    const connect = promisify(connection.connect.bind(connection))
-    const execQuery = promisify(connection.query.bind(connection))
-    const disconnect = promisify(connection.end.bind(connection))
+    const decoder = new TextDecoder("utf-8");
+    const connect = promisify(connection.connect.bind(connection));
+    const execQuery = promisify(connection.query.bind(connection));
+    const disconnect = promisify(connection.end.bind(connection));
 
-    await connect()
-    logInitDb.info("Connected to the database using .env confifuration.");
-
-    for (const [index, query] of queryList.entries()) {
-        const queryPrintable = query.replaceAll(/\s+\(.+$/gs, '')
-        logInitDb.info(`Executing query ${index+1}: ${queryPrintable}...`);
-        await execQuery(query)
+    await connect();
+    logInitDb.success("Connected to the database using .env confifuration.");
+    logInitDb.info("If you are trying to reinitialize the database, this will not change existing tables. Delete or change them manually.");
+    for (const sqlFile of sqlFileList) {
+        logInitDb.info(`Executing '${sqlFile}'...`);
+        const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
+        await execQuery(sqlString);
     }
 
-    logInitDb.info("Initialized.");
-
-    await disconnect()
-    logInitDb.success("Disconnected from the database.");
+    await disconnect();
+    logInitDb.success("Success. All queries executed. Disconnected from the database.");
 }
 
 function initEnvFile(): void {
@@ -145,7 +84,7 @@ function initEnvFile(): void {
     });
 
     const path = ".env";
-    const decoder = new TextDecoder();
+    const decoder = new TextDecoder("utf-8");
     const env = existsSync(path)
         ? dotenv.parse(decoder.decode(Deno.readFileSync(path)))
         : {};
@@ -175,12 +114,12 @@ try {
     initEnvFile();
 } catch (error) {
     logInitFiles.fatal(error);
-    Deno.exit(1)
+    Deno.exit(1);
 }
 
 try {
     await initMysqlTables();
 } catch (error) {
     logInitDb.fatal(error);
-    Deno.exit(1)
+    Deno.exit(1);
 }
