@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS app_groups (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Group id',
-    creator_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'User id',
+    creator_id BIGINT UNSIGNED NOT NULL COMMENT 'User id',
     nickname VARCHAR(255) NOT NULL COMMENT 'Customizable name',
     groupname VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
     groupmode ENUM('dm', 'private', 'public') NOT NULL,
