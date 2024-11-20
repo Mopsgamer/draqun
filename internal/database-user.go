@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"restapp/internal/model"
 )
 
@@ -98,4 +99,20 @@ func (db Database) UserByUsername(username string) (*model.User, error) {
 		user = nil
 	}
 	return user, err
+}
+
+func (db Database) UserJoinGroup(userId uint, groupId uint) error {
+	// TODO: sql - join group
+	// check group mode
+	return errors.New("not implemented")
+}
+
+func (db Database) UserLeaveGroup(userId uint, groupId uint) error {
+	// TODO: sql - leave group
+	return errors.New("not implemented")
+}
+
+func (db Database) UserSendMessage(userId uint, groupId uint, message model.Message) error {
+	// TODO: sql - send message
+	return errors.New("not implemented")
 }
