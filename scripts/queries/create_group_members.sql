@@ -2,7 +2,6 @@ CREATE TABLE IF NOT EXISTS app_group_members (
     group_id BIGINT UNSIGNED NOT NULL COMMENT 'Group id',
     user_id BIGINT UNSIGNED NOT NULL COMMENT 'User id',
     is_owner BIT NOT NULL,
-    is_creator BIT NOT NULL,
     is_banned BIT NOT NULL,
     membername VARCHAR(255),
     PRIMARY KEY (group_id, user_id),

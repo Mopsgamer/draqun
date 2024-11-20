@@ -9,7 +9,8 @@ const (
 )
 
 type Group struct {
-	Id uint `db:"id"`
+	Id        uint `db:"id"`
+	CreatorId uint `db:"creator_id"`
 	// Nick is customizable name. Can contain emojis and special characters.
 	Nick string `db:"nickname"`
 	// Name is a simple identificator, which can be used to create links to a specific groups or joining them by this name.

@@ -35,7 +35,8 @@ func (db Database) UserCreate(user model.User) error {
 func (db Database) UserUpdate(user model.User) error {
 	query :=
 		`UPDATE app_users
-    	SET nickname = ?,
+    	SET
+		nickname = ?,
 		username = ?,
 		email = ?,
 		phone = ?,

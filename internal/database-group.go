@@ -6,6 +6,7 @@ import "restapp/internal/model"
 func (db Database) GroupCreate(group model.Group) error {
 	query :=
 		`INSERT INTO app_groups (
+			creator_id,
 			nickname,
 			groupname,
 			groupmode,
@@ -13,8 +14,9 @@ func (db Database) GroupCreate(group model.Group) error {
 			avatar,
 			created_at
 		)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+		VALUES (?, ?, ?, ?, ?, ?, ?)`
 	_, err := db.Sql.Exec(query,
+		group.CreatorId,
 		group.Nick,
 		group.Name,
 		group.Mode,
@@ -29,7 +31,9 @@ func (db Database) GroupCreate(group model.Group) error {
 func (db Database) GroupUpdate(group model.Group) error {
 	query :=
 		`UPDATE app_groups
-    	SET nickname = ?,
+    	SET
+		creator_id = ?,
+		nickname = ?,
 		groupname = ?,
 		groupmode = ?,
 		password = ?,
@@ -38,6 +42,7 @@ func (db Database) GroupUpdate(group model.Group) error {
 
         WHERE id = ?`
 	_, err := db.Sql.Exec(query,
+		group.CreatorId,
 		group.Nick,
 		group.Name,
 		group.Password,
