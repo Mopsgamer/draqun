@@ -41,7 +41,7 @@
         {{end}}
 
         {{if ne .User nil}}
-        <sl-menu-item hx-put="/logout" hx-swap="innerHTML">
+        <sl-menu-item hx-put="/account/logout" hx-swap="innerHTML">
             <sl-icon slot="prefix" name="box-arrow-right"></sl-icon>
             Log Out
         </sl-menu-item>

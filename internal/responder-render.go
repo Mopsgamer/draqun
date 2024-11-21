@@ -53,7 +53,7 @@ type HTMXPartialQuery struct {
 	Id           string     `query:"id"`
 	Message      string     `query:"message"`
 	OpenSettings bool       `query:"open-settings"`
-	OpenRegister bool       `query:"open-register"`
+	OpenSignUp   bool       `query:"open-signup"`
 	OpenLogin    bool       `query:"open-login"`
 	User         model.User `query:"user"` // its safe
 }

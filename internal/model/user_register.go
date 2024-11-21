@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-type UserRegister struct {
+type UserSignUp struct {
 	Nickname        string `json:"nickname" form:"nickname"`
 	Username        string `json:"username" form:"username"`
 	Email           string `json:"email" form:"email"`
@@ -11,8 +11,8 @@ type UserRegister struct {
 	ConfirmPassword string `json:"confirm-password" form:"confirm-password"`
 }
 
-// Converts user register request to the User struct.
-func (req UserRegister) User() (*User, error) {
+// Converts user sign up request to the User struct.
+func (req UserSignUp) User() (*User, error) {
 	hash, err := HashPassword(req.Password)
 	if err != nil {
 		return nil, err

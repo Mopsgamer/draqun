@@ -27,9 +27,6 @@ func NewApp() (*fiber.App, error) {
 
 	app.Use(logger.New())
 
-	// next code groups should be separated into different functions.
-	// + should avoid code repeating
-
 	// static
 	app.Get("/static/*", static.New("./web/static", static.Config{Browse: true}))
 	app.Get("/assets/*", static.New("./web/assets", static.Config{Browse: true}))
@@ -75,42 +72,68 @@ func NewApp() (*fiber.App, error) {
 	})
 
 	// post
-	app.Post("/register", func(c fiber.Ctx) error {
+	app.Post("/account/create", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
-		return r.UserRegister()
+		return r.UserSignUp()
 	})
-	app.Post("/login", func(c fiber.Ctx) error {
+	app.Post("/account/login", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.UserLogin()
 	})
+	// app.Delete("/groups/create", func(c fiber.Ctx) error {
+	// 	r := Responder{c, *db}
+	// 	// TODO: endpoint - create group
+	// 	return r.GroupCreate()
+	// })
+	// app.Delete("/groups/:group_id/leave", func(c fiber.Ctx) error {
+	// 	r := Responder{c, *db}
+	// 	// TODO: endpoint - send message
+	// 	return r.MessageCreate()
+	// })
 
 	// put
-	app.Put("/change-name", func(c fiber.Ctx) error {
+	app.Put("/account/change/name", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.UserChangeName()
 	})
-	app.Put("/change-email", func(c fiber.Ctx) error {
+	app.Put("/account/change/email", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.UserChangeEmail()
 	})
-	app.Put("/change-phone", func(c fiber.Ctx) error {
+	app.Put("/account/change/phone", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.UserChangePhone()
 	})
-	app.Put("/change-password", func(c fiber.Ctx) error {
+	app.Put("/account/change/password", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.UserChangePassword()
 	})
-	app.Put("/logout", func(c fiber.Ctx) error {
+	app.Put("/account/logout", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.UserLogout()
 	})
+	// TODO: endpoint - change group
 
 	// delete
-	app.Delete("/account-delete", func(c fiber.Ctx) error {
+	// app.Delete("/groups/:group_id/leave", func(c fiber.Ctx) error {
+	// 	r := Responder{c, *db}
+	// 	// TODO: endpoint - leave group
+	// 	return r.GroupLeave()
+	// })
+	// app.Delete("/groups/:group_id", func(c fiber.Ctx) error {
+	// 	r := Responder{c, *db}
+	// 	// TODO: endpoint - delete group
+	// 	return r.GroupDelete()
+	// })
+	app.Delete("/account/delete", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.UserDelete()
 	})
+
+	// websoket
+	// https://docs.gofiber.io/contrib/next/websocket/
+	// TODO: ws - update messages
+	// TODO: ws - update members
 
 	app.Use(func(c fiber.Ctx) error {
 		r := Responder{c, *db}

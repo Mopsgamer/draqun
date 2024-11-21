@@ -10,7 +10,7 @@
 
 <body hx-ext="shoelace" class="h-screen">
     {{template "partials/login-dialog" .}}
-    {{template "partials/register-dialog" .}}
+    {{template "partials/signup-dialog" .}}
     <main id="main" class="p-4 h-screen flex flex-col justify-center items-center">
         {{if .TokenError}}
         {{template "partials/token-fallback" .}}

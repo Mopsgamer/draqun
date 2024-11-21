@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	MessageFatalCannotRegister  = "Unable to register."
+	MessageFatalCannotSignUp    = "Unable to sign up."
 	MessageFatalTokenGeneration = "Unable to create the token."
 
 	MessageErrInvalidRequest                = "Invalid request payload."
@@ -46,9 +46,9 @@ var (
 )
 
 // Uses the form request information.
-func (r Responder) UserRegister() error {
-	id := "register-error"
-	req := new(model.UserRegister)
+func (r Responder) UserSignUp() error {
+	id := "signup-error"
+	req := new(model.UserSignUp)
 	err := r.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
@@ -89,7 +89,7 @@ func (r Responder) UserRegister() error {
 
 	user, err := req.User()
 	if err != nil {
-		return r.RenderWarning(MessageFatalCannotRegister, id)
+		return r.RenderWarning(MessageFatalCannotSignUp, id)
 	}
 
 	err = r.DB.UserCreate(*user)

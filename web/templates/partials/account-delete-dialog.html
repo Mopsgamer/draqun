@@ -3,7 +3,7 @@
         <sl-icon name="exclamation-triangle"></sl-icon>
         Delete account
     </h1>
-    <form id="account-delete-form" name="account-delete-form" hx-delete="/account-delete" hx-swap="outerHTML"
+    <form id="account-delete-form" name="account-delete-form" hx-delete="/account/delete" hx-swap="outerHTML"
         hx-target="#account-delete-error">
         <sl-input label="Current password" type="password" id="account-delete-current-password" name="current-password" required password-toggle>
         </sl-input>

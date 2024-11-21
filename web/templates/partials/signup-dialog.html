@@ -1,0 +1,32 @@
+{{if eq .User nil}}
+<sl-dialog {{if .OpenSignUp}} open {{- end}} label="Dialog" id="signup-dialog">
+    <h1 slot="label" class="aligned">
+        <sl-icon name="box-arrow-in-right"></sl-icon>
+        Sign Up
+    </h1>
+    <form id="signup-form" name="signup-form" hx-post="/account/create" hx-swap="outerHTML"
+        hx-target="#signup-error">
+        <sl-input label="Nickname" type="text" id="signup-nickname" name="nickname" required></sl-input>
+        <sl-input label="Username" type="text" autocomplete="username" id="signup-username" name="username" required></sl-input>
+        <sl-input label="Email" type="email" autocomplete="email" id="signup-email" name="email" required></sl-input>
+        <sl-input label="Phone" type="tel" autocomplete="tel" id="signup-phone" name="phone"></sl-input>
+        <sl-input label="Password" password-toggle type="password" autocomplete="new-password" id="signup-password" name="password"
+            required></sl-input>
+        <sl-input label="Confirm password" password-toggle type="password" id="signup-confirm-password"
+            name="confirm-password" required></sl-input>
+        <!--
+            <sl-input label="Avatar URL" id="avatar" name="avatar">
+        -->
+        <sl-alert id="signup-error" variant="warning"></sl-alert>
+    </form>
+    <div slot="footer" class="dialog-footer">
+        <div>
+            Already a member?
+            <sl-button variant="text" href="#login-dialog">Log In</a>
+        </div>
+        <div>
+            <sl-button form="signup-form" variant="primary" type="submit">Sign Up</sl-button>
+        </div>
+    </div>
+</sl-dialog>
+{{end}}
