@@ -71,7 +71,6 @@ func NewApp() (*fiber.App, error) {
 		)
 	})
 
-	// post
 	app.Post("/account/create", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.UserSignUp()
@@ -80,16 +79,16 @@ func NewApp() (*fiber.App, error) {
 		r := Responder{c, *db}
 		return r.UserLogin()
 	})
-	// app.Delete("/groups/create", func(c fiber.Ctx) error {
-	// 	r := Responder{c, *db}
-	// 	// TODO: endpoint - create group
-	// 	return r.GroupCreate()
-	// })
-	// app.Delete("/groups/:group_id/leave", func(c fiber.Ctx) error {
-	// 	r := Responder{c, *db}
-	// 	// TODO: endpoint - send message
-	// 	return r.MessageCreate()
-	// })
+	app.Post("/groups/create", func(c fiber.Ctx) error {
+		r := Responder{c, *db}
+		// TODO: endpoint - create group
+		return r.GroupCreate()
+	})
+	app.Post("/groups/:group_id/leave", func(c fiber.Ctx) error {
+		r := Responder{c, *db}
+		// TODO: endpoint - send message
+		return r.MessageCreate()
+	})
 
 	// put
 	app.Put("/account/change/name", func(c fiber.Ctx) error {
@@ -112,19 +111,23 @@ func NewApp() (*fiber.App, error) {
 		r := Responder{c, *db}
 		return r.UserLogout()
 	})
-	// TODO: endpoint - change group
+	app.Put("/groups/:group_id/change", func(c fiber.Ctx) error {
+		r := Responder{c, *db}
+		// TODO: endpoint - change group
+		return r.GroupLeave()
+	})
 
 	// delete
-	// app.Delete("/groups/:group_id/leave", func(c fiber.Ctx) error {
-	// 	r := Responder{c, *db}
-	// 	// TODO: endpoint - leave group
-	// 	return r.GroupLeave()
-	// })
-	// app.Delete("/groups/:group_id", func(c fiber.Ctx) error {
-	// 	r := Responder{c, *db}
-	// 	// TODO: endpoint - delete group
-	// 	return r.GroupDelete()
-	// })
+	app.Delete("/groups/:group_id/leave", func(c fiber.Ctx) error {
+		r := Responder{c, *db}
+		// TODO: endpoint - leave group
+		return r.GroupLeave()
+	})
+	app.Delete("/groups/:group_id", func(c fiber.Ctx) error {
+		r := Responder{c, *db}
+		// TODO: endpoint - delete group
+		return r.GroupDelete()
+	})
 	app.Delete("/account/delete", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
 		return r.UserDelete()

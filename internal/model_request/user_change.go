@@ -1,4 +1,4 @@
-package model
+package model_request
 
 // Supports: json, form.
 type UserChangeName struct {

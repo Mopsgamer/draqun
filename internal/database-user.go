@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"errors"
 	"restapp/internal/model"
 )
 
@@ -98,11 +97,48 @@ func (db Database) UserByUsername(username string) (*model.User, error) {
 	if err != nil {
 		user = nil
 	}
+
 	return user, err
 }
 
-func (db Database) UserOwnGroups(userId uint) (*[]model.Group, error) {
-	groupList := new([]model.Group)
+func (db Database) UserRoles(userId uint) ([]model.Role, error) {
+	roleList := []model.Role{}
+	query := `SELECT * FROM app_group_roles WHERE user_id = ?`
+	err := db.Sql.Get(roleList, query, userId)
+	if err != nil {
+		roleList = nil
+	}
+
+	return roleList, err
+}
+
+func (db Database) RoleRights(rightId uint) (*model.Rights, error) {
+	roleList := new(model.Rights)
+	query := `SELECT * FROM app_group_role_rights WHERE id = ?`
+	err := db.Sql.Get(roleList, query, rightId)
+	if err != nil {
+		roleList = nil
+	}
+
+	return roleList, err
+}
+
+func (db Database) UserRights(userId uint) (*model.Rights, error) {
+	roleList := new(model.Rights)
+	// FIXME: user rights sql query
+	// since the user can have multiple roles,
+	// we should calculate it as a single right object.
+	query := `SELECT * FROM app_group_role_rights WHERE id = ?`
+	err := db.Sql.Get(roleList, query, userId)
+	if err != nil {
+		roleList = nil
+	}
+
+	return roleList, err
+}
+
+func (db Database) UserOwnGroups(userId uint) ([]model.Group, error) {
+	groupList := []model.Group{}
 	query := `SELECT * FROM app_group_members WHERE user_id = ?
 	RIGHT JOIN app_groups ON app_groups.id = app_group_members.group_id
 	GROUP BY app_group_members.group_id
@@ -114,10 +150,7 @@ func (db Database) UserOwnGroups(userId uint) (*[]model.Group, error) {
 	return groupList, err
 }
 
-func (db Database) UserJoinGroup(newMember model.Member, group model.Group, groupMembers []model.Member) error {
-	if group.Mode == model.GroupModeDm && len(groupMembers) <= 2 {
-		return errors.New("can not join to the DM. already full")
-	}
+func (db Database) UserJoinGroup(newMember model.Member) error {
 	query :=
 		`INSERT INTO app_group_members (
 			group_id,
@@ -138,7 +171,7 @@ func (db Database) UserJoinGroup(newMember model.Member, group model.Group, grou
 	return err
 }
 
-func (db Database) UserLeaveGroup(userId uint, groupId uint) error {
+func (db Database) UserLeaveGroup(userId, groupId uint) error {
 	query := `DELETE FROM app_group_members WHERE group_id = ? AND user_id = ?`
 	_, err := db.Sql.Exec(query, groupId, userId)
 	return err

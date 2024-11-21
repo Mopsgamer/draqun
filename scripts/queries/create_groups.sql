@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS app_groups (
     groupname VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
     groupmode ENUM('dm', 'private', 'public') NOT NULL,
     password VARCHAR(255) DEFAULT NULL,
+    description VARCHAR(510) DEFAULT NULL,
     avatar VARCHAR(255) DEFAULT NULL,
     created_at DATETIME NOT NULL COMMENT 'Group create time',
     PRIMARY KEY (id),

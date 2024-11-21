@@ -4,7 +4,7 @@ import (
 	"regexp"
 )
 
-func ValidateString(str string, rg string) bool {
+func IsValidString(str string, rg string, maxLen int) bool {
 	l := len(str)
-	return l >= 0 && l <= 255 && regexp.MustCompile(rg).MatchString(str)
+	return l >= 0 && l <= maxLen && regexp.MustCompile(rg).MatchString(str)
 }

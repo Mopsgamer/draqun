@@ -1,34 +1,26 @@
 package model
 
-
-
 const (
-	RegexpPassword        string = "^[a-zA-Z0-9, .~\\-+%$^&*_!?()[\\]{}`]{8,255}$"
-	MessageDetailPassword string = "Must contain only letters (A-Z, a-z), numbers (0-9), spaces, or these special characters: , . ~ - + % $ ^ & * _ ! ? ( ) [ ] { } `. Must be at least 8 characters long and no more than 255 characters."
-
-	RegexpNickname        string = "^.{1,255}$"
-	MessageDetailNickname string = "Must be between 1 and 255 characters long and can contain any characters."
-
-	RegexpUsername        string = "^[a-zA-Z0-9._]{1,255}$"
-	MessageDetailUsername string = "Must contain only letters (A-Z, a-z), numbers (0-9), and these special characters: . _ . No spaces. Must be at least 1 characters long and no more than 255 characters."
-
+	RegexpUserPassword string = "^[a-zA-Z0-9, .~\\-+%$^&*_!?()[\\]{}`]{8,255}$"
+	RegexpUserNick     string = "^.{1,255}$"
+	RegexpUserName     string = "^[a-zA-Z0-9._]{1,255}$"
 	// Source: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/email#basic_validation
-	RegexpEmail        string = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-	MessageDetailEmail string = "Must be a valid email."
-
-	RegexpPhone        string = "^()$"
-	MessageDetailPhone string = "Must be a valid phone number."
+	RegexpUserEmail string = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+	RegexpUserPhone string = "^()$"
 )
 
-func ValidatePassword(str string) bool {
-	return ValidateString(str, RegexpPassword)
+func IsValidUserPassword(str string) bool {
+	return IsValidString(str, RegexpUserPassword, 255)
 }
-func ValidateNickname(str string) bool {
-	return ValidateString(str, RegexpNickname)
+
+func IsValidUserNick(str string) bool {
+	return IsValidString(str, RegexpUserNick, 255)
 }
-func ValidateUsername(str string) bool {
-	return ValidateString(str, RegexpUsername)
+
+func IsValidUserName(str string) bool {
+	return IsValidString(str, RegexpUserName, 255)
 }
-func ValidateEmail(str string) bool {
-	return ValidateString(str, RegexpEmail)
+
+func IsValidUserEmail(str string) bool {
+	return IsValidString(str, RegexpUserEmail, 255)
 }

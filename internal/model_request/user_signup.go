@@ -1,6 +1,9 @@
-package model
+package model_request
 
-import "time"
+import (
+	"restapp/internal/model"
+	"time"
+)
 
 type UserSignUp struct {
 	Nickname        string `json:"nickname" form:"nickname"`
@@ -12,12 +15,12 @@ type UserSignUp struct {
 }
 
 // Converts user sign up request to the User struct.
-func (req UserSignUp) User() (*User, error) {
-	hash, err := HashPassword(req.Password)
+func (req UserSignUp) User() (*model.User, error) {
+	hash, err := model.HashPassword(req.Password)
 	if err != nil {
 		return nil, err
 	}
-	return &User{
+	return &model.User{
 		Nick:      req.Nickname,
 		Name:      req.Username,
 		Email:     req.Email,

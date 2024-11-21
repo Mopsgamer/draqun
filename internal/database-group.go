@@ -94,12 +94,22 @@ func (db Database) GroupByGroupname(groupname string) (*model.Group, error) {
 	return group, err
 }
 
-func (db Database) GroupMembers(groupId uint) (*[]model.Member, error) {
-	memberList := new([]model.Member)
+func (db Database) GroupMemberList(groupId uint) ([]model.Member, error) {
+	memberList := []model.Member{}
 	query := `SELECT * FROM app_group_members WHERE group_id = ?`
 	err := db.Sql.Get(memberList, query, groupId)
 	if err != nil {
 		memberList = nil
 	}
 	return memberList, err
+}
+
+func (db Database) GroupMember(groupId, userId uint) (*model.Member, error) {
+	member := new(model.Member)
+	query := `SELECT * FROM app_group_members WHERE user_id = ?`
+	err := db.Sql.Get(member, query, userId)
+	if err != nil {
+		member = nil
+	}
+	return member, err
 }

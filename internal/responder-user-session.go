@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"restapp/internal/environment"
 	"restapp/internal/model"
+	"restapp/internal/model_request"
 	"strings"
 	"time"
 
@@ -13,64 +14,32 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var (
-	MessageFatalCannotSignUp    = "Unable to sign up."
-	MessageFatalTokenGeneration = "Unable to create the token."
-
-	MessageErrInvalidRequest                = "Invalid request payload."
-	MessageErrPassword                      = "Invalid password pattern. " + model.MessageDetailPassword
-	MessageErrPasswordSame                  = "The new password is the same as the old one."
-	MessageErrNickname                      = "Invalid nickname pattern. " + model.MessageDetailNickname
-	MessageErrNicknameSame                  = "The new nickname is the same as the old one."
-	MessageErrUsername                      = "Invalid username pattern. " + model.MessageDetailUsername
-	MessageErrUsernameSame                  = "The new username is the same as the old one."
-	MessageErrEmail                         = "Invalid email pattern. " + model.MessageDetailEmail
-	MessageErrEmailSame                     = "The new email is the same as the old one."
-	MessageErrPhone                         = "Invalid phone number pattern. " + model.MessageDetailPhone
-	MessageErrPhoneSame                     = "The new phone is the same as the old one."
-	MessageErrBadPassConfirm                = "Passwords are not same."
-	MessageErrBadUsernameConfirm            = "Usernames are not same."
-	MessageErrBadPass                       = "Invalid user password."
-	MessageErrUserNotFound                  = "User not found."
-	MessageErrUserExistsUsername            = "This username is taken."
-	MessageErrUserExistsEmail               = "This email is taken."
-	MessageErrUserExistsPhone               = "This phone number is taken."
-	MessageErrCanNotDeleteGroupOwnerAccount = "The user cannot be deleted because the user is the owner of a group or set of groups."
-
-	MessageSuccChangedProfile = "Successfully changed the user profile."
-	MessageSuccChangedPass    = "Successfully changed the user password."
-	MessageSuccChangedEmail   = "Successfully changed the user email."
-	MessageSuccChangedPhone   = "Successfully changed the user phone."
-	MessageSuccDeletedUser    = "Successfully deleted the user."
-	MessageSuccLogin          = "Successfully logged in! Redirecting..."
-)
-
 // Uses the form request information.
 func (r Responder) UserSignUp() error {
 	id := "signup-error"
-	req := new(model.UserSignUp)
+	req := new(model_request.UserSignUp)
 	err := r.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
-	if !model.ValidateNickname(req.Nickname) {
-		return r.RenderWarning(MessageErrNickname, id)
+	if !model.IsValidUserNick(req.Nickname) {
+		return r.RenderWarning(MessageErrUserNick, id)
 	}
 
-	if !model.ValidateUsername(req.Username) {
-		return r.RenderWarning(MessageErrUsername, id)
+	if !model.IsValidUserName(req.Username) {
+		return r.RenderWarning(MessageErrUserName, id)
 	}
 
 	if user, _ := r.DB.UserByUsername(req.Username); user != nil {
 		return r.RenderWarning(MessageErrUserExistsUsername, id)
 	}
 
-	if !model.ValidatePassword(req.Password) {
+	if !model.IsValidUserPassword(req.Password) {
 		return r.RenderWarning(MessageErrPassword, id)
 	}
 
-	if !model.ValidateEmail(req.Email) {
+	if !model.IsValidUserEmail(req.Email) {
 		return r.RenderWarning(MessageErrEmail, id)
 	}
 
@@ -78,18 +47,20 @@ func (r Responder) UserSignUp() error {
 		return r.RenderWarning(MessageErrUserExistsEmail, id)
 	}
 
-	// TODO: Phone validation.
+	// TODO: phone validation
 	// if !model.ValidatePhone(req.Phone) {
 	// 	return r.RenderWarning(MessageErrPhone, id)
 	// }
 
+	// TODO: validate avatar and other properties
+
 	if req.ConfirmPassword != req.Password {
-		return r.RenderWarning(MessageErrBadPassConfirm, id)
+		return r.RenderWarning(MessageErrBadConfirmPassword, id)
 	}
 
 	user, err := req.User()
 	if err != nil {
-		return r.RenderWarning(MessageFatalCannotSignUp, id)
+		return r.RenderWarning(MessageFatalCanNotSignUp, id)
 	}
 
 	err = r.DB.UserCreate(*user)
@@ -104,17 +75,17 @@ func (r Responder) UserSignUp() error {
 // Uses the form request information.
 func (r Responder) UserLogin() error {
 	id := "login-error"
-	req := new(model.UserLogin)
+	req := new(model_request.UserLogin)
 	err := r.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
-	if !model.ValidatePassword(req.Password) {
+	if !model.IsValidUserPassword(req.Password) {
 		return r.RenderWarning(MessageErrPassword, id)
 	}
 
-	if !model.ValidateEmail(req.Email) {
+	if !model.IsValidUserEmail(req.Email) {
 		return r.RenderWarning(MessageErrEmail, id)
 	}
 
@@ -124,7 +95,7 @@ func (r Responder) UserLogin() error {
 	}
 
 	if !user.CheckPassword(req.Password) {
-		return r.RenderWarning(MessageErrBadPass, id)
+		return r.RenderWarning(MessageErrBadPassword, id)
 	}
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
@@ -146,7 +117,7 @@ func (r Responder) UserLogout() error {
 // Uses the form request information.
 func (r Responder) UserChangeName() error {
 	id := "change-name-error"
-	req := new(model.UserChangeName)
+	req := new(model_request.UserChangeName)
 	err := r.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
@@ -158,15 +129,15 @@ func (r Responder) UserChangeName() error {
 	}
 
 	if req.NewNickname == user.Nick && req.NewUsername == user.Name {
-		return r.RenderWarning(MessageErrNicknameSame, id)
+		return r.RenderWarning(MessageErrUserNickSame, id)
 	}
 
-	if !model.ValidateNickname(req.NewNickname) {
-		return r.RenderWarning(MessageErrNickname, id)
+	if !model.IsValidUserNick(req.NewNickname) {
+		return r.RenderWarning(MessageErrUserNick, id)
 	}
 
-	if !model.ValidateUsername(req.NewUsername) {
-		return r.RenderWarning(MessageErrUsername, id)
+	if !model.IsValidUserName(req.NewUsername) {
+		return r.RenderWarning(MessageErrUserName, id)
 	}
 
 	if user, _ := r.DB.UserByUsername(req.NewUsername); user != nil {
@@ -188,7 +159,7 @@ func (r Responder) UserChangeName() error {
 // Uses the form request information.
 func (r Responder) UserChangeEmail() error {
 	id := "change-email-error"
-	req := new(model.UserChangeEmail)
+	req := new(model_request.UserChangeEmail)
 	err := r.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
@@ -203,7 +174,7 @@ func (r Responder) UserChangeEmail() error {
 		return r.RenderWarning(MessageErrEmailSame, id)
 	}
 
-	if !model.ValidateEmail(req.NewEmail) {
+	if !model.IsValidUserEmail(req.NewEmail) {
 		return r.RenderWarning(MessageErrEmail, id)
 	}
 
@@ -211,12 +182,12 @@ func (r Responder) UserChangeEmail() error {
 		return r.RenderWarning(MessageErrUserExistsEmail, id)
 	}
 
-	if !model.ValidatePassword(req.CurrentPassword) {
+	if !model.IsValidUserPassword(req.CurrentPassword) {
 		return r.RenderWarning(MessageErrPassword, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		return r.RenderWarning(MessageErrBadPass, id)
+		return r.RenderWarning(MessageErrBadPassword, id)
 	}
 
 	user.Email = req.NewEmail
@@ -233,7 +204,7 @@ func (r Responder) UserChangeEmail() error {
 // Uses the form request information.
 func (r Responder) UserChangePhone() error {
 	id := "change-phone-error"
-	req := new(model.UserChangePhone)
+	req := new(model_request.UserChangePhone)
 	err := r.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
@@ -254,7 +225,7 @@ func (r Responder) UserChangePhone() error {
 	// }
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		return r.RenderWarning(MessageErrBadPass, id)
+		return r.RenderWarning(MessageErrBadPassword, id)
 	}
 
 	user.Phone = req.NewPhone
@@ -271,7 +242,7 @@ func (r Responder) UserChangePhone() error {
 // Uses the form request information.
 func (r Responder) UserChangePassword() error {
 	id := "change-password-error"
-	req := new(model.UserChangePassword)
+	req := new(model_request.UserChangePassword)
 	err := r.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
@@ -286,16 +257,16 @@ func (r Responder) UserChangePassword() error {
 		return r.RenderWarning(MessageErrPasswordSame, id)
 	}
 
-	if !model.ValidatePassword(req.CurrentPassword) {
+	if !model.IsValidUserPassword(req.CurrentPassword) {
 		return r.RenderWarning(MessageErrPassword, id)
 	}
 
 	if req.ConfirmPassword != req.NewPassword {
-		return r.RenderWarning(MessageErrBadPassConfirm, id)
+		return r.RenderWarning(MessageErrBadConfirmPassword, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		return r.RenderWarning(MessageErrBadPass, id)
+		return r.RenderWarning(MessageErrBadPassword, id)
 	}
 
 	user.Password = req.NewPassword
@@ -312,7 +283,7 @@ func (r Responder) UserChangePassword() error {
 // Uses the form request information.
 func (r Responder) UserDelete() error {
 	id := "account-delete-error"
-	req := new(model.UserDelete)
+	req := new(model_request.UserDelete)
 	err := r.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
@@ -329,13 +300,13 @@ func (r Responder) UserDelete() error {
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		return r.RenderWarning(MessageErrBadPass, id)
+		return r.RenderWarning(MessageErrBadPassword, id)
 	}
 
 	userOwnGroups, _ := r.DB.UserOwnGroups(user.Id)
-	if userOwnGroups != nil && len(*userOwnGroups) > 0 {
+	if len(userOwnGroups) > 0 {
 		list := []string{}
-		for groupIndex, group := range *userOwnGroups {
+		for groupIndex, group := range userOwnGroups {
 			list[groupIndex] = group.Nick
 		}
 		return r.RenderDanger(MessageErrCanNotDeleteGroupOwnerAccount+" Groups: "+strings.Join(list, ", ")+".", id)
@@ -418,6 +389,5 @@ func (r Responder) GetOwner() (*model.User, error) {
 	}
 
 	user, err := r.DB.UserByEmail(email)
-	log.Error(err)
 	return user, err
 }
