@@ -16,7 +16,7 @@ func (user User) CheckPassword(password string) bool {
 // Get the token for the current user.
 func (user User) GenerateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, user)
-	return token.SignedString(environment.JWTKey)
+	return token.SignedString([]byte(environment.JWTKey))
 }
 
 // Encode the normal password string.

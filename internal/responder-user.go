@@ -360,7 +360,8 @@ func (r Responder) UserDelete() error {
 func (r Responder) GiveToken(errorElementId string, user model.User) error {
 	token, err := user.GenerateToken()
 	if err != nil {
-		return r.RenderWarning(MessageFatalTokenGeneration, errorElementId)
+		log.Error(err)
+		return r.RenderDanger(MessageFatalTokenGeneration, errorElementId)
 	}
 
 	r.Cookie(&fiber.Cookie{
@@ -379,8 +380,9 @@ func (r Responder) GetOwner() (*model.User, error) {
 		return nil, nil
 	}
 
-	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
+	if len(authHeader) < 8 || authHeader[:7] != "Bearer " {
 		err := errors.New("invalid authorization format. Expected Authorization header: Bearer and the token string")
+		log.Error(err)
 		return nil, err
 	}
 
@@ -391,20 +393,31 @@ func (r Responder) GetOwner() (*model.User, error) {
 			err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			return nil, err
 		}
-		return environment.JWTKey, nil
+
+		tokenBytes := []byte(environment.JWTKey)
+		return tokenBytes, nil
 	})
 
 	if err != nil {
+		log.Error(err)
 		return nil, err
 	}
 
 	if !token.Valid {
 		err = errors.New("invalid token")
+		log.Error(err)
 		return nil, err
 	}
 
-	email := (token.Claims.(jwt.MapClaims))["email"].(string)
+	const prop = "Email"
+	claims := token.Claims.(jwt.MapClaims)
+	email, ok := claims[prop].(string)
+	if !ok {
+		err = fmt.Errorf("can not get claim property '"+prop+"'. Claims: %v", claims)
+		return nil, err
+	}
 
 	user, err := r.DB.UserByEmail(email)
+	log.Error(err)
 	return user, err
 }
