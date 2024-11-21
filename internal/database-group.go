@@ -53,19 +53,30 @@ func (db Database) GroupUpdate(group model.Group) error {
 	return err
 }
 
-// Delete the existing DB record.
-func (db Database) GroupDelete(id uint) error {
+// Delete the existing DB record and memberships.
+func (db Database) GroupDelete(groupId uint) error {
 	query := `DELETE FROM app_groups WHERE id = ?`
-	_, err := db.Sql.Exec(query, id)
-	// TODO: delete roles, members, messages, add description ^^^
+	_, err := db.Sql.Exec(query, groupId)
+	if err != nil {
+		return err
+	}
+
+	query = `DELETE FROM app_group_members WHERE group_id = ?`
+	_, err = db.Sql.Exec(query, groupId)
+	if err != nil {
+		return err
+	}
+
+	// TODO: delete roles(!) and messages(?)
+
 	return err
 }
 
 // Get the group by her identificator.
-func (db Database) GroupById(id uint) (*model.Group, error) {
+func (db Database) GroupById(groupId uint) (*model.Group, error) {
 	group := new(model.Group)
 	query := `SELECT * FROM app_groups WHERE id = ?`
-	err := db.Sql.Get(group, query, id)
+	err := db.Sql.Get(group, query, groupId)
 	if err != nil {
 		group = nil
 	}
@@ -81,4 +92,14 @@ func (db Database) GroupByGroupname(groupname string) (*model.Group, error) {
 		group = nil
 	}
 	return group, err
+}
+
+func (db Database) GroupMembers(groupId uint) (*[]model.Member, error) {
+	memberList := new([]model.Member)
+	query := `SELECT * FROM app_group_members WHERE group_id = ?`
+	err := db.Sql.Get(memberList, query, groupId)
+	if err != nil {
+		memberList = nil
+	}
+	return memberList, err
 }

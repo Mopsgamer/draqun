@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"restapp/internal/environment"
 	"restapp/internal/model"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -16,24 +17,25 @@ var (
 	MessageFatalCannotRegister  = "Unable to register."
 	MessageFatalTokenGeneration = "Unable to create the token."
 
-	MessageErrInvalidRequest     = "Invalid request payload."
-	MessageErrPassword           = "Invalid password pattern. " + model.MessageDetailPassword
-	MessageErrPasswordSame       = "The new password is the same as the old one."
-	MessageErrNickname           = "Invalid nickname pattern. " + model.MessageDetailNickname
-	MessageErrNicknameSame       = "The new nickname is the same as the old one."
-	MessageErrUsername           = "Invalid username pattern. " + model.MessageDetailUsername
-	MessageErrUsernameSame       = "The new username is the same as the old one."
-	MessageErrEmail              = "Invalid email pattern. " + model.MessageDetailEmail
-	MessageErrEmailSame          = "The new email is the same as the old one."
-	MessageErrPhone              = "Invalid phone number pattern. " + model.MessageDetailPhone
-	MessageErrPhoneSame          = "The new phone is the same as the old one."
-	MessageErrBadPassConfirm     = "Passwords are not same."
-	MessageErrBadUsernameConfirm = "Usernames are not same."
-	MessageErrBadPass            = "Invalid user password."
-	MessageErrUserNotFound       = "User not found."
-	MessageErrUserExistsUsername = "This username is taken."
-	MessageErrUserExistsEmail    = "This email is taken."
-	MessageErrUserExistsPhone    = "This phone number is taken."
+	MessageErrInvalidRequest                = "Invalid request payload."
+	MessageErrPassword                      = "Invalid password pattern. " + model.MessageDetailPassword
+	MessageErrPasswordSame                  = "The new password is the same as the old one."
+	MessageErrNickname                      = "Invalid nickname pattern. " + model.MessageDetailNickname
+	MessageErrNicknameSame                  = "The new nickname is the same as the old one."
+	MessageErrUsername                      = "Invalid username pattern. " + model.MessageDetailUsername
+	MessageErrUsernameSame                  = "The new username is the same as the old one."
+	MessageErrEmail                         = "Invalid email pattern. " + model.MessageDetailEmail
+	MessageErrEmailSame                     = "The new email is the same as the old one."
+	MessageErrPhone                         = "Invalid phone number pattern. " + model.MessageDetailPhone
+	MessageErrPhoneSame                     = "The new phone is the same as the old one."
+	MessageErrBadPassConfirm                = "Passwords are not same."
+	MessageErrBadUsernameConfirm            = "Usernames are not same."
+	MessageErrBadPass                       = "Invalid user password."
+	MessageErrUserNotFound                  = "User not found."
+	MessageErrUserExistsUsername            = "This username is taken."
+	MessageErrUserExistsEmail               = "This email is taken."
+	MessageErrUserExistsPhone               = "This phone number is taken."
+	MessageErrCanNotDeleteGroupOwnerAccount = "The user cannot be deleted because the user is the owner of a group or set of groups."
 
 	MessageSuccChangedProfile = "Successfully changed the user profile."
 	MessageSuccChangedPass    = "Successfully changed the user password."
@@ -330,7 +332,14 @@ func (r Responder) UserDelete() error {
 		return r.RenderWarning(MessageErrBadPass, id)
 	}
 
-	// TODO: check if not owner of any group
+	userOwnGroups, _ := r.DB.UserOwnGroups(user.Id)
+	if userOwnGroups != nil && len(*userOwnGroups) > 0 {
+		list := []string{}
+		for groupIndex, group := range *userOwnGroups {
+			list[groupIndex] = group.Nick
+		}
+		return r.RenderDanger(MessageErrCanNotDeleteGroupOwnerAccount+" Groups: "+strings.Join(list, ", ")+".", id)
+	}
 
 	err = r.DB.UserDelete(user.Id)
 	if err != nil {
