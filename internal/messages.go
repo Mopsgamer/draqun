@@ -46,5 +46,6 @@ const (
 	MessageSuccChangedPhone                 = "Successfully changed the user phone."
 	MessageSuccDeletedUser                  = "Successfully deleted the user."
 	MessageSuccLeavedGroup                  = "Successfully leaved from the group."
+	MessageSuccCreatedGroup                 = "Successfully created the group."
 	MessageSuccLogin                        = "Successfully logged in! Redirecting..."
 )

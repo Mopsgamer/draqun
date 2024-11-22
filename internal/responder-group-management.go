@@ -40,8 +40,8 @@ func (r Responder) GroupCreate() error {
 	group := req.Group(user.Id)
 	r.DB.GroupCreate(*group)
 
-	// TODO: Redirect to the group
-	return nil
+	r.HTMXRedirect(group.PagePath())
+	return r.RenderSuccess(MessageSuccCreatedGroup, id)
 }
 
 func (r Responder) GroupDelete() error {

@@ -81,12 +81,10 @@ func NewApp() (*fiber.App, error) {
 	})
 	app.Post("/groups/create", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
-		// TODO: endpoint - create group
 		return r.GroupCreate()
 	})
 	app.Post("/groups/:group_id/leave", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
-		// TODO: endpoint - send message
 		return r.MessageCreate()
 	})
 
@@ -113,19 +111,16 @@ func NewApp() (*fiber.App, error) {
 	})
 	app.Put("/groups/:group_id/change", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
-		// TODO: endpoint - change group
 		return r.GroupLeave()
 	})
 
 	// delete
 	app.Delete("/groups/:group_id/leave", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
-		// TODO: endpoint - leave group
 		return r.GroupLeave()
 	})
 	app.Delete("/groups/:group_id", func(c fiber.Ctx) error {
 		r := Responder{c, *db}
-		// TODO: endpoint - delete group
 		return r.GroupDelete()
 	})
 	app.Delete("/account/delete", func(c fiber.Ctx) error {

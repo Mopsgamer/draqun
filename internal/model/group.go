@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 const (
 	GroupModeDm      string = "dm"
@@ -21,4 +24,8 @@ type Group struct {
 	Password  *string   `db:"password"`
 	Avatar    string    `db:"avatar"`
 	CreatedAt time.Time `db:"created_at"`
+}
+
+func (g Group) PagePath() string {
+	return "/chat/groups/" + strconv.FormatUint(uint64(g.Id), 10)
 }
