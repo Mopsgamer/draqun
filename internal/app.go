@@ -20,6 +20,31 @@ func NewApp() (*fiber.App, error) {
 		return nil, err
 	}
 
+	UseResponder := func(handler func(r Responder) error) fiber.Handler {
+		return func(c fiber.Ctx) error {
+			return handler(Responder{c, *db})
+		}
+	}
+
+	UsePage := func(guestRedirect, templatePath, title string, bind *fiber.Map, layouts ...string) fiber.Handler {
+		bindx := fiber.Map{
+			"Title": "Restapp - " + title,
+		}
+		if bind != nil {
+			for k, v := range *bind {
+				bindx[k] = v
+			}
+		}
+		return UseResponder(func(r Responder) error {
+			return r.RenderPage(
+				guestRedirect,
+				templatePath,
+				bindx,
+				layouts...,
+			)
+		})
+	}
+
 	app := fiber.New(fiber.Config{
 		Views:             NewAppHtmlEngine(db),
 		PassLocalsToViews: true,
@@ -31,122 +56,42 @@ func NewApp() (*fiber.App, error) {
 	app.Get("/static/*", static.New("./web/static", static.Config{Browse: true}))
 	app.Get("/assets/*", static.New("./web/assets", static.Config{Browse: true}))
 	app.Get("/partials", static.New("./web/templates/partials", static.Config{Browse: true}))
-	app.Get("/partials/*", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.RenderTemplate()
-	})
+	app.Get("/partials/*", UseResponder(func(r Responder) error { return r.RenderTemplate() }))
 
 	// get
-	app.Get("/", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.RenderPage(
-			"",
-			"index",
-			fiber.Map{
-				"Title": "Restapp - Home page",
-			},
-			"partials/main",
-		)
-	})
-	app.Get("/settings", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.RenderPage(
-			"/",
-			"settings",
-			fiber.Map{
-				"Title": "Restapp - Settings",
-			},
-			"partials/main",
-		)
-	})
-	app.Get("/chat", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.RenderPage(
-			"",
-			"chat",
-			fiber.Map{
-				"Title":      "Restapp - Chat",
-				"IsChatPage": true,
-			},
-		)
-	})
+	app.Get("/", UsePage("", "index", "Home page", nil, "partials/main"))
+	app.Get("/settings", UsePage("/", "settings", "Settings", nil, "partials/main"))
+	renderChat := UsePage("", "chat", "Settings", &fiber.Map{"IsChatPage": true})
+	app.Get("/chat", renderChat)
+	app.Get("/chat/groups/:group_id", renderChat)
 
-	app.Post("/account/create", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.UserSignUp()
-	})
-	app.Post("/account/login", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.UserLogin()
-	})
-	app.Post("/groups/create", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.GroupCreate()
-	})
-	app.Post("/groups/:group_id/leave", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.MessageCreate()
-	})
+	// post
+	app.Post("/account/create", UseResponder(func(r Responder) error { return r.UserSignUp() }))
+	app.Post("/account/login", UseResponder(func(r Responder) error { return r.UserLogin() }))
+	app.Post("/groups/create", UseResponder(func(r Responder) error { return r.GroupCreate() }))
 
 	// put
-	app.Put("/account/change/name", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.UserChangeName()
-	})
-	app.Put("/account/change/email", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.UserChangeEmail()
-	})
-	app.Put("/account/change/phone", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.UserChangePhone()
-	})
-	app.Put("/account/change/password", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.UserChangePassword()
-	})
-	app.Put("/account/logout", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.UserLogout()
-	})
-	app.Put("/groups/:group_id/change", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.GroupLeave()
-	})
+	app.Put("/account/change/name", UseResponder(func(r Responder) error { return r.UserChangeName() }))
+	app.Put("/account/change/email", UseResponder(func(r Responder) error { return r.UserChangeEmail() }))
+	app.Put("/account/change/phone", UseResponder(func(r Responder) error { return r.UserChangePhone() }))
+	app.Put("/account/change/password", UseResponder(func(r Responder) error { return r.UserChangePassword() }))
+	app.Put("/account/logout", UseResponder(func(r Responder) error { return r.UserLogout() }))
+	// TODO: app.Put("/groups/:group_id/change", UseResponder(func(r Responder) error { return r.GroupChange() }))
 
 	// delete
-	app.Delete("/groups/:group_id/leave", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.GroupLeave()
-	})
-	app.Delete("/groups/:group_id", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.GroupDelete()
-	})
-	app.Delete("/account/delete", func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		return r.UserDelete()
-	})
+	app.Delete("/groups/:group_id/leave", UseResponder(func(r Responder) error { return r.GroupLeave() }))
+	app.Delete("/groups/:group_id", UseResponder(func(r Responder) error { return r.GroupDelete() }))
+	app.Delete("/account/delete", UseResponder(func(r Responder) error { return r.UserDelete() }))
 
 	// websoket
 	// https://docs.gofiber.io/contrib/next/websocket/
 	// TODO: ws - update messages
 	// TODO: ws - update members
 
-	app.Use(func(c fiber.Ctx) error {
-		r := Responder{c, *db}
-		r.Status(fiber.StatusNotFound)
-		return r.RenderPage(
-			"",
-			"partials/x",
-			fiber.Map{
-				"Title":         "Restapp - " + strconv.Itoa(fiber.StatusNotFound),
-				"StatusCode":    fiber.StatusNotFound,
-				"StatusMessage": fiber.ErrNotFound.Message,
-			},
-			"partials/main",
-		)
-	})
+	app.Use(UsePage("", "partials/x", strconv.Itoa(fiber.StatusNotFound), &fiber.Map{
+		"StatusCode":    fiber.StatusNotFound,
+		"StatusMessage": fiber.ErrNotFound.Message,
+	}, "partials/main"))
 
 	return app, nil
 }
