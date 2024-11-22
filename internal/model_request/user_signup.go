@@ -3,6 +3,8 @@ package model_request
 import (
 	"restapp/internal/model"
 	"time"
+
+	"github.com/gofiber/fiber/v3/log"
 )
 
 type UserSignUp struct {
@@ -15,10 +17,11 @@ type UserSignUp struct {
 }
 
 // Converts user sign up request to the User struct.
-func (req UserSignUp) User() (*model.User, error) {
+func (req UserSignUp) User() *model.User {
 	hash, err := model.HashPassword(req.Password)
 	if err != nil {
-		return nil, err
+		log.Error(err)
+		return nil
 	}
 	return &model.User{
 		Nick:      req.Nickname,
@@ -28,5 +31,5 @@ func (req UserSignUp) User() (*model.User, error) {
 		Password:  hash,
 		CreatedAt: time.Now(),
 		LastSeen:  time.Now(),
-	}, nil
+	}
 }

@@ -3,8 +3,6 @@ package internal
 import (
 	"restapp/internal/model"
 	"restapp/internal/model_request"
-
-	"github.com/gofiber/fiber/v3/log"
 )
 
 func (r Responder) GroupCreate() error {
@@ -14,9 +12,9 @@ func (r Responder) GroupCreate() error {
 		return r.RenderDanger(MessageErrInvalidRequest, id)
 	}
 
-	user, err := r.GetOwner()
-	if err != nil {
-		return r.RenderDanger(MessageErrUserNotFound, id)
+	user := r.User()
+	if user == nil {
+		return nil
 	}
 
 	if !model.IsValidGroupName(req.Name) {
@@ -51,20 +49,18 @@ func (r Responder) GroupDelete() error {
 		return r.RenderDanger(MessageErrInvalidRequest, id)
 	}
 
-	user, err := r.GetOwner()
-	if err != nil {
-		return r.RenderDanger(MessageErrUserNotFound, id)
+	user := r.User()
+	if user == nil {
+		return nil
 	}
 
-	member, _ := r.DB.GroupMember(req.Id, user.Id)
+	member := r.DB.GroupMember(req.GroupId, user.Id)
 	if !member.IsOwner {
 		return r.RenderDanger(MessageErrNoRights, id)
 	}
 
-	err = r.DB.GroupDelete(req.Id)
-	if err != nil {
-		log.Error(err)
-		return r.RenderDanger(MessageFatalCanNotDeleteGroup, id)
+	if !r.DB.GroupDelete(req.GroupId) {
+		return r.RenderDanger(MessageFatalDatabaseQuery, id)
 	}
 
 	r.HTMXRefresh()
@@ -78,13 +74,12 @@ func (r Responder) GroupLeave() error {
 		return r.RenderDanger(MessageErrInvalidRequest, id)
 	}
 
-	user, err := r.GetOwner()
-	if err != nil {
-		return r.RenderDanger(MessageErrUserNotFound, id)
+	user := r.User()
+	if user == nil {
+		return nil
 	}
 
-	member, _ := r.DB.GroupMember(req.Id, user.Id)
-	if member == nil {
+	if r.DB.GroupMember(req.GroupId, user.Id) == nil {
 		return r.RenderDanger(MessageErrNotGroupMember, id)
 	}
 

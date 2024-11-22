@@ -8,7 +8,7 @@ import (
 )
 
 // Initialize the view engine.
-func NewAppHtmlEngine() *html.Engine {
+func NewAppHtmlEngine(db *Database) *html.Engine {
 	engine := html.New("./web/templates", ".html")
 
 	if environment.Environment == environment.EnvironmentDevelopment {
@@ -42,6 +42,8 @@ func NewAppHtmlEngine() *html.Engine {
 		"hide": func(text string) string {
 			return strings.Repeat("*", len(text))
 		},
+		"memberOf":   db.UserGroupList,
+		"messagesOf": db.GroupMessageList,
 	})
 
 	return engine

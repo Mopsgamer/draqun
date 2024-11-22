@@ -27,17 +27,11 @@
         </header>
         <div id="content" class="bg-n200 flex flex-row h-full">
             <div id="center" class="flex flex-col h-full w-full">
+                {{if ne .Group nil}}
                 <main id="chat" class="p-2 h-full">
-                    <!-- messages going here -->
+                    {{messagesOf .Group.Id}}
                 </main>
-                <div class="flex w-full h-fit gap-1 p-2">
-                    <!-- input, smile menu, send button -->
-                    <sl-input id="chat-input" class="w-full"></sl-input>
-                    <!-- TODO: implement sending endpoint (POST) -->
-                    <sl-button hx-post="/">
-                        <sl-icon name="send" slot="prefix"></sl-icon>
-                    </sl-button>
-                </div>
+                {{end}}
             </div>
             <div id="right" class="bg-n100 flex h-full w-56 visible max-[420px]:hidden">
                 <!-- TODO: implement friends list -->

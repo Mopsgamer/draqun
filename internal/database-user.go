@@ -2,10 +2,12 @@ package internal
 
 import (
 	"restapp/internal/model"
+
+	"github.com/gofiber/fiber/v3/log"
 )
 
 // Create new DB record.
-func (db Database) UserCreate(user model.User) error {
+func (db Database) UserCreate(user model.User) bool {
 	query :=
 		`INSERT INTO app_users (
 			nickname,
@@ -28,11 +30,16 @@ func (db Database) UserCreate(user model.User) error {
 		user.CreatedAt,
 		user.LastSeen,
 	)
-	return err
+
+	if err != nil {
+		log.Error(err)
+		return false
+	}
+	return true
 }
 
 // Change the existing DB record.
-func (db Database) UserUpdate(user model.User) error {
+func (db Database) UserUpdate(user model.User) bool {
 	query :=
 		`UPDATE app_users
     	SET
@@ -57,100 +64,133 @@ func (db Database) UserUpdate(user model.User) error {
 		user.LastSeen,
 		user.Id,
 	)
-	return err
+
+	if err != nil {
+		log.Error(err)
+		return false
+	}
+	return true
 }
 
 // Delete the existing DB record.
-func (db Database) UserDelete(userId uint) error {
+func (db Database) UserDelete(userId uint) bool {
 	query := `DELETE FROM app_users WHERE id = ?`
 	_, err := db.Sql.Exec(query, userId)
-	return err
+
+	if err != nil {
+		log.Error(err)
+		return false
+	}
+	return true
 }
 
 // Get the user by his email.
-func (db Database) UserByEmail(email string) (*model.User, error) {
+func (db Database) UserByEmail(email string) *model.User {
 	user := new(model.User)
 	query := `SELECT * FROM app_users WHERE email = ?`
 	err := db.Sql.Get(user, query, email)
+
 	if err != nil {
-		user = nil
+		log.Error(err)
+		return nil
 	}
-	return user, err
+	return user
 }
 
 // Get the user by his identificator.
-func (db Database) UserById(userId uint) (*model.User, error) {
+func (db Database) UserById(userId uint) *model.User {
 	user := new(model.User)
 	query := `SELECT * FROM app_users WHERE id = ?`
 	err := db.Sql.Get(user, query, userId)
+
 	if err != nil {
-		user = nil
+		log.Error(err)
+		return nil
 	}
-	return user, err
+	return user
 }
 
 // Get the user by his username.
-func (db Database) UserByUsername(username string) (*model.User, error) {
+func (db Database) UserByUsername(username string) *model.User {
 	user := new(model.User)
 	query := `SELECT * FROM app_users WHERE username = ?`
 	err := db.Sql.Get(user, query, username)
-	if err != nil {
-		user = nil
-	}
 
-	return user, err
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
+	return user
 }
 
-func (db Database) UserRoles(userId uint) ([]model.Role, error) {
+func (db Database) UserRoleList(userId uint) []model.Role {
 	roleList := []model.Role{}
 	query := `SELECT * FROM app_group_roles WHERE user_id = ?`
 	err := db.Sql.Get(roleList, query, userId)
-	if err != nil {
-		roleList = nil
-	}
 
-	return roleList, err
+	if err != nil {
+		log.Error(err)
+		return roleList
+	}
+	return roleList
 }
 
-func (db Database) RoleRights(rightId uint) (*model.Rights, error) {
+func (db Database) RoleRights(rightId uint) *model.Rights {
 	roleList := new(model.Rights)
 	query := `SELECT * FROM app_group_role_rights WHERE id = ?`
 	err := db.Sql.Get(roleList, query, rightId)
-	if err != nil {
-		roleList = nil
-	}
 
-	return roleList, err
+	if err != nil {
+		log.Error(err)
+		return roleList
+	}
+	return roleList
 }
 
-func (db Database) UserRights(userId uint) (*model.Rights, error) {
-	roleList := new(model.Rights)
+func (db Database) UserRights(userId uint) *model.Rights {
+	rights := new(model.Rights)
 	// FIXME: user rights sql query
 	// since the user can have multiple roles,
 	// we should calculate it as a single right object.
 	query := `SELECT * FROM app_group_role_rights WHERE id = ?`
-	err := db.Sql.Get(roleList, query, userId)
-	if err != nil {
-		roleList = nil
-	}
+	err := db.Sql.Get(rights, query, userId)
 
-	return roleList, err
+	if err != nil {
+		log.Error(err)
+		return rights
+	}
+	return rights
 }
 
-func (db Database) UserOwnGroups(userId uint) ([]model.Group, error) {
+func (db Database) UserOwnGroupList(userId uint) []model.Group {
+	groupList := []model.Group{}
+	query := `SELECT * FROM app_group_members WHERE user_id = ? AND is_owner = 1
+	RIGHT JOIN app_groups ON app_groups.id = app_group_members.group_id
+	GROUP BY app_group_members.group_id`
+	err := db.Sql.Get(groupList, query, userId)
+
+	if err != nil {
+		log.Error(err)
+		return groupList
+	}
+	return groupList
+}
+
+func (db Database) UserGroupList(userId uint) []model.Group {
 	groupList := []model.Group{}
 	query := `SELECT * FROM app_group_members WHERE user_id = ?
 	RIGHT JOIN app_groups ON app_groups.id = app_group_members.group_id
-	GROUP BY app_group_members.group_id
-	`
+	GROUP BY app_group_members.group_id`
 	err := db.Sql.Get(groupList, query, userId)
+
 	if err != nil {
-		groupList = nil
+		log.Error(err)
+		return groupList
 	}
-	return groupList, err
+	return groupList
 }
 
-func (db Database) UserJoinGroup(newMember model.Member) error {
+func (db Database) UserJoinGroup(newMember model.Member) bool {
 	query :=
 		`INSERT INTO app_group_members (
 			group_id,
@@ -168,16 +208,25 @@ func (db Database) UserJoinGroup(newMember model.Member) error {
 		newMember.Nick,
 	)
 
-	return err
+	if err != nil {
+		log.Error(err)
+		return false
+	}
+	return true
 }
 
-func (db Database) UserLeaveGroup(userId, groupId uint) error {
+func (db Database) UserLeaveGroup(userId, groupId uint) bool {
 	query := `DELETE FROM app_group_members WHERE group_id = ? AND user_id = ?`
 	_, err := db.Sql.Exec(query, groupId, userId)
-	return err
+
+	if err != nil {
+		log.Error(err)
+		return false
+	}
+	return true
 }
 
-func (db Database) MessageCreate(message model.Message) error {
+func (db Database) MessageCreate(message model.Message) bool {
 	query :=
 		`INSERT INTO app_group_messages (
 			id,
@@ -195,5 +244,9 @@ func (db Database) MessageCreate(message model.Message) error {
 		message.CreatedAt,
 	)
 
-	return err
+	if err != nil {
+		log.Error(err)
+		return false
+	}
+	return true
 }

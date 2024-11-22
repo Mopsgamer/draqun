@@ -21,7 +21,7 @@ func NewApp() (*fiber.App, error) {
 	}
 
 	app := fiber.New(fiber.Config{
-		Views:             NewAppHtmlEngine(),
+		Views:             NewAppHtmlEngine(db),
 		PassLocalsToViews: true,
 	})
 

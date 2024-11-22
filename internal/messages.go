@@ -1,19 +1,19 @@
 package internal
 
 const (
-	MessageDetailGroupNick                  = MessageDetailUserNick
-	MessageDetailGroupName                  = MessageDetailUserName
-	MessageDetailGroupPassword              = MessageDetailUserPassword
-	MessageDetailGroupDescription           = "Must be between 0 and 500 characters long and can contain any characters."
-	MessageFatalCanNotCreateMessage         = "Unable to create the message."
-	MessageFatalTokenGeneration             = "Unable to create the token."
-	MessageFatalCanNotSignUp                = "Unable to sign up."
-	MessageFatalCanNotDeleteGroup           = "Unuble to delete the group"
-	MessageDetailUserName                   = "Must contain only letters (A-Z, a-z), numbers (0-9), and these special characters: . _ . No spaces. Must be at least 1 characters long and no more than 255 characters."
-	MessageDetailUserPassword               = "Must contain only letters (A-Z, a-z), numbers (0-9), spaces, or these special characters: , . ~ - + % $ ^ & * _ ! ? ( ) [ ] { } `. Must be at least 8 characters long and no more than 255 characters."
-	MessageDetailUserNick                   = "Must be between 1 and 255 characters long and can contain any characters."
-	MessageDetailUserEmail                  = "Must be a valid email."
-	MessageDetailUSerPhone                  = "Must be a valid phone number."
+	MessageFatalDatabaseQuery   = "Fatal database error."
+	MessageFatalTokenGeneration = "Fatal token generation."
+
+	MessageDetailGroupNick        = MessageDetailUserNick
+	MessageDetailGroupName        = MessageDetailUserName
+	MessageDetailGroupPassword    = MessageDetailUserPassword
+	MessageDetailGroupDescription = "Must be between 0 and 500 characters long and can contain any characters."
+	MessageDetailUserName         = "Must contain only letters (A-Z, a-z), numbers (0-9), and these special characters: . _ . No spaces. Must be at least 1 characters long and no more than 255 characters."
+	MessageDetailUserPassword     = "Must contain only letters (A-Z, a-z), numbers (0-9), spaces, or these special characters: , . ~ - + % $ ^ & * _ ! ? ( ) [ ] { } `. Must be at least 8 characters long and no more than 255 characters."
+	MessageDetailUserNick         = "Must be between 1 and 255 characters long and can contain any characters."
+	MessageDetailUserEmail        = "Must be a valid email."
+	MessageDetailUSerPhone        = "Must be a valid phone number."
+
 	MessageErrNoRights                      = "You do not have the necessary rights or permissions to perform this action."
 	MessageErrGroupName                     = "Invalid group name pattern. " + MessageDetailGroupName
 	MessageErrGroupNick                     = "Invalid nick name pattern. " + MessageDetailGroupNick
@@ -40,12 +40,13 @@ const (
 	MessageErrUserExistsEmail               = "This email is taken."
 	MessageErrUserExistsPhone               = "This phone number is taken."
 	MessageErrCanNotDeleteGroupOwnerAccount = "The user cannot be deleted because the user is the owner of a group or set of groups."
-	MessageSuccChangedProfile               = "Successfully changed the user profile."
-	MessageSuccChangedPass                  = "Successfully changed the user password."
-	MessageSuccChangedEmail                 = "Successfully changed the user email."
-	MessageSuccChangedPhone                 = "Successfully changed the user phone."
-	MessageSuccDeletedUser                  = "Successfully deleted the user."
-	MessageSuccLeavedGroup                  = "Successfully leaved from the group."
-	MessageSuccCreatedGroup                 = "Successfully created the group."
-	MessageSuccLogin                        = "Successfully logged in! Redirecting..."
+
+	MessageSuccChangedProfile = "Successfully changed the user profile."
+	MessageSuccChangedPass    = "Successfully changed the user password."
+	MessageSuccChangedEmail   = "Successfully changed the user email."
+	MessageSuccChangedPhone   = "Successfully changed the user phone."
+	MessageSuccDeletedUser    = "Successfully deleted the user."
+	MessageSuccLeavedGroup    = "Successfully leaved from the group."
+	MessageSuccCreatedGroup   = "Successfully created the group."
+	MessageSuccLogin          = "Successfully logged in! Redirecting..."
 )

@@ -4,6 +4,8 @@ import (
 	"restapp/internal/model"
 	"restapp/internal/model_request"
 	"strconv"
+
+	"github.com/gofiber/fiber/v3"
 )
 
 func (r Responder) MessageCreate() error {
@@ -13,13 +15,13 @@ func (r Responder) MessageCreate() error {
 		return r.RenderDanger(MessageErrInvalidRequest, id)
 	}
 
-	user, err := r.GetOwner()
-	if err != nil {
-		return r.RenderDanger(MessageErrUserNotFound, id)
+	user := r.User()
+	if user == nil {
+		return nil
 	}
 
 	message := req.Message(user.Id)
-	if _, err := r.DB.GroupMember(message.GroupId, message.AuthorId); err != nil {
+	if r.DB.GroupMember(message.GroupId, message.AuthorId) == nil {
 		return r.RenderDanger(MessageErrNotGroupMember, id)
 	}
 
@@ -27,9 +29,9 @@ func (r Responder) MessageCreate() error {
 		return r.RenderWarning(MessageErrMessageContent+" Length: "+strconv.Itoa(len(message.Content))+"/"+strconv.Itoa(model.MessageContentMaxLength), id)
 	}
 
-	err = r.DB.MessageCreate(*message)
-	if err != nil {
-		return r.RenderDanger(MessageFatalCanNotCreateMessage, id)
+	if !r.DB.MessageCreate(*message) {
+		return r.RenderDanger(MessageFatalDatabaseQuery, id)
 	}
-	return nil
+
+	return r.SendStatus(fiber.StatusOK)
 }

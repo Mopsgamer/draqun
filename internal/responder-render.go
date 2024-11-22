@@ -2,14 +2,15 @@ package internal
 
 import (
 	"restapp/internal/model"
-	"time"
+	"restapp/internal/model_request"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/log"
 )
 
 // Render a page using a template.
 func (r Responder) RenderPage(guestRedirect string, templatePath string, bind fiber.Map, layouts ...string) error {
-	user, _ := r.GetOwner()
+	user := r.User()
 	if guestRedirect != "" && user == nil {
 		return r.Redirect().To(guestRedirect)
 	}
@@ -17,21 +18,22 @@ func (r Responder) RenderPage(guestRedirect string, templatePath string, bind fi
 }
 
 func (r *Responder) PageMap(bind fiber.Map) fiber.Map {
-	user, errToken := r.GetOwner()
-	if errToken != nil {
-		r.Cookie(&fiber.Cookie{
-			Name:    "Authorization",
-			Value:   "",
-			Expires: time.Now(),
-		})
-	}
+	user := r.User()
 	result := fiber.Map{}
-	if errToken != nil {
+	if user != nil {
+		result["User"] = user
+	} else {
 		result["TokenError"] = true
 		result["Message"] = "Authorization error"
 		result["Id"] = "local-token-error"
-	} else {
-		result["User"] = user
+	}
+
+	groupUri := new(model_request.GroupUri)
+	if err := r.Bind().URI(groupUri); err != nil {
+		log.Error(err)
+	} else if groupUri.GroupId != nil {
+		group := r.DB.GroupById(*groupUri.GroupId)
+		result["Group"] = group
 	}
 
 	for k, v := range bind {
@@ -62,7 +64,7 @@ type HTMXPartialQuery struct {
 func (r Responder) RenderTemplate() error {
 	q := new(HTMXPartialQuery)
 	err := r.Bind().Query(q)
-	r.GetOwner()
+	r.User()
 	if err != nil {
 		return err
 	}

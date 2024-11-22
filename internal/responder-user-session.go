@@ -1,9 +1,6 @@
 package internal
 
 import (
-	"errors"
-	"fmt"
-	"restapp/internal/environment"
 	"restapp/internal/model"
 	"restapp/internal/model_request"
 	"strings"
@@ -11,7 +8,6 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 // Uses the form request information.
@@ -31,7 +27,7 @@ func (r Responder) UserSignUp() error {
 		return r.RenderWarning(MessageErrUserName, id)
 	}
 
-	if user, _ := r.DB.UserByUsername(req.Username); user != nil {
+	if r.DB.UserByUsername(req.Username) != nil {
 		return r.RenderWarning(MessageErrUserExistsUsername, id)
 	}
 
@@ -43,7 +39,7 @@ func (r Responder) UserSignUp() error {
 		return r.RenderWarning(MessageErrEmail, id)
 	}
 
-	if user, _ := r.DB.UserByEmail(req.Email); user != nil {
+	if r.DB.UserByEmail(req.Email) != nil {
 		return r.RenderWarning(MessageErrUserExistsEmail, id)
 	}
 
@@ -58,14 +54,13 @@ func (r Responder) UserSignUp() error {
 		return r.RenderWarning(MessageErrBadConfirmPassword, id)
 	}
 
-	user, err := req.User()
-	if err != nil {
-		return r.RenderWarning(MessageFatalCanNotSignUp, id)
+	user := req.User()
+	if user == nil {
+		return nil
 	}
 
-	err = r.DB.UserCreate(*user)
-	if err != nil {
-		return err
+	if !r.DB.UserCreate(*user) {
+		return r.RenderWarning(MessageFatalDatabaseQuery, id)
 	}
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
@@ -89,8 +84,8 @@ func (r Responder) UserLogin() error {
 		return r.RenderWarning(MessageErrEmail, id)
 	}
 
-	user, err := r.DB.UserByEmail(req.Email)
-	if err != nil {
+	user := r.DB.UserByEmail(req.Email)
+	if user == nil {
 		return r.RenderWarning(MessageErrUserNotFound, id)
 	}
 
@@ -123,9 +118,9 @@ func (r Responder) UserChangeName() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
-	user, err := r.GetOwner()
-	if err != nil {
-		return r.RenderWarning(MessageErrUserNotFound, id)
+	user := r.User()
+	if user == nil {
+		return nil
 	}
 
 	if req.NewNickname == user.Nick && req.NewUsername == user.Name {
@@ -140,16 +135,15 @@ func (r Responder) UserChangeName() error {
 		return r.RenderWarning(MessageErrUserName, id)
 	}
 
-	if user, _ := r.DB.UserByUsername(req.NewUsername); user != nil {
+	if r.DB.UserByUsername(req.NewUsername) != nil {
 		return r.RenderWarning(MessageErrUserExistsUsername, id)
 	}
 
 	user.Nick = req.NewNickname
 	user.Name = req.NewUsername
 
-	err = r.DB.UserUpdate(*user)
-	if err != nil {
-		return err
+	if !r.DB.UserUpdate(*user) {
+		return r.RenderDanger(MessageFatalDatabaseQuery, id)
 	}
 
 	r.HTMXRefresh()
@@ -165,9 +159,9 @@ func (r Responder) UserChangeEmail() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
-	user, err := r.GetOwner()
-	if err != nil {
-		return r.RenderWarning(MessageErrUserNotFound, id)
+	user := r.User()
+	if user == nil {
+		return nil
 	}
 
 	if req.NewEmail == user.Email {
@@ -178,7 +172,7 @@ func (r Responder) UserChangeEmail() error {
 		return r.RenderWarning(MessageErrEmail, id)
 	}
 
-	if user, _ := r.DB.UserByEmail(req.NewEmail); user != nil {
+	if r.DB.UserByEmail(req.NewEmail) != nil {
 		return r.RenderWarning(MessageErrUserExistsEmail, id)
 	}
 
@@ -192,9 +186,8 @@ func (r Responder) UserChangeEmail() error {
 
 	user.Email = req.NewEmail
 
-	err = r.DB.UserUpdate(*user)
-	if err != nil {
-		return err
+	if !r.DB.UserUpdate(*user) {
+		return r.RenderDanger(MessageFatalDatabaseQuery, id)
 	}
 
 	r.HTMXRefresh()
@@ -210,9 +203,9 @@ func (r Responder) UserChangePhone() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
-	user, err := r.GetOwner()
-	if err != nil {
-		return r.RenderWarning(MessageErrUserNotFound, id)
+	user := r.User()
+	if user == nil {
+		return nil
 	}
 
 	if req.NewPhone == user.Phone {
@@ -230,9 +223,8 @@ func (r Responder) UserChangePhone() error {
 
 	user.Phone = req.NewPhone
 
-	err = r.DB.UserUpdate(*user)
-	if err != nil {
-		return err
+	if !r.DB.UserUpdate(*user) {
+		return r.RenderDanger(MessageFatalDatabaseQuery, id)
 	}
 
 	r.HTMXRefresh()
@@ -248,9 +240,9 @@ func (r Responder) UserChangePassword() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
-	user, err := r.GetOwner()
-	if err != nil {
-		return r.RenderWarning(MessageErrUserNotFound, id)
+	user := r.User()
+	if user == nil {
+		return nil
 	}
 
 	if req.NewPassword == user.Password {
@@ -271,9 +263,8 @@ func (r Responder) UserChangePassword() error {
 
 	user.Password = req.NewPassword
 
-	err = r.DB.UserUpdate(*user)
-	if err != nil {
-		return err
+	if !r.DB.UserUpdate(*user) {
+		return r.RenderDanger(MessageFatalDatabaseQuery, id)
 	}
 
 	r.HTMXRefresh()
@@ -289,9 +280,9 @@ func (r Responder) UserDelete() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
-	user, err := r.GetOwner()
-	if err != nil {
-		return r.RenderWarning(MessageErrUserNotFound, id)
+	user := r.User()
+	if user == nil {
+		return nil
 	}
 
 	if user.Nick != req.ConfirmUsername {
@@ -303,7 +294,7 @@ func (r Responder) UserDelete() error {
 		return r.RenderWarning(MessageErrBadPassword, id)
 	}
 
-	userOwnGroups, _ := r.DB.UserOwnGroups(user.Id)
+	userOwnGroups := r.DB.UserOwnGroupList(user.Id)
 	if len(userOwnGroups) > 0 {
 		list := []string{}
 		for groupIndex, group := range userOwnGroups {
@@ -312,9 +303,8 @@ func (r Responder) UserDelete() error {
 		return r.RenderDanger(MessageErrCanNotDeleteGroupOwnerAccount+" Groups: "+strings.Join(list, ", ")+".", id)
 	}
 
-	err = r.DB.UserDelete(user.Id)
-	if err != nil {
-		return err
+	if !r.DB.UserDelete(user.Id) {
+		return r.RenderDanger(MessageFatalDatabaseQuery, id)
 	}
 
 	r.Cookie(&fiber.Cookie{
@@ -341,53 +331,4 @@ func (r Responder) GiveToken(errorElementId string, user model.User) error {
 		Expires: time.Now().Add(model.UserTokenExpiration),
 	})
 	return r.RenderSuccess(MessageSuccLogin, errorElementId)
-}
-
-// Get the owner of the request using the "Authorization" header.
-// Returns (nil, nil), if the header is empty.
-func (r Responder) GetOwner() (*model.User, error) {
-	authHeader := r.Cookies("Authorization")
-	if authHeader == "" {
-		return nil, nil
-	}
-
-	if len(authHeader) < 8 || authHeader[:7] != "Bearer " {
-		err := errors.New("invalid authorization format. Expected Authorization header: Bearer and the token string")
-		log.Error(err)
-		return nil, err
-	}
-
-	tokenString := authHeader[7:]
-
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			return nil, err
-		}
-
-		tokenBytes := []byte(environment.JWTKey)
-		return tokenBytes, nil
-	})
-
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-
-	if !token.Valid {
-		err = errors.New("invalid token")
-		log.Error(err)
-		return nil, err
-	}
-
-	const prop = "Email"
-	claims := token.Claims.(jwt.MapClaims)
-	email, ok := claims[prop].(string)
-	if !ok {
-		err = fmt.Errorf("can not get claim property '"+prop+"'. Claims: %v", claims)
-		return nil, err
-	}
-
-	user, err := r.DB.UserByEmail(email)
-	return user, err
 }
