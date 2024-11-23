@@ -61,7 +61,7 @@ func NewApp() (*fiber.App, error) {
 	app.Get("/", UsePage("index", &fiber.Map{"Title": "Discover"}, func(r Responder, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/settings", UsePage("settings", &fiber.Map{"Title": "Settings"},
 		func(r Responder, bind *fiber.Map) string {
-			if r.User() == nil {
+			if user, _ := r.User(); user == nil {
 				return "/"
 			}
 			return ""

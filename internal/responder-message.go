@@ -15,7 +15,7 @@ func (r Responder) MessageCreate() error {
 		return r.RenderDanger(MessageErrInvalidRequest, id)
 	}
 
-	user := r.User()
+	user, _ := r.User()
 	if user == nil {
 		return nil
 	}

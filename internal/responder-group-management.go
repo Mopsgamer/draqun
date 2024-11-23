@@ -12,7 +12,7 @@ func (r Responder) GroupCreate() error {
 		return r.RenderDanger(MessageErrInvalidRequest, id)
 	}
 
-	user := r.User()
+	user, _ := r.User()
 	if user == nil {
 		return nil
 	}
@@ -71,7 +71,7 @@ func (r Responder) GroupDelete() error {
 		return r.RenderDanger(MessageErrInvalidRequest, id)
 	}
 
-	user := r.User()
+	user, _ := r.User()
 	if user == nil {
 		return nil
 	}
@@ -96,7 +96,7 @@ func (r Responder) GroupLeave() error {
 		return r.RenderDanger(MessageErrInvalidRequest, id)
 	}
 
-	user := r.User()
+	user, _ := r.User()
 	if user == nil {
 		return nil
 	}

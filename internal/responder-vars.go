@@ -12,17 +12,17 @@ import (
 )
 
 // Get the owner of the request using the "Authorization" header.
-func (r Responder) User() (user *model.User) {
+func (r Responder) User() (user *model.User, tokenErr error) {
 	authHeader := r.Cookies("Authorization")
 	if authHeader == "" {
-		return nil
+		return nil, nil
 	}
 
 	if len(authHeader) < 8 || authHeader[:7] != "Bearer " {
 		err := errors.New("invalid authorization format. Expected Authorization header: Bearer and the token string")
 		log.Error(err)
 		r.UserLogout()
-		return nil
+		return nil, err
 	}
 
 	tokenString := authHeader[7:]
@@ -40,14 +40,14 @@ func (r Responder) User() (user *model.User) {
 	if err != nil {
 		log.Error(err)
 		r.UserLogout()
-		return nil
+		return nil, err
 	}
 
 	if !token.Valid {
 		err = errors.New("invalid token")
 		log.Error(err)
 		r.UserLogout()
-		return nil
+		return nil, err
 	}
 
 	const prop = "Email"
@@ -57,10 +57,10 @@ func (r Responder) User() (user *model.User) {
 		err = fmt.Errorf("can not get claim property '"+prop+"'. Claims: %v", claims)
 		log.Error(err)
 		r.UserLogout()
-		return nil
+		return nil, err
 	}
 
-	return r.DB.UserByEmail(email)
+	return r.DB.UserByEmail(email), nil
 }
 
 func (r Responder) Group() *model.Group {

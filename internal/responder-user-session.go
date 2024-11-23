@@ -118,7 +118,7 @@ func (r Responder) UserChangeName() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
-	user := r.User()
+	user, _ := r.User()
 	if user == nil {
 		return nil
 	}
@@ -159,7 +159,7 @@ func (r Responder) UserChangeEmail() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
-	user := r.User()
+	user, _ := r.User()
 	if user == nil {
 		return nil
 	}
@@ -203,7 +203,7 @@ func (r Responder) UserChangePhone() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
-	user := r.User()
+	user, _ := r.User()
 	if user == nil {
 		return nil
 	}
@@ -240,7 +240,7 @@ func (r Responder) UserChangePassword() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
-	user := r.User()
+	user, _ := r.User()
 	if user == nil {
 		return nil
 	}
@@ -280,7 +280,7 @@ func (r Responder) UserDelete() error {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
 
-	user := r.User()
+	user, _ := r.User()
 	if user == nil {
 		return nil
 	}

@@ -24,9 +24,9 @@ func (r Responder) RenderPage(templatePath string, bind *fiber.Map, redirect Red
 
 func (r *Responder) PageMap(bind *fiber.Map) fiber.Map {
 	result := fiber.Map{}
-	if user := r.User(); user != nil {
+	if user, tokenErr := r.User(); user != nil {
 		result["User"] = user
-	} else {
+	} else if tokenErr != nil {
 		result["TokenError"] = true
 		result["Message"] = "Authorization error"
 		result["Id"] = "local-token-error"
