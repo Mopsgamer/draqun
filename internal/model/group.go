@@ -21,8 +21,8 @@ type Group struct {
 	// See: GroupModeDm, GroupModePrivate, GroupModePublic.
 	Mode string `db:"groupmode"`
 	// Optional hashed password string.
+	Description string    `db:"description"`
 	Password    *string   `db:"password"`
-	Description *string   `db:"description"`
 	Avatar      string    `db:"avatar"`
 	CreatedAt   time.Time `db:"created_at"`
 }

@@ -11,11 +11,11 @@
         <sl-input label="Password" password-toggle type="password" autocomplete="new-password" id="new-group-password"
             name="password"></sl-input>
         <sl-textarea label="Description" id="new-group-description" name="description"></sl-textarea>
-        <sl-select label="Mode" id="new-group-mode" name="mode" value="public">
+        <sl-select label="Mode" id="new-group-mode" name="mode" value="public" required>
             <sl-option value="private">Private</sl-option>
             <sl-option value="public">Public</sl-option>
         </sl-select>
-        <sl-input disabled label="Avatar URL" id="avatar" name="avatar"></sl-input>
+        <sl-input disabled label="Avatar URL" id="avatar" name="avatar" required></sl-input>
         <sl-alert id="new-group-error" variant="warning"></sl-alert>
     </form>
     <div slot="footer" class="dialog-footer">

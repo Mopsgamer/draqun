@@ -14,16 +14,18 @@ func (db Database) GroupCreate(group model.Group) *uint64 {
 			nickname,
 			groupname,
 			groupmode,
+			description,
 			password,
 			avatar,
 			created_at
 		)
-		VALUES (?, ?, ?, ?, ?, ?, ?)`
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 	_, err := db.Sql.Exec(query,
 		group.CreatorId,
 		group.Nick,
 		group.Name,
 		group.Mode,
+		group.Description,
 		group.Password,
 		group.Avatar,
 		group.CreatedAt,
@@ -47,6 +49,7 @@ func (db Database) GroupUpdate(group model.Group) bool {
 		nickname = ?,
 		groupname = ?,
 		groupmode = ?,
+		description = ?,
 		password = ?,
 		avatar = ?,
 		created_at = ?
@@ -56,6 +59,8 @@ func (db Database) GroupUpdate(group model.Group) bool {
 		group.CreatorId,
 		group.Nick,
 		group.Name,
+		group.Mode,
+		group.Description,
 		group.Password,
 		group.Avatar,
 		group.CreatedAt,
@@ -159,7 +164,7 @@ func (db Database) GroupMemberCreate(member model.Member) *uint64 {
 			user_id,
 			is_owner,
 			is_banned,
-			membername
+			membernick
 		)
 		VALUES (?, ?, ?, ?, ?)`
 	_, err := db.Sql.Exec(query,

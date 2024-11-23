@@ -25,12 +25,13 @@ func (g GroupCreate) Group(creatorId uint64) *model.Group {
 		password = &g.Password
 	}
 	return &model.Group{
-		CreatorId: creatorId,
-		Nick:      g.Nick,
-		Name:      g.Name,
-		Mode:      g.Mode,
-		Password:  password,
-		Avatar:    g.Avatar,
-		CreatedAt: time.Now(),
+		CreatorId:   creatorId,
+		Nick:        g.Nick,
+		Name:        g.Name,
+		Mode:        g.Mode,
+		Description: g.Description,
+		Password:    password,
+		Avatar:      g.Avatar,
+		CreatedAt:   time.Now(),
 	}
 }

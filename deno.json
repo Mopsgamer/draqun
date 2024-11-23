@@ -1,7 +1,8 @@
 {
     "nodeModulesDir": "auto",
     "tasks": {
-        "init": "deno run --allow-env --allow-net --allow-read --allow-write scripts/init.ts && deno task build",
+        "init": "deno run --allow-env --allow-net --allow-read --allow-write scripts/init.ts",
+        "init:build": "deno task init && deno task build",
         "serve": "go run .",
         "serve:build": "deno task serve --build",
         "serve:watch": "deno task serve --watch",

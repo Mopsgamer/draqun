@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS app_group_members (
     user_id BIGINT UNSIGNED NOT NULL COMMENT 'User id',
     is_owner BIT NOT NULL,
     is_banned BIT NOT NULL,
-    membername VARCHAR(255),
+    membernick VARCHAR(255),
     PRIMARY KEY (group_id, user_id),
     FOREIGN KEY (group_id) REFERENCES app_groups (id),
     FOREIGN KEY (user_id) REFERENCES app_users (id)

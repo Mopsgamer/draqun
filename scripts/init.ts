@@ -131,7 +131,7 @@ try {
     logInitDb.fatal(error);
     logInitDb.warn(
         "If the initialization fails because of references,\n" +
-            "we are supposed to CHANGE THE ORDER: './scripts/init.ts'."
+            "we are supposed to CHANGE THE ORDER: './scripts/init.ts'.",
     );
     Deno.exit(1);
 }

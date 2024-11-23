@@ -205,7 +205,7 @@ func (db Database) UserJoinGroup(newMember model.Member) bool {
 			user_id,
 			is_owner,
 			is_banned,
-			membername
+			membernick
 		)
     	VALUES (?, ?, ?, ?, ?)`
 	_, err := db.Sql.Exec(query,

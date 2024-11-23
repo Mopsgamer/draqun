@@ -18,9 +18,7 @@ htmx.defineExtension("shoelace", {
         const form = evt.detail.elt as HTMLFormElement;
 
         const slElementList = Array.from(
-            form.querySelectorAll(
-                "sl-radio-group, sl-rating, sl-input, sl-select",
-            ),
+            form.querySelectorAll("[name]"),
         ) as Array<(SlRadioGroup | SlRating | SlInput) & HTMLFormElement>;
 
         for (const slElement of slElementList) {
