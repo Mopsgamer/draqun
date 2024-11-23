@@ -1,7 +1,7 @@
 {
     "nodeModulesDir": "auto",
     "tasks": {
-        "init": "deno run --allow-env --allow-net=127.0.0.1,127.0.0.53 --allow-read --allow-write scripts/init.ts && deno task build",
+        "init": "deno run --allow-env --allow-net --allow-read --allow-write scripts/init.ts && deno task build",
         "serve": "go run .",
         "serve:build": "deno task serve --build",
         "serve:watch": "deno task serve --watch",
@@ -19,7 +19,7 @@
         "esbuild-plugin-copy": "npm:esbuild-plugin-copy@^2.1.1",
         "esbuild-plugin-tailwindcss": "npm:esbuild-plugin-tailwindcss@^1.2.1",
         "htmx.org": "npm:htmx.org@^1.9.12",
-        "mysql": "npm:mysql@^2.18.1",
+        "mysql2": "npm:mysql2@^3.11.4",
         "tailwindcss": "npm:tailwindcss@^3.4.14"
     },
     "fmt": {

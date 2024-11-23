@@ -34,7 +34,9 @@ func NewApp() (*fiber.App, error) {
 			for k, v := range *bind {
 				bindx[k] = v
 			}
-			bindx["Title"] = (*bind)["Title"]
+			if title, ok := (*bind)["Title"].(string); ok {
+				bindx["Title"] = "Restapp - " + title
+			}
 		}
 		return UseResponder(func(r Responder) error {
 			return r.RenderPage(

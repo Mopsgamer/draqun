@@ -1,9 +1,10 @@
 import dotenv from "dotenv";
 // @deno-types="npm:@types/mysql"
-import mysql from "mysql";
+import mysql from "mysql2";
 import { existsSync } from "@std/fs";
 import { logInitDb, logInitFiles } from "./tool.ts";
 import { promisify } from "node:util";
+import { parse } from "node:path";
 
 enum envKeys {
     ENVIRONMENT = "ENVIRONMENT",
@@ -16,15 +17,18 @@ enum envKeys {
 }
 
 async function initMysqlTables(): Promise<void> {
-    logInitDb.info("We want to create tables.");
     const sqlFileList = [
         "./scripts/queries/create_users.sql",
         "./scripts/queries/create_groups.sql",
-        "./scripts/queries/create_group_roles.sql",
         "./scripts/queries/create_group_members.sql",
         "./scripts/queries/create_group_role_rights.sql",
+        "./scripts/queries/create_group_roles.sql",
         "./scripts/queries/create_group_messages.sql",
     ];
+    logInitDb.info(
+        "We want to create tables:\n%s",
+        sqlFileList.map((p) => parse(p).base).join("\n -> "),
+    );
     const connection = mysql.createConnection({
         password: Deno.env.get(envKeys.DB_PASSWORD),
         database: Deno.env.get(envKeys.DB_NAME),
@@ -40,7 +44,7 @@ async function initMysqlTables(): Promise<void> {
 
     await connect();
     logInitDb.success("Connected to the database using .env confifuration.");
-    logInitDb.info(
+    logInitDb.warn(
         "If you are trying to reinitialize the database, this will not change existing tables. Delete or change them manually.",
     );
     for (const sqlFile of sqlFileList) {
@@ -125,5 +129,9 @@ try {
     await initMysqlTables();
 } catch (error) {
     logInitDb.fatal(error);
+    logInitDb.warn(
+        "If the initialization fails because of references,\n" +
+            "we are supposed to CHANGE THE ORDER: './scripts/init.ts'."
+    );
     Deno.exit(1);
 }
