@@ -59,7 +59,7 @@ func (r Responder) UserSignUp() error {
 		return nil
 	}
 
-	if !r.DB.UserCreate(*user) {
+	if r.DB.UserCreate(*user) == nil {
 		return r.RenderWarning(MessageFatalDatabaseQuery, id)
 	}
 

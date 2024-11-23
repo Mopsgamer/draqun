@@ -7,7 +7,7 @@ import (
 )
 
 // Create new DB record.
-func (db Database) GroupCreate(group model.Group) bool {
+func (db Database) GroupCreate(group model.Group) *uint64 {
 	query :=
 		`INSERT INTO app_groups (
 			creator_id,
@@ -31,9 +31,11 @@ func (db Database) GroupCreate(group model.Group) bool {
 
 	if err != nil {
 		log.Error(err)
-		return false
+		return nil
 	}
-	return true
+
+	newId := &db.Context().LastInsertId
+	return newId
 }
 
 // Change the existing DB record.
@@ -68,7 +70,7 @@ func (db Database) GroupUpdate(group model.Group) bool {
 }
 
 // Delete the existing DB record and memberships.
-func (db Database) GroupDelete(groupId uint) bool {
+func (db Database) GroupDelete(groupId uint64) bool {
 	query := `DELETE FROM app_groups WHERE id = ?`
 	_, err := db.Sql.Exec(query, groupId)
 	if err != nil {
@@ -89,7 +91,7 @@ func (db Database) GroupDelete(groupId uint) bool {
 }
 
 // Get the group by her identificator.
-func (db Database) GroupById(groupId uint) *model.Group {
+func (db Database) GroupById(groupId uint64) *model.Group {
 	group := new(model.Group)
 	query := `SELECT * FROM app_groups WHERE id = ?`
 	err := db.Sql.Get(group, query, groupId)
@@ -114,31 +116,31 @@ func (db Database) GroupByGroupname(groupname string) *model.Group {
 	return group
 }
 
-func (db Database) GroupMemberList(groupId uint) []model.Member {
-	memberList := []model.Member{}
+func (db Database) GroupMemberList(groupId uint64) []model.Member {
+	memberList := &[]model.Member{}
 	query := `SELECT * FROM app_group_members WHERE group_id = ?`
-	err := db.Sql.Get(memberList, query, groupId)
+	err := db.Sql.Select(memberList, query, groupId)
 
 	if err != nil {
 		log.Error(err)
-		return memberList
+		return *memberList
 	}
-	return memberList
+	return *memberList
 }
 
-func (db Database) GroupMessageList(groupId uint) []model.Message {
-	messageList := []model.Message{}
+func (db Database) GroupMessageList(groupId uint64) []model.Message {
+	messageList := &[]model.Message{}
 	query := `SELECT * FROM app_group_messages WHERE group_id = ?`
-	err := db.Sql.Get(messageList, query, groupId)
+	err := db.Sql.Select(messageList, query, groupId)
 
 	if err != nil {
 		log.Error(err)
-		return messageList
+		return *messageList
 	}
-	return messageList
+	return *messageList
 }
 
-func (db Database) GroupMember(groupId, userId uint) *model.Member {
+func (db Database) GroupMemberById(groupId, userId uint64) *model.Member {
 	member := new(model.Member)
 	query := `SELECT * FROM app_group_members WHERE user_id = ?`
 	err := db.Sql.Get(member, query, userId)
@@ -148,4 +150,31 @@ func (db Database) GroupMember(groupId, userId uint) *model.Member {
 		return nil
 	}
 	return member
+}
+
+func (db Database) GroupMemberCreate(member model.Member) *uint64 {
+	query :=
+		`INSERT INTO app_group_members (
+			group_id,
+			user_id,
+			is_owner,
+			is_banned,
+			membername
+		)
+		VALUES (?, ?, ?, ?, ?)`
+	_, err := db.Sql.Exec(query,
+		member.GroupId,
+		member.UserId,
+		member.IsOwner,
+		member.IsBanned,
+		member.Nick,
+	)
+
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
+
+	newId := &db.Context().LastInsertId
+	return newId
 }

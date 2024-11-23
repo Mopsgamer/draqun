@@ -33,3 +33,20 @@ func InitDB() (*Database, error) {
 	log.Info("Database connected successfully. Hope she is set up manually or by 'deno task init'.")
 	return &Database{Sql: connection}, nil
 }
+
+type DatabaseContext struct {
+	// Not each id is uint64 (BIGINT) so you should convert it to uint32 (MEDIUMINT).
+	LastInsertId uint64 `db:"new_id"`
+}
+
+func (db Database) Context() *DatabaseContext {
+	context := new(DatabaseContext)
+	err := db.Sql.Get(context, `SELECT LAST_INSERT_ID() AS new_id`)
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
+
+	log.Info("Database context query result: ", context)
+	return context
+}

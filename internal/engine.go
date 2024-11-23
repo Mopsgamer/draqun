@@ -2,8 +2,11 @@ package internal
 
 import (
 	"restapp/internal/environment"
+	"restapp/internal/model"
+	"slices"
 	"strings"
 
+	"github.com/gofiber/fiber/v3/log"
 	"github.com/gofiber/template/html/v2"
 )
 
@@ -16,6 +19,7 @@ func NewAppHtmlEngine(db *Database) *html.Engine {
 	}
 
 	engine.AddFuncMap(map[string]interface{}{
+		"paginateGroups": paginate[model.Group],
 		"hideEmail": func(text string) string {
 			splits := strings.Split(text, "@")
 			if len(splits) != 2 {
@@ -43,8 +47,19 @@ func NewAppHtmlEngine(db *Database) *html.Engine {
 			return strings.Repeat("*", len(text))
 		},
 		"memberOf":   db.UserGroupList,
+		"membersOf":  db.GroupMemberList,
 		"messagesOf": db.GroupMessageList,
 	})
 
 	return engine
+}
+
+func paginate[T any](slice []T, n int) [][]T {
+	result := [][]T{}
+	for v := range slices.Chunk(slice, n) {
+		result = append(result, v)
+	}
+
+	log.Info(result)
+	return result
 }

@@ -1,0 +1,10 @@
+<sl-card id="my-group-{{.Id}}" data-id="{{.Id}}" class="group-card interactive" onclick="location.href='/chat/groups/{{.Id}}'">
+    <h2 class="aligned justify-between" slot="header">
+        <sl-avatar
+            shape="rounded"
+        >
+        </sl-avatar>
+        {{.Nick}}
+    </h2>
+    {{with .Description}}{{.}}{{end}}
+</sl-card>

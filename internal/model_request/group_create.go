@@ -11,15 +11,15 @@ const (
 )
 
 type GroupCreate struct {
-	Name        string `form:"new-group-groupname"`
-	Nick        string `form:"new-group-nickname"`
-	Password    string `form:"new-group-password"`
-	Mode        string `form:"new-group-mode"`
-	Description string `form:"new-group-description"`
-	Avatar      string `form:"new-group-avatar"`
+	Name        string `form:"groupname"`
+	Nick        string `form:"groupnick"`
+	Password    string `form:"password"`
+	Mode        string `form:"mode"`
+	Description string `form:"description"`
+	Avatar      string `form:"avatar"`
 }
 
-func (g GroupCreate) Group(creatorId uint) *model.Group {
+func (g GroupCreate) Group(creatorId uint64) *model.Group {
 	var password *string = nil
 	if g.Password == "" {
 		password = &g.Password

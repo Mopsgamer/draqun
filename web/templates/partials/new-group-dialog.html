@@ -1,0 +1,27 @@
+{{if ne .User nil}}
+<sl-dialog {{if .OpenSignUp}} open {{- end}} label="Dialog" id="new-group-dialog">
+    <h1 slot="label" class="aligned">
+        <sl-icon name="people"></sl-icon>
+        Create new group
+    </h1>
+    <form id="new-group-form" name="new-group-form" hx-post="/groups/create" hx-swap="outerHTML" hx-target="#new-group-error">
+        <sl-input label="Nick" type="text" id="new-group-groupnick" name="groupnick" required></sl-input>
+        <sl-input label="Name" type="text" autocomplete="username" id="new-group-groupname" name="groupname"
+            required></sl-input>
+        <sl-input label="Password" password-toggle type="password" autocomplete="new-password" id="new-group-password"
+            name="password"></sl-input>
+        <sl-textarea label="Description" id="new-group-description" name="description"></sl-textarea>
+        <sl-select label="Mode" id="new-group-mode" name="mode" value="public">
+            <sl-option value="private">Private</sl-option>
+            <sl-option value="public">Public</sl-option>
+        </sl-select>
+        <sl-input disabled label="Avatar URL" id="avatar" name="avatar"></sl-input>
+        <sl-alert id="new-group-error" variant="warning"></sl-alert>
+    </form>
+    <div slot="footer" class="dialog-footer">
+        <div>
+            <sl-button form="new-group-form" variant="primary" type="submit">Create</sl-button>
+        </div>
+    </div>
+</sl-dialog>
+{{end}}

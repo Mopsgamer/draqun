@@ -7,11 +7,11 @@ import (
 )
 
 type MessageCreate struct {
-	GroupId uint   `uri:"group_id"`
+	GroupId uint64 `uri:"group_id"`
 	Content string `form:"content"`
 }
 
-func (m MessageCreate) Message(authorId uint) *model.Message {
+func (m MessageCreate) Message(authorId uint64) *model.Message {
 	return &model.Message{
 		GroupId:   m.GroupId,
 		AuthorId:  authorId,

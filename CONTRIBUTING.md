@@ -7,6 +7,7 @@ Resources:
 - <https://shoelace.style>
 - <https://htmx.org/docs/>
 - <https://htmx.org/reference/>
+- <https://pkg.go.dev/html/template>
 - <https://docs.gofiber.io/next/> - Should be NEXT! We use v3 not v2!
 
 We are using HTMX. That means we are using JS as an utility for importing

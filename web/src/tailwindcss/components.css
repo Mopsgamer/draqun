@@ -10,7 +10,7 @@
     }
 
     .anchor-header {
-        @apply aligned relative mx-0 mt-12 mb-6 border-b border-n200 font-bold;
+        @apply aligned relative p-2 mx-4 mt-12 mb-6 border-b border-n200 font-bold;
         &:is(h1) {
             @apply text-4xl border-b-0;
         }
@@ -30,5 +30,42 @@
         div {
             @apply aligned flex justify-end items-center gap-2;
         }
+    }
+
+    .card-group-container {
+        @apply h-72;
+        .card-group {
+            @apply aligned whitespace-nowrap overflow-x-auto;
+            .group-card {
+                &::part(base) {
+                    @apply min-w-56 min-h-64 block;
+                }
+                &.interactive {
+                    &::part(base) {
+                        @apply cursor-pointer;
+                    }
+                    &:hover::part(base) {
+                        --sl-panel-background-color: var(--sl-color-neutral-100);
+                    }
+                }
+            }
+        }
+    }
+
+    .chat-body {
+        @apply flex flex-col w-full h-full p-4;
+        .chat-input {
+            @apply aligned w-full p-4 pb-12;
+            sl-input {
+                --sl-input-filled-background-color: var(--sl-color-neutral-200);
+                --sl-input-filled-background-color-focus: var(--sl-color-neutral-0);
+                --sl-input-filled-background-color-hover: var(--sl-color-neutral-300);
+                @apply w-full;
+            }
+        }
+    }
+
+    .chat-sidebar {
+        @apply bg-n100 flex flex-col gap-1 h-full w-56 visible max-[420px]:hidden;
     }
 }

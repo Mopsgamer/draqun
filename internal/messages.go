@@ -1,5 +1,7 @@
 package internal
 
+import "restapp/internal/model"
+
 const (
 	MessageFatalDatabaseQuery   = "Fatal database error."
 	MessageFatalTokenGeneration = "Fatal token generation."
@@ -8,6 +10,7 @@ const (
 	MessageDetailGroupName        = MessageDetailUserName
 	MessageDetailGroupPassword    = MessageDetailUserPassword
 	MessageDetailGroupDescription = "Must be between 0 and 500 characters long and can contain any characters."
+	MessageDetailGroupMode        = "Must be " + model.GroupModeDm + ", " + model.GroupModePrivate + " or " + model.GroupModePrivate + "."
 	MessageDetailUserName         = "Must contain only letters (A-Z, a-z), numbers (0-9), and these special characters: . _ . No spaces. Must be at least 1 characters long and no more than 255 characters."
 	MessageDetailUserPassword     = "Must contain only letters (A-Z, a-z), numbers (0-9), spaces, or these special characters: , . ~ - + % $ ^ & * _ ! ? ( ) [ ] { } `. Must be at least 8 characters long and no more than 255 characters."
 	MessageDetailUserNick         = "Must be between 1 and 255 characters long and can contain any characters."
@@ -15,10 +18,13 @@ const (
 	MessageDetailUSerPhone        = "Must be a valid phone number."
 
 	MessageErrNoRights                      = "You do not have the necessary rights or permissions to perform this action."
+	MessageErrGroupNotFound                 = "Group not found."
+	MessageErrGroupExistsGroupname          = "This group name is taken."
 	MessageErrGroupName                     = "Invalid group name pattern. " + MessageDetailGroupName
-	MessageErrGroupNick                     = "Invalid nick name pattern. " + MessageDetailGroupNick
-	MessageErrGroupPassword                 = "Invalid password pattern. " + MessageDetailGroupPassword
-	MessageErrGroupDescription              = "Invalid description." + MessageDetailGroupDescription
+	MessageErrGroupNick                     = "Invalid group nick name pattern. " + MessageDetailGroupNick
+	MessageErrGroupPassword                 = "Invalid group password pattern. You can leave this field empty. " + MessageDetailGroupPassword
+	MessageErrGroupDescription              = "Invalid group description. " + MessageDetailGroupDescription
+	MessageErrGroupMode                     = "Invalid group mode. " + MessageDetailGroupMode
 	MessageErrMessageContent                = "The message is too long."
 	MessageErrNotGroupMember                = "Not a member of the group."
 	MessageErrInvalidRequest                = "Invalid request payload."
@@ -36,7 +42,7 @@ const (
 	MessageErrBadUsernameConfirm            = "Usernames are not same."
 	MessageErrBadPassword                   = "Invalid user password."
 	MessageErrUserNotFound                  = "User not found."
-	MessageErrUserExistsUsername            = "This username is taken."
+	MessageErrUserExistsUsername            = "This user name is taken."
 	MessageErrUserExistsEmail               = "This email is taken."
 	MessageErrUserExistsPhone               = "This phone number is taken."
 	MessageErrCanNotDeleteGroupOwnerAccount = "The user cannot be deleted because the user is the owner of a group or set of groups."

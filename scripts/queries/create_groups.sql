@@ -9,5 +9,6 @@ CREATE TABLE IF NOT EXISTS app_groups (
     avatar VARCHAR(255) DEFAULT NULL,
     created_at DATETIME NOT NULL COMMENT 'Group create time',
     PRIMARY KEY (id),
-    FOREIGN KEY (creator_id) REFERENCES app_users (id)
+    FOREIGN KEY (creator_id) REFERENCES app_users (id),
+    UNIQUE (groupname)
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Restapp groups';

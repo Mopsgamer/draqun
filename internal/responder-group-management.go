@@ -6,7 +6,7 @@ import (
 )
 
 func (r Responder) GroupCreate() error {
-	id := "group-create-error"
+	id := "new-group-error"
 	req := new(model_request.GroupCreate)
 	if err := r.Bind().Form(req); err != nil {
 		return r.RenderDanger(MessageErrInvalidRequest, id)
@@ -15,6 +15,10 @@ func (r Responder) GroupCreate() error {
 	user := r.User()
 	if user == nil {
 		return nil
+	}
+
+	if r.DB.GroupByGroupname(req.Name) != nil {
+		return r.RenderDanger(MessageErrGroupExistsGroupname, id)
 	}
 
 	if !model.IsValidGroupName(req.Name) {
@@ -33,10 +37,28 @@ func (r Responder) GroupCreate() error {
 		return r.RenderDanger(MessageErrGroupDescription, id)
 	}
 
-	// TODO: validate avatar and mode
+	if !model.IsValidGroupMode(req.Mode) {
+		return r.RenderDanger(MessageErrGroupMode+" Got: '"+req.Mode+"'.", id)
+	}
+
+	// TODO: validate avatar
 
 	group := req.Group(user.Id)
-	r.DB.GroupCreate(*group)
+	groupId := r.DB.GroupCreate(*group)
+	if groupId == nil {
+		return r.RenderDanger(MessageFatalDatabaseQuery, id)
+	}
+
+	member := &model.Member{
+		GroupId:  *groupId,
+		UserId:   user.Id,
+		Nick:     nil,
+		IsOwner:  true,
+		IsBanned: false,
+	}
+	if r.DB.GroupMemberCreate(*member) == nil {
+		return r.RenderDanger(MessageFatalDatabaseQuery, id)
+	}
 
 	r.HTMXRedirect(group.PagePath())
 	return r.RenderSuccess(MessageSuccCreatedGroup, id)
@@ -54,7 +76,7 @@ func (r Responder) GroupDelete() error {
 		return nil
 	}
 
-	member := r.DB.GroupMember(req.GroupId, user.Id)
+	member := r.DB.GroupMemberById(req.GroupId, user.Id)
 	if !member.IsOwner {
 		return r.RenderDanger(MessageErrNoRights, id)
 	}
@@ -79,7 +101,7 @@ func (r Responder) GroupLeave() error {
 		return nil
 	}
 
-	if r.DB.GroupMember(req.GroupId, user.Id) == nil {
+	if r.DB.GroupMemberById(req.GroupId, user.Id) == nil {
 		return r.RenderDanger(MessageErrNotGroupMember, id)
 	}
 

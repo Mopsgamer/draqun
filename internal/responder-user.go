@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"restapp/internal/environment"
 	"restapp/internal/model"
+	"restapp/internal/model_request"
 
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/golang-jwt/jwt/v5"
@@ -60,4 +61,16 @@ func (r Responder) User() (user *model.User) {
 	}
 
 	return r.DB.UserByEmail(email)
+}
+
+func (r Responder) Group() *model.Group {
+	groupUri := new(model_request.GroupUri)
+	if err := r.Bind().URI(groupUri); err != nil {
+		log.Error(err)
+	} else if groupUri.GroupId != nil {
+		group := r.DB.GroupById(*groupUri.GroupId)
+		return group
+	}
+
+	return nil
 }

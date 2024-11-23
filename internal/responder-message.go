@@ -21,7 +21,7 @@ func (r Responder) MessageCreate() error {
 	}
 
 	message := req.Message(user.Id)
-	if r.DB.GroupMember(message.GroupId, message.AuthorId) == nil {
+	if r.DB.GroupMemberById(message.GroupId, message.AuthorId) == nil {
 		return r.RenderDanger(MessageErrNotGroupMember, id)
 	}
 
@@ -29,7 +29,8 @@ func (r Responder) MessageCreate() error {
 		return r.RenderWarning(MessageErrMessageContent+" Length: "+strconv.Itoa(len(message.Content))+"/"+strconv.Itoa(model.MessageContentMaxLength), id)
 	}
 
-	if !r.DB.MessageCreate(*message) {
+	messageId := r.DB.MessageCreate(*message)
+	if messageId == nil {
 		return r.RenderDanger(MessageFatalDatabaseQuery, id)
 	}
 

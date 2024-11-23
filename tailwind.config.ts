@@ -12,6 +12,7 @@ const config: Config = {
                 "1400": "1400ms",
             },
             colors: {
+                n0: "var(--sl-color-neutral-0)",
                 n50: "var(--sl-color-neutral-50)",
                 n100: "var(--sl-color-neutral-100)",
                 n200: "var(--sl-color-neutral-200)",
@@ -22,6 +23,8 @@ const config: Config = {
                 n700: "var(--sl-color-neutral-700)",
                 n800: "var(--sl-color-neutral-800)",
                 n900: "var(--sl-color-neutral-900)",
+                n950: "var(--sl-color-neutral-950)",
+                n1000: "var(--sl-color-neutral-1000)",
             },
         },
     },

@@ -22,7 +22,7 @@ async function initMysqlTables(): Promise<void> {
         "./scripts/queries/create_groups.sql",
         "./scripts/queries/create_group_roles.sql",
         "./scripts/queries/create_group_members.sql",
-        "./scripts/queries/create_group_member_roles.sql",
+        "./scripts/queries/create_group_role_rights.sql",
         "./scripts/queries/create_group_messages.sql",
     ];
     const connection = mysql.createConnection({
@@ -40,7 +40,9 @@ async function initMysqlTables(): Promise<void> {
 
     await connect();
     logInitDb.success("Connected to the database using .env confifuration.");
-    logInitDb.info("If you are trying to reinitialize the database, this will not change existing tables. Delete or change them manually.");
+    logInitDb.info(
+        "If you are trying to reinitialize the database, this will not change existing tables. Delete or change them manually.",
+    );
     for (const sqlFile of sqlFileList) {
         logInitDb.info(`Executing '${sqlFile}'...`);
         const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
@@ -48,7 +50,9 @@ async function initMysqlTables(): Promise<void> {
     }
 
     await disconnect();
-    logInitDb.success("Success. All queries executed. Disconnected from the database.");
+    logInitDb.success(
+        "Success. All queries executed. Disconnected from the database.",
+    );
 }
 
 function initEnvFile(): void {

@@ -3,7 +3,7 @@ package model
 const (
 	RegexpGroupNick        string = RegexpUserNick
 	RegexpGroupName        string = RegexpUserName
-	RegexpGroupPassword    string = RegexpUserPassword
+	RegexpGroupPassword    string = "(^$|" + RegexpUserPassword + ")"
 	RegexpGroupDescription string = "^.{0,500}$"
 )
 
@@ -21,4 +21,8 @@ func IsValidGroupPassword(str string) bool {
 
 func IsValidGroupDescription(str string) bool {
 	return IsValidString(str, RegexpGroupDescription, 500)
+}
+
+func IsValidGroupMode(str string) bool {
+	return IsValidEnum(str, []string{GroupModeDm, GroupModePrivate, GroupModePublic})
 }

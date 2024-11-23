@@ -26,20 +26,21 @@ func NewApp() (*fiber.App, error) {
 		}
 	}
 
-	UsePage := func(guestRedirect, templatePath, title string, bind *fiber.Map, layouts ...string) fiber.Handler {
+	UsePage := func(templatePath string, bind *fiber.Map, redirectLogic RedirectLogic, layouts ...string) fiber.Handler {
 		bindx := fiber.Map{
-			"Title": "Restapp - " + title,
+			"Title": "Restapp",
 		}
 		if bind != nil {
 			for k, v := range *bind {
 				bindx[k] = v
 			}
+			bindx["Title"] = (*bind)["Title"]
 		}
 		return UseResponder(func(r Responder) error {
 			return r.RenderPage(
-				guestRedirect,
 				templatePath,
-				bindx,
+				&bindx,
+				redirectLogic,
 				layouts...,
 			)
 		})
@@ -55,15 +56,28 @@ func NewApp() (*fiber.App, error) {
 	// static
 	app.Get("/static/*", static.New("./web/static", static.Config{Browse: true}))
 	app.Get("/assets/*", static.New("./web/assets", static.Config{Browse: true}))
-	app.Get("/partials", static.New("./web/templates/partials", static.Config{Browse: true}))
-	app.Get("/partials/*", UseResponder(func(r Responder) error { return r.RenderTemplate() }))
+	app.Get("/partials*", static.New("./web/templates/partials", static.Config{Browse: true}))
 
 	// get
-	app.Get("/", UsePage("", "index", "Home page", nil, "partials/main"))
-	app.Get("/settings", UsePage("/", "settings", "Settings", nil, "partials/main"))
-	renderChat := UsePage("", "chat", "Settings", &fiber.Map{"IsChatPage": true})
-	app.Get("/chat", renderChat)
-	app.Get("/chat/groups/:group_id", renderChat)
+	app.Get("/", UsePage("index", &fiber.Map{"Title": "Discover"}, func(r Responder, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/settings", UsePage("settings", &fiber.Map{"Title": "Settings"},
+		func(r Responder, bind *fiber.Map) string {
+			if r.User() == nil {
+				return "/"
+			}
+			return ""
+		}, "partials/main"))
+	app.Get("/chat", UsePage("chat", &fiber.Map{"Title": "Home", "IsChatPage": true},
+		func(r Responder, bind *fiber.Map) string {
+			return ""
+		}))
+	app.Get("/chat/groups/:group_id", UsePage("chat", &fiber.Map{"Title": "Group", "IsChatPage": true},
+		func(r Responder, bind *fiber.Map) string {
+			if r.Group() == nil {
+				return "/"
+			}
+			return ""
+		}))
 
 	// post
 	app.Post("/account/create", UseResponder(func(r Responder) error { return r.UserSignUp() }))
@@ -88,10 +102,11 @@ func NewApp() (*fiber.App, error) {
 	// TODO: ws - update messages
 	// TODO: ws - update members
 
-	app.Use(UsePage("", "partials/x", strconv.Itoa(fiber.StatusNotFound), &fiber.Map{
+	app.Use(UsePage("partials/x", &fiber.Map{
+		"Title":         strconv.Itoa(fiber.StatusNotFound),
 		"StatusCode":    fiber.StatusNotFound,
 		"StatusMessage": fiber.ErrNotFound.Message,
-	}, "partials/main"))
+	}, func(r Responder, bind *fiber.Map) string { return "" }, "partials/main"))
 
 	return app, nil
 }

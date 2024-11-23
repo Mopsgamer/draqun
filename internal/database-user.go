@@ -7,7 +7,7 @@ import (
 )
 
 // Create new DB record.
-func (db Database) UserCreate(user model.User) bool {
+func (db Database) UserCreate(user model.User) *uint64 {
 	query :=
 		`INSERT INTO app_users (
 			nickname,
@@ -33,9 +33,11 @@ func (db Database) UserCreate(user model.User) bool {
 
 	if err != nil {
 		log.Error(err)
-		return false
+		return nil
 	}
-	return true
+
+	newId := &db.Context().LastInsertId
+	return newId
 }
 
 // Change the existing DB record.
@@ -73,7 +75,7 @@ func (db Database) UserUpdate(user model.User) bool {
 }
 
 // Delete the existing DB record.
-func (db Database) UserDelete(userId uint) bool {
+func (db Database) UserDelete(userId uint64) bool {
 	query := `DELETE FROM app_users WHERE id = ?`
 	_, err := db.Sql.Exec(query, userId)
 
@@ -98,7 +100,7 @@ func (db Database) UserByEmail(email string) *model.User {
 }
 
 // Get the user by his identificator.
-func (db Database) UserById(userId uint) *model.User {
+func (db Database) UserById(userId uint64) *model.User {
 	user := new(model.User)
 	query := `SELECT * FROM app_users WHERE id = ?`
 	err := db.Sql.Get(user, query, userId)
@@ -123,19 +125,19 @@ func (db Database) UserByUsername(username string) *model.User {
 	return user
 }
 
-func (db Database) UserRoleList(userId uint) []model.Role {
-	roleList := []model.Role{}
+func (db Database) UserRoleList(userId uint64) []model.Role {
+	roleList := &[]model.Role{}
 	query := `SELECT * FROM app_group_roles WHERE user_id = ?`
-	err := db.Sql.Get(roleList, query, userId)
+	err := db.Sql.Select(roleList, query, userId)
 
 	if err != nil {
 		log.Error(err)
-		return roleList
+		return *roleList
 	}
-	return roleList
+	return *roleList
 }
 
-func (db Database) RoleRights(rightId uint) *model.Rights {
+func (db Database) RoleRights(rightId uint64) *model.Rights {
 	roleList := new(model.Rights)
 	query := `SELECT * FROM app_group_role_rights WHERE id = ?`
 	err := db.Sql.Get(roleList, query, rightId)
@@ -147,7 +149,7 @@ func (db Database) RoleRights(rightId uint) *model.Rights {
 	return roleList
 }
 
-func (db Database) UserRights(userId uint) *model.Rights {
+func (db Database) UserRights(userId uint64) *model.Rights {
 	rights := new(model.Rights)
 	// FIXME: user rights sql query
 	// since the user can have multiple roles,
@@ -162,32 +164,38 @@ func (db Database) UserRights(userId uint) *model.Rights {
 	return rights
 }
 
-func (db Database) UserOwnGroupList(userId uint) []model.Group {
-	groupList := []model.Group{}
-	query := `SELECT * FROM app_group_members WHERE user_id = ? AND is_owner = 1
-	RIGHT JOIN app_groups ON app_groups.id = app_group_members.group_id
+func (db Database) UserOwnGroupList(userId uint64) []model.Group {
+	groupList := &[]model.Group{}
+	query := `SELECT
+		id, creator_id, nickname, groupname, groupmode, description, password, avatar, created_at
+	FROM app_groups
+	LEFT JOIN app_group_members ON app_groups.id = app_group_members.group_id
+	WHERE (user_id = ? AND is_owner = 1)
 	GROUP BY app_group_members.group_id`
-	err := db.Sql.Get(groupList, query, userId)
+	err := db.Sql.Select(groupList, query, userId)
 
 	if err != nil {
 		log.Error(err)
-		return groupList
+		return *groupList
 	}
-	return groupList
+	return *groupList
 }
 
-func (db Database) UserGroupList(userId uint) []model.Group {
-	groupList := []model.Group{}
-	query := `SELECT * FROM app_group_members WHERE user_id = ?
-	RIGHT JOIN app_groups ON app_groups.id = app_group_members.group_id
+func (db Database) UserGroupList(userId uint64) []model.Group {
+	groupList := &[]model.Group{}
+	query := `SELECT
+		id, creator_id, nickname, groupname, groupmode, description, password, avatar, created_at
+	FROM app_groups
+	LEFT JOIN app_group_members ON app_groups.id = app_group_members.group_id
+	WHERE user_id = ?
 	GROUP BY app_group_members.group_id`
-	err := db.Sql.Get(groupList, query, userId)
+	err := db.Sql.Select(groupList, query, userId)
 
 	if err != nil {
 		log.Error(err)
-		return groupList
+		return *groupList
 	}
-	return groupList
+	return *groupList
 }
 
 func (db Database) UserJoinGroup(newMember model.Member) bool {
@@ -215,7 +223,7 @@ func (db Database) UserJoinGroup(newMember model.Member) bool {
 	return true
 }
 
-func (db Database) UserLeaveGroup(userId, groupId uint) bool {
+func (db Database) UserLeaveGroup(userId, groupId uint64) bool {
 	query := `DELETE FROM app_group_members WHERE group_id = ? AND user_id = ?`
 	_, err := db.Sql.Exec(query, groupId, userId)
 
@@ -226,10 +234,9 @@ func (db Database) UserLeaveGroup(userId, groupId uint) bool {
 	return true
 }
 
-func (db Database) MessageCreate(message model.Message) bool {
+func (db Database) MessageCreate(message model.Message) *uint64 {
 	query :=
 		`INSERT INTO app_group_messages (
-			id,
 			group_id,
 			author_id,
 			content,
@@ -237,7 +244,6 @@ func (db Database) MessageCreate(message model.Message) bool {
 		)
     	VALUES (?, ?, ?, ?, ?)`
 	_, err := db.Sql.Exec(query,
-		message.Id,
 		message.GroupId,
 		message.AuthorId,
 		message.Content,
@@ -246,7 +252,9 @@ func (db Database) MessageCreate(message model.Message) bool {
 
 	if err != nil {
 		log.Error(err)
-		return false
+		return nil
 	}
-	return true
+
+	newId := &db.Context().LastInsertId
+	return newId
 }

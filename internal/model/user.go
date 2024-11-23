@@ -9,7 +9,7 @@ var UserTokenExpiration = 24 * time.Hour
 
 // The user as a database entry
 type User struct {
-	Id uint `db:"id"`
+	Id uint64 `db:"id"`
 	// Nick is customizable name. Can contain emojis and special characters.
 	Nick string `db:"nickname"`
 	// Name is a simple identificator, which can be used to create friend links.

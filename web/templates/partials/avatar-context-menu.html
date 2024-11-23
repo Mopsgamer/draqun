@@ -1,10 +1,10 @@
 <sl-dropdown placement="bottom-end">
     <sl-button id="avatar-button" variant="text" slot="trigger">
         <span>
-            {{if eq .User nil}}
-            Guest
+            {{with .User}}
+            {{.Nick}}
             {{else}}
-            {{.User.Nick}}
+            Guest
             {{end}}
         </span>
         <sl-avatar
@@ -31,9 +31,13 @@
         <sl-divider></sl-divider>
 
         {{if .IsChatPage }}
+        <sl-menu-item onclick="location='/chat'">
+            <sl-icon slot="prefix" name="house"></sl-icon>
+            Home
+        </sl-menu-item>
         <sl-menu-item onclick="location='/'">
-            <sl-icon slot="prefix" name="house-door"></sl-icon>
-            Home page
+            <sl-icon slot="prefix" name="house-heart"></sl-icon>
+            Discover
         </sl-menu-item>
         {{else}}
         <sl-menu-item onclick="location='/chat'">

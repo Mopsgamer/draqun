@@ -1,26 +1,27 @@
 package internal
 
 import (
-	"restapp/internal/model"
-	"restapp/internal/model_request"
-
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/log"
 )
 
+// Should return redirect path or empty string.
+type RedirectLogic func(r Responder, bind *fiber.Map) string
+
 // Render a page using a template.
-func (r Responder) RenderPage(guestRedirect string, templatePath string, bind fiber.Map, layouts ...string) error {
-	user := r.User()
-	if guestRedirect != "" && user == nil {
-		return r.Redirect().To(guestRedirect)
+// Special
+func (r Responder) RenderPage(templatePath string, bind *fiber.Map, redirect RedirectLogic, layouts ...string) error {
+	bindx := r.PageMap(bind)
+	if redirect != nil {
+		if path := redirect(r, &bindx); path != "" {
+			return r.Redirect().To(path)
+		}
 	}
-	return r.Render(templatePath, r.PageMap(bind), layouts...)
+	return r.Render(templatePath, bindx, layouts...)
 }
 
-func (r *Responder) PageMap(bind fiber.Map) fiber.Map {
-	user := r.User()
+func (r *Responder) PageMap(bind *fiber.Map) fiber.Map {
 	result := fiber.Map{}
-	if user != nil {
+	if user := r.User(); user != nil {
 		result["User"] = user
 	} else {
 		result["TokenError"] = true
@@ -28,47 +29,16 @@ func (r *Responder) PageMap(bind fiber.Map) fiber.Map {
 		result["Id"] = "local-token-error"
 	}
 
-	groupUri := new(model_request.GroupUri)
-	if err := r.Bind().URI(groupUri); err != nil {
-		log.Error(err)
-	} else if groupUri.GroupId != nil {
-		group := r.DB.GroupById(*groupUri.GroupId)
+	if group := r.Group(); group != nil {
 		result["Group"] = group
 	}
 
-	for k, v := range bind {
-		result[k] = v
+	if bind != nil {
+		for k, v := range *bind {
+			result[k] = v
+		}
 	}
 	return result
-}
-
-// This type describes ALL values in EVERY partial, which can be passed into ./templates/partials
-// and used by htmx requests to replace DOM, using template generation through get requests
-//
-// EXAMPLE:
-//
-//	<div hx-get="/partials/chat?mode=compact">
-//
-// NOTE: wont move this to internal/htmx.go
-// since its only for the RenderTemplate
-type HTMXPartialQuery struct {
-	Id           string     `query:"id"`
-	Message      string     `query:"message"`
-	OpenSettings bool       `query:"open-settings"`
-	OpenSignUp   bool       `query:"open-signup"`
-	OpenLogin    bool       `query:"open-login"`
-	User         model.User `query:"user"` // its safe
-}
-
-// Renders a template, requested by a client.
-func (r Responder) RenderTemplate() error {
-	q := new(HTMXPartialQuery)
-	err := r.Bind().Query(q)
-	r.User()
-	if err != nil {
-		return err
-	}
-	return r.Render(r.Path()[1:], r.PageMap(fiber.Map{}))
 }
 
 // Renders the danger message html element.

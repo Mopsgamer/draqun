@@ -12,8 +12,8 @@ const (
 )
 
 type Group struct {
-	Id        uint `db:"id"`
-	CreatorId uint `db:"creator_id"`
+	Id        uint64 `db:"id"`
+	CreatorId uint64 `db:"creator_id"`
 	// Nick is customizable name. Can contain emojis and special characters.
 	Nick string `db:"nickname"`
 	// Name is a simple identificator, which can be used to create links to a specific groups or joining them by this name.
@@ -21,9 +21,10 @@ type Group struct {
 	// See: GroupModeDm, GroupModePrivate, GroupModePublic.
 	Mode string `db:"groupmode"`
 	// Optional hashed password string.
-	Password  *string   `db:"password"`
-	Avatar    string    `db:"avatar"`
-	CreatedAt time.Time `db:"created_at"`
+	Password    *string   `db:"password"`
+	Description *string   `db:"description"`
+	Avatar      string    `db:"avatar"`
+	CreatedAt   time.Time `db:"created_at"`
 }
 
 func (g Group) PagePath() string {
