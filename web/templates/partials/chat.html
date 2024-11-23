@@ -43,7 +43,7 @@
                     Groups
                     <sl-button onclick="location.hash='#new-group-dialog'">Create</sl-button>
                 </h2>
-                <sl-carousel pagination navigation mouse-dragging loop id="my-group-list" class="card-group-container">
+                <sl-carousel pagination navigation mouse-dragging id="my-group-list" class="card-group-container">
                     {{range $iPage, $groupPage := (paginateGroups (memberOf .User.Id) 3) }}
                     <sl-carousel-item class="card-group">
                         {{range $i, $group := $groupPage}}

@@ -35,7 +35,7 @@
     .card-group-container {
         @apply h-72;
         .card-group {
-            @apply aligned whitespace-nowrap overflow-x-auto;
+            @apply aligned flex-row whitespace-nowrap overflow-x-auto;
             .group-card {
                 &::part(base) {
                     @apply min-w-56 min-h-64 block;

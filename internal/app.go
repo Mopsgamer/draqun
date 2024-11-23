@@ -28,14 +28,11 @@ func NewApp() (*fiber.App, error) {
 
 	UsePage := func(templatePath string, bind *fiber.Map, redirectLogic RedirectLogic, layouts ...string) fiber.Handler {
 		bindx := fiber.Map{
-			"Title": "Restapp",
+			"Title": "?",
 		}
 		if bind != nil {
 			for k, v := range *bind {
 				bindx[k] = v
-			}
-			if title, ok := (*bind)["Title"].(string); ok {
-				bindx["Title"] = "Restapp - " + title
 			}
 		}
 		return UseResponder(func(r Responder) error {
@@ -75,9 +72,12 @@ func NewApp() (*fiber.App, error) {
 		}))
 	app.Get("/chat/groups/:group_id", UsePage("chat", &fiber.Map{"Title": "Group", "IsChatPage": true},
 		func(r Responder, bind *fiber.Map) string {
-			if r.Group() == nil {
-				return "/"
+			group := r.Group()
+			if group == nil {
+				return "/chat"
 			}
+
+			(*bind)["Title"] = group.Nick
 			return ""
 		}))
 

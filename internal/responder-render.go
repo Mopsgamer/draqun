@@ -12,9 +12,12 @@ type RedirectLogic func(r Responder, bind *fiber.Map) string
 func (r Responder) RenderPage(templatePath string, bind *fiber.Map, redirect RedirectLogic, layouts ...string) error {
 	bindx := r.PageMap(bind)
 	if redirect != nil {
-		if path := redirect(r, &bindx); path != "" {
+		if path := redirect(r, bind); path != "" {
 			return r.Redirect().To(path)
 		}
+	}
+	if title, ok := (*bind)["Title"].(string); ok {
+		bindx["Title"] = "Restapp - " + title
 	}
 	return r.Render(templatePath, bindx, layouts...)
 }
