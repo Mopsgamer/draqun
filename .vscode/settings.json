@@ -1,4 +1,5 @@
 {
+    "html.customData": ["./node_modules/@shoelace-style/shoelace/dist/vscode.html-custom-data.json"],
     "deno.enable": true,
     "files.associations": {
         "**/tailwind*/**/*.css": "tailwindcss"
