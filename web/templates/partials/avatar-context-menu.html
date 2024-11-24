@@ -16,34 +16,44 @@
     <sl-menu>
         {{if ne .User nil}}
         {{if .IsChatPage }}
-        <sl-menu-item onclick="location='/chat#settings-dialog'">
-            <sl-icon slot="prefix" name="gear"></sl-icon>
-            Settings
-        </sl-menu-item>
+        <a href="#settings-dialog">
+            <sl-menu-item>
+                <sl-icon slot="prefix" name="gear"></sl-icon>
+                Settings
+            </sl-menu-item>
+        </a>
         {{else}}
-        <sl-menu-item onclick="location='/settings'">
-            <sl-icon slot="prefix" name="gear"></sl-icon>
-            Settings
-        </sl-menu-item>
+        <a href="/settings">
+            <sl-menu-item>
+                <sl-icon slot="prefix" name="gear"></sl-icon>
+                Settings
+            </sl-menu-item>
+        </a>
         {{end}}
         {{end}}
 
         <sl-divider></sl-divider>
 
         {{if .IsChatPage }}
-        <sl-menu-item onclick="location='/chat'">
-            <sl-icon slot="prefix" name="house"></sl-icon>
-            Home
-        </sl-menu-item>
-        <sl-menu-item onclick="location='/'">
-            <sl-icon slot="prefix" name="house-heart"></sl-icon>
-            Discover
-        </sl-menu-item>
+        <a href="/chat">
+            <sl-menu-item>
+                <sl-icon slot="prefix" name="chat-right-text"></sl-icon>
+                Chat
+            </sl-menu-item>
+        </a>
+        <a href="/">
+            <sl-menu-item>
+                <sl-icon slot="prefix" name="house-heart"></sl-icon>
+                Discover
+            </sl-menu-item>
+        </a>
         {{else}}
-        <sl-menu-item onclick="location='/chat'">
-            <sl-icon slot="prefix" name="chat-right-text"></sl-icon>
-            Chat
-        </sl-menu-item>
+        <a href="/chat">
+            <sl-menu-item>
+                <sl-icon slot="prefix" name="house"></sl-icon>
+                Chat
+            </sl-menu-item>
+        </a>
         {{end}}
 
         {{if ne .User nil}}
@@ -52,10 +62,12 @@
             Log Out
         </sl-menu-item>
         {{else}}
-        <sl-menu-item onclick="location.hash='#login-dialog'">
-            <sl-icon slot="prefix" name="person-circle"></sl-icon>
-            Log In
-        </sl-menu-item>
+        <a href="#login-dialog">
+            <sl-menu-item>
+                <sl-icon slot="prefix" name="person-circle"></sl-icon>
+                Log In
+            </sl-menu-item>
+        </a>
         {{end}}
     </sl-menu>
 </sl-dropdown>

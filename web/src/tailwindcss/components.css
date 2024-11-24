@@ -40,7 +40,7 @@
                 &::part(base) {
                     @apply min-w-56 min-h-64 block;
                 }
-                &.interactive {
+                a > & {
                     &::part(base) {
                         @apply cursor-pointer;
                     }
