@@ -1,3 +1,5 @@
+import type {SlDialog} from "@shoelace-style/shoelace"
+
 function removeHash() {
     let scrollV, scrollH;
 
@@ -35,7 +37,7 @@ function openDialogFromHash() {
     }
 
     let foundDialogFromHash = false;
-    for (const slDialog of document.querySelectorAll("sl-dialog")) {
+    for (const slDialog of document.querySelectorAll<SlDialog>("sl-dialog")) {
         if (slDialog.id === id || slDialog.querySelector("#" + id)) {
             foundDialogFromHash = true;
             slDialog.open = true;
