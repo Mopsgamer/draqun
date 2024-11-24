@@ -40,13 +40,13 @@
                 &::part(base) {
                     @apply min-w-56 min-h-64 block;
                 }
-                a > & {
-                    &::part(base) {
-                        @apply cursor-pointer;
-                    }
-                    &:hover::part(base) {
-                        --sl-panel-background-color: var(--sl-color-neutral-100);
-                    }
+            }
+            a > .group-card {
+                &::part(base) {
+                    @apply cursor-pointer;
+                }
+                &:hover::part(base) {
+                    --sl-panel-background-color: var(--sl-color-neutral-100);
                 }
             }
         }

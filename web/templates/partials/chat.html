@@ -41,7 +41,10 @@
             <main id="center" class="chat-body">
                 <h2 class="anchor-header">
                     Groups
-                    <sl-button href="#new-group-dialog">Create</sl-button>
+                    <sl-button href="#new-group-dialog" size="small" variant="success">
+                        <sl-icon name="plus" slot="suffix"></sl-icon>
+                        Create
+                    </sl-button>
                 </h2>
                 <sl-carousel pagination navigation mouse-dragging id="my-group-list" class="card-group-container">
                     {{range $iPage, $groupPage := (paginateGroups (memberOf .User.Id) 3) }}
