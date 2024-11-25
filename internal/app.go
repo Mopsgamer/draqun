@@ -54,7 +54,6 @@ func NewApp() (*fiber.App, error) {
 
 	// static
 	app.Get("/static/*", static.New("./web/static", static.Config{Browse: true}))
-	app.Get("/assets/*", static.New("./web/assets", static.Config{Browse: true}))
 	app.Get("/partials*", static.New("./web/templates/partials", static.Config{Browse: true}))
 
 	// get

@@ -103,14 +103,14 @@ const taskList = [
         ...options,
         outfile: "./web/static/css/main.css",
         entryPoints: ["./web/src/tailwindcss/main.css"],
-        whenChange: ["./web/templates", "./tailwind.config.*"],
+        whenChange: ["./web/templates", "./tailwind.config.ts"],
         plugins: [
             tailwindPlugin({ configPath: "./tailwind.config.ts" }),
         ],
     }),
     copyTask(
-        "./node_modules/@shoelace-style/shoelace/dist/assets/**/*",
-        "./web/assets",
+        "./node_modules/@shoelace-style/shoelace/dist/**/*",
+        "./web/static/shoelace",
     ),
     copyTask(
         "./web/src/assets/**/*",

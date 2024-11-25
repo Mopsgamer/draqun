@@ -1,4 +1,4 @@
-import type {SlDialog} from "@shoelace-style/shoelace"
+import type { SlDialog } from "@shoelace-style/shoelace";
 
 function removeHash() {
     let scrollV, scrollH;
