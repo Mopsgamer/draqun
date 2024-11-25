@@ -66,6 +66,17 @@
     }
 
     .chat-sidebar {
-        @apply bg-n100 flex flex-col gap-1 h-full w-56 visible max-[420px]:hidden;
+        @apply bg-n100 flex flex-col p-3 gap-1 h-full w-56 visible max-[420px]:hidden;
+    }
+
+    .tiny-divider {
+        @apply aligned p-1 text-blue-300;
+    }
+
+    .member {
+        @apply tiny-divider aligned bg-n50 p-1 rounded-md opacity-90 select-none text-blue-300;
+        .text {
+            @apply w-full;
+        }
     }
 }

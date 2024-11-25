@@ -49,6 +49,8 @@ func NewAppHtmlEngine(db *Database) *html.Engine {
 		"memberOf":   db.UserGroupList,
 		"membersOf":  db.GroupMemberList,
 		"messagesOf": db.GroupMessageList,
+		"userById":   db.UserById,
+		"groupById":  db.GroupById,
 	})
 
 	return engine

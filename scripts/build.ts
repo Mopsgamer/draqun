@@ -103,7 +103,7 @@ const taskList = [
         ...options,
         outfile: "./web/static/css/main.css",
         entryPoints: ["./web/src/tailwindcss/main.css"],
-        whenChange: "./web/templates",
+        whenChange: ["./web/templates", "./tailwind.config.*"],
         plugins: [
             tailwindPlugin({ configPath: "./tailwind.config.ts" }),
         ],

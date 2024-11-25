@@ -33,8 +33,14 @@
                 </div>
             </div>
             <div id="sidebar-left" class="chat-sidebar">
-                {{range $i, $member := membersOf .Group.Id}}
-                {{template "partials/group-member" $member}}
+                {{$memberList := membersOf .Group.Id}}
+                <div class="tiny-divider">
+                    Member count - {{len $memberList}}
+                </div>
+                {{range $i, $member := $memberList}}
+                {{if gt $i 100}}{{break}}{{end}}
+                {{/* TODO: it is slow to use single sql request per every member */}}
+                {{template "partials/group-member" userById $member.UserId}}
                 {{end}}
             </div>
             {{else}}
