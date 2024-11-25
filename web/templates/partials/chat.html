@@ -39,8 +39,7 @@
                 </div>
                 {{range $i, $member := $memberList}}
                 {{if gt $i 100}}{{break}}{{end}}
-                {{/* TODO: it is slow to use single sql request per every member */}}
-                {{template "partials/group-member" userById $member.UserId}}
+                {{template "partials/group-member" $member}}
                 {{end}}
             </div>
             {{else}}

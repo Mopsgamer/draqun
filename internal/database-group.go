@@ -121,9 +121,13 @@ func (db Database) GroupByGroupname(groupname string) *model.Group {
 	return group
 }
 
-func (db Database) GroupMemberList(groupId uint64) []model.Member {
-	memberList := &[]model.Member{}
-	query := `SELECT * FROM app_group_members WHERE group_id = ?`
+func (db Database) GroupMemberList(groupId uint64) []model.User {
+	memberList := &[]model.User{}
+	query := `SELECT
+		app_users.*
+	FROM app_group_members
+	LEFT JOIN app_users ON app_users.id = app_group_members.user_id
+	WHERE app_group_members.group_id = ?`
 	err := db.Sql.Select(memberList, query, groupId)
 
 	if err != nil {

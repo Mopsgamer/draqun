@@ -167,11 +167,10 @@ func (db Database) UserRights(userId uint64) *model.Rights {
 func (db Database) UserOwnGroupList(userId uint64) []model.Group {
 	groupList := &[]model.Group{}
 	query := `SELECT
-		id, creator_id, nickname, groupname, groupmode, description, password, avatar, created_at
+		app_groups.*
 	FROM app_groups
 	LEFT JOIN app_group_members ON app_groups.id = app_group_members.group_id
-	WHERE (user_id = ? AND is_owner = 1)
-	GROUP BY app_group_members.group_id`
+	WHERE (user_id = ? AND is_owner = 1)`
 	err := db.Sql.Select(groupList, query, userId)
 
 	if err != nil {
@@ -184,11 +183,10 @@ func (db Database) UserOwnGroupList(userId uint64) []model.Group {
 func (db Database) UserGroupList(userId uint64) []model.Group {
 	groupList := &[]model.Group{}
 	query := `SELECT
-		id, creator_id, nickname, groupname, groupmode, description, password, avatar, created_at
+		app_groups.*
 	FROM app_groups
 	LEFT JOIN app_group_members ON app_groups.id = app_group_members.group_id
-	WHERE user_id = ?
-	GROUP BY app_group_members.group_id`
+	WHERE user_id = ?`
 	err := db.Sql.Select(groupList, query, userId)
 
 	if err != nil {
