@@ -29,7 +29,13 @@
                     {{end}}
                 </main>
                 <div class="chat-input">
-                    <sl-input filled placeholder="Write to {{.Group.Id}}"></sl-input>
+                    <div id="send-message-error"></div>
+                    <form id="send-message-form" hx-post="/groups/{{.Group.Id}}/messages/create" hx-target="#send-message-error" hx-swap="innerHTML">
+                        <sl-input filled placeholder="Write to {{.Group.Nick}}" name="content"></sl-input>
+                        <sl-button title="Send" variant="text" form="send-message-form" type="submit">
+                            <sl-icon name="send"></sl-icon>
+                        </sl-button>
+                    </form>
                 </div>
             </div>
             <div id="sidebar-left" class="chat-sidebar">

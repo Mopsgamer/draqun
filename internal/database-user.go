@@ -240,7 +240,7 @@ func (db Database) MessageCreate(message model.Message) *uint64 {
 			content,
 			created_at
 		)
-    	VALUES (?, ?, ?, ?, ?)`
+    	VALUES (?, ?, ?, ?)`
 	_, err := db.Sql.Exec(query,
 		message.GroupId,
 		message.AuthorId,

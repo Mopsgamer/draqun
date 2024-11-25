@@ -4,7 +4,8 @@ import (
 	"time"
 )
 
-const MessageContentMaxLength int = 8000
+const ContentMaxLength int = 8000
+const ContentMaxLengthString string = "8000"
 
 type Message struct {
 	Id        uint64    `db:"id"`

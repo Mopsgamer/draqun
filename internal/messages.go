@@ -1,6 +1,8 @@
 package internal
 
-import "restapp/internal/model"
+import (
+	"restapp/internal/model"
+)
 
 const (
 	MessageFatalDatabaseQuery   = "Fatal database error."
@@ -25,7 +27,7 @@ const (
 	MessageErrGroupPassword                 = "Invalid group password pattern. You can leave this field empty. " + MessageDetailGroupPassword
 	MessageErrGroupDescription              = "Invalid group description. " + MessageDetailGroupDescription
 	MessageErrGroupMode                     = "Invalid group mode. " + MessageDetailGroupMode
-	MessageErrMessageContent                = "The message is too long."
+	MessageErrMessageContent                = "The message must be between 1 and " + model.ContentMaxLengthString + " characters long."
 	MessageErrNotGroupMember                = "Not a member of the group."
 	MessageErrInvalidRequest                = "Invalid request payload."
 	MessageErrPassword                      = "Invalid password pattern. " + MessageDetailUserPassword

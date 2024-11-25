@@ -1,7 +1,7 @@
 package model
 
 const (
-	RegexpMessageContent = `^.{1,8000}$`
+	RegexpMessageContent = `^.+$`
 )
 
 func IsValidMessageContent(text string) bool {

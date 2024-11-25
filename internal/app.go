@@ -84,6 +84,7 @@ func NewApp() (*fiber.App, error) {
 	app.Post("/account/create", UseResponder(func(r Responder) error { return r.UserSignUp() }))
 	app.Post("/account/login", UseResponder(func(r Responder) error { return r.UserLogin() }))
 	app.Post("/groups/create", UseResponder(func(r Responder) error { return r.GroupCreate() }))
+	app.Post("/groups/:group_id/messages/create", UseResponder(func(r Responder) error { return r.MessageCreate() }))
 
 	// put
 	app.Put("/account/change/name", UseResponder(func(r Responder) error { return r.UserChangeName() }))

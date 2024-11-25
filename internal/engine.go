@@ -46,6 +46,8 @@ func NewAppHtmlEngine(db *Database) *html.Engine {
 		"hide": func(text string) string {
 			return strings.Repeat("*", len(text))
 		},
+
+		// TODO: implement cache
 		"memberOf":   db.UserGroupList,
 		"membersOf":  db.GroupMemberList,
 		"messagesOf": db.GroupMessageList,

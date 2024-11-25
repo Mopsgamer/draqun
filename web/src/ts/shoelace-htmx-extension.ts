@@ -1,5 +1,5 @@
 import htmx from "htmx.org";
-import type { SlInput, SlRadioGroup, SlRating } from "@shoelace-style/shoelace";
+import { getFormControls } from "@shoelace-style/shoelace";
 
 htmx.defineExtension("shoelace", {
     onEvent(name, evt) {
@@ -17,27 +17,8 @@ htmx.defineExtension("shoelace", {
 
         const form = evt.detail.elt as HTMLFormElement;
 
-        const slElementList = Array.from(
-            form.querySelectorAll("[name]"),
-        ) as Array<(SlRadioGroup | SlRating | SlInput) & HTMLFormElement>;
-
-        for (const slElement of slElementList) {
-            const isDisabled = slElement.disabled ||
-                slElement.closest("[disabled]:not([disabled=false])");
+        for (const slElement of getFormControls(form) as HTMLFormElement[]) {
             const { name, value } = slElement;
-
-            if (isDisabled) {
-                console.log("Form data skip (disabled): %o", name);
-                continue;
-            }
-
-            if (!name) {
-                console.error(
-                    "Form shoelace element does not have the 'name' attribute, but enabled: %o",
-                    slElement,
-                );
-                continue;
-            }
 
             console.log("Form data set: %o %o", name, value);
             evt.detail.parameters[name] = value;

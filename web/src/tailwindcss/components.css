@@ -55,28 +55,43 @@
     .chat-body {
         @apply flex flex-col w-full h-full p-4;
         .chat-input {
-            @apply aligned w-full p-4 pb-12;
-            sl-input {
-                --sl-input-filled-background-color: var(--sl-color-neutral-200);
-                --sl-input-filled-background-color-focus: var(--sl-color-neutral-0);
-                --sl-input-filled-background-color-hover: var(--sl-color-neutral-300);
-                @apply w-full;
+            @apply aligned flex-col w-full p-4 pb-12;
+            form {
+                @apply aligned flex-row w-full;
+                sl-input {
+                    --sl-input-filled-background-color: var(--sl-color-neutral-200);
+                    --sl-input-filled-background-color-focus: var(--sl-color-neutral-0);
+                    --sl-input-filled-background-color-hover: var(--sl-color-neutral-300);
+                    @apply w-full;
+                }
+            }
+        }
+        .message {
+            @apply rounded-md p-2 bg-n0 flex flex-col gap-1;
+            .prefix {
+                sl-format-date {
+                    @apply text-neutral-500;
+                }
+            }
+            .text {
+                @apply ml-[2.25rem]
             }
         }
     }
 
     .chat-sidebar {
         @apply bg-n100 flex flex-col p-3 gap-1 h-full w-56 visible max-[420px]:hidden;
-    }
-
-    .tiny-divider {
-        @apply aligned p-1 text-blue-300;
-    }
-
-    .member {
-        @apply tiny-divider aligned bg-n50 p-1 rounded-md opacity-90 select-none text-blue-300;
-        .text {
-            @apply w-full;
+        .tiny-divider, .member {
+            @apply aligned p-1;
+        }
+        .tiny-divider {
+            @apply text-blue-300;
+        }
+        .member {
+            @apply bg-black/[.1] rounded-md select-none text-blue-300;
+            .text {
+                @apply w-full;
+            }
         }
     }
 }

@@ -1,7 +1,10 @@
-<div class="flex flex-col gap-1">
-    <div class="flex flex-row">
-        <span>{{.AuthorId}}</span>
+{{$author := userById .AuthorId}}
+<div class="message">
+    <div class="prefix">
+        <sl-avatar style="--size: 2rem"></sl-avatar>
+        <span>{{$author.Nick}}</span>
+        <sl-format-date hour="numeric" minute="numeric" year="numeric" month="long" day="numeric" date="{{.CreatedAt}}"></sl-format-date>
     </div>
-    <div>{{.Content}}</div>
+    <div class="text">{{.Content}}</div>
     <!-- use <area> if you implementing hyperlink previews -->
 </div>

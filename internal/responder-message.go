@@ -9,10 +9,12 @@ import (
 )
 
 func (r Responder) MessageCreate() error {
-	id := "message-send-error"
 	req := new(model_request.MessageCreate)
 	if err := r.Bind().URI(req); err != nil {
-		return r.RenderDanger(MessageErrInvalidRequest, id)
+		return r.SendString(MessageErrInvalidRequest)
+	}
+	if err := r.Bind().Form(req); err != nil {
+		return r.SendString(MessageErrInvalidRequest)
 	}
 
 	user, _ := r.User()
@@ -22,16 +24,16 @@ func (r Responder) MessageCreate() error {
 
 	message := req.Message(user.Id)
 	if r.DB.GroupMemberById(message.GroupId, message.AuthorId) == nil {
-		return r.RenderDanger(MessageErrNotGroupMember, id)
+		return r.SendString(MessageErrNotGroupMember)
 	}
 
 	if !model.IsValidMessageContent(message.Content) {
-		return r.RenderWarning(MessageErrMessageContent+" Length: "+strconv.Itoa(len(message.Content))+"/"+strconv.Itoa(model.MessageContentMaxLength), id)
+		return r.SendString(MessageErrMessageContent + " Length: " + strconv.Itoa(len(message.Content)) + "/" + model.ContentMaxLengthString)
 	}
 
 	messageId := r.DB.MessageCreate(*message)
 	if messageId == nil {
-		return r.RenderDanger(MessageFatalDatabaseQuery, id)
+		return r.SendString(MessageFatalDatabaseQuery)
 	}
 
 	return r.SendStatus(fiber.StatusOK)
