@@ -8,11 +8,11 @@ import (
 
 func (r Responder) MessageCreate() error {
 	req := new(model_request.MessageCreate)
-	if err := r.Bind().URI(req); err != nil {
-		return r.SendString(MessageErrInvalidRequest)
+	if err := r.Ctx.Bind().URI(req); err != nil {
+		return r.Ctx.SendString(MessageErrInvalidRequest)
 	}
-	if err := r.Bind().Form(req); err != nil {
-		return r.SendString(MessageErrInvalidRequest)
+	if err := r.Ctx.Bind().Form(req); err != nil {
+		return r.Ctx.SendString(MessageErrInvalidRequest)
 	}
 
 	user, _ := r.User()
@@ -22,17 +22,17 @@ func (r Responder) MessageCreate() error {
 
 	message := req.Message(user.Id)
 	if r.DB.GroupMemberById(message.GroupId, message.AuthorId) == nil {
-		return r.SendString(MessageErrNotGroupMember)
+		return r.Ctx.SendString(MessageErrNotGroupMember)
 	}
 
 	if !model.IsValidMessageContent(message.Content) {
-		return r.SendString(MessageErrMessageContent + " Length: " + strconv.Itoa(len(message.Content)) + "/" + model.ContentMaxLengthString)
+		return r.Ctx.SendString(MessageErrMessageContent + " Length: " + strconv.Itoa(len(message.Content)) + "/" + model.ContentMaxLengthString)
 	}
 
 	messageId := r.DB.MessageCreate(*message)
 	if messageId == nil {
-		return r.SendString(MessageFatalDatabaseQuery)
+		return r.Ctx.SendString(MessageFatalDatabaseQuery)
 	}
 
-	return r.SendString("")
+	return r.Ctx.SendString("")
 }

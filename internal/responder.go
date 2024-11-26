@@ -1,8 +1,17 @@
 package internal
 
-import "github.com/gofiber/fiber/v3"
+import (
+	"restapp/websocket"
+
+	"github.com/gofiber/fiber/v3"
+)
 
 type Responder struct {
-	fiber.Ctx
-	DB Database
+	Ctx fiber.Ctx
+	DB  Database
+}
+
+type ResponderWS struct {
+	Responder
+	WS websocket.Conn
 }

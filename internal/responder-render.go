@@ -13,13 +13,13 @@ func (r Responder) RenderPage(templatePath string, bind *fiber.Map, redirect Red
 	bindx := r.PageMap(bind)
 	if redirect != nil {
 		if path := redirect(r, bind); path != "" {
-			return r.Redirect().To(path)
+			return r.Ctx.Redirect().To(path)
 		}
 	}
 	if title, ok := (*bind)["Title"].(string); ok {
 		bindx["Title"] = "Restapp - " + title
 	}
-	return r.Render(templatePath, bindx, layouts...)
+	return r.Ctx.Render(templatePath, bindx, layouts...)
 }
 
 func (r *Responder) PageMap(bind *fiber.Map) fiber.Map {
@@ -46,7 +46,7 @@ func (r *Responder) PageMap(bind *fiber.Map) fiber.Map {
 
 // Renders the danger message html element.
 func (r Responder) RenderDanger(message, id string) error {
-	return r.Render("partials/danger", fiber.Map{
+	return r.Ctx.Render("partials/danger", fiber.Map{
 		"Id":      id,
 		"Message": message,
 	})
@@ -54,7 +54,7 @@ func (r Responder) RenderDanger(message, id string) error {
 
 // Renders the warning message html element.
 func (r Responder) RenderWarning(message, id string) error {
-	return r.Render("partials/warning", fiber.Map{
+	return r.Ctx.Render("partials/warning", fiber.Map{
 		"Id":      id,
 		"Message": message,
 	})
@@ -62,7 +62,7 @@ func (r Responder) RenderWarning(message, id string) error {
 
 // Renders the success message html element.
 func (r Responder) RenderSuccess(message, id string) error {
-	return r.Render("partials/success", fiber.Map{
+	return r.Ctx.Render("partials/success", fiber.Map{
 		"Id":      id,
 		"Message": message,
 	})

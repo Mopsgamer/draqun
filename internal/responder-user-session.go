@@ -14,7 +14,7 @@ import (
 func (r Responder) UserSignUp() error {
 	id := "signup-error"
 	req := new(model_request.UserSignUp)
-	err := r.Bind().Form(req)
+	err := r.Ctx.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
@@ -71,7 +71,7 @@ func (r Responder) UserSignUp() error {
 func (r Responder) UserLogin() error {
 	id := "login-error"
 	req := new(model_request.UserLogin)
-	err := r.Bind().Form(req)
+	err := r.Ctx.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
@@ -99,21 +99,21 @@ func (r Responder) UserLogin() error {
 
 // Sets the cookie through the request.
 func (r Responder) UserLogout() error {
-	r.Cookie(&fiber.Cookie{
+	r.Ctx.Cookie(&fiber.Cookie{
 		Name:    "Authorization",
 		Value:   "",
 		Expires: time.Now(),
 	})
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
-	return r.Render("partials/redirecting", fiber.Map{})
+	return r.Ctx.Render("partials/redirecting", fiber.Map{})
 }
 
 // Uses the form request information.
 func (r Responder) UserChangeName() error {
 	id := "change-name-error"
 	req := new(model_request.UserChangeName)
-	err := r.Bind().Form(req)
+	err := r.Ctx.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
@@ -154,7 +154,7 @@ func (r Responder) UserChangeName() error {
 func (r Responder) UserChangeEmail() error {
 	id := "change-email-error"
 	req := new(model_request.UserChangeEmail)
-	err := r.Bind().Form(req)
+	err := r.Ctx.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
@@ -198,7 +198,7 @@ func (r Responder) UserChangeEmail() error {
 func (r Responder) UserChangePhone() error {
 	id := "change-phone-error"
 	req := new(model_request.UserChangePhone)
-	err := r.Bind().Form(req)
+	err := r.Ctx.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
@@ -235,7 +235,7 @@ func (r Responder) UserChangePhone() error {
 func (r Responder) UserChangePassword() error {
 	id := "change-password-error"
 	req := new(model_request.UserChangePassword)
-	err := r.Bind().Form(req)
+	err := r.Ctx.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
@@ -275,7 +275,7 @@ func (r Responder) UserChangePassword() error {
 func (r Responder) UserDelete() error {
 	id := "account-delete-error"
 	req := new(model_request.UserDelete)
-	err := r.Bind().Form(req)
+	err := r.Ctx.Bind().Form(req)
 	if err != nil {
 		return r.RenderWarning(MessageErrInvalidRequest, id)
 	}
@@ -307,7 +307,7 @@ func (r Responder) UserDelete() error {
 		return r.RenderDanger(MessageFatalDatabaseQuery, id)
 	}
 
-	r.Cookie(&fiber.Cookie{
+	r.Ctx.Cookie(&fiber.Cookie{
 		Name:    "Authorization",
 		Value:   "",
 		Expires: time.Now(),
@@ -325,7 +325,7 @@ func (r Responder) GiveToken(errorElementId string, user model.User) error {
 		return r.RenderDanger(MessageFatalTokenGeneration, errorElementId)
 	}
 
-	r.Cookie(&fiber.Cookie{
+	r.Ctx.Cookie(&fiber.Cookie{
 		Name:    "Authorization",
 		Value:   "Bearer " + token,
 		Expires: time.Now().Add(model.UserTokenExpiration),

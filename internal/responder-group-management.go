@@ -8,7 +8,7 @@ import (
 func (r Responder) GroupCreate() error {
 	id := "new-group-error"
 	req := new(model_request.GroupCreate)
-	if err := r.Bind().Form(req); err != nil {
+	if err := r.Ctx.Bind().Form(req); err != nil {
 		return r.RenderDanger(MessageErrInvalidRequest, id)
 	}
 
@@ -67,7 +67,7 @@ func (r Responder) GroupCreate() error {
 func (r Responder) GroupDelete() error {
 	id := "group-delete-error"
 	req := new(model_request.GroupDelete)
-	if err := r.Bind().URI(req); err != nil {
+	if err := r.Ctx.Bind().URI(req); err != nil {
 		return r.RenderDanger(MessageErrInvalidRequest, id)
 	}
 
@@ -92,7 +92,7 @@ func (r Responder) GroupDelete() error {
 func (r Responder) GroupLeave() error {
 	id := "group-leave-error"
 	req := new(model_request.GroupLeave)
-	if err := r.Bind().URI(req); err != nil {
+	if err := r.Ctx.Bind().URI(req); err != nil {
 		return r.RenderDanger(MessageErrInvalidRequest, id)
 	}
 

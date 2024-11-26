@@ -2,6 +2,7 @@ package internal
 
 import (
 	"restapp/internal/environment"
+	"restapp/websocket"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
@@ -22,7 +23,24 @@ func NewApp() (*fiber.App, error) {
 
 	UseResponder := func(handler func(r Responder) error) fiber.Handler {
 		return func(c fiber.Ctx) error {
-			return handler(Responder{c, *db})
+			responder := Responder{c, *db}
+			if websocket.IsWebSocketUpgrade(c) {
+				return c.Next()
+			}
+			return handler(responder)
+		}
+	}
+
+	UseResponderWS := func(handler func(r ResponderWS) error) fiber.Handler {
+		return func(c fiber.Ctx) error {
+			responder := Responder{c, *db}
+			if websocket.IsWebSocketUpgrade(c) {
+				return websocket.New(func(c *websocket.Conn) {
+					responderWS := ResponderWS{Responder: responder, WS: *c}
+					handler(responderWS)
+				})(c)
+			}
+			return c.Next()
 		}
 	}
 
@@ -103,6 +121,19 @@ func NewApp() (*fiber.App, error) {
 	// https://docs.gofiber.io/contrib/next/websocket/
 	// TODO: ws - update messages
 	// TODO: ws - update members
+	app.Get("/", UseResponderWS(func(r ResponderWS) error {
+		for {
+			_, message, err := r.WS.ReadMessage()
+			if err != nil {
+				log.Error(err)
+				break
+			}
+
+			log.Info("WS message: ", string(message))
+		}
+
+		return r.Ctx.Next()
+	}))
 
 	app.Use(UsePage("partials/x", &fiber.Map{
 		"Title":         strconv.Itoa(fiber.StatusNotFound),

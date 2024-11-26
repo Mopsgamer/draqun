@@ -7,22 +7,22 @@ import (
 
 // Otherwise json, graphql or something.
 func (r Responder) IsHTMX() bool {
-	return r.Get("HX-Request") == "true"
+	return r.Ctx.Get("HX-Request") == "true"
 }
 
 // Call it instead of Redirect().To().
 func (r Responder) HTMXRedirect(to string) {
-	r.Set("HX-Redirect", to)
+	r.Ctx.Set("HX-Redirect", to)
 }
 
 // Refresh the page.
 func (r Responder) HTMXRefresh() {
-	r.Set("HX-Refresh", "true")
+	r.Ctx.Set("HX-Refresh", "true")
 }
 
 // Get /path/to#element?key=val
 func (r Responder) HTMXCurrentURL() string {
-	return r.Get("HX-Current-URL")
+	return r.Ctx.Get("HX-Current-URL")
 }
 
 // Get #element

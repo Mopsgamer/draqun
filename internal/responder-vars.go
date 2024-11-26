@@ -13,7 +13,7 @@ import (
 
 // Get the owner of the request using the "Authorization" header.
 func (r Responder) User() (user *model.User, tokenErr error) {
-	authHeader := r.Cookies("Authorization")
+	authHeader := r.Ctx.Cookies("Authorization")
 	if authHeader == "" {
 		return nil, nil
 	}
@@ -65,7 +65,7 @@ func (r Responder) User() (user *model.User, tokenErr error) {
 
 func (r Responder) Group() *model.Group {
 	groupUri := new(model_request.GroupUri)
-	if err := r.Bind().URI(groupUri); err != nil {
+	if err := r.Ctx.Bind().URI(groupUri); err != nil {
 		log.Error(err)
 	} else if groupUri.GroupId != nil {
 		group := r.DB.GroupById(*groupUri.GroupId)
