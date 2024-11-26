@@ -11,7 +11,7 @@
 <body hx-ext="shoelace">
     {{template "partials/settings-dialog" .}}
     {{template "partials/new-group-dialog" .}}
-    <div class="flex flex-col h-full">
+    <div class="flex flex-col h-full overflow-hidden">
         <header id="header" class="p-4 bg-n200 flex justify-between">
             <nav class="flex items-center text-xl">
                 <!-- TODO: implement header panel with servers, friends and settings -->
@@ -20,16 +20,25 @@
                 {{template "partials/avatar-context-menu" .}}
             </nav>
         </header>
-        <div id="content" class="bg-n50 flex flex-row h-full">
+        <div id="content" class="bg-n50 flex flex-row h-full overflow-hidden">
             {{if ne .Group nil}}
-            <div id="chat" class="chat-body">
-                <main id="chat" class="chat-body">
+            <div class="chat-body">
+                <main id="chat">
+                    {{$lastDate := mindate}}
+                    {{$lastAuthorId := 0}}
                     {{range $i, $message := messagesOf .Group.Id}}
+                    {{$sameAuthor := eq $lastAuthorId $message.AuthorId}}
+                    {{if $sameAuthor}}
+                    {{$sameDate := timeAfter (timeAddMinutes $lastDate 5) $message.CreatedAt}}
+                    <div class="join {{if $sameDate}}date{{end}}"></div>
+                    {{if not $sameDate}}{{$lastDate = $message.CreatedAt}}{{end}}
+                    {{end}}
                     {{template "partials/message" $message}}
+                    {{$lastAuthorId = $message.AuthorId}}
                     {{end}}
                 </main>
                 <div class="chat-input">
-                    <div id="send-message-error"></div>
+                    <div id="send-message-error" class="h-line"></div>
                     <form id="send-message-form" hx-post="/groups/{{.Group.Id}}/messages/create" hx-target="#send-message-error" hx-swap="innerHTML">
                         <sl-input filled placeholder="Write to {{.Group.Nick}}" name="content"></sl-input>
                         <sl-button title="Send" variant="text" form="send-message-form" type="submit">

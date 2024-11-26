@@ -2,7 +2,7 @@
 <div class="message">
     <div class="prefix">
         <sl-avatar style="--size: 2rem"></sl-avatar>
-        <span>{{$author.Nick}}</span>
+        <span class="nickname">{{$author.Nick}}</span>
         <sl-format-date hour="numeric" minute="numeric" year="numeric" month="long" day="numeric" date="{{.CreatedAt}}"></sl-format-date>
     </div>
     <div class="text">{{.Content}}</div>

@@ -1,12 +1,17 @@
 @tailwind components;
 
 @layer components {
+    .h-line:empty::after {
+        content: ".";
+        visibility: hidden;
+    }
+
     form, .column {
         @apply flex flex-col gap-4;
     }
 
     .aligned {
-        @apply flex items-center gap-2;
+        @apply relative flex items-center gap-2;
     }
 
     .anchor-header {
@@ -53,28 +58,61 @@
     }
 
     .chat-body {
-        @apply flex flex-col w-full h-full p-4;
-        .chat-input {
-            @apply aligned flex-col w-full p-4 pb-12;
-            form {
-                @apply aligned flex-row w-full;
-                sl-input {
-                    --sl-input-filled-background-color: var(--sl-color-neutral-200);
-                    --sl-input-filled-background-color-focus: var(--sl-color-neutral-0);
-                    --sl-input-filled-background-color-hover: var(--sl-color-neutral-300);
-                    @apply w-full;
-                }
-            }
+        @apply flex flex-col w-full h-full p-1;
+    }
+
+    #chat {
+        @apply flex flex-col w-full h-full p-1 pb-6 overflow-y-auto overflow-x-hidden;
+        .join {
+            @apply absolute hidden;
         }
         .message {
-            @apply rounded-md p-2 bg-n0 flex flex-col gap-1;
+            @apply bg-n0 flex flex-col max-w-full rounded-md p-2 gap-1;
+            & > * {
+                @apply w-full;
+            }
             .prefix {
+                .nickname {
+                    @apply text-blue-500;
+                }
                 sl-format-date {
                     @apply text-neutral-500;
                 }
             }
             .text {
-                @apply ml-[2.25rem]
+                @apply ml-[2.25rem];
+            }
+        }
+        .join + .message {
+            @apply rounded-t-none;
+            .prefix {
+                .join.date {
+                    @apply hidden;
+                }
+            }
+        }
+        .join.date + .message {
+            .prefix {
+                @apply hidden;
+            }
+        }
+        .message:has(~ .join) {
+            @apply rounded-b-none;
+        }
+        .message + .message {
+            @apply mt-2;
+        }
+    }
+
+    .chat-input {
+        @apply aligned flex-col w-full p-4 pb-12 h-1/5;
+        form {
+            @apply aligned flex-row w-full;
+            sl-input {
+                --sl-input-filled-background-color: var(--sl-color-neutral-200);
+                --sl-input-filled-background-color-focus: var(--sl-color-neutral-0);
+                --sl-input-filled-background-color-hover: var(--sl-color-neutral-300);
+                @apply w-full;
             }
         }
     }

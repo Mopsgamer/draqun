@@ -1,21 +1,33 @@
 import htmx from "htmx.org";
-import { getFormControls } from "@shoelace-style/shoelace";
+import { getFormControls, SlButton } from "@shoelace-style/shoelace";
 
 htmx.defineExtension("shoelace", {
     onEvent(name, evt) {
-        if (name === "htmx:configRequest") {
-            console.group("HTMX event: %s", name);
-        } else {
-            console.log("HTMX event: %s", name);
+        console.log(name)
+        if (name === "htmx:beforeSend"|| name === "htmx:afterRequest") {
+            const form = evt.target;
+            let button: SlButton | undefined
+            if (form instanceof SlButton) {
+                button = form
+            } else if (form instanceof HTMLFormElement) {
+                button = form.querySelector<SlButton>('sl-button[type=submit]') ?? undefined
+            }
+
+            if (!button) {
+                return;
+            }
+            button.loading = name === "htmx:beforeSend"
+            return;
+        }
+        if (name !== "htmx:configRequest") {
             return;
         }
 
-        if (!(evt.detail.elt instanceof HTMLFormElement)) {
+        const form = evt.detail.elt;
+        if (!(form instanceof HTMLFormElement)) {
             console.groupEnd();
             return;
         }
-
-        const form = evt.detail.elt as HTMLFormElement;
 
         for (const slElement of getFormControls(form) as HTMLFormElement[]) {
             const { name, value } = slElement;

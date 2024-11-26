@@ -5,6 +5,7 @@ import (
 	"restapp/internal/model"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/gofiber/template/html/v2"
@@ -36,6 +37,18 @@ func NewAppHtmlEngine(db *Database) *html.Engine {
 				before = strings.Repeat("*", len(before))
 			}
 			return before + after
+		},
+		"mindate": func() time.Time {
+			return time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC)
+		},
+		"timeAddMinutes": func(t time.Time, mins time.Duration) time.Time {
+			return t.Add(time.Minute * mins)
+		},
+		"timeBefore": func(t time.Time, u time.Time) bool {
+			return t.Before(u)
+		},
+		"timeAfter": func(t time.Time, u time.Time) bool {
+			return t.After(u)
 		},
 		"hidePhone": func(text string) string {
 			if len(text) > 5 {

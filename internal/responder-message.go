@@ -4,8 +4,6 @@ import (
 	"restapp/internal/model"
 	"restapp/internal/model_request"
 	"strconv"
-
-	"github.com/gofiber/fiber/v3"
 )
 
 func (r Responder) MessageCreate() error {
@@ -36,5 +34,5 @@ func (r Responder) MessageCreate() error {
 		return r.SendString(MessageFatalDatabaseQuery)
 	}
 
-	return r.SendStatus(fiber.StatusOK)
+	return r.SendString("")
 }
