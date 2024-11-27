@@ -4,18 +4,12 @@ import (
 	"errors"
 	"restapp/internal/environment"
 	"restapp/websocket"
-	"slices"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/static"
-)
-
-var (
-	// A websocket connection list for each user id.
-	WebsocketConnections = map[uint64]([]*ResponderWebsocket){}
 )
 
 // Initialize gofiber application, including DB and view engine.
@@ -42,31 +36,27 @@ func NewApp() (*fiber.App, error) {
 		return func(c fiber.Ctx) error {
 			responder := Responder{c, *db}
 			if websocket.IsWebSocketUpgrade(c) {
-				user, err := responder.User()
+				user, _ := responder.User()
 				if user == nil {
-					return err
+					return responder.RenderWarning(MessageErrUserNotFound, "ws-error")
 				}
 
 				return websocket.New(func(c *websocket.Conn) {
-					responderWS := &ResponderWebsocket{
+					responderWS := ResponderWebsocket{
 						Responder: responder,
 						WS:        *c,
 						Accept:    acceptWrite,
 					}
-					s := WebsocketConnections[user.Id]
-					s = append(s, responderWS)
-					defer func() {
-						i := slices.Index(s, responderWS)
-						WebsocketConnections[user.Id] = slices.Delete(s, i, i+1)
-					}()
-					for {
+					WebsocketConnections.UserConnect(user.Id, &responderWS)
+					defer WebsocketConnections.UserDisconnect(user.Id, &responderWS)
+					for !responderWS.Closed {
 						messageType, message, err := responderWS.WS.ReadMessage()
 						if err != nil {
-							log.Error(err)
+							log.Info(err)
 							break
 						}
 
-						err = handlerRead(*responderWS, messageType, message)
+						err = handlerRead(responderWS, messageType, message)
 						if err != nil {
 							log.Error(err)
 							break
@@ -157,13 +147,14 @@ func NewApp() (*fiber.App, error) {
 		func(r ResponderWebsocket, template string, bind any) (bool, error) {
 			group := r.Group()
 			if group == nil {
-				return false, errors.New("group " + r.Ctx.Params("group_id") + " not found")
+				return false, errors.New("group " + r.WS.Params("group_id") + " not found")
 			}
 
 			if template != "partials/message" {
 				return false, nil
 			}
 
+			// HACK: user should be a member and have read permissions
 			return true, nil
 		},
 		func(r ResponderWebsocket, messageType int, message []byte) error {
@@ -174,9 +165,10 @@ func NewApp() (*fiber.App, error) {
 		func(r ResponderWebsocket, template string, bind any) (bool, error) {
 			group := r.Group()
 			if group == nil {
-				return false, errors.New("group " + r.Ctx.Params("group_id") + " not found")
+				return false, errors.New("group " + r.WS.Params("group_id") + " not found")
 			}
 
+			// HACK: user should be a member and have read permissions
 			if template != "partials/group-member" {
 				return false, nil
 			}

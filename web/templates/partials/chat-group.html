@@ -1,0 +1,27 @@
+<div class="chat-body">
+    <main id="chat" hx-ws="connect:/groups/{{.Group.Id}}/messages" hx-target="this" hx-swap="beforeend">
+        {{$lastDate := mindate}}
+        {{$lastAuthorId := 0}}
+        {{range $i, $message := messagesOf .Group.Id}}
+        {{$sameAuthor := eq $lastAuthorId $message.AuthorId}}
+        {{if $sameAuthor}}
+        {{$sameDate := timeAfter (timeAddMinutes $lastDate 5) $message.CreatedAt}}
+        <div class="join {{if $sameDate}}date{{end}}"></div>
+        {{if not $sameDate}}{{$lastDate = $message.CreatedAt}}{{end}}
+        {{end}}
+        {{template "partials/message" $message}}
+        {{$lastAuthorId = $message.AuthorId}}
+        {{end}}
+    </main>
+    {{template "partials/chat-input" .}}
+</div>
+<div id="sidebar-left" class="chat-sidebar" hx-ws="connect:/groups/{{.Group.Id}}/users" hx-target="this" hx-swap="beforeend">
+    {{$memberList := membersOf .Group.Id}}
+    <div class="tiny-divider">
+        Member count - {{len $memberList}}
+    </div>
+    {{range $i, $member := $memberList}}
+    {{if gt $i 100}}{{break}}{{end}}
+    {{template "partials/group-member" $member}}
+    {{end}}
+</div>

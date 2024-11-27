@@ -60,12 +60,12 @@ func NewAppHtmlEngine(db *Database) *html.Engine {
 			return strings.Repeat("*", len(text))
 		},
 
-		// TODO: implement cache
+		// FIXME: implement cache
 		"isOnline": func(user *model.User) bool {
 			if user == nil {
 				return false
 			}
-			return len(WebsocketConnections[user.Id]) > 0
+			return len(*WebsocketConnections.Users) > 0
 		},
 		"memberOf":   db.UserGroupList,
 		"membersOf":  db.GroupMemberList,

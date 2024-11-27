@@ -9,11 +9,11 @@ import (
 // Should return redirect path or empty string.
 type RedirectLogic func(r Responder, bind *fiber.Map) string
 
-func (r Responder) RenderBuffer(template string, bind any) *bytes.Buffer {
+func (r Responder) RenderBuffer(template string, bind any) (bytes.Buffer, error) {
 	buf := bytes.NewBuffer([]byte{})
-	r.Ctx.App().Config().Views.Render(buf, template, bind)
+	err := r.Ctx.App().Config().Views.Render(buf, template, bind)
 
-	return buf
+	return *buf, err
 }
 
 // Render a page using a template.

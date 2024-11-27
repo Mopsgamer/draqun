@@ -1,43 +1,56 @@
-import htmx from "htmx.org";
+import { defineExtension } from "htmx.org";
 import { getFormControls, SlButton } from "@shoelace-style/shoelace";
 
-htmx.defineExtension("shoelace", {
-    onEvent(name, evt) {
-        console.log(name)
-        if (name === "htmx:beforeSend"|| name === "htmx:afterRequest") {
-            const form = evt.target;
-            let button: SlButton | undefined
+defineExtension("shoelace", {
+    onEvent(
+        name: string,
+        event:
+            | Event
+            | CustomEvent<
+                { elt: HTMLElement; parameters: Record<string, string> }
+            >,
+    ) {
+        console.log(name);
+        if (name === "htmx:beforeSend" || name === "htmx:afterRequest") {
+            const form = event.target;
+            let button: SlButton | undefined;
             if (form instanceof SlButton) {
-                button = form
+                button = form;
             } else if (form instanceof HTMLFormElement) {
-                button = form.querySelector<SlButton>('sl-button[type=submit]') ?? undefined
+                button =
+                    form.querySelector<SlButton>("sl-button[type=submit]") ??
+                        undefined;
             }
 
             if (!button) {
-                return;
+                return true;
             }
-            button.loading = name === "htmx:beforeSend"
-            return;
+            button.loading = name === "htmx:beforeSend";
+            return true;
         }
         if (name !== "htmx:configRequest") {
-            return;
+            return true;
         }
 
-        const form = evt.detail.elt;
+        if (!(event instanceof CustomEvent)) {
+            console.groupEnd();
+            return true;
+        }
+        const form = event.detail.elt;
         if (!(form instanceof HTMLFormElement)) {
             console.groupEnd();
-            return;
+            return true;
         }
 
         for (const slElement of getFormControls(form) as HTMLFormElement[]) {
             const { name, value } = slElement;
 
             console.log("Form data set: %o %o", name, value);
-            evt.detail.parameters[name] = value;
+            event.detail.parameters[name] = value;
         }
         console.log(
             "Event detail parameters (form data):",
-            evt.detail.parameters,
+            event.detail.parameters,
         );
 
         // Prevent form submission if one or more fields are invalid.
@@ -48,5 +61,6 @@ htmx.defineExtension("shoelace", {
             return false;
         }
         console.groupEnd();
+        return true;
     },
 });

@@ -64,6 +64,8 @@ func (r Responder) GroupCreate() error {
 	return r.RenderSuccess(MessageSuccCreatedGroup, id)
 }
 
+// TODO: implement group change
+
 func (r Responder) GroupDelete() error {
 	id := "group-delete-error"
 	req := new(model_request.GroupDelete)
@@ -90,7 +92,7 @@ func (r Responder) GroupDelete() error {
 }
 
 func (r Responder) GroupJoin(member model.Member) *uint64 {
-	for _, ws := range WebsocketConnections[member.UserId] {
+	for _, ws := range (*WebsocketConnections.Users)[member.UserId] {
 		ws.WebsocketRender("partials/group-member", member)
 	}
 
@@ -118,7 +120,7 @@ func (r Responder) GroupLeave() error {
 }
 
 func (r Responder) MessageSend(message model.Message) *uint64 {
-	for _, ws := range WebsocketConnections[message.AuthorId] {
+	for _, ws := range (*WebsocketConnections.Users)[message.AuthorId] {
 		ws.WebsocketRender("partials/message", message)
 	}
 

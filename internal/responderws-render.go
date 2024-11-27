@@ -22,8 +22,8 @@ func (r ResponderWebsocket) MapWebsocket(bind *fiber.Map) fiber.Map {
 // Create new websocket
 func (r ResponderWebsocket) WebsocketRender(template string, bind any) {
 	var bindx any
-	if b, ok := bind.(*fiber.Map); ok {
-		bindx = r.MapWebsocket(b)
+	if bindMap, ok := bind.(*fiber.Map); ok {
+		bindx = r.MapWebsocket(bindMap)
 	} else {
 		bindx = bind
 	}
@@ -31,20 +31,26 @@ func (r ResponderWebsocket) WebsocketRender(template string, bind any) {
 	accepted, err := r.Accept(r, template, bindx)
 	if err != nil {
 		log.Error(err)
-		buf := r.RenderBuffer("partials/danger", fiber.Map{
+		buf, err := r.RenderBuffer("partials/danger", fiber.Map{
 			"Id":      "ws-err",
 			"Message": err.Error(),
 		})
+		if err != nil {
+			log.Error(err)
+		}
 
 		r.WS.WriteMessage(websocket.CloseMessage, buf.Bytes())
-		r.WS.Close()
+		// r.WS.Close() // https://github.com/gofiber/contrib/issues/698
+		r.Closed = true // workaround
 		return
 	}
 	if !accepted {
 		return
 	}
 
-	buf := r.RenderBuffer(template, bindx)
-	log.Info(buf.String())
+	buf, err := r.RenderBuffer(template, bindx)
+	if err != nil {
+		log.Error(err)
+	}
 	r.WS.WriteMessage(websocket.TextMessage, buf.Bytes())
 }
