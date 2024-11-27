@@ -72,7 +72,10 @@ func (r Responder) Group() *model.Group {
 	groupUri := new(model_request.GroupUri)
 	if err := r.Ctx.Bind().URI(groupUri); err != nil {
 		log.Error(err)
-	} else if groupUri.GroupId != nil {
+		return nil
+	}
+
+	if groupUri.GroupId != nil {
 		group := r.DB.GroupById(*groupUri.GroupId)
 		return group
 	}

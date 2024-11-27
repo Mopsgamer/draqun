@@ -91,7 +91,7 @@ func (r Responder) GroupDelete() error {
 
 func (r Responder) GroupJoin(member model.Member) *uint64 {
 	for _, ws := range WebsocketConnections[member.UserId] {
-		ws.WebsocketRender("partials/group-member", nil)
+		ws.WebsocketRender("partials/group-member", member)
 	}
 
 	return r.DB.GroupMemberCreate(member)
@@ -119,7 +119,7 @@ func (r Responder) GroupLeave() error {
 
 func (r Responder) MessageSend(message model.Message) *uint64 {
 	for _, ws := range WebsocketConnections[message.AuthorId] {
-		ws.WebsocketRender("partials/message", nil)
+		ws.WebsocketRender("partials/message", message)
 	}
 
 	return r.DB.MessageCreate(message)

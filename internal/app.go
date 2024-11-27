@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"restapp/internal/environment"
 	"restapp/websocket"
 	"slices"
@@ -37,7 +38,7 @@ func NewApp() (*fiber.App, error) {
 		}
 	}
 
-	UseResponderWS := func(handlerRead func(r ResponderWebsocket, messageType int, message []byte) error) fiber.Handler {
+	UseWebsocket := func(acceptWrite func(r ResponderWebsocket, template string, bind any) (bool, error), handlerRead func(r ResponderWebsocket, messageType int, message []byte) error) fiber.Handler {
 		return func(c fiber.Ctx) error {
 			responder := Responder{c, *db}
 			if websocket.IsWebSocketUpgrade(c) {
@@ -47,7 +48,11 @@ func NewApp() (*fiber.App, error) {
 				}
 
 				return websocket.New(func(c *websocket.Conn) {
-					responderWS := &ResponderWebsocket{Responder: responder, WS: *c}
+					responderWS := &ResponderWebsocket{
+						Responder: responder,
+						WS:        *c,
+						Accept:    acceptWrite,
+					}
 					s := WebsocketConnections[user.Id]
 					s = append(s, responderWS)
 					defer func() {
@@ -148,7 +153,36 @@ func NewApp() (*fiber.App, error) {
 	app.Delete("/account/delete", UseResponder(func(r Responder) error { return r.UserDelete() }))
 
 	// websoket
-	app.Get("/account/:user_id", UseResponderWS(
+	app.Get("/groups/:group_id/messages", UseWebsocket(
+		func(r ResponderWebsocket, template string, bind any) (bool, error) {
+			group := r.Group()
+			if group == nil {
+				return false, errors.New("group " + r.Ctx.Params("group_id") + " not found")
+			}
+
+			if template != "partials/message" {
+				return false, nil
+			}
+
+			return true, nil
+		},
+		func(r ResponderWebsocket, messageType int, message []byte) error {
+			return nil
+		},
+	))
+	app.Get("/groups/:group_id/users", UseWebsocket(
+		func(r ResponderWebsocket, template string, bind any) (bool, error) {
+			group := r.Group()
+			if group == nil {
+				return false, errors.New("group " + r.Ctx.Params("group_id") + " not found")
+			}
+
+			if template != "partials/group-member" {
+				return false, nil
+			}
+
+			return true, nil
+		},
 		func(r ResponderWebsocket, messageType int, message []byte) error {
 			return nil
 		},

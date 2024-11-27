@@ -1,11 +1,20 @@
 package internal
 
 import (
+	"bytes"
+
 	"github.com/gofiber/fiber/v3"
 )
 
 // Should return redirect path or empty string.
 type RedirectLogic func(r Responder, bind *fiber.Map) string
+
+func (r Responder) RenderBuffer(template string, bind any) *bytes.Buffer {
+	buf := bytes.NewBuffer([]byte{})
+	r.Ctx.App().Config().Views.Render(buf, template, bind)
+
+	return buf
+}
 
 // Render a page using a template.
 // Special

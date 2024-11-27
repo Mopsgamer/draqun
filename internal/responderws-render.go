@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"bytes"
 	"restapp/websocket"
 
 	"github.com/gofiber/fiber/v3"
@@ -21,9 +20,31 @@ func (r ResponderWebsocket) MapWebsocket(bind *fiber.Map) fiber.Map {
 }
 
 // Create new websocket
-func (r ResponderWebsocket) WebsocketRender(template string, bind *fiber.Map) {
-	buf := bytes.NewBuffer([]byte{})
-	r.Ctx.App().Config().Views.Render(buf, template, r.MapWebsocket(bind))
+func (r ResponderWebsocket) WebsocketRender(template string, bind any) {
+	var bindx any
+	if b, ok := bind.(*fiber.Map); ok {
+		bindx = r.MapWebsocket(b)
+	} else {
+		bindx = bind
+	}
+
+	accepted, err := r.Accept(r, template, bindx)
+	if err != nil {
+		log.Error(err)
+		buf := r.RenderBuffer("partials/danger", fiber.Map{
+			"Id":      "ws-err",
+			"Message": err.Error(),
+		})
+
+		r.WS.WriteMessage(websocket.CloseMessage, buf.Bytes())
+		r.WS.Close()
+		return
+	}
+	if !accepted {
+		return
+	}
+
+	buf := r.RenderBuffer(template, bindx)
 	log.Info(buf.String())
 	r.WS.WriteMessage(websocket.TextMessage, buf.Bytes())
 }
