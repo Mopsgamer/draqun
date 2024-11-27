@@ -9,12 +9,18 @@ type Responder struct {
 	DB  Database
 }
 
-func (r Responder) Map(bind *fiber.Map) fiber.Map {
-	bindx := fiber.Map{}
-	if bind != nil {
-		for k, v := range *bind {
-			bindx[k] = v
+// Converts the pointer to the value
+func (r Responder) MapMerge(maps ...*fiber.Map) fiber.Map {
+	merge := fiber.Map{}
+	for _, m := range maps {
+		if m == nil {
+			continue
+		}
+
+		for k, v := range *m {
+			merge[k] = v
 		}
 	}
-	return bindx
+
+	return merge
 }

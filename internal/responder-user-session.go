@@ -63,8 +63,13 @@ func (r Responder) UserSignUp() error {
 		return r.RenderWarning(MessageFatalDatabaseQuery, id)
 	}
 
+	err = r.GiveToken(id, *user)
+	if err != nil {
+		return r.RenderWarning(MessageFatalTokenGeneration, id)
+	}
+
 	r.HTMXRedirect(r.HTMXCurrentPath())
-	return r.GiveToken(id, *user)
+	return nil
 }
 
 // Uses the form request information.
@@ -93,8 +98,13 @@ func (r Responder) UserLogin() error {
 		return r.RenderWarning(MessageErrBadPassword, id)
 	}
 
+	err = r.GiveToken(id, *user)
+	if err != nil {
+		return r.RenderWarning(MessageFatalTokenGeneration, id)
+	}
+
 	r.HTMXRedirect(r.HTMXCurrentPath())
-	return r.GiveToken(id, *user)
+	return nil
 }
 
 // Sets the cookie through the request.
@@ -322,7 +332,7 @@ func (r Responder) GiveToken(errorElementId string, user model.User) error {
 	token, err := user.GenerateToken()
 	if err != nil {
 		log.Error(err)
-		return r.RenderDanger(MessageFatalTokenGeneration, errorElementId)
+		return err
 	}
 
 	r.Ctx.Cookie(&fiber.Cookie{
@@ -330,5 +340,6 @@ func (r Responder) GiveToken(errorElementId string, user model.User) error {
 		Value:   "Bearer " + token,
 		Expires: time.Now().Add(model.UserTokenExpiration),
 	})
-	return r.RenderSuccess(MessageSuccLogin, errorElementId)
+
+	return nil
 }

@@ -45,7 +45,7 @@ func (r Responder) MapPage(bind *fiber.Map) fiber.Map {
 		bindx["Group"] = group
 	}
 
-	bindx = r.Map(bind)
+	bindx = r.MapMerge(&bindx, bind)
 	return bindx
 }
 
