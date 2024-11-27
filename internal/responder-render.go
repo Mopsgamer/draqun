@@ -10,7 +10,7 @@ type RedirectLogic func(r Responder, bind *fiber.Map) string
 // Render a page using a template.
 // Special
 func (r Responder) RenderPage(templatePath string, bind *fiber.Map, redirect RedirectLogic, layouts ...string) error {
-	bindx := r.PageMap(bind)
+	bindx := r.MapPage(bind)
 	if redirect != nil {
 		if path := redirect(r, bind); path != "" {
 			return r.Ctx.Redirect().To(path)
@@ -22,26 +22,22 @@ func (r Responder) RenderPage(templatePath string, bind *fiber.Map, redirect Red
 	return r.Ctx.Render(templatePath, bindx, layouts...)
 }
 
-func (r *Responder) PageMap(bind *fiber.Map) fiber.Map {
-	result := fiber.Map{}
+func (r Responder) MapPage(bind *fiber.Map) fiber.Map {
+	bindx := fiber.Map{}
 	if user, tokenErr := r.User(); user != nil {
-		result["User"] = user
+		bindx["User"] = user
 	} else if tokenErr != nil {
-		result["TokenError"] = true
-		result["Message"] = "Authorization error"
-		result["Id"] = "local-token-error"
+		bindx["TokenError"] = true
+		bindx["Message"] = "Authorization error"
+		bindx["Id"] = "local-token-error"
 	}
 
 	if group := r.Group(); group != nil {
-		result["Group"] = group
+		bindx["Group"] = group
 	}
 
-	if bind != nil {
-		for k, v := range *bind {
-			result[k] = v
-		}
-	}
-	return result
+	bindx = r.Map(bind)
+	return bindx
 }
 
 // Renders the danger message html element.

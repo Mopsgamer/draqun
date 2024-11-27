@@ -11,18 +11,28 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Get the owner of the request using the "Authorization" header.
-func (r Responder) User() (user *model.User, tokenErr error) {
+// Get owner of the request using the "Authorization" header.
+// If the owner not found, returns (nil, nil), without errors.
+// Automatically log-out and redirect to the home.
+func (r Responder) User() (user *model.User, err error) {
 	authHeader := r.Ctx.Cookies("Authorization")
 	if authHeader == "" {
 		return nil, nil
 	}
 
+	CatchTokenErr := func(err error) (*model.User, error) {
+		log.Error(err)
+		err = r.UserLogout()
+		if err != nil {
+			log.Error(err)
+		}
+
+		return nil, err
+	}
+
 	if len(authHeader) < 8 || authHeader[:7] != "Bearer " {
 		err := errors.New("invalid authorization format. Expected Authorization header: Bearer and the token string")
-		log.Error(err)
-		r.UserLogout()
-		return nil, err
+		return CatchTokenErr(err)
 	}
 
 	tokenString := authHeader[7:]
@@ -38,16 +48,12 @@ func (r Responder) User() (user *model.User, tokenErr error) {
 	})
 
 	if err != nil {
-		log.Error(err)
-		r.UserLogout()
-		return nil, err
+		return CatchTokenErr(err)
 	}
 
 	if !token.Valid {
 		err = errors.New("invalid token")
-		log.Error(err)
-		r.UserLogout()
-		return nil, err
+		return CatchTokenErr(err)
 	}
 
 	const prop = "Email"
@@ -55,14 +61,13 @@ func (r Responder) User() (user *model.User, tokenErr error) {
 	email, ok := claims[prop].(string)
 	if !ok {
 		err = fmt.Errorf("can not get claim property '"+prop+"'. Claims: %v", claims)
-		log.Error(err)
-		r.UserLogout()
-		return nil, err
+		return CatchTokenErr(err)
 	}
 
 	return r.DB.UserByEmail(email), nil
 }
 
+// Get group by the id from current URI.
 func (r Responder) Group() *model.Group {
 	groupUri := new(model_request.GroupUri)
 	if err := r.Ctx.Bind().URI(groupUri); err != nil {

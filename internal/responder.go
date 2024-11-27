@@ -1,8 +1,6 @@
 package internal
 
 import (
-	"restapp/websocket"
-
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -11,7 +9,12 @@ type Responder struct {
 	DB  Database
 }
 
-type ResponderWS struct {
-	Responder
-	WS websocket.Conn
+func (r Responder) Map(bind *fiber.Map) fiber.Map {
+	bindx := fiber.Map{}
+	if bind != nil {
+		for k, v := range *bind {
+			bindx[k] = v
+		}
+	}
+	return bindx
 }

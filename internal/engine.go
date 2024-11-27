@@ -61,6 +61,12 @@ func NewAppHtmlEngine(db *Database) *html.Engine {
 		},
 
 		// TODO: implement cache
+		"isOnline": func(user *model.User) bool {
+			if user == nil {
+				return false
+			}
+			return len(WebsocketConnections[user.Id]) > 0
+		},
 		"memberOf":   db.UserGroupList,
 		"membersOf":  db.GroupMemberList,
 		"messagesOf": db.GroupMessageList,

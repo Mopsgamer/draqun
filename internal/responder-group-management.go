@@ -56,7 +56,7 @@ func (r Responder) GroupCreate() error {
 		IsOwner:  true,
 		IsBanned: false,
 	}
-	if r.DB.GroupMemberCreate(*member) == nil {
+	if r.GroupJoin(*member) == nil {
 		return r.RenderDanger(MessageFatalDatabaseQuery, id)
 	}
 
@@ -89,6 +89,14 @@ func (r Responder) GroupDelete() error {
 	return nil
 }
 
+func (r Responder) GroupJoin(member model.Member) *uint64 {
+	for _, ws := range WebsocketConnections[member.UserId] {
+		ws.WebsocketRender("partials/group-member", nil)
+	}
+
+	return r.DB.GroupMemberCreate(member)
+}
+
 func (r Responder) GroupLeave() error {
 	id := "group-leave-error"
 	req := new(model_request.GroupLeave)
@@ -107,4 +115,12 @@ func (r Responder) GroupLeave() error {
 
 	r.HTMXRedirect("/chat")
 	return r.RenderSuccess(MessageSuccLeavedGroup, id)
+}
+
+func (r Responder) MessageSend(message model.Message) *uint64 {
+	for _, ws := range WebsocketConnections[message.AuthorId] {
+		ws.WebsocketRender("partials/message", nil)
+	}
+
+	return r.DB.MessageCreate(message)
 }

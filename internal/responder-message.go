@@ -29,7 +29,7 @@ func (r Responder) MessageCreate() error {
 		return r.Ctx.SendString(MessageErrMessageContent + " Length: " + strconv.Itoa(len(message.Content)) + "/" + model.ContentMaxLengthString)
 	}
 
-	messageId := r.DB.MessageCreate(*message)
+	messageId := r.MessageSend(*message)
 	if messageId == nil {
 		return r.Ctx.SendString(MessageFatalDatabaseQuery)
 	}

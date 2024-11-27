@@ -3,12 +3,18 @@ package internal
 import (
 	"restapp/internal/environment"
 	"restapp/websocket"
+	"slices"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/static"
+)
+
+var (
+	// A websocket connection list for each user id.
+	WebsocketConnections = map[uint64]([]*ResponderWebsocket){}
 )
 
 // Initialize gofiber application, including DB and view engine.
@@ -31,13 +37,36 @@ func NewApp() (*fiber.App, error) {
 		}
 	}
 
-	UseResponderWS := func(handler func(r ResponderWS) error) fiber.Handler {
+	UseResponderWS := func(handlerRead func(r ResponderWebsocket, messageType int, message []byte) error) fiber.Handler {
 		return func(c fiber.Ctx) error {
 			responder := Responder{c, *db}
 			if websocket.IsWebSocketUpgrade(c) {
+				user, err := responder.User()
+				if user == nil {
+					return err
+				}
+
 				return websocket.New(func(c *websocket.Conn) {
-					responderWS := ResponderWS{Responder: responder, WS: *c}
-					handler(responderWS)
+					responderWS := &ResponderWebsocket{Responder: responder, WS: *c}
+					s := WebsocketConnections[user.Id]
+					s = append(s, responderWS)
+					defer func() {
+						i := slices.Index(s, responderWS)
+						WebsocketConnections[user.Id] = slices.Delete(s, i, i+1)
+					}()
+					for {
+						messageType, message, err := responderWS.WS.ReadMessage()
+						if err != nil {
+							log.Error(err)
+							break
+						}
+
+						err = handlerRead(*responderWS, messageType, message)
+						if err != nil {
+							log.Error(err)
+							break
+						}
+					}
 				})(c)
 			}
 			return c.Next()
@@ -63,8 +92,9 @@ func NewApp() (*fiber.App, error) {
 		})
 	}
 
+	engine := NewAppHtmlEngine(db)
 	app := fiber.New(fiber.Config{
-		Views:             NewAppHtmlEngine(db),
+		Views:             engine,
 		PassLocalsToViews: true,
 	})
 
@@ -118,22 +148,11 @@ func NewApp() (*fiber.App, error) {
 	app.Delete("/account/delete", UseResponder(func(r Responder) error { return r.UserDelete() }))
 
 	// websoket
-	// https://docs.gofiber.io/contrib/next/websocket/
-	// TODO: ws - update messages
-	// TODO: ws - update members
-	app.Get("/", UseResponderWS(func(r ResponderWS) error {
-		for {
-			_, message, err := r.WS.ReadMessage()
-			if err != nil {
-				log.Error(err)
-				break
-			}
-
-			log.Info("WS message: ", string(message))
-		}
-
-		return r.Ctx.Next()
-	}))
+	app.Get("/account/:user_id", UseResponderWS(
+		func(r ResponderWebsocket, messageType int, message []byte) error {
+			return nil
+		},
+	))
 
 	app.Use(UsePage("partials/x", &fiber.Map{
 		"Title":         strconv.Itoa(fiber.StatusNotFound),
