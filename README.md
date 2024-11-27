@@ -24,34 +24,22 @@ deno task init
 After this command you will get the `.env` file in your project's root. Fill
 this file manually.
 
-### Starting the server
-
-Running the server:
-
-```bash
-deno task serve
-```
-
 ### Changing the code base
 
-Bundling js, css and assets without running the server:
-
 ```bash
-deno task build
-```
+# go (server)
+deno task serve
 
-Bundling js, css and assets and running the server:
-
-```bash
-# single bundle
+# web (client)
 deno task serve:build
-# bundle automatically
 deno task serve:watch
 ```
 
-The commands above should be used when:
+Use `build` or `watch` when:
 
-- Deno dependencies (js libraries) has been updated.
-- Changed any html template and potentially used new tailwind classnames,
-  Otherwise it may not work partially.
-- CSS or JS code has been changed: `./web/src`.
+- CSS or TS code has been changed: `./web/src`.
+- Changed any html template and potentially used new tailwind classnames.
+  Otherwise, it may not work partially.
+- Deno dependencies (deno.json) has been updated.
+
+Read more about contributing [here](./CONTRIBUTING.md).
