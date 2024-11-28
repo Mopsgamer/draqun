@@ -118,41 +118,7 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
 			return c.Next()
 		}
 
-		conn := acquireConn()
-		// locals
-		c.Context().VisitUserValues(func(key []byte, value interface{}) {
-			conn.locals[string(key)] = value
-		})
-
-		// params
-		params := c.Route().Params
-		for i := 0; i < len(params); i++ {
-			conn.params[utils.CopyString(params[i])] = utils.CopyString(c.Params(params[i]))
-		}
-
-		// queries
-		c.Context().QueryArgs().VisitAll(func(key, value []byte) {
-			conn.queries[string(key)] = string(value)
-		})
-
-		// cookies
-		c.Context().Request.Header.VisitAllCookie(func(key, value []byte) {
-			conn.cookies[string(key)] = string(value)
-		})
-
-		// headers
-		c.Context().Request.Header.VisitAll(func(key, value []byte) {
-			conn.headers[string(key)] = string(value)
-		})
-
-		// ip address
-		conn.ip = c.IP()
-
-		// bind
-		conn.bind = c.Bind()
-
-		// app
-		conn.app = c.App()
+		conn := &Conn{}
 
 		if err := upgrader.Upgrade(c.Context(), func(fconn *websocket.Conn) {
 			conn.Conn = fconn
@@ -170,14 +136,6 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
 // Conn https://godoc.org/github.com/gorilla/websocket#pkg-index
 type Conn struct {
 	*websocket.Conn
-	locals  map[string]interface{}
-	params  map[string]string
-	cookies map[string]string
-	headers map[string]string
-	queries map[string]string
-	ip      string
-	bind    *fiber.Bind
-	app     *fiber.App
 }
 
 // Conn pool
@@ -187,88 +145,10 @@ var poolConn = sync.Pool{
 	},
 }
 
-// Acquire Conn from pool
-func acquireConn() *Conn {
-	conn := poolConn.Get().(*Conn)
-	conn.locals = make(map[string]interface{})
-	conn.params = make(map[string]string)
-	conn.queries = make(map[string]string)
-	conn.cookies = make(map[string]string)
-	conn.headers = make(map[string]string)
-	return conn
-}
-
 // Return Conn to pool
 func releaseConn(conn *Conn) {
 	conn.Conn = nil
 	poolConn.Put(conn)
-}
-
-// Locals makes it possible to pass interface{} values under string keys scoped to the request
-// and therefore available to all following routes that match the request.
-func (conn *Conn) Locals(key string, value ...interface{}) interface{} {
-	if len(value) == 0 {
-		return conn.locals[key]
-	}
-	conn.locals[key] = value[0]
-	return value[0]
-}
-
-// Params is used to get the route parameters.
-// Defaults to empty string "" if the param doesn't exist.
-// If a default value is given, it will return that value if the param doesn't exist.
-func (conn *Conn) Params(key string, defaultValue ...string) string {
-	v, ok := conn.params[key]
-	if !ok && len(defaultValue) > 0 {
-		return defaultValue[0]
-	}
-	return v
-}
-
-// Query returns the query string parameter in the url.
-// Defaults to empty string "" if the query doesn't exist.
-// If a default value is given, it will return that value if the query doesn't exist.
-func (conn *Conn) Query(key string, defaultValue ...string) string {
-	v, ok := conn.queries[key]
-	if !ok && len(defaultValue) > 0 {
-		return defaultValue[0]
-	}
-	return v
-}
-
-// Cookies is used for getting a cookie value by key
-// Defaults to empty string "" if the cookie doesn't exist.
-// If a default value is given, it will return that value if the cookie doesn't exist.
-func (conn *Conn) Cookies(key string, defaultValue ...string) string {
-	v, ok := conn.cookies[key]
-	if !ok && len(defaultValue) > 0 {
-		return defaultValue[0]
-	}
-	return v
-}
-
-// Headers is used for getting a header value by key
-// Defaults to empty string "" if the header doesn't exist.
-// If a default value is given, it will return that value if the header doesn't exist.
-func (conn *Conn) Headers(key string, defaultValue ...string) string {
-	v, ok := conn.headers[key]
-	if !ok && len(defaultValue) > 0 {
-		return defaultValue[0]
-	}
-	return v
-}
-
-// IP returns the client's network address
-func (conn *Conn) IP() string {
-	return conn.ip
-}
-
-func (conn *Conn) Bind() *fiber.Bind {
-	return conn.bind
-}
-
-func (conn *Conn) App() *fiber.App {
-	return conn.app
 }
 
 // Constants are taken from https://github.com/fasthttp/websocket/blob/master/conn.go#L43

@@ -7,6 +7,6 @@ import (
 )
 
 type LogicHTTP struct {
-	logic.Logic
+	*logic.Logic
 	Ctx fiber.Ctx
 }

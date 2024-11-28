@@ -53,6 +53,5 @@ func (db Database) Context() *DatabaseContext {
 		return nil
 	}
 
-	log.Info("Database context query result: ", context)
 	return context
 }

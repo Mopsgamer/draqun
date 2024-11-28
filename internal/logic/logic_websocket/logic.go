@@ -1,22 +1,44 @@
 package logic_websocket
 
 import (
-	"restapp/internal/connections"
 	"restapp/internal/logic"
 	"restapp/websocket"
+
+	"github.com/gofiber/fiber/v3"
 )
 
-var WebsocketConnections = connections.New[*LogicWebsocket]()
+func New(appLogic *logic.Logic, conn *websocket.Conn, app *fiber.App, updateContent func(r *LogicWebsocket) *string, bind *fiber.Map) LogicWebsocket {
+	r := LogicWebsocket{
+		Logic:         appLogic,
+		Ctx:           conn,
+		Closed:        false,
+		App:           app,
+		RenderContent: updateContent,
+		Bind:          bind,
+	}
 
-type LogicWebsocket struct {
-	logic.Logic
-	Ctx websocket.Conn
-
-	Accept func(r LogicWebsocket, template string, bind any) (bool, error)
-	Closed bool
+	r.content = updateContent(&r)
+	return r
 }
 
-func (r *LogicWebsocket) UserLogout() error {
-	r.Closed = true
-	return nil
+type LogicWebsocket struct {
+	*logic.Logic
+	Ctx           *websocket.Conn
+	App           *fiber.App
+	Closed        bool
+	RenderContent func(r *LogicWebsocket) *string
+
+	Bind    *fiber.Map
+	content *string
+}
+
+func (r *LogicWebsocket) UpdateContent() {
+	if str := r.RenderContent(r); str != nil {
+		r.content = str
+		return
+	}
+}
+
+func (r LogicWebsocket) GetContent() *string {
+	return r.content
 }

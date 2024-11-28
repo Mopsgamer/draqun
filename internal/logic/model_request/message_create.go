@@ -8,7 +8,7 @@ import (
 
 type MessageCreate struct {
 	GroupId uint64 `uri:"group_id"`
-	Content string `form:"content"`
+	Content string `form:"content" json:"Content"`
 }
 
 func (m MessageCreate) Message(authorId uint64) *model.Message {

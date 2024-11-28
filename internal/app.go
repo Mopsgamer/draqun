@@ -3,11 +3,12 @@ package internal
 import (
 	"errors"
 	"restapp/internal/environment"
-	i18n "restapp/internal/i18n"
 	"restapp/internal/logic"
 	"restapp/internal/logic/database"
 	"restapp/internal/logic/logic_http"
 	"restapp/internal/logic/logic_websocket"
+	"restapp/internal/logic/model"
+	"restapp/internal/logic/model_request"
 	"restapp/websocket"
 	"strconv"
 
@@ -27,10 +28,19 @@ func NewApp() (*fiber.App, error) {
 		return nil, err
 	}
 
+	engine := NewAppHtmlEngine(db)
+	app := fiber.New(fiber.Config{
+		Views:             engine,
+		PassLocalsToViews: true,
+	})
+
+	app.Use(logger.New())
+
+	appLogic := &logic.Logic{DB: db}
 	UseHTTP := func(handler func(r logic_http.LogicHTTP) error) fiber.Handler {
 		return func(c fiber.Ctx) error {
 			logic := logic_http.LogicHTTP{
-				Logic: logic.Logic{Ctx: c, DB: db},
+				Logic: appLogic,
 				Ctx:   c,
 			}
 			if websocket.IsWebSocketUpgrade(c) {
@@ -40,43 +50,53 @@ func NewApp() (*fiber.App, error) {
 		}
 	}
 
-	UseWebsocket := func(acceptWrite func(r logic_websocket.LogicWebsocket, template string, bind any) (bool, error), handlerRead func(r logic_websocket.LogicWebsocket, messageType int, message []byte) error) fiber.Handler {
-		return func(httpc fiber.Ctx) error {
+	UseWebsocket := func(acceptWrite func(r logic_http.LogicHTTP) error, updateContent func(r *logic_websocket.LogicWebsocket) *string, handler func(r logic_websocket.LogicWebsocket) error) fiber.Handler {
+		return func(c fiber.Ctx) error {
 			http := logic_http.LogicHTTP{
-				Logic: logic.Logic{Ctx: httpc, DB: db},
-				Ctx:   httpc,
+				Logic: appLogic,
+				Ctx:   c,
 			}
-			if websocket.IsWebSocketUpgrade(httpc) {
-				user, _ := http.User()
-				if user == nil {
-					return http.RenderWarning(i18n.MessageErrUserNotFound, "ws-error")
+			if !websocket.IsWebSocketUpgrade(http.Ctx) {
+				http.Ctx.Next()
+			}
+
+			err := acceptWrite(http)
+
+			if err != nil {
+				log.Error(err)
+				message := err.Error()
+				return http.RenderDanger(message, "ws-err")
+			}
+
+			user, _ := http.User()
+			group := http.Group()
+
+			websocket.New(func(conn *websocket.Conn) {
+				// NOTE: Inside this method the 'c' variable is already updated
+				// and some methods can not work. They should be used outside.
+				ws := logic_websocket.New(
+					appLogic,
+					conn,
+					app,
+					updateContent,
+					&fiber.Map{
+						"User":  user,
+						"Group": group,
+					},
+				)
+
+				logic_websocket.WebsocketConnections.UserConnect(user.Id, &ws)
+				defer logic_websocket.WebsocketConnections.UserDisconnect(user.Id, &ws)
+				for !ws.Closed {
+					err = handler(ws)
+					if err != nil {
+						break
+					}
 				}
+				ws.Ctx.Close()
+			})(http.Ctx)
 
-				return websocket.New(func(wsc *websocket.Conn) {
-					ws := logic_websocket.LogicWebsocket{
-						Logic:  logic.Logic{Ctx: wsc, DB: db},
-						Closed: false,
-						Ctx:    *wsc,
-						Accept: acceptWrite,
-					}
-					logic_websocket.WebsocketConnections.UserConnect(user.Id, &ws)
-					defer logic_websocket.WebsocketConnections.UserDisconnect(user.Id, &ws)
-					for !ws.Closed {
-						messageType, message, err := ws.Ctx.ReadMessage()
-						if err != nil {
-							log.Info(err)
-							break
-						}
-
-						err = handlerRead(ws, messageType, message)
-						if err != nil {
-							log.Error(err)
-							break
-						}
-					}
-				})(httpc)
-			}
-			return httpc.Next()
+			return nil
 		}
 	}
 
@@ -98,14 +118,6 @@ func NewApp() (*fiber.App, error) {
 			)
 		})
 	}
-
-	engine := NewAppHtmlEngine(db)
-	app := fiber.New(fiber.Config{
-		Views:             engine,
-		PassLocalsToViews: true,
-	})
-
-	app.Use(logger.New())
 
 	// static
 	app.Get("/static/*", static.New("./web/static", static.Config{Browse: true}))
@@ -155,40 +167,48 @@ func NewApp() (*fiber.App, error) {
 	app.Delete("/account/delete", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserDelete() }))
 
 	// websoket
-	app.Get("/groups/:group_id/messages", UseWebsocket(
-		func(r logic_websocket.LogicWebsocket, template string, bind any) (bool, error) {
-			group := r.Group()
-			if group == nil {
-				return false, errors.New("group " + r.Ctx.Params("group_id") + " not found")
+	app.Get("/chat/groups/:group_id", UseWebsocket(
+		func(ws logic_http.LogicHTTP) error {
+			user, err := ws.User()
+			if user == nil {
+				return err
 			}
 
-			if template != "partials/message" {
-				return false, nil
+			group := ws.Group()
+			if group == nil {
+				return errors.New("group " + ws.Ctx.Params("group_id") + " not found")
 			}
 
 			// HACK: user should be a member and have read permissions
-			return true, nil
-		},
-		func(r logic_websocket.LogicWebsocket, messageType int, message []byte) error {
 			return nil
 		},
-	))
-	app.Get("/groups/:group_id/users", UseWebsocket(
-		func(r logic_websocket.LogicWebsocket, template string, bind any) (bool, error) {
-			group := r.Group()
-			if group == nil {
-				return false, errors.New("group " + r.Ctx.Params("group_id") + " not found")
-			}
-
-			// HACK: user should be a member and have read permissions
-			if template != "partials/group-member" {
-				return false, nil
-			}
-
-			return true, nil
+		func(ws *logic_websocket.LogicWebsocket) *string {
+			str := logic.RenderString(app, "partials/chat-group", ws.Bind)
+			return str
 		},
-		func(r logic_websocket.LogicWebsocket, messageType int, message []byte) error {
-			return nil
+		func(ws logic_websocket.LogicWebsocket) error {
+			group, _ := (*ws.Bind)["Group"].(*model.Group)
+			user, _ := (*ws.Bind)["User"].(*model.User)
+			messageCreate := new(model_request.MessageCreate)
+			err = ws.Ctx.ReadJSON(messageCreate)
+			if err != nil {
+				log.Error(err)
+			}
+			messageCreate.GroupId = group.Id
+			message := messageCreate.Message(user.Id)
+			if !model.IsValidMessageContent(messageCreate.Content) {
+				ws.WebsocketRender("partials/warning", fiber.Map{"Message": "Invalid message content"})
+				return nil
+			}
+
+			// TODO: ws: add validation for message and move in separate method
+
+			ws.MessageSend(*message)
+			err = ws.SendContent()
+			if err != nil {
+				log.Error(err)
+			}
+			return err
 		},
 	))
 

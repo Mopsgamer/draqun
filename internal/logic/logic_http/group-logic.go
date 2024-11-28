@@ -58,7 +58,7 @@ func (r LogicHTTP) GroupCreate() error {
 		IsOwner:  true,
 		IsBanned: false,
 	}
-	if r.GroupJoin(*member) == nil {
+	if logic_websocket.GroupJoin(*r.DB, *member) == nil {
 		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
@@ -93,14 +93,6 @@ func (r LogicHTTP) GroupDelete() error {
 	return nil
 }
 
-func (r LogicHTTP) GroupJoin(member model.Member) *uint64 {
-	for _, ws := range (*logic_websocket.WebsocketConnections.Users)[member.UserId] {
-		ws.WebsocketRender("partials/group-member", member)
-	}
-
-	return r.DB.GroupMemberCreate(member)
-}
-
 func (r LogicHTTP) GroupLeave() error {
 	id := "group-leave-error"
 	req := new(model_request.GroupLeave)
@@ -119,12 +111,4 @@ func (r LogicHTTP) GroupLeave() error {
 
 	r.HTMXRedirect("/chat")
 	return r.RenderSuccess(i18n.MessageSuccLeavedGroup, id)
-}
-
-func (r LogicHTTP) MessageSend(message model.Message) *uint64 {
-	for _, ws := range (*logic_websocket.WebsocketConnections.Users)[message.AuthorId] {
-		ws.WebsocketRender("partials/message", message)
-	}
-
-	return r.DB.MessageCreate(message)
 }

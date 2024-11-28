@@ -57,6 +57,10 @@
         }
     }
 
+    #content {
+        @apply bg-n50 flex flex-row h-full overflow-hidden;
+    }
+
     .chat-body {
         @apply flex flex-col w-full h-full p-1;
     }

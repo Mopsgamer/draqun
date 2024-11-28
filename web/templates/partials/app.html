@@ -11,7 +11,7 @@
 <body hx-ext="shoelace">
     {{template "partials/settings-dialog" .}}
     {{template "partials/new-group-dialog" .}}
-    <div class="flex flex-col h-full overflow-hidden">
+    <div hx-ext="debug" class="flex flex-col h-full overflow-hidden">
         <header id="header" class="p-4 bg-n200 flex justify-between">
             <nav class="flex items-center text-xl">
                 <sl-breadcrumb>
@@ -31,13 +31,15 @@
                 {{template "partials/avatar-context-menu" .}}
             </nav>
         </header>
-        <div id="content" class="bg-n50 flex flex-row h-full overflow-hidden">
-            {{if ne .Group nil}}
+        {{if ne .Group nil}}
+        <div id="content" hx-ext="ws" ws-connect="/chat/groups/{{.Group.Id}}" hx-swap="innerHTML">
             {{template "partials/chat-group" .}}
-            {{else}}
-            {{template "partials/app-home" .}}
-            {{end}}
         </div>
+        {{else}}
+        <div id="content">
+            {{template "partials/app-home" .}}
+        </div>
+        {{end}}
     </div>
 </body>
 

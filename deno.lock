@@ -18,6 +18,7 @@
     "npm:esbuild-plugin-copy@^2.1.1": "2.1.1_esbuild@0.24.0",
     "npm:esbuild-plugin-tailwindcss@^1.2.1": "1.2.1_postcss@8.4.47",
     "npm:esbuild@0.24": "0.24.0",
+    "npm:htmx-ext-debug@2": "2.0.0",
     "npm:htmx-ext-ws@^2.0.1": "2.0.1",
     "npm:htmx.org@^1.9.12": "1.9.12",
     "npm:mysql2@^3.11.4": "3.11.4",
@@ -573,6 +574,9 @@
         "function-bind"
       ]
     },
+    "htmx-ext-debug@2.0.0": {
+      "integrity": "sha512-KQzGp2fBHu38kEnZEqsgSDa/lKH2P1ea2kzUUOjJYIM57zqXTRiQCnOtSXlqkut6FGfMN0hdD/9uMmM3fCoDDw=="
+    },
     "htmx-ext-ws@2.0.1": {
       "integrity": "sha512-gddFXSzzHH9I7RWm93pGfGIKGPUo2lDtLiK8uoPn8mp/ivC0KQx4LAuQdXdg13S78lBD40Fs/mLEM/xoJCeJxQ=="
     },
@@ -1107,6 +1111,7 @@
       "npm:esbuild-plugin-copy@^2.1.1",
       "npm:esbuild-plugin-tailwindcss@^1.2.1",
       "npm:esbuild@0.24",
+      "npm:htmx-ext-debug@2",
       "npm:htmx-ext-ws@^2.0.1",
       "npm:htmx.org@^1.9.12",
       "npm:mysql2@^3.11.4",

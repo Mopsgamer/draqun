@@ -2,6 +2,7 @@ package logic_http
 
 import (
 	i18n "restapp/internal/i18n"
+	"restapp/internal/logic/logic_websocket"
 	"restapp/internal/logic/model"
 	"restapp/internal/logic/model_request"
 	"strconv"
@@ -30,7 +31,7 @@ func (r LogicHTTP) MessageCreate() error {
 		return r.Ctx.SendString(i18n.MessageErrMessageContent + " Length: " + strconv.Itoa(len(message.Content)) + "/" + model.ContentMaxLengthString)
 	}
 
-	messageId := r.MessageSend(*message)
+	messageId := logic_websocket.MessageSend(*r.DB, *message)
 	if messageId == nil {
 		return r.Ctx.SendString(i18n.MessageFatalDatabaseQuery)
 	}
