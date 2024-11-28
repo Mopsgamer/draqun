@@ -148,6 +148,12 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
 		// ip address
 		conn.ip = c.IP()
 
+		// bind
+		conn.bind = c.Bind()
+
+		// app
+		conn.app = c.App()
+
 		if err := upgrader.Upgrade(c.Context(), func(fconn *websocket.Conn) {
 			conn.Conn = fconn
 			defer releaseConn(conn)
@@ -170,6 +176,8 @@ type Conn struct {
 	headers map[string]string
 	queries map[string]string
 	ip      string
+	bind    *fiber.Bind
+	app     *fiber.App
 }
 
 // Conn pool
@@ -253,6 +261,14 @@ func (conn *Conn) Headers(key string, defaultValue ...string) string {
 // IP returns the client's network address
 func (conn *Conn) IP() string {
 	return conn.ip
+}
+
+func (conn *Conn) Bind() *fiber.Bind {
+	return conn.bind
+}
+
+func (conn *Conn) App() *fiber.App {
+	return conn.app
 }
 
 // Constants are taken from https://github.com/fasthttp/websocket/blob/master/conn.go#L43

@@ -1,4 +1,4 @@
-package internal
+package database
 
 import (
 	"fmt"
@@ -8,8 +8,14 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+func New(sqlDB *sqlx.DB) Database {
+	return Database{sqlDB}
+}
+
 // The SQL DB wrapper.
-type Database struct{ Sql *sqlx.DB }
+type Database struct {
+	Sql *sqlx.DB
+}
 
 // Initialize the DB wrapper.
 func InitDB() (*Database, error) {

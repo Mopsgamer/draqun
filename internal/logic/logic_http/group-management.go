@@ -1,15 +1,17 @@
-package internal
+package logic_http
 
 import (
-	"restapp/internal/model"
-	"restapp/internal/model_request"
+	i18n "restapp/internal/i18n"
+	"restapp/internal/logic/logic_websocket"
+	"restapp/internal/logic/model"
+	"restapp/internal/logic/model_request"
 )
 
-func (r Responder) GroupCreate() error {
+func (r LogicHTTP) GroupCreate() error {
 	id := "new-group-error"
 	req := new(model_request.GroupCreate)
 	if err := r.Ctx.Bind().Form(req); err != nil {
-		return r.RenderDanger(MessageErrInvalidRequest, id)
+		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
 	}
 
 	user, _ := r.User()
@@ -18,27 +20,27 @@ func (r Responder) GroupCreate() error {
 	}
 
 	if r.DB.GroupByGroupname(req.Name) != nil {
-		return r.RenderDanger(MessageErrGroupExistsGroupname, id)
+		return r.RenderDanger(i18n.MessageErrGroupExistsGroupname, id)
 	}
 
 	if !model.IsValidGroupName(req.Name) {
-		return r.RenderDanger(MessageErrGroupName, id)
+		return r.RenderDanger(i18n.MessageErrGroupName, id)
 	}
 
 	if !model.IsValidGroupNick(req.Nick) {
-		return r.RenderDanger(MessageErrGroupNick, id)
+		return r.RenderDanger(i18n.MessageErrGroupNick, id)
 	}
 
 	if !model.IsValidGroupPassword(req.Password) {
-		return r.RenderDanger(MessageErrGroupPassword, id)
+		return r.RenderDanger(i18n.MessageErrGroupPassword, id)
 	}
 
 	if !model.IsValidGroupDescription(req.Description) {
-		return r.RenderDanger(MessageErrGroupDescription, id)
+		return r.RenderDanger(i18n.MessageErrGroupDescription, id)
 	}
 
 	if !model.IsValidGroupMode(req.Mode) {
-		return r.RenderDanger(MessageErrGroupMode+" Got: '"+req.Mode+"'.", id)
+		return r.RenderDanger(i18n.MessageErrGroupMode+" Got: '"+req.Mode+"'.", id)
 	}
 
 	// TODO: validate avatar
@@ -46,7 +48,7 @@ func (r Responder) GroupCreate() error {
 	group := req.Group(user.Id)
 	groupId := r.DB.GroupCreate(*group)
 	if groupId == nil {
-		return r.RenderDanger(MessageFatalDatabaseQuery, id)
+		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
 	member := &model.Member{
@@ -57,20 +59,20 @@ func (r Responder) GroupCreate() error {
 		IsBanned: false,
 	}
 	if r.GroupJoin(*member) == nil {
-		return r.RenderDanger(MessageFatalDatabaseQuery, id)
+		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
 	r.HTMXRedirect(group.PagePath())
-	return r.RenderSuccess(MessageSuccCreatedGroup, id)
+	return r.RenderSuccess(i18n.MessageSuccCreatedGroup, id)
 }
 
 // TODO: implement group change
 
-func (r Responder) GroupDelete() error {
+func (r LogicHTTP) GroupDelete() error {
 	id := "group-delete-error"
 	req := new(model_request.GroupDelete)
 	if err := r.Ctx.Bind().URI(req); err != nil {
-		return r.RenderDanger(MessageErrInvalidRequest, id)
+		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
 	}
 
 	user, _ := r.User()
@@ -80,30 +82,30 @@ func (r Responder) GroupDelete() error {
 
 	member := r.DB.GroupMemberById(req.GroupId, user.Id)
 	if !member.IsOwner {
-		return r.RenderDanger(MessageErrNoRights, id)
+		return r.RenderDanger(i18n.MessageErrNoRights, id)
 	}
 
 	if !r.DB.GroupDelete(req.GroupId) {
-		return r.RenderDanger(MessageFatalDatabaseQuery, id)
+		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
 	r.HTMXRefresh()
 	return nil
 }
 
-func (r Responder) GroupJoin(member model.Member) *uint64 {
-	for _, ws := range (*WebsocketConnections.Users)[member.UserId] {
+func (r LogicHTTP) GroupJoin(member model.Member) *uint64 {
+	for _, ws := range (*logic_websocket.WebsocketConnections.Users)[member.UserId] {
 		ws.WebsocketRender("partials/group-member", member)
 	}
 
 	return r.DB.GroupMemberCreate(member)
 }
 
-func (r Responder) GroupLeave() error {
+func (r LogicHTTP) GroupLeave() error {
 	id := "group-leave-error"
 	req := new(model_request.GroupLeave)
 	if err := r.Ctx.Bind().URI(req); err != nil {
-		return r.RenderDanger(MessageErrInvalidRequest, id)
+		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
 	}
 
 	user, _ := r.User()
@@ -112,15 +114,15 @@ func (r Responder) GroupLeave() error {
 	}
 
 	if r.DB.GroupMemberById(req.GroupId, user.Id) == nil {
-		return r.RenderDanger(MessageErrNotGroupMember, id)
+		return r.RenderDanger(i18n.MessageErrNotGroupMember, id)
 	}
 
 	r.HTMXRedirect("/chat")
-	return r.RenderSuccess(MessageSuccLeavedGroup, id)
+	return r.RenderSuccess(i18n.MessageSuccLeavedGroup, id)
 }
 
-func (r Responder) MessageSend(message model.Message) *uint64 {
-	for _, ws := range (*WebsocketConnections.Users)[message.AuthorId] {
+func (r LogicHTTP) MessageSend(message model.Message) *uint64 {
+	for _, ws := range (*logic_websocket.WebsocketConnections.Users)[message.AuthorId] {
 		ws.WebsocketRender("partials/message", message)
 	}
 

@@ -1,7 +1,15 @@
-import { defineExtension } from "htmx.org";
+import * as HTMX from "htmx.org";
 import { getFormControls, SlButton } from "@shoelace-style/shoelace";
 
-defineExtension("shoelace", {
+declare global {
+    namespace globalThis {
+        // deno-lint-ignore no-var
+        var htmx: typeof HTMX
+    }
+}
+globalThis.htmx = HTMX
+
+HTMX.defineExtension("shoelace", {
     onEvent(
         name: string,
         event:

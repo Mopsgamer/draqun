@@ -2,17 +2,18 @@ package internal
 
 import (
 	"restapp/internal/environment"
-	"restapp/internal/model"
+	"restapp/internal/logic/database"
+	"restapp/internal/logic/logic_websocket"
+	"restapp/internal/logic/model"
 	"slices"
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v3/log"
 	"github.com/gofiber/template/html/v2"
 )
 
 // Initialize the view engine.
-func NewAppHtmlEngine(db *Database) *html.Engine {
+func NewAppHtmlEngine(db *database.Database) *html.Engine {
 	engine := html.New("./web/templates", ".html")
 
 	if environment.Environment == environment.EnvironmentDevelopment {
@@ -65,7 +66,7 @@ func NewAppHtmlEngine(db *Database) *html.Engine {
 			if user == nil {
 				return false
 			}
-			return len(*WebsocketConnections.Users) > 0
+			return len(*logic_websocket.WebsocketConnections.Users) > 0
 		},
 		"memberOf":   db.UserGroupList,
 		"membersOf":  db.GroupMemberList,
@@ -83,6 +84,5 @@ func paginate[T any](slice []T, n int) [][]T {
 		result = append(result, v)
 	}
 
-	log.Info(result)
 	return result
 }

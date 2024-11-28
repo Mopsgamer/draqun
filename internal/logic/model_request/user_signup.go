@@ -1,7 +1,7 @@
 package model_request
 
 import (
-	"restapp/internal/model"
+	"restapp/internal/logic/model"
 	"time"
 
 	"github.com/gofiber/fiber/v3/log"

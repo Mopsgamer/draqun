@@ -1,7 +1,7 @@
-package internal
+package localization
 
 import (
-	"restapp/internal/model"
+	"restapp/internal/logic/model"
 )
 
 const (

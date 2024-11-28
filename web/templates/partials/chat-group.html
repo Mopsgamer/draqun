@@ -1,5 +1,5 @@
 <div class="chat-body">
-    <main id="chat" hx-ws="connect:/groups/{{.Group.Id}}/messages" hx-target="this" hx-swap="beforeend">
+    <main id="chat" hx-ext="ws" ws-connect="/groups/{{.Group.Id}}/messages" hx-target="this" hx-swap="beforeend scroll:bottom">
         {{$lastDate := mindate}}
         {{$lastAuthorId := 0}}
         {{range $i, $message := messagesOf .Group.Id}}
@@ -15,7 +15,7 @@
     </main>
     {{template "partials/chat-input" .}}
 </div>
-<div id="sidebar-left" class="chat-sidebar" hx-ws="connect:/groups/{{.Group.Id}}/users" hx-target="this" hx-swap="beforeend">
+<div id="sidebar-left" class="chat-sidebar" hx-ext="ws" ws-connect="/groups/{{.Group.Id}}/users" hx-target="this" hx-swap="beforeend">
     {{$memberList := membersOf .Group.Id}}
     <div class="tiny-divider">
         Member count - {{len $memberList}}

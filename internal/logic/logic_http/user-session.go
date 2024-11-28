@@ -1,8 +1,9 @@
-package internal
+package logic_http
 
 import (
-	"restapp/internal/model"
-	"restapp/internal/model_request"
+	i18n "restapp/internal/i18n"
+	"restapp/internal/logic/model"
+	"restapp/internal/logic/model_request"
 	"strings"
 	"time"
 
@@ -11,47 +12,47 @@ import (
 )
 
 // Uses the form request information.
-func (r Responder) UserSignUp() error {
+func (r LogicHTTP) UserSignUp() error {
 	id := "signup-error"
 	req := new(model_request.UserSignUp)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(MessageErrInvalidRequest, id)
+		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
 	if !model.IsValidUserNick(req.Nickname) {
-		return r.RenderWarning(MessageErrUserNick, id)
+		return r.RenderWarning(i18n.MessageErrUserNick, id)
 	}
 
 	if !model.IsValidUserName(req.Username) {
-		return r.RenderWarning(MessageErrUserName, id)
+		return r.RenderWarning(i18n.MessageErrUserName, id)
 	}
 
 	if r.DB.UserByUsername(req.Username) != nil {
-		return r.RenderWarning(MessageErrUserExistsUsername, id)
+		return r.RenderWarning(i18n.MessageErrUserExistsUsername, id)
 	}
 
 	if !model.IsValidUserPassword(req.Password) {
-		return r.RenderWarning(MessageErrPassword, id)
+		return r.RenderWarning(i18n.MessageErrPassword, id)
 	}
 
 	if !model.IsValidUserEmail(req.Email) {
-		return r.RenderWarning(MessageErrEmail, id)
+		return r.RenderWarning(i18n.MessageErrEmail, id)
 	}
 
 	if r.DB.UserByEmail(req.Email) != nil {
-		return r.RenderWarning(MessageErrUserExistsEmail, id)
+		return r.RenderWarning(i18n.MessageErrUserExistsEmail, id)
 	}
 
 	// TODO: phone validation
 	// if !model.ValidatePhone(req.Phone) {
-	// 	return r.RenderWarning(MessageErrPhone, id)
+	// 	return r.RenderWarning(i18n.MessageErrPhone, id)
 	// }
 
 	// TODO: validate avatar and other properties
 
 	if req.ConfirmPassword != req.Password {
-		return r.RenderWarning(MessageErrBadConfirmPassword, id)
+		return r.RenderWarning(i18n.MessageErrBadConfirmPassword, id)
 	}
 
 	user := req.User()
@@ -60,12 +61,12 @@ func (r Responder) UserSignUp() error {
 	}
 
 	if r.DB.UserCreate(*user) == nil {
-		return r.RenderWarning(MessageFatalDatabaseQuery, id)
+		return r.RenderWarning(i18n.MessageFatalDatabaseQuery, id)
 	}
 
 	err = r.GiveToken(id, *user)
 	if err != nil {
-		return r.RenderWarning(MessageFatalTokenGeneration, id)
+		return r.RenderWarning(i18n.MessageFatalTokenGeneration, id)
 	}
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
@@ -73,34 +74,34 @@ func (r Responder) UserSignUp() error {
 }
 
 // Uses the form request information.
-func (r Responder) UserLogin() error {
+func (r LogicHTTP) UserLogin() error {
 	id := "login-error"
 	req := new(model_request.UserLogin)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(MessageErrInvalidRequest, id)
+		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
 	if !model.IsValidUserPassword(req.Password) {
-		return r.RenderWarning(MessageErrPassword, id)
+		return r.RenderWarning(i18n.MessageErrPassword, id)
 	}
 
 	if !model.IsValidUserEmail(req.Email) {
-		return r.RenderWarning(MessageErrEmail, id)
+		return r.RenderWarning(i18n.MessageErrEmail, id)
 	}
 
 	user := r.DB.UserByEmail(req.Email)
 	if user == nil {
-		return r.RenderWarning(MessageErrUserNotFound, id)
+		return r.RenderWarning(i18n.MessageErrUserNotFound, id)
 	}
 
 	if !user.CheckPassword(req.Password) {
-		return r.RenderWarning(MessageErrBadPassword, id)
+		return r.RenderWarning(i18n.MessageErrBadPassword, id)
 	}
 
 	err = r.GiveToken(id, *user)
 	if err != nil {
-		return r.RenderWarning(MessageFatalTokenGeneration, id)
+		return r.RenderWarning(i18n.MessageFatalTokenGeneration, id)
 	}
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
@@ -108,7 +109,7 @@ func (r Responder) UserLogin() error {
 }
 
 // Sets the cookie through the request.
-func (r Responder) UserLogout() error {
+func (r LogicHTTP) UserLogout() error {
 	r.Ctx.Cookie(&fiber.Cookie{
 		Name:    "Authorization",
 		Value:   "",
@@ -120,12 +121,12 @@ func (r Responder) UserLogout() error {
 }
 
 // Uses the form request information.
-func (r Responder) UserChangeName() error {
+func (r LogicHTTP) UserChangeName() error {
 	id := "change-name-error"
 	req := new(model_request.UserChangeName)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(MessageErrInvalidRequest, id)
+		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
 	user, _ := r.User()
@@ -134,39 +135,39 @@ func (r Responder) UserChangeName() error {
 	}
 
 	if req.NewNickname == user.Nick && req.NewUsername == user.Name {
-		return r.RenderWarning(MessageErrUserNickSame, id)
+		return r.RenderWarning(i18n.MessageErrUserNickSame, id)
 	}
 
 	if !model.IsValidUserNick(req.NewNickname) {
-		return r.RenderWarning(MessageErrUserNick, id)
+		return r.RenderWarning(i18n.MessageErrUserNick, id)
 	}
 
 	if !model.IsValidUserName(req.NewUsername) {
-		return r.RenderWarning(MessageErrUserName, id)
+		return r.RenderWarning(i18n.MessageErrUserName, id)
 	}
 
 	if r.DB.UserByUsername(req.NewUsername) != nil {
-		return r.RenderWarning(MessageErrUserExistsUsername, id)
+		return r.RenderWarning(i18n.MessageErrUserExistsUsername, id)
 	}
 
 	user.Nick = req.NewNickname
 	user.Name = req.NewUsername
 
 	if !r.DB.UserUpdate(*user) {
-		return r.RenderDanger(MessageFatalDatabaseQuery, id)
+		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
 	r.HTMXRefresh()
-	return r.RenderSuccess(MessageSuccChangedProfile, id)
+	return r.RenderSuccess(i18n.MessageSuccChangedProfile, id)
 }
 
 // Uses the form request information.
-func (r Responder) UserChangeEmail() error {
+func (r LogicHTTP) UserChangeEmail() error {
 	id := "change-email-error"
 	req := new(model_request.UserChangeEmail)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(MessageErrInvalidRequest, id)
+		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
 	user, _ := r.User()
@@ -175,42 +176,42 @@ func (r Responder) UserChangeEmail() error {
 	}
 
 	if req.NewEmail == user.Email {
-		return r.RenderWarning(MessageErrEmailSame, id)
+		return r.RenderWarning(i18n.MessageErrEmailSame, id)
 	}
 
 	if !model.IsValidUserEmail(req.NewEmail) {
-		return r.RenderWarning(MessageErrEmail, id)
+		return r.RenderWarning(i18n.MessageErrEmail, id)
 	}
 
 	if r.DB.UserByEmail(req.NewEmail) != nil {
-		return r.RenderWarning(MessageErrUserExistsEmail, id)
+		return r.RenderWarning(i18n.MessageErrUserExistsEmail, id)
 	}
 
 	if !model.IsValidUserPassword(req.CurrentPassword) {
-		return r.RenderWarning(MessageErrPassword, id)
+		return r.RenderWarning(i18n.MessageErrPassword, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		return r.RenderWarning(MessageErrBadPassword, id)
+		return r.RenderWarning(i18n.MessageErrBadPassword, id)
 	}
 
 	user.Email = req.NewEmail
 
 	if !r.DB.UserUpdate(*user) {
-		return r.RenderDanger(MessageFatalDatabaseQuery, id)
+		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
 	r.HTMXRefresh()
-	return r.RenderSuccess(MessageSuccChangedEmail, id)
+	return r.RenderSuccess(i18n.MessageSuccChangedEmail, id)
 }
 
 // Uses the form request information.
-func (r Responder) UserChangePhone() error {
+func (r LogicHTTP) UserChangePhone() error {
 	id := "change-phone-error"
 	req := new(model_request.UserChangePhone)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(MessageErrInvalidRequest, id)
+		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
 	user, _ := r.User()
@@ -219,35 +220,35 @@ func (r Responder) UserChangePhone() error {
 	}
 
 	if req.NewPhone == user.Phone {
-		return r.RenderWarning(MessageErrPhoneSame, id)
+		return r.RenderWarning(i18n.MessageErrPhoneSame, id)
 	}
 
 	// TODO: Phone validation.
 	// if !model.ValidatePhone(req.NewPhone) {
-	// 	return r.RenderWarning(MessageErrPhone, id)
+	// 	return r.RenderWarning(i18n.MessageErrPhone, id)
 	// }
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		return r.RenderWarning(MessageErrBadPassword, id)
+		return r.RenderWarning(i18n.MessageErrBadPassword, id)
 	}
 
 	user.Phone = req.NewPhone
 
 	if !r.DB.UserUpdate(*user) {
-		return r.RenderDanger(MessageFatalDatabaseQuery, id)
+		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
 	r.HTMXRefresh()
-	return r.RenderSuccess(MessageSuccChangedPhone, id)
+	return r.RenderSuccess(i18n.MessageSuccChangedPhone, id)
 }
 
 // Uses the form request information.
-func (r Responder) UserChangePassword() error {
+func (r LogicHTTP) UserChangePassword() error {
 	id := "change-password-error"
 	req := new(model_request.UserChangePassword)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(MessageErrInvalidRequest, id)
+		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
 	user, _ := r.User()
@@ -256,38 +257,38 @@ func (r Responder) UserChangePassword() error {
 	}
 
 	if req.NewPassword == user.Password {
-		return r.RenderWarning(MessageErrPasswordSame, id)
+		return r.RenderWarning(i18n.MessageErrPasswordSame, id)
 	}
 
 	if !model.IsValidUserPassword(req.CurrentPassword) {
-		return r.RenderWarning(MessageErrPassword, id)
+		return r.RenderWarning(i18n.MessageErrPassword, id)
 	}
 
 	if req.ConfirmPassword != req.NewPassword {
-		return r.RenderWarning(MessageErrBadConfirmPassword, id)
+		return r.RenderWarning(i18n.MessageErrBadConfirmPassword, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		return r.RenderWarning(MessageErrBadPassword, id)
+		return r.RenderWarning(i18n.MessageErrBadPassword, id)
 	}
 
 	user.Password = req.NewPassword
 
 	if !r.DB.UserUpdate(*user) {
-		return r.RenderDanger(MessageFatalDatabaseQuery, id)
+		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
 	r.HTMXRefresh()
-	return r.RenderSuccess(MessageSuccChangedPass, id)
+	return r.RenderSuccess(i18n.MessageSuccChangedPass, id)
 }
 
 // Uses the form request information.
-func (r Responder) UserDelete() error {
+func (r LogicHTTP) UserDelete() error {
 	id := "account-delete-error"
 	req := new(model_request.UserDelete)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(MessageErrInvalidRequest, id)
+		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
 	user, _ := r.User()
@@ -297,11 +298,11 @@ func (r Responder) UserDelete() error {
 
 	if user.Nick != req.ConfirmUsername {
 		log.Warn(user.Nick)
-		return r.RenderWarning(MessageErrBadUsernameConfirm, id)
+		return r.RenderWarning(i18n.MessageErrBadUsernameConfirm, id)
 	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
-		return r.RenderWarning(MessageErrBadPassword, id)
+		return r.RenderWarning(i18n.MessageErrBadPassword, id)
 	}
 
 	userOwnGroups := r.DB.UserOwnGroupList(user.Id)
@@ -310,11 +311,11 @@ func (r Responder) UserDelete() error {
 		for groupIndex, group := range userOwnGroups {
 			list[groupIndex] = group.Nick
 		}
-		return r.RenderDanger(MessageErrCanNotDeleteGroupOwnerAccount+" Groups: "+strings.Join(list, ", ")+".", id)
+		return r.RenderDanger(i18n.MessageErrCanNotDeleteGroupOwnerAccount+" Groups: "+strings.Join(list, ", ")+".", id)
 	}
 
 	if !r.DB.UserDelete(user.Id) {
-		return r.RenderDanger(MessageFatalDatabaseQuery, id)
+		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
 	r.Ctx.Cookie(&fiber.Cookie{
@@ -324,11 +325,11 @@ func (r Responder) UserDelete() error {
 	})
 
 	r.HTMXRedirect(r.HTMXCurrentPath())
-	return r.RenderSuccess(MessageSuccDeletedUser, id)
+	return r.RenderSuccess(i18n.MessageSuccDeletedUser, id)
 }
 
 // Authorize the user, using the current request information and new cookies.
-func (r Responder) GiveToken(errorElementId string, user model.User) error {
+func (r LogicHTTP) GiveToken(errorElementId string, user model.User) error {
 	token, err := user.GenerateToken()
 	if err != nil {
 		log.Error(err)

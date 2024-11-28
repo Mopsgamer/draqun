@@ -1,7 +1,7 @@
-package internal
+package database
 
 import (
-	"restapp/internal/model"
+	"restapp/internal/logic/model"
 
 	"github.com/gofiber/fiber/v3/log"
 )

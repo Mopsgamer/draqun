@@ -19,6 +19,7 @@
         "esbuild": "npm:esbuild@^0.24.0",
         "esbuild-plugin-copy": "npm:esbuild-plugin-copy@^2.1.1",
         "esbuild-plugin-tailwindcss": "npm:esbuild-plugin-tailwindcss@^1.2.1",
+        "htmx-ext-ws": "npm:htmx-ext-ws@^2.0.1",
         "htmx.org": "npm:htmx.org@^1.9.12",
         "mysql2": "npm:mysql2@^3.11.4",
         "tailwindcss": "npm:tailwindcss@^3.4.14"

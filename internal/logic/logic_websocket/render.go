@@ -1,14 +1,15 @@
-package internal
+package logic_websocket
 
 import (
+	"restapp/internal/logic"
 	"restapp/websocket"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 )
 
-func (r ResponderWebsocket) MapWebsocket(bind *fiber.Map) fiber.Map {
-	bindx := r.MapPage(bind)
+func (r LogicWebsocket) MapWebsocket(bind *fiber.Map) fiber.Map {
+	bindx := fiber.Map{}
 	if user, tokenErr := r.User(); user != nil {
 		bindx["User"] = user
 	} else if tokenErr != nil {
@@ -16,11 +17,13 @@ func (r ResponderWebsocket) MapWebsocket(bind *fiber.Map) fiber.Map {
 		bindx["Message"] = "Authorization error"
 		bindx["Id"] = "local-token-error"
 	}
+
+	bindx = logic.MapMerge(&bindx, bind)
 	return bindx
 }
 
 // Create new websocket
-func (r ResponderWebsocket) WebsocketRender(template string, bind any) {
+func (r LogicWebsocket) WebsocketRender(template string, bind any) {
 	var bindx any
 	if bindMap, ok := bind.(*fiber.Map); ok {
 		bindx = r.MapWebsocket(bindMap)
@@ -31,20 +34,22 @@ func (r ResponderWebsocket) WebsocketRender(template string, bind any) {
 	accepted, err := r.Accept(r, template, bindx)
 	if err != nil {
 		log.Error(err)
-		buf, err := r.RenderBuffer("partials/danger", fiber.Map{
+		message := err.Error()
+		buf, renderErr := r.RenderBuffer("partials/danger", fiber.Map{
 			"Id":      "ws-err",
-			"Message": err.Error(),
+			"Message": message,
 		})
-		if err != nil {
-			log.Error(err)
+		if renderErr != nil {
+			log.Error(renderErr)
 		}
 
-		r.WS.WriteMessage(websocket.CloseMessage, buf.Bytes())
-		// r.WS.Close() // https://github.com/gofiber/contrib/issues/698
+		r.Ctx.WriteMessage(websocket.CloseMessage, buf.Bytes())
+		// r.Ctx.Close() // https://github.com/gofiber/contrib/issues/698
 		r.Closed = true // workaround
 		return
 	}
 	if !accepted {
+		log.Info("not accepted")
 		return
 	}
 
@@ -52,5 +57,5 @@ func (r ResponderWebsocket) WebsocketRender(template string, bind any) {
 	if err != nil {
 		log.Error(err)
 	}
-	r.WS.WriteMessage(websocket.TextMessage, buf.Bytes())
+	r.Ctx.WriteMessage(websocket.TextMessage, buf.Bytes())
 }

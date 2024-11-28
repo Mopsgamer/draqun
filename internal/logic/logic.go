@@ -1,20 +1,61 @@
-package internal
+package logic
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"restapp/internal/environment"
-	"restapp/internal/model"
-	"restapp/internal/model_request"
+	"restapp/internal/logic/database"
+	"restapp/internal/logic/model"
+	"restapp/internal/logic/model_request"
 
+	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type LogicCtx interface {
+	Cookies(key string, defaultValue ...string) string
+	Bind() *fiber.Bind
+	App() *fiber.App
+}
+
+type Logic struct {
+	Ctx LogicCtx
+	DB  *database.Database
+}
+
+func (Logic) UserLogout() error {
+	return nil
+}
+
+// Converts the pointer to the value
+func MapMerge(maps ...*fiber.Map) fiber.Map {
+	merge := fiber.Map{}
+	for _, m := range maps {
+		if m == nil {
+			continue
+		}
+
+		for k, v := range *m {
+			merge[k] = v
+		}
+	}
+
+	return merge
+}
+
+func (r *Logic) RenderBuffer(template string, bind any) (bytes.Buffer, error) {
+	buf := bytes.NewBuffer([]byte{})
+	err := r.Ctx.App().Config().Views.Render(buf, template, bind)
+
+	return *buf, err
+}
+
 // Get owner of the request using the "Authorization" header.
 // If the owner not found, returns (nil, nil), without errors.
 // Automatically log-out and redirect to the home.
-func (r Responder) User() (user *model.User, err error) {
+func (r *Logic) User() (user *model.User, err error) {
 	authHeader := r.Ctx.Cookies("Authorization")
 	if authHeader == "" {
 		return nil, nil
@@ -68,7 +109,8 @@ func (r Responder) User() (user *model.User, err error) {
 }
 
 // Get group by the id from current URI.
-func (r Responder) Group() *model.Group {
+func (r *Logic) Group() *model.Group {
+	// FIXME: can't get group from websocket uri
 	groupUri := new(model_request.GroupUri)
 	if err := r.Ctx.Bind().URI(groupUri); err != nil {
 		log.Error(err)
