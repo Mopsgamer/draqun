@@ -37,6 +37,8 @@ func (ws LogicWebsocket) MessageCreate() error {
 		return ws.SendDanger(i18n.MessageErrMessageContent+" "+detail, id)
 	}
 
+	// FIXME: user should be a member and have read permissions
+
 	messageId := ws.MessageSend(*message)
 	if messageId == nil {
 		return ws.SendDanger(i18n.MessageFatalDatabaseQuery, id)

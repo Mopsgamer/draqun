@@ -237,7 +237,7 @@ func NewApp() (*fiber.App, error) {
 				return errors.New("group " + ws.Ctx.Params("group_id") + " not found")
 			}
 
-			// HACK: user should be a member and have read permissions
+			// FIXME: user should be a member and have read permissions
 			return nil
 		},
 		func(ws *logic_websocket.LogicWebsocket, wsmsg *model_request.WebsocketMessage) error {

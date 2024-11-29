@@ -31,6 +31,8 @@ func (r LogicHTTP) MessageCreate() error {
 		return r.Ctx.SendString(i18n.MessageErrMessageContent + " Length: " + strconv.Itoa(len(message.Content)) + "/" + model_database.ContentMaxLengthString)
 	}
 
+	// FIXME: user should be a member and have read permissions
+
 	messageId := logic_websocket.MessageSend(*r.DB, *message)
 	if messageId == nil {
 		return r.Ctx.SendString(i18n.MessageFatalDatabaseQuery)

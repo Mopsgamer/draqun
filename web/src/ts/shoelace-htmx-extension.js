@@ -21,35 +21,6 @@ HTMX.on("htmx:wsConfigSend", (
     });
 });
 
-// TODO: htmx websocket does not work
-// fixes websocket, idk why, it does not replaces the dom
-// we are sending only the string content as examples and docs saying
-// HTMX.on("htmx:wsAfterMessage", (
-//     event,
-// ) => {
-//     if (!(event instanceof CustomEvent)) {
-//         return;
-//     }
-
-//     const { detail } =
-//         /**@type {CustomEvent<{elt: HTMLElement, message: string}>}*/ (event);
-//     const { elt } = detail;
-//     let { message } = detail;
-//     message = message.replaceAll('\r', '')
-
-//     const chat = document.getElementById("chat");
-//     const diffChars = diff.diffChars(elt.innerHTML, message);
-//     const isSame = diffChars.some((c) => c.added || c.removed);
-//     if (isSame) {
-//         return;
-//     }
-
-//     console.dir(diffChars);
-//     const h = chat.scrollHeight;
-//     elt.innerHTML = message;
-//     chat.scrollTo(h, 0);
-// });
-
 HTMX.defineExtension("shoelace", {
     onEvent(
         name,
