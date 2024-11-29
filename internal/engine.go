@@ -42,6 +42,9 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 		"mindate": func() time.Time {
 			return time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC)
 		},
+		"jsonTime": func(t time.Time) string {
+			return t.Format("2006-01-02T15:04:05.000Z")
+		},
 		"timeAddMinutes": func(t time.Time, mins time.Duration) time.Time {
 			return t.Add(time.Minute * mins)
 		},

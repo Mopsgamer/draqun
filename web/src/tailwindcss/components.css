@@ -62,20 +62,15 @@
     }
 
     .chat-body {
-        @apply flex flex-col w-full h-full p-1;
+        @apply relative flex flex-col w-full h-full p-1;
     }
 
     #chat {
-        @apply flex flex-col w-full h-full p-1 pb-6 overflow-y-auto overflow-x-hidden;
-        .join {
-            @apply absolute hidden;
-        }
+        @apply relative snap-y flex flex-col w-full h-full p-1 pb-6 overflow-y-auto overflow-x-hidden;
         .message {
-            @apply bg-n0 flex flex-col max-w-full rounded-md p-2 gap-1;
-            & > * {
-                @apply w-full;
-            }
+            @apply relative snap-center bg-n0 flex flex-col max-w-full rounded-md p-2 gap-1;
             .prefix {
+                @apply aligned;
                 .nickname {
                     @apply text-blue-500;
                 }
@@ -84,8 +79,11 @@
                 }
             }
             .text {
-                @apply ml-[2.25rem];
+                @apply aligned pl-[2.25rem];
             }
+        }
+        .join {
+            @apply visible;
         }
         .join + .message {
             @apply rounded-t-none;

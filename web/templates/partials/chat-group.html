@@ -1,12 +1,13 @@
 <div class="chat-body">
-    <main id="chat" hx-ext="ws" ws-connect="/chat/groups/{{.Group.Id}}" ws-send="" hx-vals='{"Type":"ping"}'
-        hx-trigger="every 1.5s">
+    <main id="chat" {{/* hx-ext="ws" ws-connect="/chat/groups/{{.Group.Id}}" ws-send="" hx-vals='{"Type":"ping"}'
+        hx-trigger="every 1.5s" */}}>
         {{$lastDate := mindate}}
         {{$lastAuthorId := 0}}
         {{range $i, $message := messagesOf .Group.Id}}
         {{$sameAuthor := eq $lastAuthorId $message.AuthorId}}
         {{if $sameAuthor}}
         {{$sameDate := timeAfter (timeAddMinutes $lastDate 5) $message.CreatedAt}}
+        {{/* 5 minutes */}}
         <div class="join {{if $sameDate}}date{{end}}"></div>
         {{if not $sameDate}}{{$lastDate = $message.CreatedAt}}{{end}}
         {{end}}
@@ -14,15 +15,6 @@
         {{$lastAuthorId = $message.AuthorId}}
         {{end}}
     </main>
-    <script>
-        const chat = document.getElementById('chat')
-        chat.addEventListener('htmx:wsAfterMessage', function(event) {
-            const message = event.detail.message
-            if (!message) return;
-
-            chat.scroll({top: chat.scrollHeight})
-        })
-    </script>
     {{template "partials/chat-input" .}}
 </div>
 <div class="chat-sidebar">
