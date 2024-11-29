@@ -4,8 +4,7 @@
     "jsr:@luca/esbuild-deno-loader@0.11": "0.11.0",
     "jsr:@std/bytes@^1.0.2": "1.0.3",
     "jsr:@std/encoding@^1.0.5": "1.0.5",
-    "jsr:@std/fs@*": "1.0.5",
-    "jsr:@std/fs@^1.0.5": "1.0.5",
+    "jsr:@std/fs@^1.0.6": "1.0.6",
     "jsr:@std/path@*": "1.0.8",
     "jsr:@std/path@^1.0.6": "1.0.8",
     "jsr:@std/path@^1.0.7": "1.0.8",
@@ -23,8 +22,9 @@
     "npm:htmx-ext-debug@2": "2.0.0",
     "npm:htmx-ext-ws@^2.0.1": "2.0.1",
     "npm:htmx.org@^1.9.12": "1.9.12",
-    "npm:mysql2@^3.11.4": "3.11.4",
-    "npm:tailwindcss@^3.4.14": "3.4.14_postcss@8.4.47"
+    "npm:mysql2@^3.11.5": "3.11.5",
+    "npm:tailwindcss@^3.4.14": "3.4.14_postcss@8.4.47",
+    "npm:tailwindcss@^3.4.15": "3.4.15_postcss@8.4.47"
   },
   "jsr": {
     "@luca/esbuild-deno-loader@0.11.0": {
@@ -41,10 +41,10 @@
     "@std/encoding@1.0.5": {
       "integrity": "ecf363d4fc25bd85bd915ff6733a7e79b67e0e7806334af15f4645c569fefc04"
     },
-    "@std/fs@1.0.5": {
-      "integrity": "41806ad6823d0b5f275f9849a2640d87e4ef67c51ee1b8fb02426f55e02fd44e",
+    "@std/fs@1.0.6": {
+      "integrity": "42b56e1e41b75583a21d5a37f6a6a27de9f510bcd36c0c85791d685ca0b85fa2",
       "dependencies": [
-        "jsr:@std/path@^1.0.7"
+        "jsr:@std/path@^1.0.8"
       ]
     },
     "@std/path@1.0.8": {
@@ -443,7 +443,7 @@
         "autoprefixer",
         "postcss",
         "postcss-modules",
-        "tailwindcss"
+        "tailwindcss@3.4.14_postcss@8.4.47"
       ]
     },
     "esbuild@0.24.0": {
@@ -724,8 +724,8 @@
     "minipass@7.1.2": {
       "integrity": "sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw=="
     },
-    "mysql2@3.11.4": {
-      "integrity": "sha512-Z2o3tY4Z8EvSRDwknaC40MdZ3+m0sKbpnXrShQLdxPrAvcNli7jLrD2Zd2IzsRMw4eK9Yle500FDmlkIqp+krg==",
+    "mysql2@3.11.5": {
+      "integrity": "sha512-0XFu8rUmFN9vC0ME36iBvCUObftiMHItrYFhlCRvFWbLgpNqtC4Br/NmZX1HNCszxT0GGy5QtP+k3Q3eCJPaYA==",
       "dependencies": [
         "aws-ssl-profiles",
         "denque",
@@ -1034,6 +1034,33 @@
         "sucrase"
       ]
     },
+    "tailwindcss@3.4.15_postcss@8.4.47": {
+      "integrity": "sha512-r4MeXnfBmSOuKUWmXe6h2CcyfzJCEk4F0pptO5jlnYSIViUkVmsawj80N5h2lO3gwcmSb4n3PuN+e+GC1Guylw==",
+      "dependencies": [
+        "@alloc/quick-lru",
+        "arg",
+        "chokidar",
+        "didyoumean",
+        "dlv",
+        "fast-glob",
+        "glob-parent@6.0.2",
+        "is-glob",
+        "jiti",
+        "lilconfig@2.1.0",
+        "micromatch",
+        "normalize-path",
+        "object-hash",
+        "picocolors",
+        "postcss",
+        "postcss-import",
+        "postcss-js",
+        "postcss-load-config",
+        "postcss-nested",
+        "postcss-selector-parser",
+        "resolve",
+        "sucrase"
+      ]
+    },
     "thenify-all@1.6.0": {
       "integrity": "sha512-RNxQH/qI8/t3thXJDwcstUO4zeqo64+Uy/+sNVRBx4Xn2OX+OZ9oP+iJnNFqplFra2ZUVeKCSa2oVWi3T4uVmA==",
       "dependencies": [
@@ -1111,7 +1138,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@luca/esbuild-deno-loader@0.11",
-      "jsr:@std/fs@^1.0.5",
+      "jsr:@std/fs@^1.0.6",
       "jsr:@std/path@^1.0.8",
       "npm:@shoelace-style/shoelace@^2.18.0",
       "npm:consola@^3.2.3",
@@ -1123,8 +1150,8 @@
       "npm:htmx-ext-debug@2",
       "npm:htmx-ext-ws@^2.0.1",
       "npm:htmx.org@^1.9.12",
-      "npm:mysql2@^3.11.4",
-      "npm:tailwindcss@^3.4.14"
+      "npm:mysql2@^3.11.5",
+      "npm:tailwindcss@^3.4.15"
     ]
   }
 }

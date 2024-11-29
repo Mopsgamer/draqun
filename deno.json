@@ -12,7 +12,7 @@
     "imports": {
         "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.0",
         "@shoelace-style/shoelace": "npm:@shoelace-style/shoelace@^2.18.0",
-        "@std/fs": "jsr:@std/fs@^1.0.5",
+        "@std/fs": "jsr:@std/fs@^1.0.6",
         "@std/path": "jsr:@std/path@^1.0.8",
         "consola": "npm:consola@^3.2.3",
         "diff": "npm:diff@^7.0.0",
@@ -23,8 +23,8 @@
         "htmx-ext-debug": "npm:htmx-ext-debug@^2.0.0",
         "htmx-ext-ws": "npm:htmx-ext-ws@^2.0.1",
         "htmx.org": "npm:htmx.org@^1.9.12",
-        "mysql2": "npm:mysql2@^3.11.4",
-        "tailwindcss": "npm:tailwindcss@^3.4.14"
+        "mysql2": "npm:mysql2@^3.11.5",
+        "tailwindcss": "npm:tailwindcss@^3.4.15"
     },
     "fmt": {
         "indentWidth": 4
