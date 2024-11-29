@@ -1,5 +1,5 @@
 {{$author := userById .AuthorId}}
-<div class="message">
+<div id="message-{{.Id}}" class="message">
     <div class="prefix">
         <sl-avatar style="--size: 2rem"></sl-avatar>
         <span class="nickname">{{$author.Nick}}</span>

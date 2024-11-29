@@ -1,7 +1,7 @@
 package model_request
 
 import (
-	"restapp/internal/logic/model"
+	"restapp/internal/logic/model_database"
 	"time"
 
 	"github.com/gofiber/fiber/v3/log"
@@ -17,13 +17,13 @@ type UserSignUp struct {
 }
 
 // Converts user sign up request to the User struct.
-func (req UserSignUp) User() *model.User {
-	hash, err := model.HashPassword(req.Password)
+func (req UserSignUp) User() *model_database.User {
+	hash, err := model_database.HashPassword(req.Password)
 	if err != nil {
 		log.Error(err)
 		return nil
 	}
-	return &model.User{
+	return &model_database.User{
 		Nick:      req.Nickname,
 		Name:      req.Username,
 		Email:     req.Email,

@@ -17,9 +17,9 @@ type Connections struct {
 }
 
 func (cons Connections) UserUpdateContent(userId uint64) {
-	for _, ws := range (*cons.Users)[userId] {
-		ws.UpdateContent()
-	}
+	// for _, ws := range (*cons.Users)[userId] {
+	// 	ws.UpdateContent()
+	// }
 }
 
 func (cons Connections) UserConnect(userId uint64, ws *LogicWebsocket) {

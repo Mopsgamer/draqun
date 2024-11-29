@@ -1,4 +1,4 @@
-package model
+package model_database
 
 type Role struct {
 	GroupId  uint64 `db:"group_id"`

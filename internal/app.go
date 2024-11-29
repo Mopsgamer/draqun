@@ -2,15 +2,16 @@ package internal
 
 import (
 	"errors"
+	"fmt"
 	"restapp/internal/environment"
 	"restapp/internal/logic"
 	"restapp/internal/logic/database"
 	"restapp/internal/logic/logic_http"
 	"restapp/internal/logic/logic_websocket"
-	"restapp/internal/logic/model"
 	"restapp/internal/logic/model_request"
 	"restapp/websocket"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
@@ -50,7 +51,7 @@ func NewApp() (*fiber.App, error) {
 		}
 	}
 
-	UseWebsocket := func(acceptWrite func(r logic_http.LogicHTTP) error, updateContent func(r *logic_websocket.LogicWebsocket) *string, handler func(r logic_websocket.LogicWebsocket) error) fiber.Handler {
+	UseWebsocket := func(acceptWrite func(r logic_http.LogicHTTP) error, handler func(r logic_websocket.LogicWebsocket) error) fiber.Handler {
 		return func(c fiber.Ctx) error {
 			http := logic_http.LogicHTTP{
 				Logic: appLogic,
@@ -68,6 +69,7 @@ func NewApp() (*fiber.App, error) {
 				return http.RenderDanger(message, "ws-err")
 			}
 
+			ip := http.Ctx.IP()
 			user, _ := http.User()
 			group := http.Group()
 
@@ -78,7 +80,7 @@ func NewApp() (*fiber.App, error) {
 					appLogic,
 					conn,
 					app,
-					updateContent,
+					ip,
 					&fiber.Map{
 						"User":  user,
 						"Group": group,
@@ -89,6 +91,25 @@ func NewApp() (*fiber.App, error) {
 				defer logic_websocket.WebsocketConnections.UserDisconnect(user.Id, &ws)
 				for !ws.Closed {
 					err = handler(ws)
+
+					wsmsg := new(model_request.WebsocketMessage)
+					_ = ws.Ctx.ReadJSON(wsmsg)
+					colorErr := fiber.DefaultColors.Green
+					if err != nil {
+						colorErr = fiber.DefaultColors.Red
+					}
+					fmt.Printf(
+						"%s | %s%3s%s | %13s | %15s | %s%s%s\n",
+						time.Now().Format("15:04:05"),
+						colorErr,
+						"ws",
+						fiber.DefaultColors.Reset,
+						"~",
+						ws.IP,
+						fiber.DefaultColors.Cyan,
+						wsmsg.Type,
+						fiber.DefaultColors.Reset,
+					)
 					if err != nil {
 						break
 					}
@@ -182,29 +203,20 @@ func NewApp() (*fiber.App, error) {
 			// HACK: user should be a member and have read permissions
 			return nil
 		},
-		func(ws *logic_websocket.LogicWebsocket) *string {
-			str := logic.RenderString(app, "partials/chat-group", ws.Bind)
-			return str
-		},
 		func(ws logic_websocket.LogicWebsocket) error {
-			group, _ := (*ws.Bind)["Group"].(*model.Group)
-			user, _ := (*ws.Bind)["User"].(*model.User)
-			messageCreate := new(model_request.MessageCreate)
-			err = ws.Ctx.ReadJSON(messageCreate)
+			wsmsg := new(model_request.WebsocketMessage)
+			err = ws.Ctx.ReadJSON(wsmsg)
 			if err != nil {
 				log.Error(err)
-			}
-			messageCreate.GroupId = group.Id
-			message := messageCreate.Message(user.Id)
-			if !model.IsValidMessageContent(messageCreate.Content) {
-				ws.WebsocketRender("partials/warning", fiber.Map{"Message": "Invalid message content"})
-				return nil
+				return err
 			}
 
-			// TODO: ws: add validation for message and move in separate method
+			if wsmsg.Type == "ping" {
+				err = ws.SendRender("partials/chat-group", ws.Map)
+			} else if wsmsg.Type == "send-message-form" {
+				err = ws.MessageCreate()
+			}
 
-			ws.MessageSend(*message)
-			err = ws.SendContent()
 			if err != nil {
 				log.Error(err)
 			}

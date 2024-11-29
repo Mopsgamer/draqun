@@ -2,7 +2,7 @@ package logic_http
 
 import (
 	i18n "restapp/internal/i18n"
-	"restapp/internal/logic/model"
+	"restapp/internal/logic/model_database"
 	"restapp/internal/logic/model_request"
 	"strings"
 	"time"
@@ -20,11 +20,11 @@ func (r LogicHTTP) UserSignUp() error {
 		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
-	if !model.IsValidUserNick(req.Nickname) {
+	if !model_database.IsValidUserNick(req.Nickname) {
 		return r.RenderWarning(i18n.MessageErrUserNick, id)
 	}
 
-	if !model.IsValidUserName(req.Username) {
+	if !model_database.IsValidUserName(req.Username) {
 		return r.RenderWarning(i18n.MessageErrUserName, id)
 	}
 
@@ -32,11 +32,11 @@ func (r LogicHTTP) UserSignUp() error {
 		return r.RenderWarning(i18n.MessageErrUserExistsUsername, id)
 	}
 
-	if !model.IsValidUserPassword(req.Password) {
+	if !model_database.IsValidUserPassword(req.Password) {
 		return r.RenderWarning(i18n.MessageErrPassword, id)
 	}
 
-	if !model.IsValidUserEmail(req.Email) {
+	if !model_database.IsValidUserEmail(req.Email) {
 		return r.RenderWarning(i18n.MessageErrEmail, id)
 	}
 
@@ -45,7 +45,7 @@ func (r LogicHTTP) UserSignUp() error {
 	}
 
 	// TODO: phone validation
-	// if !model.ValidatePhone(req.Phone) {
+	// if !model_database.ValidatePhone(req.Phone) {
 	// 	return r.RenderWarning(i18n.MessageErrPhone, id)
 	// }
 
@@ -82,11 +82,11 @@ func (r LogicHTTP) UserLogin() error {
 		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
-	if !model.IsValidUserPassword(req.Password) {
+	if !model_database.IsValidUserPassword(req.Password) {
 		return r.RenderWarning(i18n.MessageErrPassword, id)
 	}
 
-	if !model.IsValidUserEmail(req.Email) {
+	if !model_database.IsValidUserEmail(req.Email) {
 		return r.RenderWarning(i18n.MessageErrEmail, id)
 	}
 
@@ -138,11 +138,11 @@ func (r LogicHTTP) UserChangeName() error {
 		return r.RenderWarning(i18n.MessageErrUserNickSame, id)
 	}
 
-	if !model.IsValidUserNick(req.NewNickname) {
+	if !model_database.IsValidUserNick(req.NewNickname) {
 		return r.RenderWarning(i18n.MessageErrUserNick, id)
 	}
 
-	if !model.IsValidUserName(req.NewUsername) {
+	if !model_database.IsValidUserName(req.NewUsername) {
 		return r.RenderWarning(i18n.MessageErrUserName, id)
 	}
 
@@ -179,7 +179,7 @@ func (r LogicHTTP) UserChangeEmail() error {
 		return r.RenderWarning(i18n.MessageErrEmailSame, id)
 	}
 
-	if !model.IsValidUserEmail(req.NewEmail) {
+	if !model_database.IsValidUserEmail(req.NewEmail) {
 		return r.RenderWarning(i18n.MessageErrEmail, id)
 	}
 
@@ -187,7 +187,7 @@ func (r LogicHTTP) UserChangeEmail() error {
 		return r.RenderWarning(i18n.MessageErrUserExistsEmail, id)
 	}
 
-	if !model.IsValidUserPassword(req.CurrentPassword) {
+	if !model_database.IsValidUserPassword(req.CurrentPassword) {
 		return r.RenderWarning(i18n.MessageErrPassword, id)
 	}
 
@@ -224,7 +224,7 @@ func (r LogicHTTP) UserChangePhone() error {
 	}
 
 	// TODO: Phone validation.
-	// if !model.ValidatePhone(req.NewPhone) {
+	// if !model_database.ValidatePhone(req.NewPhone) {
 	// 	return r.RenderWarning(i18n.MessageErrPhone, id)
 	// }
 
@@ -260,7 +260,7 @@ func (r LogicHTTP) UserChangePassword() error {
 		return r.RenderWarning(i18n.MessageErrPasswordSame, id)
 	}
 
-	if !model.IsValidUserPassword(req.CurrentPassword) {
+	if !model_database.IsValidUserPassword(req.CurrentPassword) {
 		return r.RenderWarning(i18n.MessageErrPassword, id)
 	}
 
@@ -329,7 +329,7 @@ func (r LogicHTTP) UserDelete() error {
 }
 
 // Authorize the user, using the current request information and new cookies.
-func (r LogicHTTP) GiveToken(errorElementId string, user model.User) error {
+func (r LogicHTTP) GiveToken(errorElementId string, user model_database.User) error {
 	token, err := user.GenerateToken()
 	if err != nil {
 		log.Error(err)
@@ -339,7 +339,7 @@ func (r LogicHTTP) GiveToken(errorElementId string, user model.User) error {
 	r.Ctx.Cookie(&fiber.Cookie{
 		Name:    "Authorization",
 		Value:   "Bearer " + token,
-		Expires: time.Now().Add(model.UserTokenExpiration),
+		Expires: time.Now().Add(model_database.UserTokenExpiration),
 	})
 
 	return nil

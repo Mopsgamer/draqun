@@ -1,13 +1,13 @@
 package model_request
 
 import (
-	"restapp/internal/logic/model"
+	"restapp/internal/logic/model_database"
 	"time"
 )
 
 const (
-	GroupCreateModePublic  = model.GroupModePublic
-	GroupCreateModePrivate = model.GroupModePrivate
+	GroupCreateModePublic  = model_database.GroupModePublic
+	GroupCreateModePrivate = model_database.GroupModePrivate
 )
 
 type GroupCreate struct {
@@ -19,12 +19,12 @@ type GroupCreate struct {
 	Avatar      string `form:"avatar"`
 }
 
-func (g GroupCreate) Group(creatorId uint64) *model.Group {
+func (g GroupCreate) Group(creatorId uint64) *model_database.Group {
 	var password *string = nil
 	if g.Password == "" {
 		password = &g.Password
 	}
-	return &model.Group{
+	return &model_database.Group{
 		CreatorId:   creatorId,
 		Nick:        g.Nick,
 		Name:        g.Name,

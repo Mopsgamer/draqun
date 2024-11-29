@@ -1,7 +1,7 @@
 package localization
 
 import (
-	"restapp/internal/logic/model"
+	"restapp/internal/logic/model_database"
 )
 
 const (
@@ -12,7 +12,7 @@ const (
 	MessageDetailGroupName        = MessageDetailUserName
 	MessageDetailGroupPassword    = MessageDetailUserPassword
 	MessageDetailGroupDescription = "Must be between 0 and 500 characters long and can contain any characters."
-	MessageDetailGroupMode        = "Must be " + model.GroupModeDm + ", " + model.GroupModePrivate + " or " + model.GroupModePrivate + "."
+	MessageDetailGroupMode        = "Must be " + model_database.GroupModeDm + ", " + model_database.GroupModePrivate + " or " + model_database.GroupModePrivate + "."
 	MessageDetailUserName         = "Must contain only letters (A-Z, a-z), numbers (0-9), and these special characters: . _ . No spaces. Must be at least 1 characters long and no more than 255 characters."
 	MessageDetailUserPassword     = "Must contain only letters (A-Z, a-z), numbers (0-9), spaces, or these special characters: , . ~ - + % $ ^ & * _ ! ? ( ) [ ] { } `. Must be at least 8 characters long and no more than 255 characters."
 	MessageDetailUserNick         = "Must be between 1 and 255 characters long and can contain any characters."
@@ -27,7 +27,7 @@ const (
 	MessageErrGroupPassword                 = "Invalid group password pattern. You can leave this field empty. " + MessageDetailGroupPassword
 	MessageErrGroupDescription              = "Invalid group description. " + MessageDetailGroupDescription
 	MessageErrGroupMode                     = "Invalid group mode. " + MessageDetailGroupMode
-	MessageErrMessageContent                = "The message must be between 1 and " + model.ContentMaxLengthString + " characters long."
+	MessageErrMessageContent                = "The message must be between 1 and " + model_database.ContentMaxLengthString + " characters long."
 	MessageErrNotGroupMember                = "Not a member of the group."
 	MessageErrInvalidRequest                = "Invalid request payload."
 	MessageErrPassword                      = "Invalid password pattern. " + MessageDetailUserPassword

@@ -3,7 +3,7 @@ package logic_http
 import (
 	i18n "restapp/internal/i18n"
 	"restapp/internal/logic/logic_websocket"
-	"restapp/internal/logic/model"
+	"restapp/internal/logic/model_database"
 	"restapp/internal/logic/model_request"
 )
 
@@ -23,23 +23,23 @@ func (r LogicHTTP) GroupCreate() error {
 		return r.RenderDanger(i18n.MessageErrGroupExistsGroupname, id)
 	}
 
-	if !model.IsValidGroupName(req.Name) {
+	if !model_database.IsValidGroupName(req.Name) {
 		return r.RenderDanger(i18n.MessageErrGroupName, id)
 	}
 
-	if !model.IsValidGroupNick(req.Nick) {
+	if !model_database.IsValidGroupNick(req.Nick) {
 		return r.RenderDanger(i18n.MessageErrGroupNick, id)
 	}
 
-	if !model.IsValidGroupPassword(req.Password) {
+	if !model_database.IsValidGroupPassword(req.Password) {
 		return r.RenderDanger(i18n.MessageErrGroupPassword, id)
 	}
 
-	if !model.IsValidGroupDescription(req.Description) {
+	if !model_database.IsValidGroupDescription(req.Description) {
 		return r.RenderDanger(i18n.MessageErrGroupDescription, id)
 	}
 
-	if !model.IsValidGroupMode(req.Mode) {
+	if !model_database.IsValidGroupMode(req.Mode) {
 		return r.RenderDanger(i18n.MessageErrGroupMode+" Got: '"+req.Mode+"'.", id)
 	}
 
@@ -51,7 +51,7 @@ func (r LogicHTTP) GroupCreate() error {
 		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
-	member := &model.Member{
+	member := &model_database.Member{
 		GroupId:  *groupId,
 		UserId:   user.Id,
 		Nick:     nil,

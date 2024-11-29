@@ -4,7 +4,7 @@ import (
 	"restapp/internal/environment"
 	"restapp/internal/logic/database"
 	"restapp/internal/logic/logic_websocket"
-	"restapp/internal/logic/model"
+	"restapp/internal/logic/model_database"
 	"slices"
 	"strings"
 	"time"
@@ -21,7 +21,7 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 	}
 
 	engine.AddFuncMap(map[string]interface{}{
-		"paginateGroups": paginate[model.Group],
+		"paginateGroups": paginate[model_database.Group],
 		"hideEmail": func(text string) string {
 			splits := strings.Split(text, "@")
 			if len(splits) != 2 {
@@ -62,7 +62,7 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 		},
 
 		// FIXME: implement cache
-		"isOnline": func(user *model.User) bool {
+		"isOnline": func(user *model_database.User) bool {
 			if user == nil {
 				return false
 			}

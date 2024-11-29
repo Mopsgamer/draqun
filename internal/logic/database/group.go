@@ -1,13 +1,13 @@
 package database
 
 import (
-	"restapp/internal/logic/model"
+	"restapp/internal/logic/model_database"
 
 	"github.com/gofiber/fiber/v3/log"
 )
 
 // Create new DB record.
-func (db Database) GroupCreate(group model.Group) *uint64 {
+func (db Database) GroupCreate(group model_database.Group) *uint64 {
 	query :=
 		`INSERT INTO app_groups (
 			creator_id,
@@ -41,7 +41,7 @@ func (db Database) GroupCreate(group model.Group) *uint64 {
 }
 
 // Change the existing DB record.
-func (db Database) GroupUpdate(group model.Group) bool {
+func (db Database) GroupUpdate(group model_database.Group) bool {
 	query :=
 		`UPDATE app_groups
     	SET
@@ -96,8 +96,8 @@ func (db Database) GroupDelete(groupId uint64) bool {
 }
 
 // Get the group by her identificator.
-func (db Database) GroupById(groupId uint64) *model.Group {
-	group := new(model.Group)
+func (db Database) GroupById(groupId uint64) *model_database.Group {
+	group := new(model_database.Group)
 	query := `SELECT * FROM app_groups WHERE id = ?`
 	err := db.Sql.Get(group, query, groupId)
 
@@ -109,8 +109,8 @@ func (db Database) GroupById(groupId uint64) *model.Group {
 }
 
 // Get the group by her groupname.
-func (db Database) GroupByGroupname(groupname string) *model.Group {
-	group := new(model.Group)
+func (db Database) GroupByGroupname(groupname string) *model_database.Group {
+	group := new(model_database.Group)
 	query := `SELECT * FROM app_groups WHERE groupname = ?`
 	err := db.Sql.Get(group, query, groupname)
 
@@ -121,8 +121,8 @@ func (db Database) GroupByGroupname(groupname string) *model.Group {
 	return group
 }
 
-func (db Database) GroupMemberList(groupId uint64) []model.User {
-	memberList := &[]model.User{}
+func (db Database) GroupMemberList(groupId uint64) []model_database.User {
+	memberList := &[]model_database.User{}
 	query := `SELECT
 		app_users.*
 	FROM app_group_members
@@ -137,8 +137,8 @@ func (db Database) GroupMemberList(groupId uint64) []model.User {
 	return *memberList
 }
 
-func (db Database) GroupMessageList(groupId uint64) []model.Message {
-	messageList := &[]model.Message{}
+func (db Database) GroupMessageList(groupId uint64) []model_database.Message {
+	messageList := &[]model_database.Message{}
 	query := `SELECT * FROM app_group_messages WHERE group_id = ?`
 	err := db.Sql.Select(messageList, query, groupId)
 
@@ -149,8 +149,8 @@ func (db Database) GroupMessageList(groupId uint64) []model.Message {
 	return *messageList
 }
 
-func (db Database) GroupMemberById(groupId, userId uint64) *model.Member {
-	member := new(model.Member)
+func (db Database) GroupMemberById(groupId, userId uint64) *model_database.Member {
+	member := new(model_database.Member)
 	query := `SELECT * FROM app_group_members WHERE user_id = ?`
 	err := db.Sql.Get(member, query, userId)
 
@@ -161,7 +161,7 @@ func (db Database) GroupMemberById(groupId, userId uint64) *model.Member {
 	return member
 }
 
-func (db Database) GroupMemberCreate(member model.Member) *uint64 {
+func (db Database) GroupMemberCreate(member model_database.Member) *uint64 {
 	query :=
 		`INSERT INTO app_group_members (
 			group_id,

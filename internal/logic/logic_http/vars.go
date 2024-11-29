@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"restapp/internal/environment"
-	"restapp/internal/logic/model"
+	"restapp/internal/logic/model_database"
 	"restapp/internal/logic/model_request"
 
 	"github.com/gofiber/fiber/v3/log"
@@ -14,13 +14,13 @@ import (
 // Get owner of the request using the "Authorization" header.
 // If the owner not found, returns (nil, nil), without errors.
 // Automatically log-out and redirect to the home.
-func (r *LogicHTTP) User() (user *model.User, err error) {
+func (r *LogicHTTP) User() (user *model_database.User, err error) {
 	authHeader := r.Ctx.Cookies("Authorization")
 	if authHeader == "" {
 		return nil, nil
 	}
 
-	CatchTokenErr := func(err error) (*model.User, error) {
+	CatchTokenErr := func(err error) (*model_database.User, error) {
 		log.Error(err)
 		err = r.UserLogout()
 		if err != nil {
@@ -68,7 +68,7 @@ func (r *LogicHTTP) User() (user *model.User, err error) {
 }
 
 // Get group by the id from current URI.
-func (r *LogicHTTP) Group() *model.Group {
+func (r *LogicHTTP) Group() *model_database.Group {
 	groupUri := new(model_request.GroupUri)
 	if err := r.Ctx.Bind().URI(groupUri); err != nil {
 		log.Error(err)

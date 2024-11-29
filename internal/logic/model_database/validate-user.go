@@ -1,4 +1,4 @@
-package model
+package model_database
 
 const (
 	RegexpUserPassword string = "^[a-zA-Z0-9, .~\\-+%$^&*_!?()[\\]{}`]{8,255}$"

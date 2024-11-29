@@ -1,4 +1,4 @@
-package model
+package model_database
 
 import "github.com/jmoiron/sqlx/types"
 

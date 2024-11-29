@@ -7,38 +7,26 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-func New(appLogic *logic.Logic, conn *websocket.Conn, app *fiber.App, updateContent func(r *LogicWebsocket) *string, bind *fiber.Map) LogicWebsocket {
-	r := LogicWebsocket{
-		Logic:         appLogic,
-		Ctx:           conn,
-		Closed:        false,
-		App:           app,
-		RenderContent: updateContent,
-		Bind:          bind,
+func New(appLogic *logic.Logic, conn *websocket.Conn, app *fiber.App, ip string, fmap *fiber.Map) LogicWebsocket {
+	ws := LogicWebsocket{
+		Logic:  appLogic,
+		Ctx:    conn,
+		Closed: false,
+		App:    app,
+		IP:     ip,
+		Map:    fmap,
 	}
 
-	r.content = updateContent(&r)
-	return r
+	return ws
 }
 
 type LogicWebsocket struct {
 	*logic.Logic
-	Ctx           *websocket.Conn
-	App           *fiber.App
-	Closed        bool
-	RenderContent func(r *LogicWebsocket) *string
+	Ctx *websocket.Conn
+	App *fiber.App
+	IP  string
+	// You can change it.
+	Closed bool
 
-	Bind    *fiber.Map
-	content *string
-}
-
-func (r *LogicWebsocket) UpdateContent() {
-	if str := r.RenderContent(r); str != nil {
-		r.content = str
-		return
-	}
-}
-
-func (r LogicWebsocket) GetContent() *string {
-	return r.content
+	Map *fiber.Map
 }

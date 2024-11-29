@@ -1,13 +1,13 @@
 package database
 
 import (
-	"restapp/internal/logic/model"
+	"restapp/internal/logic/model_database"
 
 	"github.com/gofiber/fiber/v3/log"
 )
 
 // Create new DB record.
-func (db Database) UserCreate(user model.User) *uint64 {
+func (db Database) UserCreate(user model_database.User) *uint64 {
 	query :=
 		`INSERT INTO app_users (
 			nickname,
@@ -41,7 +41,7 @@ func (db Database) UserCreate(user model.User) *uint64 {
 }
 
 // Change the existing DB record.
-func (db Database) UserUpdate(user model.User) bool {
+func (db Database) UserUpdate(user model_database.User) bool {
 	query :=
 		`UPDATE app_users
     	SET
@@ -87,8 +87,8 @@ func (db Database) UserDelete(userId uint64) bool {
 }
 
 // Get the user by his email.
-func (db Database) UserByEmail(email string) *model.User {
-	user := new(model.User)
+func (db Database) UserByEmail(email string) *model_database.User {
+	user := new(model_database.User)
 	query := `SELECT * FROM app_users WHERE email = ?`
 	err := db.Sql.Get(user, query, email)
 
@@ -100,8 +100,8 @@ func (db Database) UserByEmail(email string) *model.User {
 }
 
 // Get the user by his identificator.
-func (db Database) UserById(userId uint64) *model.User {
-	user := new(model.User)
+func (db Database) UserById(userId uint64) *model_database.User {
+	user := new(model_database.User)
 	query := `SELECT * FROM app_users WHERE id = ?`
 	err := db.Sql.Get(user, query, userId)
 
@@ -113,8 +113,8 @@ func (db Database) UserById(userId uint64) *model.User {
 }
 
 // Get the user by his username.
-func (db Database) UserByUsername(username string) *model.User {
-	user := new(model.User)
+func (db Database) UserByUsername(username string) *model_database.User {
+	user := new(model_database.User)
 	query := `SELECT * FROM app_users WHERE username = ?`
 	err := db.Sql.Get(user, query, username)
 
@@ -125,8 +125,8 @@ func (db Database) UserByUsername(username string) *model.User {
 	return user
 }
 
-func (db Database) UserRoleList(userId uint64) []model.Role {
-	roleList := &[]model.Role{}
+func (db Database) UserRoleList(userId uint64) []model_database.Role {
+	roleList := &[]model_database.Role{}
 	query := `SELECT * FROM app_group_roles WHERE user_id = ?`
 	err := db.Sql.Select(roleList, query, userId)
 
@@ -137,8 +137,8 @@ func (db Database) UserRoleList(userId uint64) []model.Role {
 	return *roleList
 }
 
-func (db Database) RoleRights(rightId uint64) *model.Rights {
-	roleList := new(model.Rights)
+func (db Database) RoleRights(rightId uint64) *model_database.Rights {
+	roleList := new(model_database.Rights)
 	query := `SELECT * FROM app_group_role_rights WHERE id = ?`
 	err := db.Sql.Get(roleList, query, rightId)
 
@@ -149,8 +149,8 @@ func (db Database) RoleRights(rightId uint64) *model.Rights {
 	return roleList
 }
 
-func (db Database) UserRights(userId uint64) *model.Rights {
-	rights := new(model.Rights)
+func (db Database) UserRights(userId uint64) *model_database.Rights {
+	rights := new(model_database.Rights)
 	// FIXME: user rights sql query
 	// since the user can have multiple roles,
 	// we should calculate it as a single right object.
@@ -164,8 +164,8 @@ func (db Database) UserRights(userId uint64) *model.Rights {
 	return rights
 }
 
-func (db Database) UserOwnGroupList(userId uint64) []model.Group {
-	groupList := &[]model.Group{}
+func (db Database) UserOwnGroupList(userId uint64) []model_database.Group {
+	groupList := &[]model_database.Group{}
 	query := `SELECT
 		app_groups.*
 	FROM app_groups
@@ -180,8 +180,8 @@ func (db Database) UserOwnGroupList(userId uint64) []model.Group {
 	return *groupList
 }
 
-func (db Database) UserGroupList(userId uint64) []model.Group {
-	groupList := &[]model.Group{}
+func (db Database) UserGroupList(userId uint64) []model_database.Group {
+	groupList := &[]model_database.Group{}
 	query := `SELECT
 		app_groups.*
 	FROM app_groups
@@ -196,7 +196,7 @@ func (db Database) UserGroupList(userId uint64) []model.Group {
 	return *groupList
 }
 
-func (db Database) UserJoinGroup(newMember model.Member) bool {
+func (db Database) UserJoinGroup(newMember model_database.Member) bool {
 	query :=
 		`INSERT INTO app_group_members (
 			group_id,
@@ -232,7 +232,7 @@ func (db Database) UserLeaveGroup(userId, groupId uint64) bool {
 	return true
 }
 
-func (db Database) MessageCreate(message model.Message) *uint64 {
+func (db Database) MessageCreate(message model_database.Message) *uint64 {
 	query :=
 		`INSERT INTO app_group_messages (
 			group_id,
