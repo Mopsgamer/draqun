@@ -5,29 +5,56 @@ import (
 	"restapp/internal/logic"
 	"restapp/websocket"
 
-	"github.com/gofiber/fiber/v3/log"
+	"github.com/gofiber/fiber/v3"
 )
 
-func (r LogicWebsocket) SendBytes(message []byte) error {
-	err := r.Ctx.WriteMessage(websocket.TextMessage, message)
-	return err
+var LastWrite *string = nil
+
+func (ws LogicWebsocket) SendBytes(message []byte) error {
+	messageString := string(message)
+	LastWrite = &messageString
+	return ws.Ctx.WriteMessage(websocket.TextMessage, message)
 }
 
-func (r LogicWebsocket) SendString(message string) error {
-	return r.SendBytes([]byte(message))
+func (ws LogicWebsocket) SendString(message string) error {
+	return ws.SendBytes([]byte(message))
 }
 
-func (r LogicWebsocket) SendBytesBuffer(buf bytes.Buffer) error {
-	return r.SendString(buf.String())
+func (ws LogicWebsocket) SendBytesBuffer(buf bytes.Buffer) error {
+	return ws.SendString(buf.String())
+}
+
+func (ws LogicWebsocket) RenderString(template string, bind any) *string {
+	return logic.RenderString(ws.App, template, bind)
 }
 
 // Redner template end send websocket message of the result.
-func (r LogicWebsocket) SendRender(template string, bind any) error {
-	buf, err := logic.RenderBuffer(r.App, template, bind)
-	if err != nil {
-		log.Error(err)
+func (ws LogicWebsocket) SendRender(template string, bind any) error {
+	str := ws.RenderString(template, bind)
+	if str == nil {
+		return nil
 	}
+	return ws.SendString(*str)
+}
 
-	r.SendBytesBuffer(buf)
-	return nil
+func wrapSendNotice(ws LogicWebsocket, template, message, id string) error {
+	return ws.SendString(logic.WrapOob(
+		"outerHTML:#"+id,
+		ws.RenderString(template, fiber.Map{
+			"Id":      id,
+			"Message": message,
+		}),
+	))
+}
+
+func (ws LogicWebsocket) SendDanger(message, id string) error {
+	return wrapSendNotice(ws, "partials/danger", message, id)
+}
+
+func (ws LogicWebsocket) SendWarning(message, id string) error {
+	return wrapSendNotice(ws, "partials/warning", message, id)
+}
+
+func (ws LogicWebsocket) SendSuccess(message, id string) error {
+	return wrapSendNotice(ws, "partials/success", message, id)
 }

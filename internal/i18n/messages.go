@@ -1,4 +1,4 @@
-package localization
+package i18n
 
 import (
 	"restapp/internal/logic/model_database"

@@ -232,6 +232,18 @@ func (db Database) UserLeaveGroup(userId, groupId uint64) bool {
 	return true
 }
 
+func (db Database) MessageById(messageId uint64) *model_database.Message {
+	message := new(model_database.Message)
+	query := `SELECT * FROM app_group_role_rights WHERE id = ?`
+	err := db.Sql.Get(message, query, messageId)
+
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
+	return message
+}
+
 func (db Database) MessageCreate(message model_database.Message) *uint64 {
 	query :=
 		`INSERT INTO app_group_messages (

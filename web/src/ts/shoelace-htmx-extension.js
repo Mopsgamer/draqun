@@ -1,5 +1,6 @@
 import * as HTMX from "htmx.org";
-import toHtml from 'string-to-html';
+// @deno-types="npm:@types/diff"
+// import * as diff from "diff";
 import { getFormControls, SlButton } from "@shoelace-style/shoelace";
 
 globalThis.htmx = HTMX;
@@ -15,57 +16,39 @@ HTMX.on("htmx:wsConfigSend", (
 
     const { detail } = event;
 
-    Object.assign(detail.parameters, getFormPropData(form, true), {Type: form.id});
-});
-
-let intervalHandle = undefined;
-HTMX.on("htmx:wsOpen", (ev) => {
-    const fn = () => {
-        if (!(ev instanceof CustomEvent)) {
-            return;
-        }
-        ev.detail.socketWrapper.send(JSON.stringify({ Type: "ping" }));
-    }
-    fn()
-    intervalHandle = setInterval(fn, 1000);
-});
-HTMX.on("htmx:wsClose", () => {
-    if (intervalHandle) {
-        clearInterval(intervalHandle);
-        intervalHandle = undefined;
-    }
+    Object.assign(detail.parameters, getFormPropData(form, true), {
+        Type: form.id,
+    });
 });
 
 // TODO: htmx websocket does not work
 // fixes websocket, idk why, it does not replaces the dom
 // we are sending only the string content as examples and docs saying
-HTMX.on("htmx:wsAfterMessage", (
-    event,
-) => {
-    if (!(event instanceof CustomEvent)) {
-        return;
-    }
+// HTMX.on("htmx:wsAfterMessage", (
+//     event,
+// ) => {
+//     if (!(event instanceof CustomEvent)) {
+//         return;
+//     }
 
-    const { detail } =
-        /**@type {CustomEvent<{elt: HTMLElement, message: string}>}*/ (event);
-    const { elt, message } = detail;
+//     const { detail } =
+//         /**@type {CustomEvent<{elt: HTMLElement, message: string}>}*/ (event);
+//     const { elt } = detail;
+//     let { message } = detail;
+//     message = message.replaceAll('\r', '')
 
-    if (elt.innerHTML === message) {
-        return;
-    }
+//     const chat = document.getElementById("chat");
+//     const diffChars = diff.diffChars(elt.innerHTML, message);
+//     const isSame = diffChars.some((c) => c.added || c.removed);
+//     if (isSame) {
+//         return;
+//     }
 
-    /**@type {DocumentFragment}*/
-    const html = toHtml(message)
-    const chat = document.getElementById('chat')
-    for(const [ci, c] of Array.from(html.getElementById('chat').children).entries()){
-        const oc = Array.from(chat.children)[ci]
-        if (oc.outerHTML == c.outerHTML) {
-            return
-        }
-
-        oc.outerHTML = c.outerHTML
-    }
-});
+//     console.dir(diffChars);
+//     const h = chat.scrollHeight;
+//     elt.innerHTML = message;
+//     chat.scrollTo(h, 0);
+// });
 
 HTMX.defineExtension("shoelace", {
     onEvent(

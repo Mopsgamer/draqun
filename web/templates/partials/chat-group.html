@@ -1,5 +1,6 @@
 <div class="chat-body">
-    <main id="chat">
+    <main id="chat" hx-ext="ws" ws-connect="/chat/groups/{{.Group.Id}}" ws-send="" hx-vals='{"Type":"ping"}'
+        hx-trigger="every 1.5s">
         {{$lastDate := mindate}}
         {{$lastAuthorId := 0}}
         {{range $i, $message := messagesOf .Group.Id}}
@@ -13,6 +14,15 @@
         {{$lastAuthorId = $message.AuthorId}}
         {{end}}
     </main>
+    <script>
+        const chat = document.getElementById('chat')
+        chat.addEventListener('htmx:wsAfterMessage', function(event) {
+            const message = event.detail.message
+            if (!message) return;
+
+            chat.scroll({top: chat.scrollHeight})
+        })
+    </script>
     {{template "partials/chat-input" .}}
 </div>
 <div class="chat-sidebar">

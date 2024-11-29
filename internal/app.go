@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"restapp/internal/environment"
+	"restapp/internal/i18n"
 	"restapp/internal/logic"
 	"restapp/internal/logic/database"
 	"restapp/internal/logic/logic_http"
@@ -51,7 +52,11 @@ func NewApp() (*fiber.App, error) {
 		}
 	}
 
-	UseWebsocket := func(acceptWrite func(r logic_http.LogicHTTP) error, handler func(r logic_websocket.LogicWebsocket) error) fiber.Handler {
+	UseWebsocket := func(
+		acceptWrite func(r logic_http.LogicHTTP) error,
+		handler func(r *logic_websocket.LogicWebsocket,
+			wsmsg *model_request.WebsocketMessage) error,
+	) fiber.Handler {
 		return func(c fiber.Ctx) error {
 			http := logic_http.LogicHTTP{
 				Logic: appLogic,
@@ -90,24 +95,51 @@ func NewApp() (*fiber.App, error) {
 				logic_websocket.WebsocketConnections.UserConnect(user.Id, &ws)
 				defer logic_websocket.WebsocketConnections.UserDisconnect(user.Id, &ws)
 				for !ws.Closed {
-					err = handler(ws)
+					messageType, message, err := ws.Ctx.ReadMessage()
+					if err != nil {
+						log.Error(err)
+						break
+					}
 
+					start := time.Now()
+					ws.MessageType = messageType
+					ws.Message = message
 					wsmsg := new(model_request.WebsocketMessage)
-					_ = ws.Ctx.ReadJSON(wsmsg)
+					if ws.MessageType == websocket.TextMessage {
+						parseErr := ws.GetMessageJSON(wsmsg)
+						if parseErr != nil {
+							log.Error(parseErr)
+						}
+					} else {
+						wsmsg = nil
+					}
+					err = handler(&ws, wsmsg)
+
 					colorErr := fiber.DefaultColors.Green
 					if err != nil {
 						colorErr = fiber.DefaultColors.Red
 					}
+
+					t := "?"
+					if wsmsg != nil {
+						t = wsmsg.Type
+					}
+
 					fmt.Printf(
-						"%s | %s%3s%s | %13s | %15s | %s%s%s\n",
+						"%s | %s%3s%s | %13s | %15s | %s%s%s | %d | %s | %s\"%s\"%s\n",
 						time.Now().Format("15:04:05"),
 						colorErr,
 						"ws",
 						fiber.DefaultColors.Reset,
-						"~",
+						time.Since(start),
 						ws.IP,
 						fiber.DefaultColors.Cyan,
-						wsmsg.Type,
+						t,
+						fiber.DefaultColors.Reset,
+						ws.MessageType,
+						ws.Message,
+						colorErr,
+						*logic_websocket.LastWrite,
 						fiber.DefaultColors.Reset,
 					)
 					if err != nil {
@@ -121,7 +153,12 @@ func NewApp() (*fiber.App, error) {
 		}
 	}
 
-	UsePage := func(templatePath string, bind *fiber.Map, redirectOn logic_http.RedirectCompute, layouts ...string) fiber.Handler {
+	UsePage := func(
+		templatePath string,
+		bind *fiber.Map,
+		redirectOn logic_http.RedirectCompute,
+		layouts ...string,
+	) fiber.Handler {
 		bindx := fiber.Map{
 			"Title": "?",
 		}
@@ -203,16 +240,14 @@ func NewApp() (*fiber.App, error) {
 			// HACK: user should be a member and have read permissions
 			return nil
 		},
-		func(ws logic_websocket.LogicWebsocket) error {
-			wsmsg := new(model_request.WebsocketMessage)
-			err = ws.Ctx.ReadJSON(wsmsg)
-			if err != nil {
-				log.Error(err)
-				return err
+		func(ws *logic_websocket.LogicWebsocket, wsmsg *model_request.WebsocketMessage) error {
+			if wsmsg == nil {
+				ws.SendWarning(i18n.MessageErrInvalidRequest, "ws-error")
+				return nil
 			}
 
 			if wsmsg.Type == "ping" {
-				err = ws.SendRender("partials/chat-group", ws.Map)
+				err = ws.SendString("")
 			} else if wsmsg.Type == "send-message-form" {
 				err = ws.MessageCreate()
 			}

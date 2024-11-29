@@ -1,7 +1,7 @@
 package logic_http
 
 import (
-	i18n "restapp/internal/i18n"
+	"restapp/internal/i18n"
 	"restapp/internal/logic/logic_websocket"
 	"restapp/internal/logic/model_database"
 	"restapp/internal/logic/model_request"

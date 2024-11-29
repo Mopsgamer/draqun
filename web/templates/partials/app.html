@@ -32,7 +32,7 @@
             </nav>
         </header>
         {{if ne .Group nil}}
-        <div id="content" hx-ext="ws" ws-connect="/chat/groups/{{.Group.Id}}" hx-swap="innerHTML">
+        <div id="content">
         {{template "partials/chat-group" .}}
         </div>
         {{else}}

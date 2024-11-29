@@ -48,3 +48,12 @@ func RenderString(app *fiber.App, template string, bind any) *string {
 	str := buf.String()
 	return &str
 }
+
+func WrapOob(swap string, message *string) string {
+	msg := ""
+	if message != nil {
+		msg = *message
+	}
+
+	return "<div hx-swap-oob=\"" + swap + "\">" + msg + "</div>"
+}

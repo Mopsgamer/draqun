@@ -42,26 +42,24 @@ func (r LogicHTTP) MapPage(bind *fiber.Map) fiber.Map {
 	return bindx
 }
 
-// Renders the danger message html element.
-func (r LogicHTTP) RenderDanger(message, id string) error {
-	return r.Ctx.Render("partials/danger", fiber.Map{
+func wrapRenderNotice(r LogicHTTP, template, message, id string) error {
+	return r.Ctx.Render(template, fiber.Map{
 		"Id":      id,
 		"Message": message,
 	})
+}
+
+// Renders the danger message html element.
+func (r LogicHTTP) RenderDanger(message, id string) error {
+	return wrapRenderNotice(r, "partials/danger", message, id)
 }
 
 // Renders the warning message html element.
 func (r LogicHTTP) RenderWarning(message, id string) error {
-	return r.Ctx.Render("partials/warning", fiber.Map{
-		"Id":      id,
-		"Message": message,
-	})
+	return wrapRenderNotice(r, "partials/warning", message, id)
 }
 
 // Renders the success message html element.
 func (r LogicHTTP) RenderSuccess(message, id string) error {
-	return r.Ctx.Render("partials/success", fiber.Map{
-		"Id":      id,
-		"Message": message,
-	})
+	return wrapRenderNotice(r, "partials/success", message, id)
 }

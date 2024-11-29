@@ -1,61 +1,47 @@
 package logic_websocket
 
 import (
-	i18n "restapp/internal/i18n"
+	"restapp/internal/i18n"
 	"restapp/internal/logic"
 	"restapp/internal/logic/model_database"
 	"restapp/internal/logic/model_request"
 	"strconv"
-
-	"github.com/gofiber/fiber/v3"
 )
 
 // Create new chat message, make update events and send websocket message with new chat content. Author is current websocket client.
 func (ws LogicWebsocket) MessageCreate() error {
+	id := "ws-error"
 	req := new(model_request.MessageCreate)
-	if err := ws.Ctx.ReadJSON(req); err != nil {
-		bind := logic.MapMerge(ws.Map, &fiber.Map{
-			"Id":      "ws-error",
-			"Message": i18n.MessageErrInvalidRequest,
-		})
-		ws.SendRender("partials/chat-group", &bind)
-		return nil
+	if err := ws.GetMessageJSON(req); err != nil {
+		return ws.SendDanger(i18n.MessageErrInvalidRequest, id)
 	}
 
 	user := ws.User()
 	if user == nil {
-		return nil
+		return ws.SendDanger(i18n.MessageErrUserNotFound, id)
+	}
+
+	group := ws.Group()
+	if group == nil {
+		return ws.SendDanger(i18n.MessageErrGroupNotFound, id)
 	}
 
 	message := req.Message(user.Id)
+	message.GroupId = group.Id
 	if ws.DB.GroupMemberById(message.GroupId, message.AuthorId) == nil {
-		bind := logic.MapMerge(ws.Map, &fiber.Map{
-			"Id":      "ws-error",
-			"Message": i18n.MessageErrNotGroupMember,
-		})
-		ws.SendRender("partials/chat-group", &bind)
-		return nil
+		return ws.SendDanger(i18n.MessageErrNotGroupMember, id)
 	}
 
 	if !model_database.IsValidMessageContent(message.Content) {
-		bind := logic.MapMerge(ws.Map, &fiber.Map{
-			"Id":      "ws-error",
-			"Message": i18n.MessageErrMessageContent + " Length: " + strconv.Itoa(len(message.Content)) + "/" + model_database.ContentMaxLengthString,
-		})
-		ws.SendRender("partials/chat-group", &bind)
-		return nil
+		detail := "Length: " + strconv.Itoa(len(message.Content)) + "/" + model_database.ContentMaxLengthString
+		return ws.SendDanger(i18n.MessageErrMessageContent+" "+detail, id)
 	}
 
 	messageId := ws.MessageSend(*message)
 	if messageId == nil {
-		bind := logic.MapMerge(ws.Map, &fiber.Map{
-			"Id":      "ws-error",
-			"Message": i18n.MessageFatalDatabaseQuery,
-		})
-		ws.SendRender("partials/chat-group", &bind)
-		return nil
+		return ws.SendDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
+	message.Id = *messageId
 
-	ws.SendRender("partials/chat-group", ws.Map)
-	return nil
+	return ws.SendString(logic.WrapOob("beforeend:#chat", ws.RenderString("partials/message", message)))
 }
