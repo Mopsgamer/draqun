@@ -80,7 +80,7 @@ func (r LogicHTTP) GroupDelete() error {
 		return nil
 	}
 
-	member := r.DB.GroupMemberById(req.GroupId, user.Id)
+	member := r.DB.MemberById(req.GroupId, user.Id)
 	if !member.IsOwner {
 		return r.RenderDanger(i18n.MessageErrNoRights, id)
 	}
@@ -105,7 +105,7 @@ func (r LogicHTTP) GroupLeave() error {
 		return nil
 	}
 
-	if r.DB.GroupMemberById(req.GroupId, user.Id) == nil {
+	if r.DB.MemberById(req.GroupId, user.Id) == nil {
 		return r.RenderDanger(i18n.MessageErrNotGroupMember, id)
 	}
 

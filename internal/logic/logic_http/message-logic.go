@@ -23,7 +23,7 @@ func (r LogicHTTP) MessageCreate() error {
 	}
 
 	message := req.Message(user.Id)
-	if r.DB.GroupMemberById(message.GroupId, message.AuthorId) == nil {
+	if r.DB.MemberById(message.GroupId, message.AuthorId) == nil {
 		return r.Ctx.SendString(i18n.MessageErrNotGroupMember)
 	}
 

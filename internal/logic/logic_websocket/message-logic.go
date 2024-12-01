@@ -28,7 +28,7 @@ func (ws LogicWebsocket) MessageCreate() error {
 
 	message := req.Message(user.Id)
 	message.GroupId = group.Id
-	if ws.DB.GroupMemberById(message.GroupId, message.AuthorId) == nil {
+	if ws.DB.MemberById(message.GroupId, message.AuthorId) == nil {
 		return ws.SendDanger(i18n.MessageErrNotGroupMember, id)
 	}
 
