@@ -41,7 +41,7 @@ func InitDB() (*Database, error) {
 }
 
 type DatabaseContext struct {
-	// Not each id is uint64 (BIGINT) so you should convert it to uint32 (MEDIUMINT).
+	// Not each id is uint64 (BIGINT) so you should convert it to uint32 (MEDIUMINT) for specific models.
 	LastInsertId uint64 `db:"new_id"`
 }
 

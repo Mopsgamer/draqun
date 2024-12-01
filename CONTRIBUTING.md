@@ -22,6 +22,7 @@ TS should NOT be used, if possible. Possible reasons to add :
 - Fixing or extending DOM features: make libraries to work together, adding new
   web-component, etc.
 
+> [!WARNING]
 > DOM manipulations should be provided through HTMX and the server. Cookies
 > should be changed by the server, if possible.
 >

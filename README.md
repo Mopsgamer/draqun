@@ -9,28 +9,37 @@ Definitely a cool chat application.
 
 Requirements:
 
-- MySql@>=5.0
-- go@>=1.23
-- Deno@>=2.0
+- MySQL@^8.0
+- Go@^1.23
+- Deno@^2.0
+
+> [!TIP] First setup:
+>
+> 1. Run `deno task init:build`.
+> 2. Change the `.env`.
+> 3. Run `deno task serve`.
 
 ### Preparing
 
 Creating/Updating project files:
 
 ```bash
+# init sql db tables and the .env file (no overrides)
 deno task init
+# and build the ./web (ts, css)
+deno task init:build
 ```
 
-After this command you will get the `.env` file in your project's root. Fill
-this file manually.
+> [!NOTE]
+> Fill the `.env` this file manually.
 
 ### Changing the code base
 
 ```bash
-# go (server)
+# go (server): use after *:build or *:watch
 deno task serve
 
-# web (client)
+# web (client): use after init
 deno task serve:build
 deno task serve:watch
 ```
