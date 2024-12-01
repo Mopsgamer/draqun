@@ -46,9 +46,9 @@ deno task serve:watch
 
 Use `build` or `watch` when:
 
-- CSS or TS code has been changed: `./web/src`.
+- CSS or TS code is changed: `./web/src`.
 - Changed any html template and potentially used new tailwind classnames.
-  Otherwise, it may not work partially.
-- Deno dependencies (deno.json) has been updated.
+  Otherwise, it may partially not to work.
+- Deno dependencies (deno.json) are updated.
 
 Read more about contributing [here](./CONTRIBUTING.md).
