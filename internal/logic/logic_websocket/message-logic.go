@@ -22,20 +22,6 @@ func (ws LogicWebsocket) UpdateMessages() error {
 	return ws.SendString(logic.WrapOob("innerHTML:#chat", ws.RenderString("partials/message", messageList)))
 }
 
-func (ws LogicWebsocket) UpdateMembers() error {
-	id := "ws-error"
-	wsping := new(model_request.WebsocketUpdateMembers)
-	ws.GetMessageJSON(wsping)
-
-	group := ws.Group()
-	if group == nil {
-		return ws.SendDanger(i18n.MessageErrGroupNotFound, id)
-	}
-
-	memberList := ws.DB.MemberListAround(group.Id, wsping.MemberId, 30)
-	return ws.SendString(logic.WrapOob("innerHTML:#chat-sidebar", ws.RenderString("partials/chat-messages", memberList)))
-}
-
 // Create new chat message, make update events and send websocket message with new chat content. Author is current websocket client.
 func (ws LogicWebsocket) MessageCreate() error {
 	id := "ws-error"
