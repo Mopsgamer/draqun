@@ -1,5 +1,5 @@
 package model_request
 
-type WebsocketMessage struct {
+type WebsocketRequest struct {
 	Type string `json:"Type"`
 }

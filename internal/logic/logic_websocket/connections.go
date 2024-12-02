@@ -16,12 +16,6 @@ type Connections struct {
 	Users *map[uint64][]*LogicWebsocket
 }
 
-func (cons Connections) UserUpdateContent(userId uint64) {
-	// for _, ws := range (*cons.Users)[userId] {
-	// 	ws.UpdateContent()
-	// }
-}
-
 func (cons Connections) UserConnect(userId uint64, ws *LogicWebsocket) {
 	cons.mUsers.Lock()
 	(*cons.Users)[userId] = append((*cons.Users)[userId], ws)

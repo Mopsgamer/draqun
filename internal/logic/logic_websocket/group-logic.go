@@ -15,12 +15,10 @@ func (ws LogicWebsocket) MessageSend(message model_database.Message) *uint64 {
 
 func GroupJoin(db database.Database, member model_database.Member) *uint64 {
 	memberId := db.MemberCreate(member)
-	WebsocketConnections.UserUpdateContent(member.UserId)
 	return memberId
 }
 
 func MessageSend(db database.Database, message model_database.Message) *uint64 {
 	messageId := db.MessageCreate(message)
-	WebsocketConnections.UserUpdateContent(message.AuthorId)
 	return messageId
 }

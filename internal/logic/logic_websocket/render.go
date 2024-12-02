@@ -8,11 +8,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-var LastWrite *string = nil
-
 func (ws LogicWebsocket) SendBytes(message []byte) error {
-	messageString := string(message)
-	LastWrite = &messageString
 	return ws.Ctx.WriteMessage(websocket.TextMessage, message)
 }
 

@@ -72,8 +72,8 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 			return len(*logic_websocket.WebsocketConnections.Users) > 0
 		},
 		"memberOf":   db.UserGroupList,
-		"membersOf":  db.GroupMemberList,
-		"messagesOf": db.GroupMessageList,
+		"membersOf":  db.MemberList,
+		"messagesOf": db.MessageList,
 		"userById":   db.UserById,
 		"groupById":  db.GroupById,
 	})

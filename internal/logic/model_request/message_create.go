@@ -7,7 +7,7 @@ import (
 )
 
 type MessageCreate struct {
-	*WebsocketMessage
+	*WebsocketRequest
 	GroupId uint64 `uri:"group_id"`
 	Content string `form:"content" json:"Content"`
 }

@@ -24,10 +24,10 @@ import (
 func NewApp() (*fiber.App, error) {
 	environment.WaitForBuild()
 
-	db, err := database.InitDB()
-	if err != nil {
-		log.Error(err)
-		return nil, err
+	db, errDBLoad := database.InitDB()
+	if errDBLoad != nil {
+		log.Error(errDBLoad)
+		return nil, errDBLoad
 	}
 
 	engine := NewAppHtmlEngine(db)
@@ -52,10 +52,34 @@ func NewApp() (*fiber.App, error) {
 		}
 	}
 
+	UseHTTPPage := func(
+		templatePath string,
+		bind *fiber.Map,
+		redirectOn logic_http.RedirectCompute,
+		layouts ...string,
+	) fiber.Handler {
+		bindx := fiber.Map{
+			"Title": "?",
+		}
+		if bind != nil {
+			for k, v := range *bind {
+				bindx[k] = v
+			}
+		}
+		return UseHTTP(func(r logic_http.LogicHTTP) error {
+			return r.RenderPage(
+				templatePath,
+				&bindx,
+				redirectOn,
+				layouts...,
+			)
+		})
+	}
+
 	UseWebsocket := func(
-		acceptWrite func(r logic_http.LogicHTTP) error,
-		handler func(r *logic_websocket.LogicWebsocket,
-			wsmsg *model_request.WebsocketMessage) error,
+		acceptUpgrade func(r logic_http.LogicHTTP) error,
+		handler func(ws *logic_websocket.LogicWebsocket,
+			wsreq *model_request.WebsocketRequest) error,
 	) fiber.Handler {
 		return func(c fiber.Ctx) error {
 			http := logic_http.LogicHTTP{
@@ -66,7 +90,7 @@ func NewApp() (*fiber.App, error) {
 				http.Ctx.Next()
 			}
 
-			err := acceptWrite(http)
+			err := acceptUpgrade(http)
 
 			if err != nil {
 				log.Error(err)
@@ -104,7 +128,7 @@ func NewApp() (*fiber.App, error) {
 					start := time.Now()
 					ws.MessageType = messageType
 					ws.Message = message
-					wsmsg := new(model_request.WebsocketMessage)
+					wsmsg := new(model_request.WebsocketRequest)
 					if ws.MessageType == websocket.TextMessage {
 						parseErr := ws.GetMessageJSON(wsmsg)
 						if parseErr != nil {
@@ -126,7 +150,7 @@ func NewApp() (*fiber.App, error) {
 					}
 
 					fmt.Printf(
-						"%s | %s%3s%s | %13s | %15s | %s%s%s | %d | %s | %s\"%s\"%s\n",
+						"%s | %s%3s%s | %13s | %15s | %s%s%s | %d | %s \n",
 						time.Now().Format("15:04:05"),
 						colorErr,
 						"ws",
@@ -138,9 +162,6 @@ func NewApp() (*fiber.App, error) {
 						fiber.DefaultColors.Reset,
 						ws.MessageType,
 						ws.Message,
-						colorErr,
-						*logic_websocket.LastWrite,
-						fiber.DefaultColors.Reset,
 					)
 					if err != nil {
 						break
@@ -153,48 +174,24 @@ func NewApp() (*fiber.App, error) {
 		}
 	}
 
-	UsePage := func(
-		templatePath string,
-		bind *fiber.Map,
-		redirectOn logic_http.RedirectCompute,
-		layouts ...string,
-	) fiber.Handler {
-		bindx := fiber.Map{
-			"Title": "?",
-		}
-		if bind != nil {
-			for k, v := range *bind {
-				bindx[k] = v
-			}
-		}
-		return UseHTTP(func(r logic_http.LogicHTTP) error {
-			return r.RenderPage(
-				templatePath,
-				&bindx,
-				redirectOn,
-				layouts...,
-			)
-		})
-	}
-
 	// static
 	app.Get("/static/*", static.New("./web/static", static.Config{Browse: true}))
 	app.Get("/partials*", static.New("./web/templates/partials", static.Config{Browse: true}))
 
 	// get
-	app.Get("/", UsePage("index", &fiber.Map{"Title": "Discover"}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/settings", UsePage("settings", &fiber.Map{"Title": "Settings"},
+	app.Get("/", UseHTTPPage("index", &fiber.Map{"Title": "Discover"}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/settings", UseHTTPPage("settings", &fiber.Map{"Title": "Settings"},
 		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
 			if user, _ := r.User(); user == nil {
 				return "/"
 			}
 			return ""
 		}, "partials/main"))
-	app.Get("/chat", UsePage("chat", &fiber.Map{"Title": "Home", "IsChatPage": true},
+	app.Get("/chat", UseHTTPPage("chat", &fiber.Map{"Title": "Home", "IsChatPage": true},
 		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
 			return ""
 		}))
-	app.Get("/chat/groups/:group_id", UsePage("chat", &fiber.Map{"Title": "Group", "IsChatPage": true},
+	app.Get("/chat/groups/:group_id", UseHTTPPage("chat", &fiber.Map{"Title": "Group", "IsChatPage": true},
 		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
 			group := r.Group()
 			if group == nil {
@@ -240,15 +237,18 @@ func NewApp() (*fiber.App, error) {
 			// FIXME: user should be a member and have read permissions
 			return nil
 		},
-		func(ws *logic_websocket.LogicWebsocket, wsmsg *model_request.WebsocketMessage) error {
-			if wsmsg == nil {
+		func(ws *logic_websocket.LogicWebsocket, wsreq *model_request.WebsocketRequest) error {
+			if wsreq == nil {
 				ws.SendWarning(i18n.MessageErrInvalidRequest, "ws-error")
 				return nil
 			}
 
-			if wsmsg.Type == "ping" {
-				err = ws.SendString("")
-			} else if wsmsg.Type == "send-message-form" {
+			var err error = nil
+			if wsreq.Type == "update-messages" {
+				err = ws.UpdateMessages()
+			} else if wsreq.Type == "update-members" {
+				err = ws.UpdateMembers()
+			} else if wsreq.Type == "send-message-form" {
 				err = ws.MessageCreate()
 			}
 
@@ -259,7 +259,7 @@ func NewApp() (*fiber.App, error) {
 		},
 	))
 
-	app.Use(UsePage("partials/x", &fiber.Map{
+	app.Use(UseHTTPPage("partials/x", &fiber.Map{
 		"Title":         strconv.Itoa(fiber.StatusNotFound),
 		"StatusCode":    fiber.StatusNotFound,
 		"StatusMessage": fiber.ErrNotFound.Message,
