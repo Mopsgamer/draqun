@@ -11,12 +11,13 @@ Resources:
 - <https://docs.gofiber.io/next/> - v3, not v2!
 
 We are using HTMX. JavaScript (TypeScript) is an utility for importing
-libraries, extending DOM and web-components functionality. We are fetching HTML from the server instead of JSON - use the power of hypertext with HTMX.
+libraries, extending DOM and web-components functionality. We are fetching HTML
+from the server instead of JSON - use the power of hypertext with HTMX.
 
 Possible reasons to add the TypeScript:
 
-- Importing or fixing a library or plugin: HTMX, tailwind, any web-components library,
-  etc.
+- Importing or fixing a library or plugin: HTMX, tailwind, any web-components
+  library, etc.
 - Fixing or extending DOM features: make libraries to work together, adding new
   web-component, etc.
 
@@ -29,10 +30,12 @@ Possible reasons to add the TypeScript:
 
 ### About templates
 
-Files in the [./web/templates](./web/templates) can be rendered through Go's template language: <https://pkg.go.dev/html/template>.
+Files in the [./web/templates](./web/templates) can be rendered through Go's
+template language: <https://pkg.go.dev/html/template>.
 
 That means, you can use specific syntax and replacements, but the variables
 should be declared by the server, such as `{{.User}}`.
 
-The User and other variables should be used to generate user/group-specific content (logout
-button, profile, etc): `{{if ne .User nil}}`, `{{if eq .User nil}}`.
+The User and other variables should be used to generate user/group-specific
+content (logout button, profile, etc): `{{if ne .User nil}}`,
+`{{if eq .User nil}}`.

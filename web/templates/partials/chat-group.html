@@ -1,29 +1,9 @@
-<div class="chat-body">
-    <main id="chat" {{/* hx-ext="ws" ws-connect="/chat/groups/{{.Group.Id}}" ws-send="" hx-vals='{"Type":"ping"}'
-        hx-trigger="every 1.5s" */}}>
-        {{$lastDate := mindate}}
-        {{$lastAuthorId := 0}}
-        {{range $i, $message := messagesOf .Group.Id}}
-        {{$sameAuthor := eq $lastAuthorId $message.AuthorId}}
-        {{if $sameAuthor}}
-        {{$sameDate := timeAfter (timeAddMinutes $lastDate 5) $message.CreatedAt}}
-        {{/* 5 minutes */}}
-        <div class="join {{if $sameDate}}date{{end}}"></div>
-        {{if not $sameDate}}{{$lastDate = $message.CreatedAt}}{{end}}
-        {{end}}
-        {{template "partials/message" $message}}
-        {{$lastAuthorId = $message.AuthorId}}
-        {{end}}
+<div class="chat-body" hx-ext="ws" ws-connect="/chat/groups/{{.Group.Id}}" ws-send="submit">
+    <main id="chat" hx-trigger="every 1.5s">
+        {{template "partials/chat-messages" messagesOf .Group.Id}}
     </main>
     {{template "partials/chat-input" .}}
 </div>
 <div class="chat-sidebar">
-    {{$memberList := membersOf .Group.Id}}
-    <div class="tiny-divider">
-        Member count - {{len $memberList}}
-    </div>
-    {{range $i, $member := $memberList}}
-    {{if gt $i 100}}{{break}}{{end}}
-    {{template "partials/group-member" $member}}
-    {{end}}
+    {{template "partials/chat-members" membersOf .Group.Id}}
 </div>

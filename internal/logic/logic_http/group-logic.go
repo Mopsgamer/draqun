@@ -5,6 +5,7 @@ import (
 	"restapp/internal/logic/logic_websocket"
 	"restapp/internal/logic/model_database"
 	"restapp/internal/logic/model_request"
+	"strconv"
 )
 
 func (r LogicHTTP) GroupCreate() error {
@@ -62,7 +63,7 @@ func (r LogicHTTP) GroupCreate() error {
 		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
-	r.HTMXRedirect(group.PagePath())
+	r.HTMXRedirect("/chat/groups/" + strconv.FormatUint(*groupId, 10))
 	return r.RenderSuccess(i18n.MessageSuccCreatedGroup, id)
 }
 

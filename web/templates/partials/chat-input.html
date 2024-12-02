@@ -1,18 +1,9 @@
 <div class="chat-input">
     <div id="send-message-error" class="h-line"></div>
-    <form id="send-message-form" hx-ext="ws" ws-connect="/chat/groups/{{.Group.Id}}" ws-send="submit"
-    hx-on:="document.getElementById('#send-message-form').reset()">
+    <form id="send-message-form" ws-send="submit">
         <sl-input filled placeholder="Write to {{.Group.Nick}}" name="content"></sl-input>
         <sl-button title="Send" variant="text" form="send-message-form" type="submit">
             <sl-icon name="send"></sl-icon>
         </sl-button>
     </form>
-    <script>
-        document.addEventListener('htmx:oobAfterSwap', function(event) {
-            if (event.target.id !== 'send-message-form') {
-                return
-            }
-            event.target.reset()
-        })
-    </script>
 </div>

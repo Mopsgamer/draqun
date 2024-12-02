@@ -3,7 +3,6 @@ package internal
 import (
 	"restapp/internal/environment"
 	"restapp/internal/logic/database"
-	"restapp/internal/logic/logic_websocket"
 	"restapp/internal/logic/model_database"
 	"slices"
 	"strings"
@@ -64,13 +63,6 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 			return strings.Repeat("*", len(text))
 		},
 
-		// FIXME: implement cache
-		"isOnline": func(user *model_database.User) bool {
-			if user == nil {
-				return false
-			}
-			return len(*logic_websocket.WebsocketConnections.Users) > 0
-		},
 		"memberOf":   db.UserGroupList,
 		"membersOf":  db.MemberList,
 		"messagesOf": db.MessageList,

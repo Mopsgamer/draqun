@@ -1,0 +1,13 @@
+{{$lastDate := mindate}}
+{{$lastAuthorId := 0}}
+{{range $i, $message := .}}
+{{$sameAuthor := eq $lastAuthorId $message.AuthorId}}
+{{if $sameAuthor}}
+{{$sameDate := timeAfter (timeAddMinutes $lastDate 5) $message.CreatedAt}}
+{{/* 5 minutes */}}
+<div class="join {{if $sameDate}}date{{end}}"></div>
+{{if not $sameDate}}{{$lastDate = $message.CreatedAt}}{{end}}
+{{end}}
+{{template "partials/message" $message}}
+{{$lastAuthorId = $message.AuthorId}}
+{{end}}

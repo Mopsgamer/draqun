@@ -13,21 +13,13 @@ func (ws LogicWebsocket) UpdateMessages() error {
 	wsping := new(model_request.WebsocketUpdateChat)
 	ws.GetMessageJSON(wsping)
 
-	response := ""
-
 	group := ws.Group()
 	if group == nil {
 		return ws.SendDanger(i18n.MessageErrGroupNotFound, id)
 	}
 
-	if wsping.MessageId != 0 {
-		messageList := ws.DB.MessageListAround(group.Id, wsping.MessageId, 30)
-		for _, message := range messageList {
-			response = response + logic.WrapOob("innerHTML:#chat", ws.RenderString("partials/message", message))
-		}
-	}
-
-	return ws.SendString(response)
+	messageList := ws.DB.MessageListAround(group.Id, wsping.MessageId, 30)
+	return ws.SendString(logic.WrapOob("innerHTML:#chat", ws.RenderString("partials/message", messageList)))
 }
 
 func (ws LogicWebsocket) UpdateMembers() error {
@@ -35,21 +27,13 @@ func (ws LogicWebsocket) UpdateMembers() error {
 	wsping := new(model_request.WebsocketUpdateMembers)
 	ws.GetMessageJSON(wsping)
 
-	response := ""
-
 	group := ws.Group()
 	if group == nil {
 		return ws.SendDanger(i18n.MessageErrGroupNotFound, id)
 	}
 
-	if wsping.MemberId != 0 {
-		memberList := ws.DB.MemberListAround(group.Id, wsping.MemberId, 30)
-		for _, member := range memberList {
-			response = response + logic.WrapOob("innerHTML:#chat-sidebar", ws.RenderString("partials/group-member", member))
-		}
-	}
-
-	return ws.SendString(response)
+	memberList := ws.DB.MemberListAround(group.Id, wsping.MemberId, 30)
+	return ws.SendString(logic.WrapOob("innerHTML:#chat-sidebar", ws.RenderString("partials/chat-messages", memberList)))
 }
 
 // Create new chat message, make update events and send websocket message with new chat content. Author is current websocket client.

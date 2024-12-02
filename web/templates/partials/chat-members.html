@@ -1,0 +1,8 @@
+{{$memberList := .}}
+<div class="tiny-divider">
+    Member count - {{len $memberList}}
+</div>
+{{range $i, $member := $memberList}}
+{{if gt $i 100}}{{break}}{{end}}
+{{template "partials/group-member" $member}}
+{{end}}
