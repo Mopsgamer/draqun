@@ -1,0 +1,22 @@
+<header id="header" class="p-4 bg-n200 flex justify-between">
+    <nav class="flex items-center text-xl">
+        <sl-breadcrumb class="ml-3">
+            <sl-breadcrumb-item href="/chat">
+                <sl-icon name="house" slot="prefix"></sl-icon>
+                Home
+            </sl-breadcrumb-item>
+            {{- if ne .Group nil}}
+            <sl-breadcrumb-item href="/chat/groups/{{.Group.Id}}">
+                <sl-icon name="people" slot="prefix"></sl-icon>
+                {{.Group.Nick}}
+                <!-- implement gruoup managing -->
+                <!-- <sl-icon-button name="gear" slot="suffix"></sl-icon-button> -->
+            </sl-breadcrumb-item>
+            {{- end}}
+        </sl-breadcrumb>
+        <!-- TODO: implement search -->
+    </nav>
+    <nav class="flex items-center">
+        {{- template "partials/avatar-context-menu" .}}
+    </nav>
+</header>

@@ -12,25 +12,7 @@
     {{- template "partials/settings-dialog" .}}
     {{- template "partials/new-group-dialog" .}}
     <div hx-ext="debug" class="flex flex-col h-full overflow-hidden">
-        <header id="header" class="p-4 bg-n200 flex justify-between">
-            <nav class="flex items-center text-xl">
-                <sl-breadcrumb>
-                    <sl-breadcrumb-item href="/chat">Home</sl-breadcrumb-item>
-                    {{- if ne .Group nil}}
-                    <sl-breadcrumb-item href="/chat/groups/{{.Group.Id}}">
-                        <sl-icon name="people" slot="prefix"></sl-icon>
-                        {{.Group.Nick}}
-                        <!-- implement gruoup managing -->
-                        <!-- <sl-icon-button name="gear" slot="suffix"></sl-icon-button> -->
-                    </sl-breadcrumb-item>
-                    {{- end}}
-                </sl-breadcrumb>
-                <!-- TODO: implement search -->
-            </nav>
-            <nav class="flex items-center">
-                {{- template "partials/avatar-context-menu" .}}
-            </nav>
-        </header>
+        {{- template "partials/app-header" .}}
         <div id="content">
         {{- if ne .Group nil}}
         {{- template "partials/chat-group" .}}
