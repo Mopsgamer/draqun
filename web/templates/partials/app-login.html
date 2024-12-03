@@ -11,9 +11,10 @@
 <body hx-ext="shoelace">
     {{- template "partials/login-dialog" .}}
     {{- template "partials/signup-dialog" .}}
-    <main id="main" class="p-4 h-screen flex flex-col justify-center items-center">
+    <div hx-ext="debug" class="real-body">
+    <main id="main" class="center-content">
         {{- if .TokenError}}
-        {{- template "partials/token-fallback" .}}
+        {{- template "partials/danger" .}}
         {{- end}}
         <div class="text-3xl font-bold">
             You're not logged in.
@@ -29,6 +30,7 @@
             </a>
         </div>
     </main>
+    </div>
 </body>
 
 </html>

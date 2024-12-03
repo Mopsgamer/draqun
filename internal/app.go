@@ -274,6 +274,7 @@ func NewApp() (*fiber.App, error) {
 		"Title":         strconv.Itoa(fiber.StatusNotFound),
 		"StatusCode":    fiber.StatusNotFound,
 		"StatusMessage": fiber.ErrNotFound.Message,
+		"CenterContent": true,
 	}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
 
 	return app, nil

@@ -11,14 +11,25 @@
 <body hx-ext="shoelace">
     {{- template "partials/login-dialog" .}}
     {{- template "partials/signup-dialog" .}}
-    {{- template "partials/header" .}}
-    <main id="main">
-        {{- if .TokenError}}
-        {{- template "partials/token-fallback" .}}
+    <div hx-ext="debug" class="real-body">
+        {{- template "partials/header" .}}
+        {{- if .CenterContent}}
+        <main id="main" class="center-content">
+            {{- if .TokenError}}
+            {{- template "partials/danger" .}}
+            {{- end}}
+            {{- embed}}
+        </main>
+        {{- else}}
+        <main id="main">
+            {{- if .TokenError}}
+            {{- template "partials/danger" .}}
+            {{- end}}
+            {{- embed}}
+        </main>
         {{- end}}
-        {{- embed}}
-    </main>
-    {{- template "partials/footer" .}}
+        {{- template "partials/footer" .}}
+    </div>
 </body>
 
 </html>
