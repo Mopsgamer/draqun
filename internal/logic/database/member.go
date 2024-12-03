@@ -1,7 +1,6 @@
 package database
 
 import (
-	"math"
 	"restapp/internal/logic/model_database"
 
 	"github.com/gofiber/fiber/v3/log"
@@ -9,8 +8,7 @@ import (
 
 func (db Database) MemberList(groupId uint64) []model_database.User {
 	memberList := &[]model_database.User{}
-	query := `SELECT
-		app_users.*
+	query := `SELECT app_users.*
 	FROM app_group_members
 	LEFT JOIN app_users ON app_users.id = app_group_members.user_id
 	WHERE app_group_members.group_id = ?`
@@ -23,13 +21,15 @@ func (db Database) MemberList(groupId uint64) []model_database.User {
 	return *memberList
 }
 
-func (db *Database) MemberListAround(groupId uint64, memberId uint64, radius uint64) []model_database.Member {
-	memberList := &[]model_database.Member{}
-	query := `SELECT * FROM app_group_messages WHERE group_id = ? AND message_id > ? AND message_id < ?`
-	radiusMin := max(0, radius)
-	radiusMax := min(math.MaxUint64, radius)
-	err := db.Sql.Select(memberList, query, groupId, memberId-radiusMin, memberId+radiusMax)
-
+func (db Database) MemberListPage(groupId uint64, page uint64, perPage uint64) []model_database.User {
+	memberList := &[]model_database.User{}
+	query := `SELECT app_users.* FROM app_group_members
+	LEFT JOIN app_users ON app_users.id = app_group_members.user_id
+	WHERE app_group_members.group_id = ?
+	ORDER BY app_group_members.user_id ASC LIMIT ?, ?`
+	from := (page - 1) * perPage
+	to := page * perPage
+	err := db.Sql.Select(memberList, query, groupId, from, to)
 	if err != nil {
 		log.Error(err)
 		return *memberList
@@ -49,7 +49,7 @@ func (db Database) MemberById(groupId, userId uint64) *model_database.Member {
 	return member
 }
 
-func (db Database) MemberCreate(member model_database.Member) *uint64 {
+func (db Database) MemberCreate(member model_database.Member) error {
 	query :=
 		`INSERT INTO app_group_members (
 			group_id,
@@ -67,11 +67,5 @@ func (db Database) MemberCreate(member model_database.Member) *uint64 {
 		member.Nick,
 	)
 
-	if err != nil {
-		log.Error(err)
-		return nil
-	}
-
-	newId := &db.Context().LastInsertId
-	return newId
+	return err
 }

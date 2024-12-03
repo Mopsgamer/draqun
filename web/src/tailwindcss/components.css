@@ -128,9 +128,12 @@
             @apply text-blue-300;
         }
         .member {
-            @apply bg-black/[.1] rounded-md select-none text-blue-300;
+            @apply aligned bg-black/[.1] rounded-md select-none;
             .text {
-                @apply w-full;
+                @apply aligned w-full overflow-hidden text-ellipsis;
+                .nickname {
+                    @apply text-blue-300;
+                }
             }
         }
     }

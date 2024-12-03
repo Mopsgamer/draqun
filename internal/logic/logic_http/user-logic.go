@@ -146,7 +146,7 @@ func (r LogicHTTP) UserChangeName() error {
 		return r.RenderWarning(i18n.MessageErrUserName, id)
 	}
 
-	if r.DB.UserByUsername(req.NewUsername) != nil {
+	if r.DB.UserByUsername(req.NewUsername) != nil && req.NewNickname == user.Nick {
 		return r.RenderWarning(i18n.MessageErrUserExistsUsername, id)
 	}
 

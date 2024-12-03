@@ -42,6 +42,10 @@ func (r LogicHTTP) MapPage(bind *fiber.Map) fiber.Map {
 	return bindx
 }
 
+func (r LogicHTTP) RenderString(template string, bind any) (string, error) {
+	return logic.RenderString(r.Ctx.App(), template, bind)
+}
+
 func wrapRenderNotice(r LogicHTTP, template, message, id string) error {
 	return r.Ctx.Render(template, fiber.Map{
 		"Id":      id,

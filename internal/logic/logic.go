@@ -2,6 +2,7 @@ package logic
 
 import (
 	"bytes"
+	"html/template"
 	"restapp/internal/logic/database"
 
 	"github.com/gofiber/fiber/v3"
@@ -28,25 +29,22 @@ func MapMerge(maps ...*fiber.Map) fiber.Map {
 	return merge
 }
 
-func RenderBuffer(app *fiber.App, template string, bind any) (bytes.Buffer, error) {
+func RenderBuffer(app *fiber.App, templateName string, bind any) (bytes.Buffer, error) {
 	buf := bytes.NewBuffer([]byte{})
-	err := app.Config().Views.Render(buf, template, bind)
+	err := app.Config().Views.Render(buf, templateName, bind)
 	if err != nil {
-		log.Error("error while rendering: ", err)
+		log.Error(err)
+		buf.WriteString(template.HTMLEscapeString(err.Error()))
 	}
 
 	return *buf, err
 }
 
-func RenderString(app *fiber.App, template string, bind any) *string {
+func RenderString(app *fiber.App, template string, bind any) (string, error) {
 	buf, err := RenderBuffer(app, template, bind)
 
-	if err != nil {
-		return nil
-	}
-
 	str := buf.String()
-	return &str
+	return str, err
 }
 
 func WrapOob(swap string, message *string) string {

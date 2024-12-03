@@ -4,7 +4,8 @@ import { findLastMessage, findLastMessageVisibleDate } from "./lib.ts";
 window.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById(
         "send-message-form",
-    ) as HTMLFormElement;
+    ) as HTMLFormElement | undefined;
+    if (!form) return;
     form.addEventListener(
         "htmx:oobAfterSwap",
         function (this: typeof form) {
@@ -12,7 +13,7 @@ window.addEventListener("DOMContentLoaded", () => {
         },
     );
     findLastMessage()?.scrollIntoView();
-    document.addEventListener("htmx:wsAfterMessage", function (event) {
+    form.addEventListener("htmx:wsAfterMessage", function (event) {
         const message = (event as CustomEvent).detail.message as string;
         if (!message) return;
 
@@ -32,7 +33,7 @@ function mergeMessageJoinElement(message: string): void {
         /(?<=data-author=")\d+(?=")/,
     )?.[0];
     if (!lastMessageAuthorId || !newMessageAuthorId) {
-        return console.error("can not join messages (author)");
+        return;
     }
     const shouldJoin = lastMessageAuthorId === newMessageAuthorId;
 
@@ -44,7 +45,7 @@ function mergeMessageJoinElement(message: string): void {
         /(?<=data-created-at=").+?(?=")/,
     )?.[0];
     if (!lastMessageCreatedAt || !newMessageCreatedAt) {
-        return console.error("can not join messages (author+date)");
+        return;
     }
     const dateDiff = new Date(lastMessageCreatedAt).getTime() -
         new Date(newMessageCreatedAt).getTime();

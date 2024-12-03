@@ -1,8 +1,8 @@
-{{$memberList := .}}
-<div class="tiny-divider">
-    Member count - {{len $memberList}}
-</div>
-{{range $i, $member := $memberList}}
-{{if gt $i 100}}{{break}}{{end}}
+{{$this := .}}
+{{range $i, $member := $this.MemberList}}
 {{template "partials/group-member" $member}}
+{{if and (eq $i 0) (eq (len $this.MemberList) $this.MembersPagination)}}
+<div class="load-scroll" hx-trigger="intersect once" hx-swap="outerHTML"
+    hx-get="/groups/{{$this.GroupId}}/members/page/{{$this.MembersPageNext}}"></div>
+{{end}}
 {{end}}

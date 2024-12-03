@@ -1,25 +1,8 @@
 import * as HTMX from "htmx.org";
 // @deno-types="npm:@types/diff"
 // import * as diff from "diff";
-import { getFormControls, SlButton } from "@shoelace-style/shoelace";
-
-globalThis.htmx = HTMX;
-
-HTMX.on("htmx:wsConfigSend", (
-    event,
-) => {
-    const form = event.target;
-
-    if (!(form instanceof HTMLFormElement) || !(event instanceof CustomEvent)) {
-        return;
-    }
-
-    const { detail } = event;
-
-    Object.assign(detail.parameters, getFormPropData(form, true), {
-        Type: form.id,
-    });
-});
+import { SlButton } from "@shoelace-style/shoelace";
+import { getFormPropData } from "./lib.ts";
 
 HTMX.defineExtension("shoelace", {
     onEvent(
@@ -70,25 +53,3 @@ HTMX.defineExtension("shoelace", {
         return true;
     },
 });
-
-function getFormPropData(
-    form,
-    capital = false,
-) {
-    const data = {};
-    for (const slElement of getFormControls(form)) {
-        let { name } = slElement;
-        const { value } = slElement;
-
-        if (!name) {
-            continue;
-        }
-
-        if (capital) {
-            name = name[0].toUpperCase() + name.substring(1);
-        }
-        data[name] = value;
-    }
-
-    return data;
-}
