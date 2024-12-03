@@ -43,7 +43,10 @@ func (r LogicHTTP) MessageCreate() error {
 	}
 
 	message.Id = *messageId
-	str, err := r.RenderString("partials/message", message)
+	str, err := r.RenderString("partials/chat-messages", r.MapPage(&fiber.Map{
+		"MessageList":        []model_database.Message{*message},
+		"MessagesPagination": 2, // disables scroll loading
+	}))
 	if err != nil {
 		return err
 	}

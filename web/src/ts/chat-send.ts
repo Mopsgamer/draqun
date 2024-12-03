@@ -8,7 +8,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (!form) return;
 
     form.addEventListener(
-        "htmx:oobAfterSwap",
+        "htmx:afterRequest",
         function (this: typeof form) {
             this.reset();
         },

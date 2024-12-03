@@ -4,5 +4,14 @@
 <div class="load-scroll" hx-trigger="intersect once" hx-swap="outerHTML"
     hx-get="/groups/{{$this.GroupId}}/messages/page/{{$this.MessagesPageNext}}"></div>
 {{end}}
-{{template "partials/message" $message}}
+{{$author := userById .AuthorId}}
+<div id="message-{{$message.Id}}" class="message" data-message="{{$message.Id}}" data-author="{{$author.Id}}" data-created-at="{{jsonTime $message.CreatedAt}}">
+    <div class="prefix">
+        <sl-avatar style="--size: 2rem"></sl-avatar>
+        <span class="nickname">{{$author.Nick}}</span>
+        <sl-format-date hour="numeric" minute="numeric" year="numeric" month="long" day="numeric" date="{{$message.CreatedAt}}"></sl-format-date>
+    </div>
+    <div class="text">{{$message.Content}}</div>
+    <!-- use <area> if you implementing hyperlink previews -->
+</div>
 {{end}}
