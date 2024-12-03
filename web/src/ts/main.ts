@@ -5,6 +5,7 @@ import "./shoelace-htmx-extension.js";
 import "./shoelace-dialog-from-hash.ts";
 import "./chat-scroll.ts";
 import "./chat-send.ts";
+import "./chat-join-messages.ts";
 
 declare namespace globalThis {
     let htmx: typeof HTMX

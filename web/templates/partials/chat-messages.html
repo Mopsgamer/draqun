@@ -1,18 +1,8 @@
 {{$this := .}}
-{{$lastDate := mindate}}
-{{$lastAuthorId := 0}}
 {{range $i, $message := $this.MessageList}}
-{{$sameAuthor := eq $lastAuthorId $message.AuthorId}}
-{{if $sameAuthor}}
-{{$sameDate := timeAfter (timeAddMinutes $lastDate 5) $message.CreatedAt}}
-{{/* 5 minutes */}}
-<div class="join {{if $sameDate}}date{{end}}"></div>
-{{if not $sameDate}}{{$lastDate = $message.CreatedAt}}{{end}}
-{{end}}
 {{if and (eq $i 0) (eq (len $this.MessageList) $this.MessagesPagination)}}
 <div class="load-scroll" hx-trigger="intersect once" hx-swap="outerHTML"
     hx-get="/groups/{{$this.GroupId}}/messages/page/{{$this.MessagesPageNext}}"></div>
 {{end}}
 {{template "partials/message" $message}}
-{{$lastAuthorId = $message.AuthorId}}
 {{end}}

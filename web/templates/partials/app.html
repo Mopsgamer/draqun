@@ -31,15 +31,13 @@
                 {{template "partials/avatar-context-menu" .}}
             </nav>
         </header>
+        <div id="content">
         {{if ne .Group nil}}
-        <div id="content">
-            {{template "partials/chat-group" .}}
-        </div>
+        {{template "partials/chat-group" .}}
         {{else}}
-        <div id="content">
-            {{template "partials/app-home" .}}
-        </div>
+        {{template "partials/app-home" .}}
         {{end}}
+        </div>
     </div>
 </body>
 
