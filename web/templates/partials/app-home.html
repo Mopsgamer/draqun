@@ -7,12 +7,12 @@
         </sl-button>
     </h2>
     <sl-carousel pagination navigation mouse-dragging id="my-group-list" class="card-group-container">
-        {{range $iPage, $groupPage := (paginateGroups (memberOf .User.Id) 3) }}
+        {{- range $iPage, $groupPage := (paginateGroups (memberOf .User.Id) 3) }}
         <sl-carousel-item class="card-group">
-            {{range $i, $group := $groupPage}}
-            {{template "partials/group-card" $group}}
-            {{end}}
+            {{- range $i, $group := $groupPage}}
+            {{- template "partials/group-card" $group}}
+            {{- end}}
         </sl-carousel-item>
-        {{end}}
+        {{- end}}
     </sl-carousel>
 </main>

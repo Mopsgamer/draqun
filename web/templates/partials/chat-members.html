@@ -1,5 +1,5 @@
 {{$this := .}}
-{{range $i, $member := $this.MemberList}}
+{{- range $i, $member := $this.MemberList}}
 <div id="member-{{$member.Id}}" class="member">
     <div class="prefix">
         <sl-avatar style="--size: 2rem"></sl-avatar>
@@ -8,8 +8,8 @@
         <div class="nickname">{{$member.Nick}}</div>
     </div>
 </div>
-{{if and (eq $i 0) (eq (len $this.MemberList) $this.MembersPagination)}}
+{{- if and (eq $i 0) (eq (len $this.MemberList) $this.MembersPagination)}}
 <div class="load-scroll" hx-trigger="intersect once" hx-swap="outerHTML"
     hx-get="/groups/{{$this.GroupId}}/members/page/{{$this.MembersPageNext}}"></div>
-{{end}}
-{{end}}
+{{- end}}
+{{- end}}

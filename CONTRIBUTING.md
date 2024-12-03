@@ -37,5 +37,5 @@ That means, you can use specific syntax and replacements, but the variables
 should be declared by the server, such as `{{.User}}`.
 
 The User and other variables should be used to generate user/group-specific
-content (logout button, profile, etc): `{{if ne .User nil}}`,
-`{{if eq .User nil}}`.
+content (logout button, profile, etc): `{{- if ne .User nil}}`,
+`{{- if eq .User nil}}`.

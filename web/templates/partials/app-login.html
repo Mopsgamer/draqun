@@ -5,16 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Title}}</title>
-    {{template "partials/scripts" .}}
+    {{- template "partials/scripts" .}}
 </head>
 
 <body hx-ext="shoelace">
-    {{template "partials/login-dialog" .}}
-    {{template "partials/signup-dialog" .}}
+    {{- template "partials/login-dialog" .}}
+    {{- template "partials/signup-dialog" .}}
     <main id="main" class="p-4 h-screen flex flex-col justify-center items-center">
-        {{if .TokenError}}
-        {{template "partials/token-fallback" .}}
-        {{end}}
+        {{- if .TokenError}}
+        {{- template "partials/token-fallback" .}}
+        {{- end}}
         <div class="text-3xl font-bold">
             You're not logged in.
         </div>

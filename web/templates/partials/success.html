@@ -1,4 +1,4 @@
-<sl-alert open {{with .Id}}id="{{.}}"{{end}} variant="success">
+<sl-alert open {{- with .Id}}id="{{.}}"{{- end}} variant="success">
     <sl-icon slot="icon" name="check2-circle"></sl-icon>
     {{.Message}}
 </sl-alert>

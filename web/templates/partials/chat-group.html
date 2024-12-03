@@ -1,10 +1,10 @@
 <div class="chat-body">
     <main id="chat" hx-trigger="load" hx-get="/groups/{{.Group.Id}}/messages/page/1" hx-swap="beforeend">
     </main>
-    {{template "partials/chat-input" .}}
+    {{- template "partials/chat-input" .}}
 </div>
 <div class="chat-sidebar" hx-trigger="load" hx-get="/groups/{{.Group.Id}}/members/page/1" hx-swap="beforeend">
     <div class="tiny-divider">
-        Member count - {{len (membersOf .Group.Id)}}
+        Member count - {{- len (membersOf .Group.Id)}}
     </div>
 </div>

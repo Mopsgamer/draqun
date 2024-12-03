@@ -1,65 +1,65 @@
 <sl-dropdown placement="bottom-end">
     <sl-button id="avatar-button" variant="text" slot="trigger">
         <span>
-            {{with .User}}
+            {{- with .User}}
             {{.Nick}}
-            {{else}}
+            {{- else}}
             Guest
-            {{end}}
+            {{- end}}
         </span>
         <sl-avatar
             class="-mr-2 ml-4"
         ></sl-avatar>
     </sl-button>
     <sl-menu>
-        {{if ne .User nil}}
-        {{if .IsChatPage }}
+        {{- if ne .User nil}}
+        {{- if .IsChatPage }}
         <a href="#settings-dialog">
             <sl-menu-item>
                 <sl-icon slot="prefix" name="gear"></sl-icon>
                 Settings
             </sl-menu-item>
         </a>
-        {{else}}
+        {{- else}}
         <a href="/settings">
             <sl-menu-item>
                 <sl-icon slot="prefix" name="gear"></sl-icon>
                 Settings
             </sl-menu-item>
         </a>
-        {{end}}
-        {{end}}
+        {{- end}}
+        {{- end}}
 
         <sl-divider></sl-divider>
 
-        {{if .IsChatPage }}
+        {{- if .IsChatPage }}
         <a href="/">
             <sl-menu-item>
                 <sl-icon slot="prefix" name="house-heart"></sl-icon>
                 Discover
             </sl-menu-item>
         </a>
-        {{else}}
+        {{- else}}
         <a href="/chat">
             <sl-menu-item>
                 <sl-icon slot="prefix" name="house"></sl-icon>
                 Chat
             </sl-menu-item>
         </a>
-        {{end}}
+        {{- end}}
 
-        {{if ne .User nil}}
+        {{- if ne .User nil}}
         <sl-menu-item hx-put="/account/logout" hx-swap="innerHTML">
             <sl-icon slot="prefix" name="box-arrow-right"></sl-icon>
             Log Out
         </sl-menu-item>
-        {{else}}
+        {{- else}}
         <a href="#login-dialog">
             <sl-menu-item>
                 <sl-icon slot="prefix" name="person-circle"></sl-icon>
                 Log In
             </sl-menu-item>
         </a>
-        {{end}}
+        {{- end}}
     </sl-menu>
 </sl-dropdown>
