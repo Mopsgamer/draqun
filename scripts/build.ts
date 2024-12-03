@@ -4,7 +4,7 @@ import { tailwindPlugin } from "esbuild-plugin-tailwindcss";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { dirname } from "@std/path";
 import { exists, existsSync } from "@std/fs";
-import { logBuild } from "./tool.ts";
+import { envKeys, logBuild } from "./tool.ts";
 
 const isWatch = Deno.args.includes("--watch");
 
@@ -12,9 +12,16 @@ type BuildOptions = esbuild.BuildOptions & {
     whenChange?: string | string[];
 };
 
+const environment = Number(Deno.env.get(envKeys.ENVIRONMENT));
+const minify = environment > 1;
+logBuild.info(`${envKeys.ENVIRONMENT} = ${environment}`);
+
 const options: esbuild.BuildOptions = {
     bundle: true,
-    minify: false,
+    minify: minify,
+    minifyIdentifiers: minify,
+    minifySyntax: minify,
+    minifyWhitespace: minify,
     platform: "browser",
     format: "esm",
     target: [
@@ -96,7 +103,7 @@ const taskList = [
     buildTask({
         ...options,
         outdir: "./web/static/js",
-        entryPoints: ["./web/src/ts/main.ts"],
+        entryPoints: ["./web/src/ts/main.ts", "./web/src/ts/app.ts"],
         plugins: [...denoPlugins()],
     }),
     buildTask({

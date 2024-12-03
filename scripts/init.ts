@@ -2,19 +2,9 @@ import dotenv from "dotenv";
 // @deno-types="npm:@types/mysql"
 import mysql from "mysql2";
 import { existsSync } from "@std/fs";
-import { logInitDb, logInitFiles } from "./tool.ts";
+import { envKeys, logInitDb, logInitFiles } from "./tool.ts";
 import { promisify } from "node:util";
 import { parse } from "node:path";
-
-enum envKeys {
-    ENVIRONMENT = "ENVIRONMENT",
-    JWT_KEY = "JWT_KEY",
-    DB_PASSWORD = "DB_PASSWORD",
-    DB_NAME = "DB_NAME",
-    DB_USER = "DB_USER",
-    DB_HOST = "DB_HOST",
-    DB_PORT = "DB_PORT",
-}
 
 async function initMysqlTables(): Promise<void> {
     const sqlFileList = [
