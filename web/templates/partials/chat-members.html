@@ -5,7 +5,7 @@
         <sl-avatar style="--size: 2rem"></sl-avatar>
     </div>
     <div class="text">
-        <div class="nickname">{{$member.Nick}}</div>
+        <div class="nickname limited w-full" {{with $member.Nick}}title="{{$member.Nick}}"{{end}}>{{$member.Nick}}</div>
     </div>
 </div>
 {{- if and (eq $i 0) (eq (len $this.MemberList) $this.MembersPagination)}}

@@ -1,15 +1,7 @@
 <sl-dropdown placement="bottom-end">
     <sl-button id="avatar-button" variant="text" slot="trigger">
-        <span>
-            {{- with .User}}
-            {{.Nick}}
-            {{- else}}
-            Guest
-            {{- end}}
-        </span>
-        <sl-avatar
-            class="-mr-2 ml-4"
-        ></sl-avatar>
+        <span class="nickname aligned h-full" {{with .User}}title="{{.Nick}}"{{end}}>{{with .User}}{{.Nick}}{{else}}Guest{{end}}</span>
+        <sl-avatar class="-mr-2 ml-4" slot="suffix"></sl-avatar>
     </sl-button>
     <sl-menu>
         {{- if ne .User nil}}
@@ -43,7 +35,7 @@
         <a href="/chat">
             <sl-menu-item>
                 <sl-icon slot="prefix" name="house"></sl-icon>
-                Chat
+                Restapp
             </sl-menu-item>
         </a>
         {{- end}}

@@ -1,12 +1,18 @@
 @tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+    .limited {
+        @apply overflow-hidden text-ellipsis;
+    }
+
+    .aligned {
+        @apply relative flex items-center gap-2;
+    }
+}
 
 @layer components {
     body:has(:not(:defined)) {
-        visibility: hidden;
-    }
-
-    .h-line:empty::after {
-        content: ".";
         visibility: hidden;
     }
 
@@ -19,10 +25,6 @@
 
     form, .column {
         @apply flex flex-col gap-4;
-    }
-
-    .aligned {
-        @apply relative flex items-center gap-2;
     }
 
     .anchor-header {
@@ -76,21 +78,22 @@
         @apply relative flex flex-col w-full h-full p-1;
     }
 
+    .nickname {
+        @apply limited max-w-52;
+    }
+
     #chat {
         @apply relative snap-y flex flex-col w-full h-full p-1 pb-6 overflow-y-auto overflow-x-hidden;
         .message {
             @apply relative snap-center bg-n0 flex flex-col max-w-full rounded-md p-2 gap-1;
             .prefix {
                 @apply aligned;
-                .nickname {
-                    @apply text-blue-500;
-                }
                 sl-format-date {
                     @apply text-neutral-500;
                 }
             }
             .text {
-                @apply aligned pl-[2.25rem];
+                @apply aligned pl-10;
             }
         }
         .join {
@@ -118,15 +121,36 @@
     }
 
     .chat-input {
-        @apply aligned flex-col w-full p-4 pb-12 h-1/5;
-        form {
+        @apply aligned flex-col w-full p-5 pb-9 pt-6 h-fit gap-2;
+        --sl-input-filled-background-color: var(--sl-color-neutral-200);
+        --sl-input-filled-background-color-focus: var(--sl-color-neutral-0);
+        --sl-input-filled-background-color-hover: var(--sl-color-neutral-300);
+
+        & > * {
             @apply aligned flex-row w-full;
-            sl-input {
-                --sl-input-filled-background-color: var(--sl-color-neutral-200);
-                --sl-input-filled-background-color-focus: var(--sl-color-neutral-0);
-                --sl-input-filled-background-color-hover: var(--sl-color-neutral-300);
-                @apply w-full;
+        }
+
+        #send-message-error:not(:empty) {
+            @apply p-1;
+        }
+
+        .box {
+            @apply flex flex-col w-full rounded rounded-b-xl;
+            &:has(#send-message-error:not(:empty)) {
+                @apply bg-red-500;
             }
+        }
+
+        .right {
+            @apply flex flex-col;
+        }
+
+        .bottom {
+            @apply h-7;
+        }
+
+        sl-textarea::part(textarea) {
+            @apply max-h-20 overflow-auto;
         }
     }
 
@@ -139,12 +163,9 @@
             @apply text-blue-300;
         }
         .member {
-            @apply aligned bg-black/[.1] rounded-md select-none;
+            @apply aligned bg-black/[.1] rounded-md select-none overflow-hidden;
             .text {
-                @apply aligned w-full overflow-hidden text-ellipsis;
-                .nickname {
-                    @apply text-blue-300;
-                }
+                @apply aligned flex-col overflow-hidden w-full;
             }
         }
     }

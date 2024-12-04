@@ -15,7 +15,7 @@
         {{- template "partials/app-header" .}}
         <div id="content">
         {{- if ne .Group nil}}
-        {{- template "partials/chat-group" .}}
+        {{- template "partials/app-group" .}}
         {{- else}}
         {{- template "partials/app-home" .}}
         {{- end}}
