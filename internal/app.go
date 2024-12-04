@@ -8,7 +8,6 @@ import (
 	"restapp/internal/logic/logic_http"
 	"restapp/internal/logic/logic_websocket"
 	"restapp/websocket"
-	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
@@ -111,29 +110,29 @@ func NewApp() (*fiber.App, error) {
 						break
 					}
 
-					start := time.Now()
+					// start := time.Now()
 					ws.MessageType = messageType
 					ws.Message = message
 					err = handler(&ws)
 
-					colorErr := fiber.DefaultColors.Green
-					if err != nil {
-						colorErr = fiber.DefaultColors.Red
-					}
+					// colorErr := fiber.DefaultColors.Green
+					// if err != nil {
+					// 	colorErr = fiber.DefaultColors.Red
+					// }
 
-					fmt.Printf(
-						"%s | %s%3s%s | %13s | %15s | %d | %s%s%s \n",
-						time.Now().Format("15:04:05"),
-						colorErr,
-						"ws",
-						fiber.DefaultColors.Reset,
-						time.Since(start),
-						ws.IP,
-						ws.MessageType,
-						fiber.DefaultColors.Yellow,
-						ws.Message,
-						fiber.DefaultColors.Reset,
-					)
+					// fmt.Printf(
+					// 	"%s | %s%3s%s | %13s | %15s | %d | %s%s%s \n",
+					// 	time.Now().Format("15:04:05"),
+					// 	colorErr,
+					// 	"ws",
+					// 	fiber.DefaultColors.Reset,
+					// 	time.Since(start),
+					// 	ws.IP,
+					// 	ws.MessageType,
+					// 	fiber.DefaultColors.Yellow,
+					// 	ws.Message,
+					// 	fiber.DefaultColors.Reset,
+					// )
 					if err != nil {
 						break
 					}

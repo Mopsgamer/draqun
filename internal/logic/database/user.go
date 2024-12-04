@@ -125,10 +125,10 @@ func (db Database) UserByUsername(username string) *model_database.User {
 	return user
 }
 
-func (db Database) UserRoleList(userId uint64) []model_database.Role {
+func (db Database) UserRoleList(groupId, userId uint64) []model_database.Role {
 	roleList := &[]model_database.Role{}
-	query := `SELECT * FROM app_group_roles WHERE user_id = ?`
-	err := db.Sql.Select(roleList, query, userId)
+	query := `SELECT * FROM app_group_roles WHERE group_id = ? AND user_id = ?`
+	err := db.Sql.Select(roleList, query, groupId, userId)
 
 	if err != nil {
 		log.Error(err)
@@ -137,30 +137,41 @@ func (db Database) UserRoleList(userId uint64) []model_database.Role {
 	return *roleList
 }
 
-func (db Database) RoleRights(rightId uint64) *model_database.Rights {
-	roleList := new(model_database.Rights)
+func (db Database) RightById(rightId uint64) *model_database.Right {
+	right := new(model_database.Right)
 	query := `SELECT * FROM app_group_role_rights WHERE id = ?`
-	err := db.Sql.Get(roleList, query, rightId)
+	err := db.Sql.Get(right, query, rightId)
 
 	if err != nil {
 		log.Error(err)
-		return roleList
+		return right
 	}
-	return roleList
+	return right
 }
 
-func (db Database) UserRights(userId uint64) *model_database.Rights {
-	rights := new(model_database.Rights)
-	// FIXME: user rights sql query
-	// since the user can have multiple roles,
-	// we should calculate it as a single right object.
-	query := `SELECT * FROM app_group_role_rights WHERE id = ?`
-	err := db.Sql.Get(rights, query, userId)
+func (db Database) UserRightsList(groupId, userId uint64) []model_database.Right {
+	rightList := new([]model_database.Right)
+	query := `SELECT app_group_role_rights.*
+	FROM app_group_role_rights
+	LEFT JOIN app_group_roles ON app_group_roles.right_id = app_group_role_rights.id
+	WHERE app_group_role_rights.group_id = ? AND app_group_role_rights.user_id = ?`
+	err := db.Sql.Select(rightList, query, groupId, userId)
 
 	if err != nil {
 		log.Error(err)
+		return *rightList
+	}
+	return *rightList
+}
+
+func (db Database) UserRights(groupId, userId uint64) model_database.Right {
+	roleList := db.UserRightsList(groupId, userId)
+	rights := model_database.Right{}
+	if len(roleList) == 0 {
 		return rights
 	}
+
+	rights.Merge(roleList...)
 	return rights
 }
 

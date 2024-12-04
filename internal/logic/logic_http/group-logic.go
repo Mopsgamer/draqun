@@ -58,9 +58,12 @@ func (r LogicHTTP) GroupCreate() error {
 		IsOwner:  true,
 		IsBanned: false,
 	}
+
 	if !r.DB.UserJoinGroup(*member) {
 		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
+
+	// FIXME: give role with rights
 
 	r.HTMXRedirect("/chat/groups/" + fmt.Sprintf("%d", *groupId))
 	return r.RenderSuccess(i18n.MessageSuccCreatedGroup, id)

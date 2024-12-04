@@ -36,7 +36,16 @@ func (r LogicHTTP) MessageCreate() error {
 		return r.Ctx.SendString(i18n.MessageErrMessageContent + " Length: " + strconv.Itoa(len(message.Content)) + "/" + model_database.ContentMaxLengthString)
 	}
 
-	// FIXME: user should have read permissions
+	member := r.DB.MemberById(message.GroupId, user.Id)
+	if !member.IsOwner {
+		if member.IsBanned {
+			return r.Ctx.SendString(i18n.MessageErrNoRights)
+		}
+		right := r.DB.UserRights(message.GroupId, user.Id)
+		if !right.ChatRead || !right.ChatWrite {
+			return r.Ctx.SendString(i18n.MessageErrNoRights)
+		}
+	}
 
 	messageId := r.DB.MessageCreate(*message)
 	if messageId == nil {
@@ -45,8 +54,7 @@ func (r LogicHTTP) MessageCreate() error {
 
 	message.Id = *messageId
 	str, _ := r.RenderString("partials/chat-messages", r.MapPage(&fiber.Map{
-		"MessageList":        []model_database.Message{*message},
-		"MessagesPagination": 2, // disables scroll loading
+		"MessageList": []model_database.Message{*message},
 	}))
 
 	logic_websocket.WebsocketConnections.Push(user.Id, logic.WrapOob("beforeend:#chat", &str), logic_websocket.SubForMessages)

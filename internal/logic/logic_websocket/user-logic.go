@@ -32,5 +32,16 @@ func (ws *LogicWebsocket) SubscribeGroup() error {
 		return ws.SendDanger(i18n.MessageErrNotGroupMember, id)
 	}
 
+	member := ws.DB.MemberById(group.Id, user.Id)
+	if !member.IsOwner {
+		if member.IsBanned {
+			return ws.SendString(i18n.MessageErrNoRights)
+		}
+		right := ws.DB.UserRights(group.Id, user.Id)
+		if !right.ChatRead || !right.ChatWrite {
+			return ws.SendString(i18n.MessageErrNoRights)
+		}
+	}
+
 	return ws.Flush()
 }
