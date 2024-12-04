@@ -1,6 +1,6 @@
 <div class="chat-input">
     <div id="send-message-error" class="h-line"></div>
-    <form id="send-message-form" hx-target="#chat" hx-swap="beforeend" hx-post="/groups/{{.Group.Id}}/messages/create">
+    <form id="send-message-form" hx-target="#send-message-error" hx-swap="innerHTML" hx-post="/groups/{{.Group.Id}}/messages/create">
         <sl-input filled placeholder="Write to {{.Group.Nick}}" name="content"></sl-input>
         <sl-button title="Send" variant="text" form="send-message-form" type="submit">
             <sl-icon name="send"></sl-icon>

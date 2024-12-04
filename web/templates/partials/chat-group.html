@@ -8,3 +8,4 @@
         Member count - {{- len (membersOf .Group.Id)}}
     </div>
 </div>
+<div hx-ext="ws" ws-connect="/groups/{{.Group.Id}}" hx-trigger="every 1.6s" ws-send=""></div>

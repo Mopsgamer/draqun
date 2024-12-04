@@ -10,6 +10,5 @@ declare namespace globalThis {
 globalThis.htmx = HTMX;
 
 import("htmx-ext-debug");
-import("htmx-ext-ws");
 
 setBasePath("/static/shoelace");

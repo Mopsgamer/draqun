@@ -1,17 +1,13 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 	"restapp/internal/environment"
-	"restapp/internal/i18n"
 	"restapp/internal/logic"
 	"restapp/internal/logic/database"
 	"restapp/internal/logic/logic_http"
 	"restapp/internal/logic/logic_websocket"
-	"restapp/internal/logic/model_request"
 	"restapp/websocket"
-	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -77,9 +73,8 @@ func NewApp() (*fiber.App, error) {
 	}
 
 	UseWebsocket := func(
-		acceptUpgrade func(r logic_http.LogicHTTP) bool,
-		handler func(ws *logic_websocket.LogicWebsocket,
-			wsreq *model_request.WebsocketRequest) error,
+		subscribe []string,
+		handler func(ws *logic_websocket.LogicWebsocket) error,
 	) fiber.Handler {
 		return func(c fiber.Ctx) error {
 			http := logic_http.LogicHTTP{
@@ -88,10 +83,6 @@ func NewApp() (*fiber.App, error) {
 			}
 			if !websocket.IsWebSocketUpgrade(http.Ctx) {
 				http.Ctx.Next()
-			}
-
-			if !acceptUpgrade(http) {
-				return errors.New("not accepted")
 			}
 
 			ip := http.Ctx.IP()
@@ -112,50 +103,32 @@ func NewApp() (*fiber.App, error) {
 					},
 				)
 
-				logic_websocket.WebsocketConnections.UserConnect(user.Id, &ws)
-				defer logic_websocket.WebsocketConnections.UserDisconnect(user.Id, &ws)
+				logic_websocket.WebsocketConnections.Connect(user.Id, &ws)
+				defer logic_websocket.WebsocketConnections.Close(user.Id, &ws)
 				for !ws.Closed {
 					messageType, message, err := ws.Ctx.ReadMessage()
 					if err != nil {
-						log.Error(err)
 						break
 					}
 
 					start := time.Now()
 					ws.MessageType = messageType
 					ws.Message = message
-					wsmsg := new(model_request.WebsocketRequest)
-					if ws.MessageType == websocket.TextMessage {
-						parseErr := ws.GetMessageJSON(wsmsg)
-						if parseErr != nil {
-							log.Error(parseErr)
-						}
-					} else {
-						wsmsg = nil
-					}
-					err = handler(&ws, wsmsg)
+					err = handler(&ws)
 
 					colorErr := fiber.DefaultColors.Green
 					if err != nil {
 						colorErr = fiber.DefaultColors.Red
 					}
 
-					t := "?"
-					if wsmsg != nil {
-						t = wsmsg.Type
-					}
-
 					fmt.Printf(
-						"%s | %s%3s%s | %13s | %15s | %s%s%s | %d | %s%s%s \n",
+						"%s | %s%3s%s | %13s | %15s | %d | %s%s%s \n",
 						time.Now().Format("15:04:05"),
 						colorErr,
 						"ws",
 						fiber.DefaultColors.Reset,
 						time.Since(start),
 						ws.IP,
-						fiber.DefaultColors.Cyan,
-						t,
-						fiber.DefaultColors.Reset,
 						ws.MessageType,
 						fiber.DefaultColors.Yellow,
 						ws.Message,
@@ -227,51 +200,12 @@ func NewApp() (*fiber.App, error) {
 	app.Delete("/account/delete", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserDelete() }))
 
 	// websoket
-	app.Get("/chat/groups/:group_id", UseWebsocket(
-		func(ws logic_http.LogicHTTP) bool {
-			id := "send-message-error"
-			user, _ := ws.User()
-			if user == nil {
-				ws.RenderDanger(i18n.MessageErrUserNotFound, id)
-				return false
-			}
-
-			group := ws.Group()
-			if group == nil {
-				ws.RenderDanger(i18n.MessageErrGroupNotFound, id)
-				return false
-			}
-
-			if ws.DB.MemberById(group.Id, user.Id) == nil {
-				ws.RenderDanger(i18n.MessageErrNotGroupMember, id)
-				return false
-			}
-
-			// FIXME: user should have read permissions
-			return true
-		},
-		func(ws *logic_websocket.LogicWebsocket, wsreq *model_request.WebsocketRequest) error {
-			id := "send-message-error"
-			if wsreq == nil {
-				ws.SendWarning(i18n.MessageErrInvalidRequest, id)
-				return nil
-			}
-
-			var err error = nil
-			// if wsreq.Type == "update-messages" {
-			// 	err = ws.UpdateMessages()
-			// }
-			err = errors.New("unimplemented")
-
-			if err != nil {
-				log.Error(err)
-			}
-			return err
-		},
-	))
+	app.Get("/groups/:group_id", UseWebsocket([]string{
+		logic_websocket.SubForMessages,
+	}, func(ws *logic_websocket.LogicWebsocket) error { return ws.SubscribeGroup() }))
 
 	app.Use(UseHTTPPage("partials/x", &fiber.Map{
-		"Title":         strconv.Itoa(fiber.StatusNotFound),
+		"Title":         fmt.Sprintf("%d", fiber.StatusNotFound),
 		"StatusCode":    fiber.StatusNotFound,
 		"StatusMessage": fiber.ErrNotFound.Message,
 		"CenterContent": true,

@@ -152,7 +152,7 @@ func WaitForBuild() {
 
 		// see ./web/build.ts file
 		if strings.Contains(line, "Done:") {
-			log.Info("Now starting the server...")
+			log.Info("Starting the server... ENVIRONMENT = ", Environment)
 			break
 		}
 	}

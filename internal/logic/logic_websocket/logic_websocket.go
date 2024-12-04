@@ -10,15 +10,16 @@ import (
 
 type LogicWebsocket struct {
 	*logic.Logic
-	Ctx         *websocket.Conn
-	App         *fiber.App
-	IP          string
+	Ctx *websocket.Conn
+	App *fiber.App
+	IP  string
+
 	MessageType int
 	Message     []byte
-	// You can change it.
-	Closed bool
-
-	Map *fiber.Map
+	dataToFlush string
+	Map         *fiber.Map
+	Closed      bool
+	Subs        []string
 }
 
 func New(appLogic *logic.Logic, conn *websocket.Conn, app *fiber.App, ip string, fmap *fiber.Map) LogicWebsocket {

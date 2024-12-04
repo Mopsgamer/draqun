@@ -2,6 +2,7 @@ package logic_http
 
 import (
 	"restapp/internal/i18n"
+	"restapp/internal/logic"
 	"restapp/internal/logic/logic_websocket"
 	"restapp/internal/logic/model_database"
 	"restapp/internal/logic/model_request"
@@ -37,21 +38,20 @@ func (r LogicHTTP) MessageCreate() error {
 
 	// FIXME: user should have read permissions
 
-	messageId := logic_websocket.MessageSend(*r.DB, *message)
+	messageId := r.DB.MessageCreate(*message)
 	if messageId == nil {
 		return r.Ctx.SendString(i18n.MessageFatalDatabaseQuery)
 	}
 
 	message.Id = *messageId
-	str, err := r.RenderString("partials/chat-messages", r.MapPage(&fiber.Map{
+	str, _ := r.RenderString("partials/chat-messages", r.MapPage(&fiber.Map{
 		"MessageList":        []model_database.Message{*message},
 		"MessagesPagination": 2, // disables scroll loading
 	}))
-	if err != nil {
-		return err
-	}
 
-	return r.Ctx.SendString(str)
+	logic_websocket.WebsocketConnections.Push(user.Id, logic.WrapOob("beforeend:#chat", &str), logic_websocket.SubForMessages)
+
+	return r.Ctx.SendString("")
 }
 
 func (r LogicHTTP) MessagesPage() error {
@@ -70,14 +70,11 @@ func (r LogicHTTP) MessagesPage() error {
 	}
 
 	messageList := r.DB.MessageListPage(*req.GroupId, req.Page, MessagesPagination)
-	str, err := r.RenderString("partials/chat-messages", fiber.Map{
+	str, _ := r.RenderString("partials/chat-messages", fiber.Map{
 		"GroupId":            req.GroupId,
 		"MessageList":        messageList,
 		"MessagesPageNext":   req.Page + 1,
 		"MessagesPagination": MessagesPagination,
 	})
-	if err != nil {
-		return err
-	}
 	return r.Ctx.SendString(str)
 }

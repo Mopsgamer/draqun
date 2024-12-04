@@ -1,11 +1,10 @@
 package logic_http
 
 import (
+	"fmt"
 	"restapp/internal/i18n"
-	"restapp/internal/logic/logic_websocket"
 	"restapp/internal/logic/model_database"
 	"restapp/internal/logic/model_request"
-	"strconv"
 )
 
 func (r LogicHTTP) GroupCreate() error {
@@ -59,11 +58,11 @@ func (r LogicHTTP) GroupCreate() error {
 		IsOwner:  true,
 		IsBanned: false,
 	}
-	if logic_websocket.GroupJoin(*r.DB, *member) == nil {
+	if !r.DB.UserJoinGroup(*member) {
 		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
-	r.HTMXRedirect("/chat/groups/" + strconv.FormatUint(*groupId, 10))
+	r.HTMXRedirect("/chat/groups/" + fmt.Sprintf("%d", *groupId))
 	return r.RenderSuccess(i18n.MessageSuccCreatedGroup, id)
 }
 
