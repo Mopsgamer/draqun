@@ -75,11 +75,12 @@ export function chatJoinMessages(): void {
 
         const shouldJoin = element.getAttribute("data-author") ===
             element.nextElementSibling.getAttribute("data-author");
+
         const dateDiff = new Date(
-            element.nextElementSibling.getAttribute("data-createt-at")!,
+            element.nextElementSibling.getAttribute("data-created-at")!,
         ).getTime() -
             new Date(
-                element.nextElementSibling.getAttribute("data-createt-at")!,
+                element.getAttribute("data-created-at")!,
             ).getTime();
         const shouldJoinDate = dateDiff < 1000 * 60 * 5; // 5 minutes
         while (isMessageJoinElement(element.nextElementSibling)) {
