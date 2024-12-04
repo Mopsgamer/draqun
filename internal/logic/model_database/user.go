@@ -13,9 +13,9 @@ type User struct {
 	// Nick is customizable name. Can contain emojis and special characters.
 	Nick string `db:"nickname"`
 	// Name is a simple identificator, which can be used to create friend links.
-	Name  string `db:"username"`
-	Email string `db:"email"`
-	Phone string `db:"phone"`
+	Name  string  `db:"username"`
+	Email string  `db:"email"`
+	Phone *string `db:"phone"`
 	// Hashed password string.
 	Password  string    `db:"password"`
 	Avatar    string    `db:"avatar"`

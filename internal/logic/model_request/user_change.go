@@ -14,8 +14,8 @@ type UserChangeEmail struct {
 
 // Supports: json, form.
 type UserChangePhone struct {
-	CurrentPassword string `json:"current-password" form:"current-password"`
-	NewPhone        string `json:"new-phone" form:"new-phone"`
+	CurrentPassword string  `json:"current-password" form:"current-password"`
+	NewPhone        *string `json:"new-phone" form:"new-phone"`
 }
 
 // Supports: json, form.

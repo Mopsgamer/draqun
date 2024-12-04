@@ -42,7 +42,7 @@
             Phone
         </h1>
         <div class="flex justify-between">
-            {{- hidePhone .User.Phone}}
+            {{if ne .User.Phone nil}}{{- hidePhone .User.Phone}}{{else}}None{{end}}
             <sl-button variant="primary" href="#change-phone-dialog">Change phone</sl-button>
         </div>
     </sl-card>

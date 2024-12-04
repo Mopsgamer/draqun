@@ -47,7 +47,7 @@ export function getFormPropData(form: HTMLFormElement, capital = false) {
         let { name } = slElement;
         const { value } = slElement;
 
-        if (typeof name !== "string" || typeof value !== "string") {
+        if (typeof name !== "string" || typeof value !== "string" || !name || !value) {
             continue;
         }
 
