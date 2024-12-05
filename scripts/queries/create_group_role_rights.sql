@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS app_group_role_rights (
-    group_id BIGINT UNSIGNED NOT NULL COMMENT 'Group id',
     id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Role id',
+    group_id BIGINT UNSIGNED NOT NULL COMMENT 'Group id',
     perm_chat_read BIT NOT NULL,
     perm_chat_write BIT NOT NULL,
     perm_chat_delete BIT NOT NULL,

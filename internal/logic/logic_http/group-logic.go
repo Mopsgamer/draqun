@@ -51,19 +51,43 @@ func (r LogicHTTP) GroupCreate() error {
 		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
-	member := &model_database.Member{
-		GroupId:  *groupId,
+	group.Id = *groupId
+
+	member := model_database.Member{
+		GroupId:  group.Id,
 		UserId:   user.Id,
 		Nick:     nil,
 		IsOwner:  true,
 		IsBanned: false,
 	}
 
-	if !r.DB.UserJoinGroup(*member) {
+	if !r.DB.UserJoinGroup(member) {
 		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
-	// FIXME: give role with rights
+	// everyone default rights
+	right := model_database.Right{
+		GroupId:    group.Id,
+		ChatRead:   true,
+		ChatWrite:  true,
+		ChatDelete: true,
+	}
+
+	rightId := r.DB.RightCreate(right)
+	if rightId == nil {
+		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
+	}
+	right.Id = *rightId
+
+	role := model_database.Role{
+		GroupId: group.Id,
+		UserId:  user.Id,
+		RightId: right.Id,
+	}
+
+	if !r.DB.RoleCreate(role) {
+		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
+	}
 
 	r.HTMXRedirect("/chat/groups/" + fmt.Sprintf("%d", *groupId))
 	return r.RenderSuccess(i18n.MessageSuccCreatedGroup, id)
