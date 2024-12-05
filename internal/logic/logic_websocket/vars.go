@@ -19,3 +19,17 @@ func (ws *LogicWebsocket) Group() *model_database.Group {
 	}
 	return nil
 }
+
+func (ws *LogicWebsocket) Member() *model_database.Member {
+	if member, ok := (*ws.Map)["Member"].(*model_database.Member); ok {
+		return member
+	}
+	return nil
+}
+
+func (ws *LogicWebsocket) Rights() *model_database.Role {
+	if rights, ok := (*ws.Map)["Rights"].(*model_database.Role); ok {
+		return rights
+	}
+	return nil
+}

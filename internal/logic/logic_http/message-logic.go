@@ -22,29 +22,27 @@ func (r LogicHTTP) MessageCreate() error {
 		return r.Ctx.SendString(i18n.MessageErrInvalidRequest)
 	}
 
-	user := r.User()
-	if user == nil {
-		return nil
+	rights, member, user, group := r.Rights()
+	if group == nil {
+		return r.Ctx.SendString(i18n.MessageErrGroupNotFound)
 	}
 
-	message := req.Message(user.Id)
-	if r.DB.MemberById(message.GroupId, user.Id) == nil {
+	if member == nil {
 		return r.Ctx.SendString(i18n.MessageErrNotGroupMember)
 	}
 
-	if !model_database.IsValidMessageContent(message.Content) {
-		return r.Ctx.SendString(i18n.MessageErrMessageContent + " Length: " + strconv.Itoa(len(message.Content)) + "/" + model_database.ContentMaxLengthString)
-	}
-
-	member := r.DB.MemberById(message.GroupId, user.Id)
+	message := req.Message(user.Id)
 	if !member.IsOwner {
 		if member.IsBanned {
 			return r.Ctx.SendString(i18n.MessageErrNoRights)
 		}
-		right := r.DB.UserRights(message.GroupId, user.Id)
-		if !right.ChatRead || !right.ChatWrite {
+		if !rights.ChatRead || !rights.ChatWrite {
 			return r.Ctx.SendString(i18n.MessageErrNoRights)
 		}
+	}
+
+	if !model_database.IsValidMessageContent(message.Content) {
+		return r.Ctx.SendString(i18n.MessageErrMessageContent + " Length: " + strconv.Itoa(len(message.Content)) + "/" + model_database.ContentMaxLengthString)
 	}
 
 	messageId := r.DB.MessageCreate(*message)
@@ -68,12 +66,12 @@ func (r LogicHTTP) MessagesPage() error {
 		return r.Ctx.SendString(i18n.MessageErrInvalidRequest)
 	}
 
-	user := r.User()
-	if user == nil {
-		return nil
+	member, _, group := r.Member()
+	if group == nil {
+		return r.Ctx.SendString(i18n.MessageErrGroupNotFound)
 	}
 
-	if r.DB.MemberById(req.GroupId, user.Id) == nil {
+	if member == nil {
 		return r.Ctx.SendString(i18n.MessageErrNotGroupMember)
 	}
 

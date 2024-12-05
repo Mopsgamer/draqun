@@ -165,17 +165,9 @@ func NewApp() (*fiber.App, error) {
 		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
 			to := "/chat"
 
-			user := r.User()
-			if user == nil {
-				return to
-			}
+			member, _, group := r.Member()
 
-			group := r.Group()
-			if group == nil {
-				return to
-			}
-
-			if r.DB.MemberById(group.Id, user.Id) == nil {
+			if member == nil {
 				return to
 			}
 
@@ -187,13 +179,8 @@ func NewApp() (*fiber.App, error) {
 		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
 			to := "/chat"
 
-			user := r.User()
-			if user == nil {
-				return to
-			}
-
-			group := r.Group()
-			if group == nil {
+			group, user := r.Group()
+			if group == nil || user == nil {
 				return to
 			}
 

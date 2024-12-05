@@ -97,20 +97,18 @@ func (r LogicHTTP) GroupChange() error {
 		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
 	}
 
-	user := r.User()
-	if user == nil {
-		return nil
-	}
+	rights, member, _, group := r.Rights()
 
-	group := r.Group()
 	if group == nil {
 		return r.RenderDanger(i18n.MessageErrGroupNotFound, id)
 	}
 
-	member := r.DB.MemberById(req.GroupId, user.Id)
+	if member == nil {
+		return r.RenderDanger(i18n.MessageErrNotGroupMember, id)
+	}
+
 	if !member.IsOwner {
-		right := r.DB.UserRights(member.GroupId, user.Id)
-		if !right.ChangeGroup {
+		if !rights.ChangeGroup {
 			return r.RenderDanger(i18n.MessageErrNoRights, id)
 		}
 	}
@@ -165,12 +163,16 @@ func (r LogicHTTP) GroupDelete() error {
 		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
 	}
 
-	user := r.User()
-	if user == nil {
-		return nil
+	member, _, group := r.Member()
+
+	if group == nil {
+		return r.RenderDanger(i18n.MessageErrGroupNotFound, id)
 	}
 
-	member := r.DB.MemberById(req.GroupId, user.Id)
+	if member == nil {
+		return r.RenderDanger(i18n.MessageErrNotGroupMember, id)
+	}
+
 	if !member.IsOwner {
 		return r.RenderDanger(i18n.MessageErrNoRights, id)
 	}

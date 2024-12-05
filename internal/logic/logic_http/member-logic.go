@@ -16,12 +16,13 @@ func (r LogicHTTP) MembersPage() error {
 		return r.Ctx.SendString(i18n.MessageErrInvalidRequest)
 	}
 
-	user := r.User()
-	if user == nil {
-		return nil
+	member, _, group := r.Member()
+
+	if group == nil {
+		return r.Ctx.SendString(i18n.MessageErrGroupNotFound)
 	}
 
-	if r.DB.MemberById(req.GroupId, user.Id) == nil {
+	if member == nil {
 		return r.Ctx.SendString(i18n.MessageErrNotGroupMember)
 	}
 
@@ -46,12 +47,13 @@ func (r LogicHTTP) GroupLeave() error {
 		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
 	}
 
-	user := r.User()
-	if user == nil {
-		return nil
+	member, _, group := r.Member()
+
+	if group == nil {
+		return r.RenderDanger(i18n.MessageErrGroupNotFound, id)
 	}
 
-	if r.DB.MemberById(req.GroupId, user.Id) == nil {
+	if member == nil {
 		return r.RenderDanger(i18n.MessageErrNotGroupMember, id)
 	}
 
@@ -71,12 +73,12 @@ func (r LogicHTTP) GroupJoin() error {
 		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
 	}
 
-	user := r.User()
-	if user == nil {
-		return nil
+	member, _, group := r.Member()
+	if group == nil {
+		return r.RenderDanger(i18n.MessageErrGroupNotFound, id)
 	}
 
-	if r.DB.MemberById(req.GroupId, user.Id) != nil {
+	if member != nil {
 		return r.RenderDanger(i18n.MessageErrAlreadyGroupMember, id)
 	}
 

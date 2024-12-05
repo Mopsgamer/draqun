@@ -67,22 +67,47 @@ func (r *LogicHTTP) User() (user *model_database.User) {
 }
 
 // Get group by the id from current URI.
-func (r *LogicHTTP) Group() *model_database.Group {
+func (r *LogicHTTP) Group() (*model_database.Group, *model_database.User) {
+	user := r.User()
 	groupUri := new(model_request.GroupUri)
 	if err := r.Ctx.Bind().URI(groupUri); err != nil {
 		log.Error(err)
-		return nil
+		return nil, user
 	}
 
 	if groupUri.GroupId != 0 {
 		group := r.DB.GroupById(groupUri.GroupId)
-		return group
+		return group, user
 	}
 
 	if groupUri.GroupName != "" {
 		group := r.DB.GroupByName(groupUri.GroupName)
-		return group
+		return group, user
 	}
 
-	return nil
+	return nil, nil
+}
+
+func (r *LogicHTTP) Member() (*model_database.Member, *model_database.User, *model_database.Group) {
+	group, user := r.Group()
+	if user == nil || group == nil {
+		return nil, user, group
+	}
+
+	member := r.DB.MemberById(group.Id, user.Id)
+	if member == nil {
+		return nil, user, group
+	}
+
+	return member, user, group
+}
+
+func (r *LogicHTTP) Rights() (*model_database.Role, *model_database.Member, *model_database.User, *model_database.Group) {
+	member, user, group := r.Member()
+	if member == nil {
+		return nil, member, user, group
+	}
+
+	rights := r.DB.UserRights(member.GroupId, user.Id)
+	return &rights, member, user, group
 }

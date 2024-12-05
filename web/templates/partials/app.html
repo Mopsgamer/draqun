@@ -16,7 +16,11 @@
         {{- template "partials/app-header" .}}
         <div id="content">
         {{- if ne .Group nil}}
-        {{- template "partials/app-group" .}}
+            {{- if eq .Member nil}}
+            {{- template "partials/app-group-join" .}}
+            {{- else}}
+            {{- template "partials/app-group" .}}
+            {{- end}}
         {{- else}}
         {{- template "partials/app-home" .}}
         {{- end}}
