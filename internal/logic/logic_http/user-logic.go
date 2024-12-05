@@ -129,7 +129,7 @@ func (r LogicHTTP) UserChangeName() error {
 		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
-	user, _ := r.User()
+	user := r.User()
 	if user == nil {
 		return nil
 	}
@@ -170,7 +170,7 @@ func (r LogicHTTP) UserChangeEmail() error {
 		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
-	user, _ := r.User()
+	user := r.User()
 	if user == nil {
 		return nil
 	}
@@ -214,7 +214,7 @@ func (r LogicHTTP) UserChangePhone() error {
 		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
-	user, _ := r.User()
+	user := r.User()
 	if user == nil {
 		return nil
 	}
@@ -251,7 +251,7 @@ func (r LogicHTTP) UserChangePassword() error {
 		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
-	user, _ := r.User()
+	user := r.User()
 	if user == nil {
 		return nil
 	}
@@ -291,7 +291,7 @@ func (r LogicHTTP) UserDelete() error {
 		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
 	}
 
-	user, _ := r.User()
+	user := r.User()
 	if user == nil {
 		return nil
 	}

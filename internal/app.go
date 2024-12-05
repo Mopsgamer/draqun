@@ -85,7 +85,7 @@ func NewApp() (*fiber.App, error) {
 			}
 
 			ip := http.Ctx.IP()
-			user, _ := http.User()
+			user := http.User()
 			group := http.Group()
 
 			websocket.New(func(conn *websocket.Conn) {
@@ -152,7 +152,7 @@ func NewApp() (*fiber.App, error) {
 	app.Get("/", UseHTTPPage("index", &fiber.Map{"Title": "Discover"}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/settings", UseHTTPPage("settings", &fiber.Map{"Title": "Settings"},
 		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
-			if user, _ := r.User(); user == nil {
+			if user := r.User(); user == nil {
 				return "/"
 			}
 			return ""

@@ -13,9 +13,6 @@
     {{- template "partials/signup-dialog" .}}
     <div hx-ext="debug" class="real-body">
     <main id="main" class="center-content">
-        {{- if .TokenError}}
-        {{- template "partials/danger" .}}
-        {{- end}}
         <div class="text-3xl font-bold">
             You're not logged in.
         </div>

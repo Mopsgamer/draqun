@@ -22,7 +22,7 @@ func (r LogicHTTP) MessageCreate() error {
 		return r.Ctx.SendString(i18n.MessageErrInvalidRequest)
 	}
 
-	user, _ := r.User()
+	user := r.User()
 	if user == nil {
 		return nil
 	}
@@ -68,7 +68,7 @@ func (r LogicHTTP) MessagesPage() error {
 		return r.Ctx.SendString(i18n.MessageErrInvalidRequest)
 	}
 
-	user, _ := r.User()
+	user := r.User()
 	if user == nil {
 		return nil
 	}

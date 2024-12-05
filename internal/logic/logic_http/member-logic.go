@@ -16,7 +16,7 @@ func (r LogicHTTP) MembersPage() error {
 		return r.Ctx.SendString(i18n.MessageErrInvalidRequest)
 	}
 
-	user, _ := r.User()
+	user := r.User()
 	if user == nil {
 		return nil
 	}
@@ -46,7 +46,7 @@ func (r LogicHTTP) GroupLeave() error {
 		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
 	}
 
-	user, _ := r.User()
+	user := r.User()
 	if user == nil {
 		return nil
 	}
@@ -71,7 +71,7 @@ func (r LogicHTTP) GroupJoin() error {
 		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
 	}
 
-	user, _ := r.User()
+	user := r.User()
 	if user == nil {
 		return nil
 	}

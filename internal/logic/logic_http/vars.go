@@ -12,22 +12,21 @@ import (
 )
 
 // Get owner of the request using the "Authorization" header.
-// If the owner not found, returns (nil, nil), without errors.
 // Automatically log-out and redirect to the home.
-func (r *LogicHTTP) User() (user *model_database.User, err error) {
+func (r *LogicHTTP) User() (user *model_database.User) {
 	authHeader := r.Ctx.Cookies("Authorization")
 	if authHeader == "" {
-		return nil, nil
+		return nil
 	}
 
-	CatchTokenErr := func(err error) (*model_database.User, error) {
+	CatchTokenErr := func(err error) *model_database.User {
 		log.Error(err)
 		err = r.UserLogout()
 		if err != nil {
 			log.Error(err)
 		}
 
-		return nil, err
+		return nil
 	}
 
 	if len(authHeader) < 8 || authHeader[:7] != "Bearer " {
@@ -64,7 +63,7 @@ func (r *LogicHTTP) User() (user *model_database.User, err error) {
 		return CatchTokenErr(err)
 	}
 
-	return r.DB.UserByEmail(email), nil
+	return r.DB.UserByEmail(email)
 }
 
 // Get group by the id from current URI.

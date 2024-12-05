@@ -15,16 +15,10 @@
         {{- template "partials/header" .}}
         {{- if .CenterContent}}
         <main id="main" class="center-content">
-            {{- if .TokenError}}
-            {{- template "partials/danger" .}}
-            {{- end}}
             {{- embed}}
         </main>
         {{- else}}
         <main id="main">
-            {{- if .TokenError}}
-            {{- template "partials/danger" .}}
-            {{- end}}
             {{- embed}}
         </main>
         {{- end}}

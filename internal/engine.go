@@ -38,20 +38,8 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 			}
 			return before + after
 		},
-		"mindate": func() time.Time {
-			return time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC)
-		},
 		"jsonTime": func(t time.Time) string {
 			return t.Format("2006-01-02T15:04:05.000Z")
-		},
-		"timeAddMinutes": func(t time.Time, mins time.Duration) time.Time {
-			return t.Add(time.Minute * mins)
-		},
-		"timeBefore": func(t time.Time, u time.Time) bool {
-			return t.Before(u)
-		},
-		"timeAfter": func(t time.Time, u time.Time) bool {
-			return t.After(u)
 		},
 		"hidePhone": func(text string) string {
 			if len(text) > 5 {
@@ -63,11 +51,9 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 			return strings.Repeat("*", len(text))
 		},
 
-		"memberOf":   db.UserGroupList,
-		"membersOf":  db.MemberList,
-		"messagesOf": db.MessageList,
-		"userById":   db.UserById,
-		"groupById":  db.GroupById,
+		"memberOf":  db.UserGroupList,
+		"membersOf": db.MemberList,
+		"userById":  db.UserById,
 	})
 
 	return engine

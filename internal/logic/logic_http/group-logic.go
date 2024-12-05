@@ -14,7 +14,7 @@ func (r LogicHTTP) GroupCreate() error {
 		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
 	}
 
-	user, _ := r.User()
+	user := r.User()
 	if user == nil {
 		return nil
 	}
@@ -95,7 +95,7 @@ func (r LogicHTTP) GroupDelete() error {
 		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
 	}
 
-	user, _ := r.User()
+	user := r.User()
 	if user == nil {
 		return nil
 	}

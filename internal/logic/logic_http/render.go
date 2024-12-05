@@ -26,12 +26,8 @@ func (r LogicHTTP) RenderPage(templatePath string, bind *fiber.Map, redirect Red
 
 func (r LogicHTTP) MapPage(bind *fiber.Map) fiber.Map {
 	bindx := fiber.Map{}
-	if user, tokenErr := r.User(); user != nil {
+	if user := r.User(); user != nil {
 		bindx["User"] = user
-	} else if tokenErr != nil {
-		bindx["TokenError"] = true
-		bindx["Message"] = "Authorization error"
-		bindx["Id"] = "local-token-error"
 	}
 
 	if group := r.Group(); group != nil {
