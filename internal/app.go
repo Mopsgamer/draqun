@@ -165,9 +165,20 @@ func NewApp() (*fiber.App, error) {
 	)
 	app.Get("/chat/groups/:group_id", UseHTTPPage("chat", &fiber.Map{"Title": "Group", "IsChatPage": true},
 		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
+			to := "/chat"
+
+			user := r.User()
+			if user == nil {
+				return to
+			}
+
 			group := r.Group()
 			if group == nil {
-				return "/chat"
+				return to
+			}
+
+			if r.DB.MemberById(group.Id, user.Id) == nil {
+				return to
 			}
 
 			(*bind)["Title"] = group.Nick
