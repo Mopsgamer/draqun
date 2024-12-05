@@ -75,8 +75,8 @@ func (r *LogicHTTP) Group() *model_database.Group {
 		return nil
 	}
 
-	if groupUri.GroupId != nil {
-		group := r.DB.GroupById(*groupUri.GroupId)
+	if groupUri.GroupId != 0 {
+		group := r.DB.GroupById(groupUri.GroupId)
 		return group
 	}
 

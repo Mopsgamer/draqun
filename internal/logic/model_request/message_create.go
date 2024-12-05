@@ -13,7 +13,7 @@ type MessageCreate struct {
 
 func (m MessageCreate) Message(authorId uint64) *model_database.Message {
 	return &model_database.Message{
-		GroupId:   *m.GroupId,
+		GroupId:   m.GroupId,
 		AuthorId:  authorId,
 		Content:   strings.TrimSpace(m.Content),
 		CreatedAt: time.Now(),

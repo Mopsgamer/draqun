@@ -73,11 +73,11 @@ func (r LogicHTTP) MessagesPage() error {
 		return nil
 	}
 
-	if r.DB.MemberById(*req.GroupId, user.Id) == nil {
+	if r.DB.MemberById(req.GroupId, user.Id) == nil {
 		return r.Ctx.SendString(i18n.MessageErrNotGroupMember)
 	}
 
-	messageList := r.DB.MessageListPage(*req.GroupId, req.Page, MessagesPagination)
+	messageList := r.DB.MessageListPage(req.GroupId, req.Page, MessagesPagination)
 	str, _ := r.RenderString("partials/chat-messages", fiber.Map{
 		"GroupId":            req.GroupId,
 		"MessageList":        messageList,

@@ -191,6 +191,7 @@ func NewApp() (*fiber.App, error) {
 	app.Put("/account/change/phone", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangePhone() }))
 	app.Put("/account/change/password", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangePassword() }))
 	app.Put("/account/logout", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserLogout() }))
+	app.Put("/groups/:group_id/join", UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupJoin() }))
 	// TODO: app.Put("/groups/:group_id/change", UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupChange() }))
 
 	// delete

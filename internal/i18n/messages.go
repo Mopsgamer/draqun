@@ -27,6 +27,7 @@ const (
 	MessageErrGroupMode                     = "Invalid group mode. " + MessageDetailGroupMode
 	MessageErrMessageContent                = "The message must be between 1 and " + model_database.ContentMaxLengthString + " characters long."
 	MessageErrNotGroupMember                = "Not a member of the group."
+	MessageErrAlreadyGroupMember            = "Already a member of the group."
 	MessageErrInvalidRequest                = "Invalid request payload."
 	MessageErrPassword                      = "Invalid password pattern. " + MessageDetailUserPassword
 	MessageErrPasswordSame                  = "The new password is the same as the old one."
@@ -53,6 +54,7 @@ const (
 	MessageSuccChangedPhone   = "Successfully changed the user phone."
 	MessageSuccDeletedUser    = "Successfully deleted the user."
 	MessageSuccLeavedGroup    = "Successfully leaved from the group."
+	MessageSuccJoinedGroup    = "Successfully join to the group."
 	MessageSuccCreatedGroup   = "Successfully created the group."
 	MessageSuccLogin          = "Successfully logged in! Redirecting..."
 )

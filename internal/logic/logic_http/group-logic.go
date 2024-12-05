@@ -1,8 +1,8 @@
 package logic_http
 
 import (
-	"fmt"
 	"restapp/internal/i18n"
+	"restapp/internal/logic"
 	"restapp/internal/logic/model_database"
 	"restapp/internal/logic/model_request"
 )
@@ -82,7 +82,7 @@ func (r LogicHTTP) GroupCreate() error {
 		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
-	r.HTMXRedirect("/chat/groups/" + fmt.Sprintf("%d", *groupId))
+	r.HTMXRedirect(logic.PathRedirectGroup(group.Id))
 	return r.RenderSuccess(i18n.MessageSuccCreatedGroup, id)
 }
 
@@ -111,24 +111,4 @@ func (r LogicHTTP) GroupDelete() error {
 
 	r.HTMXRefresh()
 	return nil
-}
-
-func (r LogicHTTP) GroupLeave() error {
-	id := "group-leave-error"
-	req := new(model_request.GroupLeave)
-	if err := r.Ctx.Bind().URI(req); err != nil {
-		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
-	}
-
-	user, _ := r.User()
-	if user == nil {
-		return nil
-	}
-
-	if r.DB.MemberById(req.GroupId, user.Id) == nil {
-		return r.RenderDanger(i18n.MessageErrNotGroupMember, id)
-	}
-
-	r.HTMXRedirect("/chat")
-	return r.RenderSuccess(i18n.MessageSuccLeavedGroup, id)
 }

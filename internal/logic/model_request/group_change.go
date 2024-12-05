@@ -1,7 +1,7 @@
 package model_request
 
 type GroupChange struct {
-	GroupId     uint64 `uri:"group_id"`
+	*GroupUri
 	Nick        string `form:"change-group-nickname"`
 	Mode        string `form:"change-group-mode"`
 	Description string `form:"change-group-description"`
