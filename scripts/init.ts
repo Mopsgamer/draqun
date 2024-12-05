@@ -11,8 +11,8 @@ async function initMysqlTables(): Promise<void> {
         "./scripts/queries/create_users.sql",
         "./scripts/queries/create_groups.sql",
         "./scripts/queries/create_group_members.sql",
-        "./scripts/queries/create_group_role_rights.sql",
         "./scripts/queries/create_group_roles.sql",
+        "./scripts/queries/create_group_role_assigns.sql",
         "./scripts/queries/create_group_messages.sql",
     ];
     logInitDb.info(

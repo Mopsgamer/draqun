@@ -8,7 +8,7 @@ import (
 
 func (db Database) MessageById(messageId uint64) *model_database.Message {
 	message := new(model_database.Message)
-	query := `SELECT * FROM app_group_role_rights WHERE id = ?`
+	query := `SELECT * FROM app_group_messages WHERE id = ?`
 	err := db.Sql.Get(message, query, messageId)
 
 	if err != nil {

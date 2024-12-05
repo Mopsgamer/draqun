@@ -6,9 +6,9 @@ import (
 	"github.com/gofiber/fiber/v3/log"
 )
 
-func (db Database) RoleCreate(right model_database.Role) bool {
+func (db Database) RoleAssign(right model_database.RoleAssign) bool {
 	query :=
-		`INSERT INTO app_group_roles (
+		`INSERT INTO app_group_role_assigns (
 			group_id,
 			user_id,
 			right_id
@@ -26,4 +26,81 @@ func (db Database) RoleCreate(right model_database.Role) bool {
 	}
 
 	return true
+}
+
+func (db Database) RoleCreate(role model_database.Role) *uint32 {
+	query :=
+		`INSERT INTO app_group_roles (
+			name,
+			color,
+			perm_chat_read,
+			perm_chat_write,
+			perm_chat_delete,
+			perm_kick,
+			perm_ban,
+			perm_change_group,
+			perm_change_member
+		)
+    	VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+	_, err := db.Sql.Exec(query,
+		role.Name,
+		role.Color,
+		role.ChatRead,
+		role.ChatWrite,
+		role.ChatDelete,
+		role.Kick,
+		role.Ban,
+		role.ChangeGroup,
+		role.ChangeMember,
+	)
+
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
+
+	newId := uint32(db.Context().LastInsertId)
+	return &newId
+}
+
+func (db Database) RoleById(roleId uint64) *model_database.Role {
+	role := new(model_database.Role)
+	query := `SELECT * FROM app_group_roles WHERE id = ?`
+	err := db.Sql.Get(role, query, roleId)
+
+	if err != nil {
+		log.Error(err)
+		return role
+	}
+	return role
+}
+
+func (db Database) UserRoleList(groupId, userId uint64) []model_database.Role {
+	roleList := new([]model_database.Role)
+	query := `SELECT app_group_roles.*
+	FROM app_group_role_assigns
+	LEFT JOIN app_group_role_assigns ON app_group_role_assigns.right_id = app_group_roles.id
+	WHERE app_group_role_assigns.group_id = ? AND app_group_role_assigns.user_id = ?`
+	err := db.Sql.Select(roleList, query, groupId, userId)
+
+	if err != nil {
+		log.Error(err)
+		return *roleList
+	}
+	return *roleList
+}
+
+func (db Database) UserRights(groupId, userId uint64) model_database.Role {
+	roleList := db.UserRoleList(groupId, userId)
+	rights := model_database.Role{
+		ChatRead:   true,
+		ChatWrite:  true,
+		ChatDelete: true,
+	}
+	if len(roleList) == 0 {
+		return rights
+	}
+
+	rights.Merge(roleList...)
+	return rights
 }

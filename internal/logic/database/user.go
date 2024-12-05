@@ -125,18 +125,6 @@ func (db Database) UserByUsername(username string) *model_database.User {
 	return user
 }
 
-func (db Database) UserRoleList(groupId, userId uint64) []model_database.Role {
-	roleList := &[]model_database.Role{}
-	query := `SELECT * FROM app_group_roles WHERE group_id = ? AND user_id = ?`
-	err := db.Sql.Select(roleList, query, groupId, userId)
-
-	if err != nil {
-		log.Error(err)
-		return *roleList
-	}
-	return *roleList
-}
-
 func (db Database) UserOwnGroupList(userId uint64) []model_database.Group {
 	groupList := &[]model_database.Group{}
 	query := `SELECT

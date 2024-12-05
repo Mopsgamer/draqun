@@ -65,27 +65,20 @@ func (r LogicHTTP) GroupCreate() error {
 		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
-	// everyone default rights
-	right := model_database.Right{
-		GroupId:    group.Id,
-		ChatRead:   true,
-		ChatWrite:  true,
-		ChatDelete: true,
-	}
-
-	rightId := r.DB.RightCreate(right)
+	right := model_database.RoleDefault
+	rightId := r.DB.RoleCreate(right)
 	if rightId == nil {
 		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 	right.Id = *rightId
 
-	role := model_database.Role{
+	role := model_database.RoleAssign{
 		GroupId: group.Id,
 		UserId:  user.Id,
 		RightId: right.Id,
 	}
 
-	if !r.DB.RoleCreate(role) {
+	if !r.DB.RoleAssign(role) {
 		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
