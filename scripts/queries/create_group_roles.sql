@@ -9,6 +9,5 @@ CREATE TABLE IF NOT EXISTS app_group_roles (
     perm_ban BIT NOT NULL,
     perm_change_group BIT NOT NULL,
     perm_change_member BIT NOT NULL,
-    PRIMARY KEY (id),
-    FOREIGN KEY (group_id) REFERENCES app_groups (id)
+    PRIMARY KEY (id)
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Restapp all groups roles';
