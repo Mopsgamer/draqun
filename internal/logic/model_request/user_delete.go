@@ -1,7 +1,6 @@
 package model_request
 
-// Supports: json, form.
 type UserDelete struct {
-	CurrentPassword string `json:"current-password" form:"current-password"`
-	ConfirmUsername string `json:"confirm-username" form:"confirm-username"`
+	CurrentPassword string `form:"current-password"`
+	ConfirmUsername string `form:"confirm-username"`
 }

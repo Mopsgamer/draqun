@@ -85,7 +85,7 @@ func (r *LogicHTTP) Group() (*model_database.Group, *model_database.User) {
 		return group, user
 	}
 
-	return nil, nil
+	return nil, user
 }
 
 func (r *LogicHTTP) Member() (*model_database.Member, *model_database.User, *model_database.Group) {

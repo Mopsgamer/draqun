@@ -163,12 +163,10 @@ func NewApp() (*fiber.App, error) {
 	)
 	app.Get("/chat/groups/:group_id", UseHTTPPage("chat", &fiber.Map{"Title": "Group", "IsChatPage": true},
 		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
-			to := "/chat"
-
 			member, _, group := r.Member()
 
 			if member == nil {
-				return to
+				return "/chat"
 			}
 
 			(*bind)["Title"] = group.Nick
@@ -177,11 +175,13 @@ func NewApp() (*fiber.App, error) {
 	)
 	app.Get("/chat/groups/join/:group_name", UseHTTPPage("chat", &fiber.Map{"Title": "Join group", "IsChatPage": true},
 		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
-			to := "/chat"
+			member, group, _ := r.Member()
+			if group == nil {
+				return "/chat"
+			}
 
-			group, user := r.Group()
-			if group == nil || user == nil {
-				return to
+			if member != nil {
+				return logic.PathRedirectGroup(group.Id)
 			}
 
 			(*bind)["Title"] = "Join " + group.Nick

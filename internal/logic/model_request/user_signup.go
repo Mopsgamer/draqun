@@ -8,12 +8,12 @@ import (
 )
 
 type UserSignUp struct {
-	Nickname        string  `json:"nickname" form:"nickname"`
-	Username        string  `json:"username" form:"username"`
-	Email           string  `json:"email" form:"email"`
-	Phone           *string `json:"phone" form:"phone"`
-	Password        string  `json:"password" form:"password"`
-	ConfirmPassword string  `json:"confirm-password" form:"confirm-password"`
+	Nickname        string  `form:"nickname"`
+	Username        string  `form:"username"`
+	Email           string  `form:"email"`
+	Phone           *string `form:"phone"`
+	Password        string  `form:"password"`
+	ConfirmPassword string  `form:"confirm-password"`
 }
 
 // Converts user sign up request to the User struct.
