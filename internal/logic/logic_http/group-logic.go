@@ -19,7 +19,7 @@ func (r LogicHTTP) GroupCreate() error {
 		return nil
 	}
 
-	if r.DB.GroupByGroupname(req.Name) != nil {
+	if r.DB.GroupByName(req.Name) != nil {
 		return r.RenderDanger(i18n.MessageErrGroupExistsGroupname, id)
 	}
 
@@ -86,7 +86,77 @@ func (r LogicHTTP) GroupCreate() error {
 	return r.RenderSuccess(i18n.MessageSuccCreatedGroup, id)
 }
 
-// TODO: implement group change
+func (r LogicHTTP) GroupChange() error {
+	id := "group-change-error"
+	req := new(model_request.GroupChange)
+	if err := r.Ctx.Bind().URI(req); err != nil {
+		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
+	}
+
+	if err := r.Ctx.Bind().Form(req); err != nil {
+		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
+	}
+
+	user := r.User()
+	if user == nil {
+		return nil
+	}
+
+	group := r.Group()
+	if group == nil {
+		return r.RenderDanger(i18n.MessageErrGroupNotFound, id)
+	}
+
+	member := r.DB.MemberById(req.GroupId, user.Id)
+	if !member.IsOwner {
+		right := r.DB.UserRights(member.GroupId, user.Id)
+		if !right.ChangeGroup {
+			return r.RenderDanger(i18n.MessageErrNoRights, id)
+		}
+	}
+
+	hasChanges := req.Nick != group.Nick ||
+		group.Name != req.Name ||
+		group.Description != req.Description ||
+		group.Mode != req.Mode ||
+		group.Password != req.Password
+
+	if !hasChanges {
+		return r.RenderDanger(i18n.MessageErrUselessChange, id)
+	}
+
+	if !model_database.IsValidGroupName(req.Name) {
+		return r.RenderDanger(i18n.MessageErrGroupName, id)
+	}
+
+	if !model_database.IsValidGroupNick(req.Nick) {
+		return r.RenderDanger(i18n.MessageErrGroupNick, id)
+	}
+
+	if !model_database.IsValidGroupPassword(req.Password) {
+		return r.RenderDanger(i18n.MessageErrGroupPassword, id)
+	}
+
+	if !model_database.IsValidGroupDescription(req.Description) {
+		return r.RenderDanger(i18n.MessageErrGroupDescription, id)
+	}
+
+	if !model_database.IsValidGroupMode(req.Mode) {
+		return r.RenderDanger(i18n.MessageErrGroupMode+" Got: '"+req.Mode+"'.", id)
+	}
+
+	group.Nick = req.Nick
+	group.Name = req.Name
+	group.Description = req.Description
+	group.Mode = req.Mode
+	group.Password = req.Password
+	if !r.DB.GroupUpdate(*group) {
+		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
+	}
+
+	r.HTMXRefresh()
+	return nil
+}
 
 func (r LogicHTTP) GroupDelete() error {
 	id := "group-delete-error"

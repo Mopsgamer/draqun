@@ -79,5 +79,10 @@ func (r *LogicHTTP) Group() *model_database.Group {
 		return group
 	}
 
+	if groupUri.GroupName != "" {
+		group := r.DB.GroupByName(groupUri.GroupName)
+		return group
+	}
+
 	return nil
 }

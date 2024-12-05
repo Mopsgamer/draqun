@@ -12,17 +12,15 @@
             <sl-icon name="pen"></sl-icon>
             Profile
         </h1>
-        <div class="column gap-4">
-            <form id="change-name-form" hx-put="/account/change/name" hx-swap="outerHTML"
-            hx-target="#change-name-error">
-                <sl-input label="Nickname" type="text" id="new-nickname" name="new-nickname" value="{{.User.Nick}}"></sl-input>
-                <sl-input label="Username" type="text" id="new-username" name="new-username" value="{{.User.Name}}"></sl-input>
-                <sl-alert id="change-name-error" variant="warning"></sl-alert>
-            </form>
-            <div class="dialog-footer">
-                <div>
-                    <sl-button type="submit" form="change-name-form" variant="primary">Save</sl-button>
-                </div>
+        <form id="change-name-form" hx-put="/account/change/name" hx-swap="outerHTML"
+        hx-target="#change-name-error">
+            <sl-input label="Nickname" type="text" id="new-nickname" name="new-nickname" value="{{.User.Nick}}"></sl-input>
+            <sl-input label="Username" type="text" id="new-username" name="new-username" value="{{.User.Name}}"></sl-input>
+            <sl-alert id="change-name-error" variant="warning"></sl-alert>
+        </form>
+        <div slot="footer" class="dialog-footer">
+            <div>
+                <sl-button type="submit" form="change-name-form" variant="primary">Save</sl-button>
             </div>
         </div>
     </sl-card>

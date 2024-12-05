@@ -25,6 +25,7 @@ const (
 	MessageErrGroupPassword                 = "Invalid group password pattern. You can leave this field empty. " + MessageDetailGroupPassword
 	MessageErrGroupDescription              = "Invalid group description. " + MessageDetailGroupDescription
 	MessageErrGroupMode                     = "Invalid group mode. " + MessageDetailGroupMode
+	MessageErrUselessChange                 = "No changes. "
 	MessageErrMessageContent                = "The message must be between 1 and " + model_database.ContentMaxLengthString + " characters long."
 	MessageErrNotGroupMember                = "Not a member of the group."
 	MessageErrAlreadyGroupMember            = "Already a member of the group."
@@ -32,9 +33,7 @@ const (
 	MessageErrPassword                      = "Invalid password pattern. " + MessageDetailUserPassword
 	MessageErrPasswordSame                  = "The new password is the same as the old one."
 	MessageErrUserNick                      = "Invalid nick name pattern. " + MessageDetailUserNick
-	MessageErrUserNickSame                  = "The new nick name is the same as the old one."
 	MessageErrUserName                      = "Invalid user name pattern. " + MessageDetailUserName
-	MessageErrUserNameSame                  = "The new user name is the same as the old one."
 	MessageErrEmail                         = "Invalid email pattern. " + MessageDetailUserEmail
 	MessageErrEmailSame                     = "The new email is the same as the old one."
 	MessageErrPhone                         = "Invalid phone number pattern. " + MessageDetailUSerPhone

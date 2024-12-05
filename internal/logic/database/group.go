@@ -108,11 +108,11 @@ func (db Database) GroupById(groupId uint64) *model_database.Group {
 	return group
 }
 
-// Get the group by her groupname.
-func (db Database) GroupByGroupname(groupname string) *model_database.Group {
+// Get the group by her group name.
+func (db Database) GroupByName(groupName string) *model_database.Group {
 	group := new(model_database.Group)
 	query := `SELECT * FROM app_groups WHERE groupname = ?`
-	err := db.Sql.Get(group, query, groupname)
+	err := db.Sql.Get(group, query, groupName)
 
 	if err != nil {
 		log.Error(err)

@@ -11,6 +11,7 @@
 <body hx-ext="shoelace">
     {{- template "partials/settings-dialog" .}}
     {{- template "partials/new-group-dialog" .}}
+    {{- if ne .Group nil}}{{- template "partials/group-settings-dialog" .}}{{- end}}
     <div hx-ext="debug" class="real-body">
         {{- template "partials/app-header" .}}
         <div id="content">

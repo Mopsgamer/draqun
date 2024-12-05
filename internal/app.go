@@ -85,8 +85,7 @@ func NewApp() (*fiber.App, error) {
 			}
 
 			ip := http.Ctx.IP()
-			user := http.User()
-			group := http.Group()
+			bind := http.MapPage(nil)
 
 			websocket.New(func(conn *websocket.Conn) {
 				// NOTE: Inside this method the 'c' variable is already updated
@@ -96,11 +95,10 @@ func NewApp() (*fiber.App, error) {
 					conn,
 					app,
 					ip,
-					&fiber.Map{
-						"User":  user,
-						"Group": group,
-					},
+					&bind,
 				)
+
+				user := ws.User()
 
 				logic_websocket.WebsocketConnections.Connect(user.Id, &ws)
 				defer logic_websocket.WebsocketConnections.Close(user.Id, &ws)
@@ -185,6 +183,24 @@ func NewApp() (*fiber.App, error) {
 			return ""
 		}),
 	)
+	app.Get("/chat/groups/join/:group_name", UseHTTPPage("chat", &fiber.Map{"Title": "Join group", "IsChatPage": true},
+		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
+			to := "/chat"
+
+			user := r.User()
+			if user == nil {
+				return to
+			}
+
+			group := r.Group()
+			if group == nil {
+				return to
+			}
+
+			(*bind)["Title"] = "Join " + group.Nick
+			return ""
+		}),
+	)
 
 	// get
 	app.Get("/groups/:group_id/messages/page/:messages_page", UseHTTP(func(r logic_http.LogicHTTP) error { return r.MessagesPage() }))
@@ -203,7 +219,7 @@ func NewApp() (*fiber.App, error) {
 	app.Put("/account/change/password", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangePassword() }))
 	app.Put("/account/logout", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserLogout() }))
 	app.Put("/groups/:group_id/join", UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupJoin() }))
-	// TODO: app.Put("/groups/:group_id/change", UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupChange() }))
+	app.Put("/groups/:group_id/change", UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupChange() }))
 
 	// delete
 	app.Delete("/groups/:group_id/leave", UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupLeave() }))

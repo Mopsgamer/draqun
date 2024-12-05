@@ -41,7 +41,7 @@ func (db Database) RoleCreate(role model_database.Role) *uint32 {
 			perm_change_group,
 			perm_change_member
 		)
-    	VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	_, err := db.Sql.Exec(query,
 		role.Name,
 		role.Color,

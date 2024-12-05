@@ -11,26 +11,22 @@ const (
 )
 
 type GroupCreate struct {
-	Name        string `form:"groupname"`
-	Nick        string `form:"groupnick"`
-	Password    string `form:"password"`
-	Mode        string `form:"mode"`
-	Description string `form:"description"`
-	Avatar      string `form:"avatar"`
+	Name        string  `form:"name"`
+	Nick        string  `form:"nick"`
+	Password    *string `form:"password"`
+	Mode        string  `form:"mode"`
+	Description string  `form:"description"`
+	Avatar      string  `form:"avatar"`
 }
 
 func (g GroupCreate) Group(creatorId uint64) *model_database.Group {
-	var password *string = nil
-	if g.Password == "" {
-		password = &g.Password
-	}
 	return &model_database.Group{
 		CreatorId:   creatorId,
 		Nick:        g.Nick,
 		Name:        g.Name,
 		Mode:        g.Mode,
 		Description: g.Description,
-		Password:    password,
+		Password:    g.Password,
 		Avatar:      g.Avatar,
 		CreatedAt:   time.Now(),
 	}

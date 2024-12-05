@@ -1,0 +1,54 @@
+<sl-dialog label="Group settings dialog for {{.Group.Nick}}" id="group-settings-dialog" class="fullscreen-base">
+    <h1 slot="label" class="aligned">
+        <sl-icon name="people"></sl-icon>
+        Group settings - {{.Group.Nick}}
+    </h1>
+    <div class="column gap-4">
+        <h2 class="anchor-header">
+            <sl-icon name="person"></sl-icon>
+            General settings
+        </h2>
+        <sl-alert open variant="primary">
+            <sl-icon slot="icon" name="info-circle"></sl-icon>
+            You can invite more people by the group name. No links, since it is a localhost.
+            <sl-copy-button id="copy-invite" hoist copy-label="Copy group name" value="{{.Group.Name}}"></sl-copy-button>
+        </sl-alert>
+        <sl-card>
+            <h1 slot="header" class="aligned">
+                <sl-icon name="pen"></sl-icon>
+                Group profile
+            </h1>
+            <form id="group-change-form" hx-put="/groups/{{.Group.Id}}/change" hx-swap="outerHTML"
+                hx-target="#group-change-error">
+                <sl-input label="Nick" type="text" id="change-group-nick" name="nick" required
+                    value="{{.Group.Nick}}"></sl-input>
+                <sl-input label="Name" type="text" autocomplete="username" id="change-group-name"
+                    name="name" required value="{{.Group.Name}}">
+                </sl-input>
+                <sl-input label="Password" password-toggle type="password" autocomplete="new-password"
+                    id="change-group-password" name="password" {{if .Group.Password}}value="{{.Group.Password}}"{{end}}></sl-input>
+                <sl-textarea label="Description" id="change-group-description" name="description"
+                    value="{{.Group.Description}}"></sl-textarea>
+                <sl-select label="Mode" id="change-group-mode" name="mode" value="{{.Group.Mode}}" required>
+                    <sl-option value="private">Private</sl-option>
+                    <sl-option value="public">Public</sl-option>
+                </sl-select>
+                <sl-alert id="group-change-error" variant="warning"></sl-alert>
+            </form>
+            <div class="dialog-footer" slot="footer">
+                <div>
+                    <sl-button type="submit" form="group-change-form" variant="primary">Save</sl-button>
+                </div>
+            </div>
+        </sl-card>
+        <!-- <sl-card>
+            <h1 slot="header" class="aligned">
+                <sl-icon name="exclamation-triangle"></sl-icon>
+                Danger zone
+            </h1>
+            <div class="flex gap-2">
+                <sl-button variant="danger" href="#group-delete-dialog">Delete account</sl-button>
+            </div>
+        </sl-card> -->
+    </div>
+</sl-dialog>

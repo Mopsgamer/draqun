@@ -5,7 +5,7 @@
 </div>
 <div class="chat-sidebar" hx-trigger="load" hx-get="/groups/{{.Group.Id}}/members/page/1" hx-swap="beforeend">
     <div class="tiny-divider">
-        Member count - {{- len (membersOf .Group.Id)}}
+        Members - {{len (membersOf .Group.Id)}}
     </div>
 </div>
 <div hx-ext="ws" ws-connect="/groups/{{.Group.Id}}" hx-trigger="every 1.6s" ws-send=""></div>

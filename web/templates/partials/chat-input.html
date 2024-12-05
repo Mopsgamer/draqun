@@ -21,9 +21,12 @@
             {{- if ne .Group nil}}
             <sl-breadcrumb-item href="/chat/groups/{{.Group.Id}}">
                 <sl-icon name="people" slot="prefix"></sl-icon>
+                {{- if (or .Member.IsOwner .Rights.ChangeGroup)}}
+                <a href="#group-settings-dialog" slot="suffix" class="aligned">
+                    <sl-icon-button name="gear"></sl-icon-button>
+                </a>
+                {{- end}}
                 {{.Group.Nick}}
-                <!-- implement gruoup managing -->
-                <!-- <sl-icon-button name="gear" slot="suffix"></sl-icon-button> -->
             </sl-breadcrumb-item>
             {{- end}}
         </sl-breadcrumb>

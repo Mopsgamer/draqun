@@ -4,9 +4,10 @@
         <sl-icon name="people"></sl-icon>
         Create new group
     </h1>
-    <form id="new-group-form" name="new-group-form" hx-post="/groups/create" hx-swap="outerHTML" hx-target="#new-group-error">
-        <sl-input label="Nick" type="text" id="new-group-groupnick" name="groupnick" required></sl-input>
-        <sl-input label="Name" type="text" autocomplete="username" id="new-group-groupname" name="groupname"
+    <form id="new-group-form" name="new-group-form" hx-post="/groups/create" hx-swap="outerHTML"
+        hx-target="#new-group-error">
+        <sl-input label="Nick" type="text" id="new-group-nick" name="nick" required></sl-input>
+        <sl-input label="Name" type="text" autocomplete="username" id="new-group-name" name="name"
             required></sl-input>
         <sl-input label="Password" password-toggle type="password" autocomplete="new-password" id="new-group-password"
             name="password"></sl-input>

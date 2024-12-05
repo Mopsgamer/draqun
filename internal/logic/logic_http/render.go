@@ -26,12 +26,24 @@ func (r LogicHTTP) RenderPage(templatePath string, bind *fiber.Map, redirect Red
 
 func (r LogicHTTP) MapPage(bind *fiber.Map) fiber.Map {
 	bindx := fiber.Map{}
-	if user := r.User(); user != nil {
+
+	user := r.User()
+	if user != nil {
 		bindx["User"] = user
 	}
 
-	if group := r.Group(); group != nil {
+	group := r.Group()
+	if group != nil {
 		bindx["Group"] = group
+	}
+
+	if user != nil && group != nil {
+		member := r.DB.MemberById(group.Id, user.Id)
+		if member != nil {
+			rights := r.DB.UserRights(group.Id, user.Id)
+			bindx["Member"] = member
+			bindx["Rights"] = rights
+		}
 	}
 
 	bindx = logic.MapMerge(&bindx, bind)
