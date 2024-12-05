@@ -9,20 +9,24 @@ HTMX.defineExtension("shoelace", {
         name,
         event,
     ) {
-        if (name === "htmx:beforeSend" || name === "htmx:afterRequest") {
+        if (name === "htmx:beforeRequest" || name === "htmx:afterRequest") {
             const form = event.target;
+            /** @type {SlButton | null | undefined} */
             let button;
             if (form instanceof SlButton) {
                 button = form;
             } else if (form instanceof HTMLFormElement) {
-                button = form.querySelector("sl-button[type=submit]") ??
-                    undefined;
+                button = document.querySelector(`sl-button[form=${form.id}][type=submit]`);
+                button ??= form.querySelector(`sl-button[type=submit]`);
             }
 
             if (!button) {
                 return true;
             }
-            button.loading = name === "htmx:beforeSend";
+
+            const enable = name === "htmx:beforeRequest"
+            button.loading = enable;
+            button.disabled = enable;
             return true;
         }
         if (name !== "htmx:configRequest") {
