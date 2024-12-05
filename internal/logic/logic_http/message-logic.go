@@ -54,7 +54,7 @@ func (r LogicHTTP) MessageCreate() error {
 
 	message.Id = *messageId
 	str, _ := r.RenderString("partials/chat-messages", r.MapPage(&fiber.Map{
-		"MessageList": []model_database.Message{*message},
+		"MessageList": r.CachedMessageList([]model_database.Message{*message}),
 	}))
 
 	logic_websocket.WebsocketConnections.Push(user.Id, logic.WrapOob("beforeend:#chat", &str), logic_websocket.SubForMessages)
@@ -78,11 +78,11 @@ func (r LogicHTTP) MessagesPage() error {
 	}
 
 	messageList := r.DB.MessageListPage(req.GroupId, req.Page, MessagesPagination)
-	str, _ := r.RenderString("partials/chat-messages", fiber.Map{
+	str, _ := r.RenderString("partials/chat-messages", r.MapPage(&fiber.Map{
 		"GroupId":            req.GroupId,
-		"MessageList":        messageList,
+		"MessageList":        r.CachedMessageList(messageList),
 		"MessagesPageNext":   req.Page + 1,
 		"MessagesPagination": MessagesPagination,
-	})
+	}))
 	return r.Ctx.SendString(str)
 }

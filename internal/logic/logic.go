@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"html/template"
 	"restapp/internal/logic/database"
+	"restapp/internal/logic/model_database"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
@@ -54,4 +55,20 @@ func WrapOob(swap string, message *string) string {
 	}
 
 	return "<div hx-swap-oob=\"" + swap + "\">" + msg + "</div>"
+}
+
+func (logic Logic) CachedMessageList(messageList []model_database.Message) []fiber.Map {
+	result := []fiber.Map{}
+	users := map[uint64]model_database.User{}
+	for _, message := range messageList {
+		if _, ok := users[message.AuthorId]; !ok {
+			users[message.AuthorId] = *logic.DB.UserById(message.AuthorId)
+		}
+		author := users[message.AuthorId]
+		result = append(result, fiber.Map{
+			"Message": message,
+			"Author":  author,
+		})
+	}
+	return result
 }

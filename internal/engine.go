@@ -53,7 +53,6 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 
 		"memberOf":  db.UserGroupList,
 		"membersOf": db.MemberList,
-		"userById":  db.UserById,
 	})
 
 	return engine
