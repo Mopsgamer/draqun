@@ -1,1 +1,23 @@
-<sl-button hx-put="/groups/{{.Group.Id}}/join">Join</sl-button>
+<div class="center-content gap-5">
+    <sl-avatar shape="rounded" style="--size: 5rem">
+        <sl-icon slot="icon" name="people-fill"></sl-icon>
+    </sl-avatar>
+    Join to {{.Group.Nick}} group?
+    <div class="aligned">
+        <sl-button variant="success" outline hx-put="/groups/{{.Group.Id}}/join">
+            <sl-icon name="plus" slot="prefix"></sl-icon>
+            Join
+        </sl-button>
+        <sl-button variant="danger" outline href="/chat">
+            <sl-icon name="house" slot="prefix"></sl-icon>
+            Stay
+        </sl-button>
+    </div>
+    {{- if eq .Group.Mode "private"}}
+    <sl-alert open variant="primary">
+        <sl-icon name="info" slot="icon"></sl-icon>
+        This group is private and you are not supposed to be here.
+        Private group functionality is not implemented. Yet...
+    </sl-alert>
+    {{- end}}
+</div>
