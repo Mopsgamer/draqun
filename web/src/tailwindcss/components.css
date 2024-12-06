@@ -96,26 +96,18 @@
                 @apply aligned pl-10;
             }
         }
-        .join {
-            @apply visible;
-        }
-        .join + .message {
+        .message.join-start {
             @apply rounded-t-none;
-            .prefix {
-                .join.date {
-                    @apply hidden;
-                }
-            }
         }
-        .join.date + .message {
+        .message.join-end {
+            @apply rounded-b-none;
+        }
+        .hide-date {
             .prefix {
                 @apply hidden;
             }
         }
-        .message:has(~ .join) {
-            @apply rounded-b-none;
-        }
-        .message + .message {
+        .message + .message:not(.join-start) {
             @apply mt-2;
         }
     }

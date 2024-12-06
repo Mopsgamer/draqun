@@ -83,15 +83,13 @@ export function chatJoinMessages(): void {
                 element.getAttribute("data-created-at")!,
             ).getTime();
         const shouldJoinDate = dateDiff < 1000 * 60 * 5; // 5 minutes
-        while (isMessageJoinElement(element.nextElementSibling)) {
-            element.nextElementSibling.remove();
-        }
 
         if (shouldJoin) {
-            element.insertAdjacentHTML(
-                "afterend",
-                `<div class="join${shouldJoinDate ? " date" : ""}"></div>`,
-            );
+            element.classList.add('join-end')
+            element.nextElementSibling.classList.add('join-start')
+            if (shouldJoinDate) {
+                element.nextElementSibling.classList.add('hide-date')
+            }
         }
     }
 }
