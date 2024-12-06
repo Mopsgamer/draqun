@@ -37,7 +37,7 @@ func (ws *LogicWebsocket) SubscribeGroup() error {
 		if member.IsBanned {
 			return ws.SendString(i18n.MessageErrNoRights)
 		}
-		right := ws.DB.UserRights(group.Id, user.Id)
+		right := ws.DB.MemberRights(group.Id, user.Id)
 		if !right.ChatRead || !right.ChatWrite {
 			return ws.SendString(i18n.MessageErrNoRights)
 		}

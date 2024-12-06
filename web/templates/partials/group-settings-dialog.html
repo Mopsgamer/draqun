@@ -1,4 +1,4 @@
-<sl-dialog label="Group settings dialog for {{.Group.Nick}}" id="group-settings-dialog" class="fullscreen-base">
+<sl-dialog label="Group settings dialog for {{.Group.Nick}}" id="group-settings-dialog-{{.Group.Id}}" class="fullscreen-base">
     <h1 slot="label" class="aligned">
         <sl-icon name="people"></sl-icon>
         Group settings - {{.Group.Nick}}
@@ -11,7 +11,7 @@
         <sl-alert open variant="primary">
             <sl-icon slot="icon" name="info-circle"></sl-icon>
             You can invite more people. Share the link
-            <sl-copy-button id="copy-invite" hoist value="{{.GroupLink}}"></sl-copy-button>
+            <sl-copy-button id="copy-invite" hoist value="{{groupLink .Group}}"></sl-copy-button>
             .
         </sl-alert>
         <sl-card>

@@ -75,7 +75,7 @@ func (db Database) RoleById(roleId uint64) *model_database.Role {
 	return role
 }
 
-func (db Database) UserRoleList(groupId, userId uint64) []model_database.Role {
+func (db Database) MemberRoleList(groupId, userId uint64) []model_database.Role {
 	roleList := new([]model_database.Role)
 	query := `SELECT app_group_roles.*
 	FROM app_group_roles
@@ -90,8 +90,8 @@ func (db Database) UserRoleList(groupId, userId uint64) []model_database.Role {
 	return *roleList
 }
 
-func (db Database) UserRights(groupId, userId uint64) model_database.Role {
-	roleList := db.UserRoleList(groupId, userId)
+func (db Database) MemberRights(groupId, userId uint64) model_database.Role {
+	roleList := db.MemberRoleList(groupId, userId)
 	rights := model_database.Role{
 		ChatRead:   true,
 		ChatWrite:  true,

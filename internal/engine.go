@@ -2,12 +2,14 @@ package internal
 
 import (
 	"restapp/internal/environment"
+	"restapp/internal/logic"
 	"restapp/internal/logic/database"
 	"restapp/internal/logic/model_database"
 	"slices"
 	"strings"
 	"time"
 
+	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/template/html/v2"
 )
 
@@ -50,9 +52,23 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 		"hide": func(text string) string {
 			return strings.Repeat("*", len(text))
 		},
+		"newMap": func(args ...any) fiber.Map {
+			result := fiber.Map{}
+			for i := 0; i < len(args)-1; i = i + 2 {
+				k := args[i].(string)
+				v := args[i+1]
+				result[k] = v
+			}
+			return result
+		},
 
-		"memberOf":  db.UserGroupList,
-		"membersOf": db.MemberList,
+		"groupLink": func(group model_database.Group) string {
+			return "localhost:3000" + logic.PathRedirectGroupJoin(group.Name)
+		},
+		"userRightsOf":    db.MemberRights,
+		"userMemberOf":    db.MemberById,
+		"userMemberships": db.UserGroupList,
+		"groupMembers":    db.MemberList,
 	})
 
 	return engine

@@ -34,7 +34,6 @@ func (r LogicHTTP) MapPage(bind *fiber.Map) fiber.Map {
 
 	if group != nil {
 		bindx["Group"] = group
-		bindx["GroupLink"] = "localhost:3000" + logic.PathRedirectGroupJoin(group.Name)
 	}
 
 	if member != nil {

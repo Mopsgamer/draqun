@@ -7,10 +7,29 @@
         </sl-button>
     </h2>
     <sl-carousel pagination navigation mouse-dragging id="my-group-list" class="card-group-container">
-        {{- range $iPage, $groupPage := (paginateGroups (memberOf .User.Id) 3) }}
+        {{$this := .}}
+        {{- range $iPage, $groupPage := (paginateGroups (userMemberships $this.User.Id) 3) }}
         <sl-carousel-item class="card-group">
             {{- range $i, $group := $groupPage}}
-            {{- template "partials/group-card" $group}}
+            {{$member := userMemberOf $group.Id $this.User.Id}}
+            {{$rights := userRightsOf $group.Id $this.User.Id}}
+            <a href="/chat/groups/{{$group.Id}}">
+                <sl-card id="my-group-{{$group.Id}}" data-id="{{$group.Id}}" class="group-card">
+                    <h2 class="aligned justify-between" slot="header">
+                        <sl-avatar shape="rounded">
+                            <sl-icon slot="icon" name="people-fill"></sl-icon>
+                        </sl-avatar>
+                        <div class="aligned">
+                            {{$group.Nick}}
+                            {{- if or $member.IsOwner $rights.ChangeGroup}}
+                            <sl-icon-button name="gear" href="#group-settings-dialog-{{$group.Id}}">
+                            </sl-icon-button>
+                            {{- end}}
+                        </div>
+                    </h2>
+                    {{$group.Description}}
+                </sl-card>
+            </a>
             {{- end}}
         </sl-carousel-item>
         {{- end}}

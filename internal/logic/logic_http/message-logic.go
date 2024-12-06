@@ -65,7 +65,7 @@ func (r LogicHTTP) MessageCreate() error {
 			return true
 		}
 
-		rights := r.DB.UserRights(group.Id, userId)
+		rights := r.DB.MemberRights(group.Id, userId)
 		return bool(rights.ChatRead)
 	}, logic.WrapOob("beforeend:#chat", &str), logic_websocket.SubForMessages)
 

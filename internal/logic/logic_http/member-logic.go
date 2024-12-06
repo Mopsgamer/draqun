@@ -95,7 +95,7 @@ func (r LogicHTTP) GroupJoin() error {
 		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 
-	if len(r.DB.UserRoleList(group.Id, user.Id)) < 1 {
+	if len(r.DB.MemberRoleList(group.Id, user.Id)) < 1 {
 		right := model_database.RoleDefault
 		rightId := r.DB.RoleCreate(right)
 		if rightId == nil {

@@ -108,6 +108,6 @@ func (r *LogicHTTP) Rights() (*model_database.Role, *model_database.Member, *mod
 		return nil, member, user, group
 	}
 
-	rights := r.DB.UserRights(member.GroupId, user.Id)
+	rights := r.DB.MemberRights(member.GroupId, user.Id)
 	return &rights, member, user, group
 }
