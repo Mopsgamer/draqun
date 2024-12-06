@@ -3,6 +3,7 @@ package logic_http
 import (
 	"restapp/internal/i18n"
 	"restapp/internal/logic"
+	"restapp/internal/logic/model_database"
 	"restapp/internal/logic/model_request"
 
 	"github.com/gofiber/fiber/v3"
@@ -73,13 +74,44 @@ func (r LogicHTTP) GroupJoin() error {
 		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
 	}
 
-	member, _, group := r.Member()
+	member, user, group := r.Member()
 	if group == nil {
 		return r.RenderDanger(i18n.MessageErrGroupNotFound, id)
 	}
 
 	if member != nil {
 		return r.RenderDanger(i18n.MessageErrAlreadyGroupMember, id)
+	}
+
+	member = &model_database.Member{
+		GroupId:  group.Id,
+		UserId:   user.Id,
+		Nick:     nil,
+		IsOwner:  false,
+		IsBanned: false,
+	}
+
+	if !r.DB.UserJoinGroup(*member) {
+		return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
+	}
+
+	if len(r.DB.UserRoleList(group.Id, user.Id)) < 1 {
+		right := model_database.RoleDefault
+		rightId := r.DB.RoleCreate(right)
+		if rightId == nil {
+			return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
+		}
+		right.Id = *rightId
+
+		role := model_database.RoleAssign{
+			GroupId: group.Id,
+			UserId:  user.Id,
+			RightId: right.Id,
+		}
+
+		if !r.DB.RoleAssign(role) {
+			return r.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
+		}
 	}
 
 	r.HTMXRedirect(logic.PathRedirectGroup(req.GroupId))

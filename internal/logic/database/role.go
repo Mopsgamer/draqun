@@ -78,7 +78,7 @@ func (db Database) RoleById(roleId uint64) *model_database.Role {
 func (db Database) UserRoleList(groupId, userId uint64) []model_database.Role {
 	roleList := new([]model_database.Role)
 	query := `SELECT app_group_roles.*
-	FROM app_group_role_assigns
+	FROM app_group_roles
 	LEFT JOIN app_group_role_assigns ON app_group_role_assigns.right_id = app_group_roles.id
 	WHERE app_group_role_assigns.group_id = ? AND app_group_role_assigns.user_id = ?`
 	err := db.Sql.Select(roleList, query, groupId, userId)

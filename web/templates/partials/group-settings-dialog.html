@@ -10,8 +10,9 @@
         </h2>
         <sl-alert open variant="primary">
             <sl-icon slot="icon" name="info-circle"></sl-icon>
-            You can invite more people by the group name. No links, since it is a localhost.
-            <sl-copy-button id="copy-invite" hoist copy-label="Copy group name" value="{{.Group.Name}}"></sl-copy-button>
+            You can invite more people. Share the link
+            <sl-copy-button id="copy-invite" hoist value="{{.GroupLink}}"></sl-copy-button>
+            .
         </sl-alert>
         <sl-card>
             <h1 slot="header" class="aligned">

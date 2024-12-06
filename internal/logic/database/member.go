@@ -8,8 +8,8 @@ import (
 
 func (db Database) MemberById(groupId, userId uint64) *model_database.Member {
 	member := new(model_database.Member)
-	query := `SELECT * FROM app_group_members WHERE user_id = ?`
-	err := db.Sql.Get(member, query, userId)
+	query := `SELECT * FROM app_group_members WHERE group_id = ? AND user_id = ?`
+	err := db.Sql.Get(member, query, groupId, userId)
 
 	if err != nil {
 		log.Error(err)
