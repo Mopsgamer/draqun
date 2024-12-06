@@ -1,8 +1,13 @@
 @tailwind components;
 
 @layer components {
-    section.super-sect {
-        @apply relative text-center py-16 flex justify-around items-center overflow-hidden;
+
+    .super-sect-base {
+        @apply relative text-center py-12 flex justify-around items-center overflow-hidden;
+    }
+
+    .super-sect {
+        @apply super-sect-base bg-mesh-gradient bg-cover;
         sl-button {
             @apply opacity-100 duration-1200 delay-300;
         }
@@ -13,16 +18,16 @@
         }
     }
 
-    section:is(.super-sect-1, .super-sect-2) {
-        @apply relative text-center py-16 flex justify-around items-center overflow-hidden;
+    .super-sect-1, .super-sect-2 {
+        @apply super-sect-base;
         sl-icon, .description {
-            @apply opacity-100 duration-1200 delay-300;
+            @apply z-10 opacity-100 duration-1200 delay-300;
         }
         sl-icon {
-            @apply text-4xl w-1/4 drop-shadow-lg;
+            @apply text-7xl w-1/4 drop-shadow-lg;
         }
         .description {
-            @apply relative z-10 w-3/4;
+            @apply font-bold relative z-10 w-3/4;
         }
         &:not(.appeared) {
             sl-icon, .description {
@@ -31,7 +36,7 @@
         }
     }
 
-    section.super-sect-1 {
+    .super-sect-1 {
         @apply bg-n100;
         &:not(.appeared) {
             sl-icon {
@@ -43,7 +48,7 @@
         }
     }
 
-    section.super-sect-2 {
+    .super-sect-2 {
         @apply bg-n300;
         &:not(.appeared) {
             sl-icon {
@@ -53,5 +58,9 @@
                 @apply -translate-x-24
             }
         }
+    }
+
+    .super-sect-join {
+        @apply super-sect-base h-32 w-full p-0 bg-gradient-to-b absolute bottom-0 left-0;
     }
 }

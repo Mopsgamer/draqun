@@ -5,7 +5,9 @@ import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { dirname } from "@std/path";
 import { exists, existsSync } from "@std/fs";
 import { envKeys, logBuild } from "./tool.ts";
+import dotenv from "dotenv";
 
+dotenv.config()
 const isWatch = Deno.args.includes("--watch");
 
 type BuildOptions = esbuild.BuildOptions & {
@@ -110,7 +112,11 @@ const taskList = [
         ...options,
         outfile: "./web/static/css/main.css",
         entryPoints: ["./web/src/tailwindcss/main.css"],
-        whenChange: ["./web/templates", "./tailwind.config.ts"],
+        whenChange: [
+            "./web/templates",
+            // "./tailwind.config.ts", // should reload process anyway, won't work
+        ],
+        external: ["/static/assets/*"],
         plugins: [
             tailwindPlugin({ configPath: "./tailwind.config.ts" }),
         ],

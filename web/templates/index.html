@@ -1,63 +1,46 @@
-<section class="super-sect relative flex items-center justify-center text-center py-16 bg-gradient-to-r from-n200 to-blue-500 h-screen">
+<section class="super-sect relative flex items-center justify-center text-center py-16 h-screen">
     <div class="relative z-10">
-        <h2 class="text-6xl font-semibold mb-4">Start Chatting</h2>
-        <p class="text-blue-400 mb-6">Join conversations instantly with Restapp.</p>
-        <sl-button href="/chat" variant="primary" class="px-6 py-3">
-            <sl-icon slot="suffix" name="chat-right-text"></sl-icon>
-            Start Chatting
+        <h2 class="text-blue-600 text-6xl font-semibold mb-4">Start Chatting</h2>
+        <p class="text-blue-800 mb-6">Join conversations instantly with Restapp.</p>
+        <sl-button href="/chat" pill variant="primary" class="px-6 py-3">
+            Open it in Your browser
         </sl-button>
     </div>
+    <div class="super-sect-join from-transparent to-n100"></div>
 </section>
-
-<!-- Fast Section -->
 <section class="super-sect-1">
     <sl-icon name="lightning-charge" class="text-yellow-500"></sl-icon>
     <div class="description">
         <h2 class="text-3xl font-semibold mb-4">Fast</h2>
-        <p class="text-blue-400 mb-6">Experience lightning-fast messaging with Restapp.</p>
+        <p class="text-pink-400 mb-6">Restapp allows you to do things fast: shortcuts, navigation and more...</p>
     </div>
+    <div class="super-sect-join from-n100 to-n300"></div>
 </section>
-
-<!-- Groups and DMs Section -->
 <section class="super-sect-2">
     <div class="description">
-        <h2 class="text-3xl font-semibold mb-4">Groups, DMs</h2>
-        <p class="text-blue-400 mb-6">Whether one-on-one or with a group, Restapp has you covered.</p>
+        <h2 class="text-3xl font-semibold mb-4">Public communities.</h2>
+        <p class="text-blue-400 mb-6">Join your favorite fandom or create your own public community as a creator.</p>
     </div>
-    <sl-icon name="people" class="text-red-500"></sl-icon>
+    <sl-icon name="people" class="text-blue-500"></sl-icon>
+    <div class="super-sect-join from-n300 to-n100"></div>
 </section>
-
-<!-- Calls and Screen Sharing Section -->
 <section class="super-sect-1">
-    <sl-icon name="telephone" class="text-green-500"></sl-icon>
+    <sl-icon name="shield-lock" class="text-green-500"></sl-icon>
     <div class="description">
-        <h2 class="text-3xl font-semibold mb-4">Calls, Screen Sharing</h2>
-        <p class="text-blue-400 mb-6">Seamlessly switch between calls and screen sharing for efficient collaboration.
-        </p>
+        <h2 class="text-3xl font-semibold mb-4">Privacy</h2>
+        <p class="text-green-400 mb-6">Create private groups using a password or chat with your friends privately.</p>
     </div>
 </section>
-
-<!-- Customizing Themes Section -->
-<section class="super-sect-2">
-    <div class="description">
-        <h2 class="text-3xl font-semibold mb-4">Customizing Themes</h2>
-        <p class="text-blue-400 mb-6">Personalize your chat experience with a variety of themes and layouts.</p>
-    </div>
-    <sl-icon name="columns-gap" class="text-purple-500"></sl-icon>
-</section>
-
-<!-- Still Not Sure Section -->
-<section class="super-sect">
+<section class="super-sect pt-28">
+    <div class="super-sect-join from-n100 to-transparent top-0 bottom-auto"></div>
     <div class="relative z-10">
-        <h2 class="text-3xl font-semibold mb-4">Still not sure?</h2>
-        <p class="text-blue-400 mb-6">Give it a try and start chatting now!</p>
-        <sl-button href="/chat" variant="primary" class="px-6 py-3">
-            <sl-icon slot="suffix" name="chat-right-text"></sl-icon>
-            Start Chatting
+        <h2 class="text-pink-600 text-3xl font-semibold mb-4">Still not sure?</h2>
+        <p class="text-pink-800 mb-6">Give it a try and start chatting now!</p>
+        <sl-button href="/chat" pill variant="primary" class="px-6 py-3">
+            Try Restapp
         </sl-button>
     </div>
 </section>
-
 <script>
     const superSectionList = document.querySelectorAll('section[class*=super-sect]')
     for (const superSection of superSectionList) {

@@ -5,6 +5,9 @@ const config: Config = {
     ],
     theme: {
         extend: {
+            backgroundImage: {
+                'mesh-gradient': 'url(/static/assets/image-mesh-gradient.png)',
+            },
             transitionDuration: {
                 "1100": "1100ms",
                 "1200": "1200ms",
