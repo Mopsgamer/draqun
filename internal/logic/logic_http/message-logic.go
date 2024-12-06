@@ -55,7 +55,19 @@ func (r LogicHTTP) MessageCreate() error {
 		"MessageList": r.CachedMessageList([]model_database.Message{*message}),
 	}))
 
-	logic_websocket.WebsocketConnections.Push(user.Id, logic.WrapOob("beforeend:#chat", &str), logic_websocket.SubForMessages)
+	logic_websocket.WebsocketConnections.Push(func(userId uint64) bool {
+		member := r.DB.MemberById(group.Id, userId)
+		if member == nil {
+			return false
+		}
+
+		if member.IsOwner {
+			return true
+		}
+
+		rights := r.DB.UserRights(group.Id, userId)
+		return bool(rights.ChatRead)
+	}, logic.WrapOob("beforeend:#chat", &str), logic_websocket.SubForMessages)
 
 	return r.Ctx.SendString("")
 }

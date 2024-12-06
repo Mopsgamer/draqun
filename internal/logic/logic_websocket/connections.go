@@ -21,13 +21,18 @@ type Connections struct {
 }
 
 // Push data for each connection by user id.
-func (conns *Connections) Push(userId uint64, data string, sub string) {
+func (conns *Connections) Push(filter func(uint64) bool, data string, sub string) {
 	conns.mutex.Lock()
-	for _, ws := range (*conns.mp)[userId] {
-		if slices.Contains(ws.Subs, sub) {
+	for userId := range *conns.mp {
+		if !filter(userId) {
 			continue
 		}
-		ws.Push(data)
+		for _, ws := range (*conns.mp)[userId] {
+			if slices.Contains(ws.Subs, sub) {
+				continue
+			}
+			ws.Push(data)
+		}
 	}
 	conns.mutex.Unlock()
 }
