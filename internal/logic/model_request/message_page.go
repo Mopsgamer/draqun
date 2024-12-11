@@ -1,6 +1,6 @@
 package model_request
 
 type MessagesPage struct {
-	*GroupUri
+	*GroupIdUri
 	Page uint64 `uri:"messages_page"`
 }

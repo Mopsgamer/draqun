@@ -7,7 +7,7 @@ import (
 )
 
 type MessageCreate struct {
-	*GroupUri
+	*GroupIdUri
 	Content string `form:"content"`
 }
 

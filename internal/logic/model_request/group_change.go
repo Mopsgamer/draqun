@@ -1,6 +1,6 @@
 package model_request
 
 type GroupChange struct {
-	*GroupUri
+	*GroupIdUri
 	*GroupCreate
 }

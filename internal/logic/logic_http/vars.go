@@ -69,19 +69,24 @@ func (r *LogicHTTP) User() (user *model_database.User) {
 // Get group by the id from current URI.
 func (r *LogicHTTP) Group() (*model_database.Group, *model_database.User) {
 	user := r.User()
-	groupUri := new(model_request.GroupUri)
-	if err := r.Ctx.Bind().URI(groupUri); err != nil {
+	groupIdUri := new(model_request.GroupIdUri)
+	if err := r.Ctx.Bind().URI(groupIdUri); err != nil {
 		log.Error(err)
 		return nil, user
 	}
 
-	if groupUri.GroupId != 0 {
-		group := r.DB.GroupById(groupUri.GroupId)
+	if groupIdUri.GroupId != 0 {
+		group := r.DB.GroupById(groupIdUri.GroupId)
 		return group, user
 	}
 
-	if groupUri.GroupName != "" {
-		group := r.DB.GroupByName(groupUri.GroupName)
+	groupNameUri := new(model_request.GroupNameUri)
+	if err := r.Ctx.Bind().URI(groupIdUri); err != nil {
+		log.Error(err)
+		return nil, user
+	}
+	if groupNameUri.GroupName != "" {
+		group := r.DB.GroupByName(groupNameUri.GroupName)
 		return group, user
 	}
 
