@@ -3,6 +3,7 @@
 @import url("./homepage.css");
 @import url("./shoelace-ext.css");
 @import url("./components.css");
+@import url("./docs.css");
 
 @tailwind base;
 @tailwind components;

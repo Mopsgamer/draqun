@@ -14,10 +14,6 @@
         </sl-button>
     </div>
     {{- if eq .Group.Mode "private"}}
-    <sl-alert open variant="primary">
-        <sl-icon name="info" slot="icon"></sl-icon>
-        This group is private and you are not supposed to be here.
-        Private group functionality is not implemented. Yet...
-    </sl-alert>
+    {{- template "partials/info" newMap "Id" "private-groups-not-implemented" "Message" "This group is private and you are not supposed to be here. Private group functionality is not implemented. Yet..."}}
     {{- end}}
 </div>

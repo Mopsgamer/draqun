@@ -148,6 +148,7 @@ func NewApp() (*fiber.App, error) {
 
 	// pages
 	app.Get("/", UseHTTPPage("index", &fiber.Map{"Title": "Discover"}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/docs", UseHTTPPage("docs", &fiber.Map{"Title": "Docs"}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/settings", UseHTTPPage("settings", &fiber.Map{"Title": "Settings"},
 		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
 			if user := r.User(); user == nil {

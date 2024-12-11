@@ -1,0 +1,12 @@
+{{$variant := "neutral"}}
+{{if eq .Method "get"}}{{$variant = "primary"}}{{end}}
+{{if eq .Method "post"}}{{$variant = "success"}}{{end}}
+{{if eq .Method "put"}}{{$variant = "warning"}}{{end}}
+{{if eq .Method "delete"}}{{$variant = "danger"}}{{end}}
+<div class="method">
+    <div class="align">
+        <sl-tag size="medium" variant="{{$variant}}" class="uppercase">{{.Method}}</sl-tag>
+        <code>{{.Path}}</code>
+    </div>
+    {{.Description}}
+</div>

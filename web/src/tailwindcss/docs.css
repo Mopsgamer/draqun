@@ -1,0 +1,9 @@
+@tailwind components;
+
+@layer components {
+    .api-docs {
+        .method {
+            @apply mt-5;
+        }
+    }
+}

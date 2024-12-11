@@ -43,6 +43,10 @@
         }
     }
 
+    code {
+        @apply border-n200 border bg-n50 rounded p-1;
+    }
+
     .dialog-footer {
         @apply flex flex-col gap-2;
         div {
