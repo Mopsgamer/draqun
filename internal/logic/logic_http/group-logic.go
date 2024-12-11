@@ -11,7 +11,7 @@ func (r LogicHTTP) GroupCreate() error {
 	id := "new-group-error"
 	req := new(model_request.GroupCreate)
 	if err := r.Ctx.Bind().Form(req); err != nil {
-		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
+		return r.RenderInternalError(id)
 	}
 
 	user := r.User()
@@ -90,11 +90,11 @@ func (r LogicHTTP) GroupChange() error {
 	id := "group-change-error"
 	req := new(model_request.GroupChange)
 	if err := r.Ctx.Bind().URI(req); err != nil {
-		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
+		return r.RenderInternalError(id)
 	}
 
 	if err := r.Ctx.Bind().Form(req); err != nil {
-		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
+		return r.RenderInternalError(id)
 	}
 
 	rights, member, _, group := r.Rights()
@@ -160,7 +160,7 @@ func (r LogicHTTP) GroupDelete() error {
 	id := "group-delete-error"
 	req := new(model_request.GroupDelete)
 	if err := r.Ctx.Bind().URI(req); err != nil {
-		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
+		return r.RenderInternalError(id)
 	}
 
 	member, _, group := r.Member()

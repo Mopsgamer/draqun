@@ -17,7 +17,7 @@ func (r LogicHTTP) UserSignUp() error {
 	req := new(model_request.UserSignUp)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
+		return r.RenderInternalError(id)
 	}
 
 	if !model_database.IsValidUserNick(req.Nickname) {
@@ -79,7 +79,7 @@ func (r LogicHTTP) UserLogin() error {
 	req := new(model_request.UserLogin)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
+		return r.RenderInternalError(id)
 	}
 
 	if !model_database.IsValidUserPassword(req.Password) {
@@ -126,7 +126,7 @@ func (r LogicHTTP) UserChangeName() error {
 	req := new(model_request.UserChangeName)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
+		return r.RenderInternalError(id)
 	}
 
 	user := r.User()
@@ -167,7 +167,7 @@ func (r LogicHTTP) UserChangeEmail() error {
 	req := new(model_request.UserChangeEmail)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
+		return r.RenderInternalError(id)
 	}
 
 	user := r.User()
@@ -211,7 +211,7 @@ func (r LogicHTTP) UserChangePhone() error {
 	req := new(model_request.UserChangePhone)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
+		return r.RenderInternalError(id)
 	}
 
 	user := r.User()
@@ -248,7 +248,7 @@ func (r LogicHTTP) UserChangePassword() error {
 	req := new(model_request.UserChangePassword)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
+		return r.RenderInternalError(id)
 	}
 
 	user := r.User()
@@ -288,7 +288,7 @@ func (r LogicHTTP) UserDelete() error {
 	req := new(model_request.UserDelete)
 	err := r.Ctx.Bind().Form(req)
 	if err != nil {
-		return r.RenderWarning(i18n.MessageErrInvalidRequest, id)
+		return r.RenderInternalError(id)
 	}
 
 	user := r.User()

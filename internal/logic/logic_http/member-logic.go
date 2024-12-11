@@ -14,7 +14,7 @@ const MembersPagination uint64 = 5
 func (r LogicHTTP) MembersPage() error {
 	req := new(model_request.MembersPage)
 	if err := r.Ctx.Bind().URI(req); err != nil {
-		return r.Ctx.SendString(i18n.MessageErrInvalidRequest)
+		return r.RenderInternalError("error-loading-member-list")
 	}
 
 	member, _, group := r.Member()
@@ -45,7 +45,7 @@ func (r LogicHTTP) GroupLeave() error {
 	id := "group-leave-error"
 	req := new(model_request.GroupLeave)
 	if err := r.Ctx.Bind().URI(req); err != nil {
-		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
+		return r.RenderInternalError(id)
 	}
 
 	member, _, group := r.Member()
@@ -71,7 +71,7 @@ func (r LogicHTTP) GroupJoin() error {
 	id := "group-join-error"
 	req := new(model_request.GroupJoin)
 	if err := r.Ctx.Bind().URI(req); err != nil {
-		return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
+		return r.RenderInternalError(id)
 	}
 
 	member, user, group := r.Member()

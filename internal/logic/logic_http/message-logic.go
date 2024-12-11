@@ -14,12 +14,13 @@ import (
 const MessagesPagination uint64 = 5
 
 func (r LogicHTTP) MessageCreate() error {
+	id := "error-loading-message-list"
 	req := new(model_request.MessageCreate)
 	if err := r.Ctx.Bind().URI(req); err != nil {
-		return r.Ctx.SendString(i18n.MessageErrInvalidRequest)
+		return r.RenderInternalError(id)
 	}
 	if err := r.Ctx.Bind().Form(req); err != nil {
-		return r.Ctx.SendString(i18n.MessageErrInvalidRequest)
+		return r.RenderInternalError(id)
 	}
 
 	rights, member, user, group := r.Rights()
@@ -73,9 +74,10 @@ func (r LogicHTTP) MessageCreate() error {
 }
 
 func (r LogicHTTP) MessagesPage() error {
+	id := "error-loading-message-list"
 	req := new(model_request.MessagesPage)
 	if err := r.Ctx.Bind().URI(req); err != nil {
-		return r.Ctx.SendString(i18n.MessageErrInvalidRequest)
+		return r.RenderInternalError(id)
 	}
 
 	member, _, group := r.Member()

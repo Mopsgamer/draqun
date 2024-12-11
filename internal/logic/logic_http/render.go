@@ -1,6 +1,7 @@
 package logic_http
 
 import (
+	"restapp/internal/i18n"
 	"restapp/internal/logic"
 
 	"github.com/gofiber/fiber/v3"
@@ -54,6 +55,12 @@ func wrapRenderNotice(r LogicHTTP, template, message, id string) error {
 		"Id":      id,
 		"Message": message,
 	})
+}
+
+// Renders the danger message html element.
+func (r LogicHTTP) RenderInternalError(id string) error {
+	r.Ctx.Status(fiber.StatusInternalServerError)
+	return r.RenderDanger(i18n.MessageErrInvalidRequest, id)
 }
 
 // Renders the danger message html element.
