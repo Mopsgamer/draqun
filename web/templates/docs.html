@@ -1,20 +1,84 @@
 <div class="api-docs m-5">
     {{- template "partials/info" newMap "Id" "private-groups-not-implemented" "Message" "This documentation created manually."}}
 
-    {{- template "partials/docs-http-method" newMap "Method" "get" "Path" "/groups/:group_id/messages/page/:messages_page" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "get" "Path" "/groups/:group_id/members/page/:members_page" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "post" "Path" "/account/create" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "post" "Path" "/account/login" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "post" "Path" "/groups/create" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "post" "Path" "/groups/:group_id/messages/create" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "put" "Path" "/account/change/name" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "put" "Path" "/account/change/email" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "put" "Path" "/account/change/phone" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "put" "Path" "/account/change/password" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "put" "Path" "/account/logout" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "put" "Path" "/groups/:group_id/join" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "put" "Path" "/groups/:group_id/change" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "delete" "Path" "/groups/:group_id/leave" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "delete" "Path" "/groups/:group_id" "Description" ""}}
-    {{- template "partials/docs-http-method" newMap "Method" "delete" "Path" "/account/delete" "Description" ""}}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "get"
+    "Path" "/groups/:group_id/messages/page/:messages_page"
+    "Description" "Get messages section. Starting from 0."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "get"
+    "Path" "/groups/:group_id/members/page/:members_page"
+    "Description" "Get members section."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "post"
+    "Path" "/account/create"
+    "Description" "Create new account. Requires form data."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "post"
+    "Path" "/account/login"
+    "Description" "Get new authorization token. Requires form data."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "post"
+    "Path" "/groups/create"
+    "Description" "Create new group. Requires form data and authorization cookie."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "post"
+    "Path" "/groups/:group_id/messages/create"
+    "Description" "Create new message. Requires form data and authorization cookie."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "put"
+    "Path" "/account/change/name"
+    "Description" "Change account name or nick. Requires form data and authorization cookie."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "put"
+    "Path" "/account/change/email"
+    "Description" "Change account email. Requires form data and authorization cookie."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "put"
+    "Path" "/account/change/phone"
+    "Description" "Change account phone. Requires form data and authorization cookie."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "put"
+    "Path" "/account/change/password"
+    "Description" "Change account password. Requires form data and authorization cookie."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "put"
+    "Path" "/account/logout"
+    "Description" "Clears cookies. Requires authorization cookie."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "put"
+    "Path" "/groups/:group_id/join"
+    "Description" "Become a member. Requires authorization cookie and rights."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "put"
+    "Path" "/groups/:group_id/change"
+    "Description" "Change group name. Requires authorization cookie and rights."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "delete"
+    "Path" "/groups/:group_id/leave"
+    "Description" "Stop being a member. Requires authorization cookie and membership."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "delete"
+    "Path" "/groups/:group_id"
+    "Description" "Delete group. Requires authorization cookie and rights."
+    }}
+    {{- template "partials/docs-http-method" newMap
+    "Method" "delete"
+    "Path" "/account/delete"
+    "Description" "Delete account. Requires form data and authorization cookie."
+    }}
 </div>
