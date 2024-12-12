@@ -13,8 +13,8 @@ Requirements:
 - Go@^1.23
 - Deno@^2.0
 
-> [!TIP] First setup:
->
+> [!TIP]
+> First setup:
 > 1. Run `deno task init:build`.
 > 2. Change the `.env`.
 > 3. Run `deno task serve`.
@@ -30,7 +30,7 @@ deno task init
 deno task init:build
 ```
 
-> [!NOTE]
+> [!WARNING]
 > Fill the `.env` this file manually.
 
 ### Changing the code base
