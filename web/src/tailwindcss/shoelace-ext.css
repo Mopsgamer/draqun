@@ -1,6 +1,9 @@
 @tailwind components;
 
 @layer components {
+    sl-tooltip {
+        --max-width: 100vw;
+    }
     sl-menu > sl-divider {
         @apply border-b border-n200;
         &:last-child, &:first-child, sl-divider + sl-divider {

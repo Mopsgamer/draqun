@@ -17,7 +17,7 @@
     }
 
     .real-body {
-        @apply flex flex-col h-full overflow-auto;
+        @apply flex flex-col h-full overflow-auto text-neutral-300;
         .center-content {
             @apply flex flex-col h-full w-full justify-center items-center;
         }
@@ -28,23 +28,42 @@
     }
 
     .anchor-header {
-        @apply aligned relative p-2 mx-4 mt-12 mb-6 border-b border-n200 font-bold;
+        @apply aligned relative p-2 border-n200 font-bold;
         &:is(h1) {
-            @apply text-4xl border-b-0;
+            @apply text-4xl mx-4 mt-12 mb-6;
         }
         &:is(h2) {
-            @apply text-3xl;
+            @apply text-3xl mx-3 mt-9 mb-5 border-b;
         }
         &:is(h3) {
-            @apply text-2xl;
+            @apply text-2xl mx-3 mt-9 mb-4 border-b;
         }
         &:is(h4) {
-            @apply text-xl;
+            @apply text-xl mx-2 mt-7 mb-3 border-b;
+        }
+        &:is(h5) {
+            @apply text-lg mx-2 mt-7 mb-2;
+        }
+        &:is(h6) {
+            @apply text-base mx-1 mt-5 mb-1;
         }
     }
 
-    code {
+    code, pre {
         @apply border-n200 border bg-n50 rounded p-1;
+    }
+
+    table {
+        @apply border-collapse;
+        & > tbody {
+            @apply border-n200 border bg-n50 rounded;
+        }
+        th, td {
+            @apply p-2 border border-n200;
+        }
+        th {
+            @apply bg-neutral-900;
+        }
     }
 
     .dialog-footer {

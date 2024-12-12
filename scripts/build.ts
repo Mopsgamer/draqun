@@ -67,23 +67,25 @@ async function buildTask(options: BuildOptions, title?: string): Promise<void> {
     const safeOptions = options;
     delete safeOptions.whenChange;
     const ctx = await esbuild.context(safeOptions as esbuild.BuildOptions);
+    logBuild.info("Bundling: " + directory);
     await ctx.rebuild();
-    logBuild.info("Bundled: " + directory);
+    logBuild.success("Bundled.");
     if (isWatch) {
         await ctx.watch();
-        logBuild.info("Listening: " + directory);
-        if (whenChange.length > 0) {
-            const watcher = Deno.watchFs(whenChange, { recursive: true });
-            (async () => {
-                for await (const event of watcher) {
-                    if (event.kind !== "modify") {
-                        continue;
-                    }
-                    await ctx.rebuild();
-                    logBuild.info("Bundled: " + directory);
-                }
-            })();
+        logBuild.success("Watching for changes.");
+        if (!(whenChange.length > 0)) {
+            return
         }
+        const watcher = Deno.watchFs(whenChange, { recursive: true });
+        (async () => {
+            for await (const event of watcher) {
+                if (event.kind !== "modify") {
+                    continue;
+                }
+                await ctx.rebuild();
+                logBuild.success("Bundled: " + directory);
+            }
+        })();
         return;
     }
     await ctx.dispose();
@@ -114,7 +116,8 @@ const taskList = [
         entryPoints: ["./web/src/tailwindcss/main.css"],
         whenChange: [
             "./web/templates",
-            // "./tailwind.config.ts", // should reload process anyway, won't work
+            "./web/src/tailwindcss",
+            // "./tailwind.config.ts", // should reload process, anyway won't work
         ],
         external: ["/static/assets/*"],
         plugins: [

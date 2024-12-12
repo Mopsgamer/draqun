@@ -1,12 +1,33 @@
 {{$variant := "neutral"}}
-{{if eq .Method "get"}}{{$variant = "primary"}}{{end}}
-{{if eq .Method "post"}}{{$variant = "success"}}{{end}}
-{{if eq .Method "put"}}{{$variant = "warning"}}{{end}}
-{{if eq .Method "delete"}}{{$variant = "danger"}}{{end}}
-<div class="method">
+{{- if eq .Method "get"}}{{$variant = "primary"}}{{end}}
+{{- if eq .Method "post"}}{{$variant = "success"}}{{end}}
+{{- if eq .Method "put"}}{{$variant = "warning"}}{{end}}
+{{- if eq .Method "delete"}}{{$variant = "danger"}}{{end}}
+<div class="http-method">
     <div class="align">
-        <sl-tag size="medium" variant="{{$variant}}" class="uppercase">{{.Method}}</sl-tag>
-        <code>{{.Path}}</code>
+        <sl-tag size="medium" variant="{{$variant}}" class="method uppercase">{{.Method}}</sl-tag>
+        <code class="path">{{.Path}}</code>
     </div>
-    {{.Description}}
+    <div class="description">
+        {{- .Description -}}
+    </div>
+    <h5 class="anchor-header">Request</h1>
+    <table class="request">
+        <tr class="header">
+            <th>Name</th>
+            <th>Type</th>
+            <th>Tag</th>
+        </tr>
+        {{- range $i, $request := .Request}}
+        <tr class='{{if $request.Anonymous}}anon{{end}}'>
+            <td class="name">{{$request.Name}}</td>
+            <td class="type">{{$request.Type}}</td>
+            <td class="tag">{{$request.Tag}}</td>
+        </tr>
+        {{- end}}
+    </table>
+    <h5 class="anchor-header">Response</h5>
+    <div>
+        Currently, it's always a html string response.
+    </div>
 </div>

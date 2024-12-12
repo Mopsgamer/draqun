@@ -2,11 +2,13 @@ package internal
 
 import (
 	"fmt"
+	"reflect"
 	"restapp/internal/environment"
 	"restapp/internal/logic"
 	"restapp/internal/logic/database"
 	"restapp/internal/logic/logic_http"
 	"restapp/internal/logic/logic_websocket"
+	"restapp/internal/logic/model_request"
 	"restapp/websocket"
 
 	"github.com/gofiber/fiber/v3"
@@ -147,8 +149,9 @@ func NewApp() (*fiber.App, error) {
 	app.Get("/partials*", static.New("./web/templates/partials", static.Config{Browse: true}))
 
 	// pages
+	docs := initDocs()
 	app.Get("/", UseHTTPPage("index", &fiber.Map{"Title": "Discover"}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/docs", UseHTTPPage("docs", &fiber.Map{"Title": "Docs"}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/docs", UseHTTPPage("docs", &fiber.Map{"Title": "Docs", "Docs": docs}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/settings", UseHTTPPage("settings", &fiber.Map{"Title": "Settings"},
 		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
 			if user := r.User(); user == nil {
@@ -190,29 +193,59 @@ func NewApp() (*fiber.App, error) {
 		}),
 	)
 
+	Listen := func(method, path string, handler fiber.Handler) fiber.Router {
+		return app.Add([]string{method}, path, handler)
+	}
+
+	ListenDoc := func(method, description string, fields []reflect.StructField, path string, handler fiber.Handler) fiber.Router {
+		docs.HTTP[method] = append(docs.HTTP[method], DocsHTTPMethod{
+			Path:        path,
+			Method:      method,
+			Description: description,
+			Request:     fields,
+		})
+		return Listen(method, path, handler)
+	}
+
 	// get
-	app.Get("/groups/:group_id/messages/page/:messages_page", UseHTTP(func(r logic_http.LogicHTTP) error { return r.MessagesPage() }))
-	app.Get("/groups/:group_id/members/page/:members_page", UseHTTP(func(r logic_http.LogicHTTP) error { return r.MembersPage() }))
+	ListenDoc("get", "Get messages section.", fieldsOf(model_request.MessagesPage{}), "/groups/:group_id/messages/page/:messages_page",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.MessagesPage() }))
+	ListenDoc("get", "Get members section.", fieldsOf(model_request.MembersPage{}), "/groups/:group_id/members/page/:members_page",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.MembersPage() }))
 
 	// post
-	app.Post("/account/create", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserSignUp() }))
-	app.Post("/account/login", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserLogin() }))
-	app.Post("/groups/create", UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupCreate() }))
-	app.Post("/groups/:group_id/messages/create", UseHTTP(func(r logic_http.LogicHTTP) error { return r.MessageCreate() }))
+	ListenDoc("post", "Create new account.", fieldsOf(model_request.UserSignUp{}), "/account/create",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserSignUp() }))
+	ListenDoc("post", "Get new authorization token.", fieldsOf(model_request.UserLogin{}), "/account/login",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserLogin() }))
+	ListenDoc("post", "Create new group.", fieldsOf(model_request.GroupCreate{}), "/groups/create",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupCreate() }))
+	ListenDoc("post", "Create (send) new message.", fieldsOf(model_request.MessageCreate{}), "/groups/:group_id/messages/create",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.MessageCreate() }))
 
 	// put
-	app.Put("/account/change/name", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangeName() }))
-	app.Put("/account/change/email", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangeEmail() }))
-	app.Put("/account/change/phone", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangePhone() }))
-	app.Put("/account/change/password", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangePassword() }))
-	app.Put("/account/logout", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserLogout() }))
-	app.Put("/groups/:group_id/join", UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupJoin() }))
-	app.Put("/groups/:group_id/change", UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupChange() }))
+	ListenDoc("put", "Change name identificator.", fieldsOf(model_request.UserChangeName{}), "/account/change/name",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangeName() }))
+	ListenDoc("put", "Cahnge email.", fieldsOf(model_request.UserChangeEmail{}), "/account/change/email",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangeEmail() }))
+	ListenDoc("put", "Change phone.", fieldsOf(model_request.UserChangePhone{}), "/account/change/phone",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangePhone() }))
+	ListenDoc("put", "Change password.", fieldsOf(model_request.UserChangePassword{}), "/account/change/password",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangePassword() }))
+	Listen("put", "/account/logout",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserLogout() }))
+	ListenDoc("put", "Join the group immediately.", fieldsOf(model_request.GroupJoin{}), "/groups/:group_id/join",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupJoin() }))
+	ListenDoc("put", "Change group information and settings.", fieldsOf(model_request.GroupChange{}), "/groups/:group_id/change",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupChange() }))
 
 	// delete
-	app.Delete("/groups/:group_id/leave", UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupLeave() }))
-	app.Delete("/groups/:group_id", UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupDelete() }))
-	app.Delete("/account/delete", UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserDelete() }))
+	ListenDoc("delete", "Leave the group immediately.", fieldsOf(model_request.GroupLeave{}), "/groups/:group_id/leave",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupLeave() }))
+	ListenDoc("delete", "Delete group.", fieldsOf(model_request.GroupDelete{}), "/groups/:group_id",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupDelete() }))
+	ListenDoc("delete", "Delete account.", fieldsOf(model_request.UserDelete{}), "/account/delete",
+		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserDelete() }))
 
 	// websoket
 	app.Get("/groups/:group_id", UseWebsocket([]string{
