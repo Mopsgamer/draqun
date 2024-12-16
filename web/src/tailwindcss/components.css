@@ -53,6 +53,10 @@
         @apply border-n200 border bg-n50 rounded p-1;
     }
 
+    pre {
+        @apply overflow-auto;
+    }
+
     table {
         @apply border-collapse;
         & > tbody {

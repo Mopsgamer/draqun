@@ -11,6 +11,7 @@ type DocsHTTPMethod struct {
 	Method      string
 	Description string
 	Request     []reflect.StructField
+	Response    string
 }
 
 func initDocs() *Docs {

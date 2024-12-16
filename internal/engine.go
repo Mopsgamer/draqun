@@ -61,6 +61,9 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 			}
 			return result
 		},
+		"newArr": func(args ...any) []any {
+			return args
+		},
 
 		"groupLink": func(group model_database.Group) string {
 			return "localhost:3000" + logic.PathRedirectGroupJoin(group.Name)

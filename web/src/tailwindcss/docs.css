@@ -12,7 +12,7 @@
                     @apply text-green-300;
                 }
                 .tag {
-                    @apply text-green-300;
+                    @apply text-orange-300;
                 }
                 .anon *:is(.name, .type, .tag) {
                     @apply text-opacity-30;
