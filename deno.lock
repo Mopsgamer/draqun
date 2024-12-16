@@ -20,7 +20,7 @@
     "npm:esbuild-plugin-tailwindcss@^1.2.1": "1.2.1_postcss@8.4.47",
     "npm:esbuild@0.24": "0.24.0",
     "npm:htmx-ext-debug@2": "2.0.0",
-    "npm:htmx-ext-ws@^2.0.1": "2.0.1",
+    "npm:htmx-ext-ws@^2.0.2": "2.0.2",
     "npm:htmx.org@^1.9.12": "1.9.12",
     "npm:mysql2@^3.11.5": "3.11.5",
     "npm:tailwindcss@^3.4.14": "3.4.14_postcss@8.4.47",
@@ -588,8 +588,8 @@
     "htmx-ext-debug@2.0.0": {
       "integrity": "sha512-KQzGp2fBHu38kEnZEqsgSDa/lKH2P1ea2kzUUOjJYIM57zqXTRiQCnOtSXlqkut6FGfMN0hdD/9uMmM3fCoDDw=="
     },
-    "htmx-ext-ws@2.0.1": {
-      "integrity": "sha512-gddFXSzzHH9I7RWm93pGfGIKGPUo2lDtLiK8uoPn8mp/ivC0KQx4LAuQdXdg13S78lBD40Fs/mLEM/xoJCeJxQ=="
+    "htmx-ext-ws@2.0.2": {
+      "integrity": "sha512-0eJEcwNlJwiAzaWwSJgbCVbTNF5cIBTPB05Zwr/5txvwyz3AGG7jYto5/wQ3sc0sJ9N2mSqDFXMC1yALKOLEtA=="
     },
     "htmx.org@1.9.12": {
       "integrity": "sha512-VZAohXyF7xPGS52IM8d1T1283y+X4D+Owf3qY1NZ9RuBypyu9l8cGsxUMAG5fEAb/DhT7rDoJ9Hpu5/HxFD3cw=="
@@ -1154,7 +1154,7 @@
       "npm:esbuild-plugin-tailwindcss@^1.2.1",
       "npm:esbuild@0.24",
       "npm:htmx-ext-debug@2",
-      "npm:htmx-ext-ws@^2.0.1",
+      "npm:htmx-ext-ws@^2.0.2",
       "npm:htmx.org@^1.9.12",
       "npm:mysql2@^3.11.5",
       "npm:tailwindcss@^3.4.16"
