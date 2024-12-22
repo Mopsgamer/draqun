@@ -61,7 +61,7 @@ async function buildTask(options: BuildOptions, title?: string): Promise<void> {
 
     const directory = outdir || dirname(outfile!);
     if (await exists(directory)) {
-        logBuild.info("Cleaning: " + directory);
+        logBuild.start("Cleaning: " + directory);
         await Deno.remove(directory, { recursive: true });
     }
     const safeOptions = options;
@@ -69,10 +69,10 @@ async function buildTask(options: BuildOptions, title?: string): Promise<void> {
     const ctx = await esbuild.context(safeOptions as esbuild.BuildOptions);
     logBuild.info("Bundling: " + directory);
     await ctx.rebuild();
-    logBuild.success("Bundled.");
+    logBuild.success("Bundled: " + directory);
     if (isWatch) {
         await ctx.watch();
-        logBuild.success("Watching for changes.");
+        // logBuild.success("Watching for changes: " + directory);
         if (!(whenChange.length > 0)) {
             return
         }
@@ -134,7 +134,9 @@ const taskList = [
     ),
 ];
 
-await Promise.all(taskList);
+for (const task of taskList) {
+    await task
+}
 
 logBuild.success("Done: Bundled all files.");
 if (isWatch) {
