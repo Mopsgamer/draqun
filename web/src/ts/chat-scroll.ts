@@ -6,8 +6,8 @@ window.addEventListener("DOMContentLoaded", () => {
     if (!chat) return;
     findLastMessage()?.scrollIntoView();
     document.addEventListener("htmx:wsAfterMessage", function (event) {
-        if((event as CustomEvent).detail.message == "") {
-            return
+        if ((event as CustomEvent).detail.message == "") {
+            return;
         }
         // scroll down
         const isScrolledToBottom =

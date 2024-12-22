@@ -16,7 +16,9 @@ HTMX.defineExtension("shoelace", {
             if (form instanceof SlButton) {
                 button = form;
             } else if (form instanceof HTMLFormElement) {
-                button = document.querySelector(`sl-button[form=${form.id}][type=submit]`);
+                button = document.querySelector(
+                    `sl-button[form=${form.id}][type=submit]`,
+                );
                 button ??= form.querySelector(`sl-button[type=submit]`);
             }
 
@@ -24,7 +26,7 @@ HTMX.defineExtension("shoelace", {
                 return true;
             }
 
-            const enable = name === "htmx:beforeRequest"
+            const enable = name === "htmx:beforeRequest";
             button.loading = enable;
             button.disabled = enable;
             return true;

@@ -7,7 +7,7 @@ import { exists, existsSync } from "@std/fs";
 import { envKeys, logBuild } from "./tool.ts";
 import dotenv from "dotenv";
 
-dotenv.config()
+dotenv.config();
 const isWatch = Deno.args.includes("--watch");
 
 type BuildOptions = esbuild.BuildOptions & {
@@ -42,11 +42,11 @@ async function buildTask(options: BuildOptions, title?: string): Promise<void> {
         Array.isArray(entryPoints) ? entryPoints : Object.keys(entryPoints)
     ).filter(
         (entry) => {
-            const pth = typeof entry === "string" ? entry : entry.in
+            const pth = typeof entry === "string" ? entry : entry.in;
             try {
-                return !existsSync(pth)
+                return !existsSync(pth);
             } catch {
-                return false
+                return false;
             }
         },
     );
@@ -81,7 +81,7 @@ async function buildTask(options: BuildOptions, title?: string): Promise<void> {
         await ctx.watch();
         // logBuild.success("Watching for changes: " + directory);
         if (!(whenChange.length > 0)) {
-            return
+            return;
         }
         const watcher = Deno.watchFs(whenChange, { recursive: true });
         (async () => {
@@ -142,7 +142,7 @@ const taskList = [
 ];
 
 for (const task of taskList) {
-    await task
+    await task;
 }
 
 logBuild.success("Done: Bundled all files.");

@@ -40,6 +40,25 @@
         </a>
         {{- end}}
 
+        <sl-menu-item class="theme-menu">
+            <sl-icon slot="prefix" name="stars"></sl-icon>
+            Theme
+            <sl-menu slot="submenu">
+                <sl-menu-item type="checkbox" value="sl-theme-dark">
+                    <sl-icon slot="prefix" name="moon"></sl-icon>
+                    Dark
+                </sl-menu-item>
+                <sl-menu-item type="checkbox" value="sl-theme-light">
+                    <sl-icon slot="prefix" name="sun"></sl-icon>
+                    Light
+                </sl-menu-item>
+                <sl-menu-item type="checkbox" value="system">
+                    <sl-icon slot="prefix" name="display"></sl-icon>
+                    System
+                </sl-menu-item>
+            </sl-menu>
+        </sl-menu-item>
+
         {{- if ne .User nil}}
         <sl-menu-item hx-put="/account/logout" hx-swap="innerHTML">
             <sl-icon slot="prefix" name="box-arrow-right"></sl-icon>

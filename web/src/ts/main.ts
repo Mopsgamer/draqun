@@ -1,3 +1,4 @@
+import "./theme.ts";
 import { setBasePath } from "@shoelace-style/shoelace";
 
 import * as HTMX from "htmx.org";

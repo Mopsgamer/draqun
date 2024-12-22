@@ -47,7 +47,10 @@ export function getFormPropData(form: HTMLFormElement, capital = false) {
         let { name } = slElement;
         const { value } = slElement;
 
-        if (typeof name !== "string" || typeof value !== "string" || !name || !value) {
+        if (
+            typeof name !== "string" || typeof value !== "string" || !name ||
+            !value
+        ) {
             continue;
         }
 
@@ -85,10 +88,10 @@ export function chatJoinMessages(): void {
         const shouldJoinDate = dateDiff < 1000 * 60 * 5; // 5 minutes
 
         if (shouldJoin) {
-            element.classList.add('join-end')
-            element.nextElementSibling.classList.add('join-start')
+            element.classList.add("join-end");
+            element.nextElementSibling.classList.add("join-start");
             if (shouldJoinDate) {
-                element.nextElementSibling.classList.add('hide-date')
+                element.nextElementSibling.classList.add("hide-date");
             }
         }
     }

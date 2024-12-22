@@ -15,6 +15,7 @@ Requirements:
 
 > [!TIP]
 > First setup:
+>
 > 1. Run `deno task init:build`.
 > 2. Change the `.env`.
 > 3. Run `deno task serve`.
