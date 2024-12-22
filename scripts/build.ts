@@ -41,7 +41,14 @@ async function buildTask(options: BuildOptions, title?: string): Promise<void> {
     const badEntryPoints = (
         Array.isArray(entryPoints) ? entryPoints : Object.keys(entryPoints)
     ).filter(
-        (entry) => !existsSync(typeof entry === "string" ? entry : entry.in),
+        (entry) => {
+            const pth = typeof entry === "string" ? entry : entry.in
+            try {
+                return !existsSync(pth)
+            } catch {
+                return false
+            }
+        },
     );
     if (badEntryPoints.length > 0) {
         throw new Error(`File expected to exist: ${badEntryPoints.join(", ")}`);
@@ -107,13 +114,13 @@ const taskList = [
     buildTask({
         ...options,
         outdir: "./web/static/js",
-        entryPoints: ["./web/src/ts/main.ts", "./web/src/ts/app.ts"],
+        entryPoints: ["./web/src/ts/**/*"],
         plugins: [...denoPlugins()],
     }),
     buildTask({
         ...options,
-        outfile: "./web/static/css/main.css",
-        entryPoints: ["./web/src/tailwindcss/main.css"],
+        outdir: "./web/static/css",
+        entryPoints: ["./web/src/tailwindcss/**/*"],
         whenChange: [
             "./web/templates",
             "./web/src/tailwindcss",
