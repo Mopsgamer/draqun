@@ -60,13 +60,13 @@
     table {
         @apply border-collapse;
         & > tbody {
-            @apply border-neutral-200 border bg-neutral-50 rounded;
+            @apply border bg-neutral-50 rounded;
         }
         th, td {
-            @apply p-2 border border-neutral-200;
+            @apply p-2 border border-neutral-300 text-neutral-700;
         }
         th {
-            @apply bg-neutral-900;
+            @apply bg-neutral-200;
         }
     }
 

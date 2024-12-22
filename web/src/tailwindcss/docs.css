@@ -6,13 +6,22 @@
             table {
                 @apply text-neutral-300;
                 .name {
-                    @apply text-cyan-300;
+                    @apply text-cyan-700;
+                    &:is(.sl-theme-dark *) {
+                        @apply text-cyan-300;
+                    }
                 }
                 .type {
-                    @apply text-green-300;
+                    @apply text-green-700;
+                    &:is(.sl-theme-dark *) {
+                        @apply text-green-300;
+                    }
                 }
                 .tag {
-                    @apply text-orange-300;
+                    @apply text-orange-700;
+                    &:is(.sl-theme-dark *) {
+                        @apply text-orange-300;
+                    }
                 }
                 .anon *:is(.name, .type, .tag) {
                     @apply text-opacity-30;

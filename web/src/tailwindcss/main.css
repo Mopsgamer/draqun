@@ -1,5 +1,6 @@
 @import url("../../../node_modules/@shoelace-style/shoelace/dist/themes/light.css");
 @import url("../../../node_modules/@shoelace-style/shoelace/dist/themes/dark.css");
+@import url("./theme.css");
 @import url("./homepage.css");
 @import url("./shoelace-ext.css");
 @import url("./components.css");
@@ -9,6 +10,9 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-    @apply h-screen bg-neutral-100;
+@layer base {
+    body {
+        @apply h-screen bg-neutral-100;
+    }
 }
+

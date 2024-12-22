@@ -1,0 +1,14 @@
+:host,
+.sl-theme-dark, .sl-theme-light {
+    --sl-color-primary-50: theme('colors.teal.50');
+    --sl-color-primary-100: theme('colors.teal.100');
+    --sl-color-primary-200: theme('colors.teal.200');
+    --sl-color-primary-300: theme('colors.teal.300');
+    --sl-color-primary-400: theme('colors.teal.400');
+    --sl-color-primary-500: theme('colors.teal.500');
+    --sl-color-primary-600: theme('colors.teal.600');
+    --sl-color-primary-700: theme('colors.teal.700');
+    --sl-color-primary-800: theme('colors.teal.800');
+    --sl-color-primary-900: theme('colors.teal.900');
+    --sl-color-primary-950: theme('colors.teal.950');
+}
