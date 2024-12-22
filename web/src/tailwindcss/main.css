@@ -1,4 +1,5 @@
-@import url("./shoelace.css");
+@import url("../../../node_modules/@shoelace-style/shoelace/dist/themes/light.css");
+@import url("../../../node_modules/@shoelace-style/shoelace/dist/themes/dark.css");
 @import url("./homepage.css");
 @import url("./shoelace-ext.css");
 @import url("./components.css");
