@@ -10,5 +10,5 @@
 @tailwind utilities;
 
 body {
-    @apply h-screen bg-n100;
+    @apply h-screen bg-neutral-100;
 }

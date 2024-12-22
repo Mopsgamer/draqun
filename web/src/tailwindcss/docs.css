@@ -20,7 +20,7 @@
             }
         }
         .http-method + .http-method {
-            @apply mt-5 pt-5 border-t border-n200;
+            @apply mt-5 pt-5 border-t border-neutral-200;
         }
     }
 }

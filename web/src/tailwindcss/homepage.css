@@ -37,7 +37,7 @@
     }
 
     .super-sect-1 {
-        @apply bg-n100;
+        @apply bg-neutral-100;
         &:not(.appeared) {
             sl-icon {
                 @apply -translate-x-24
@@ -49,7 +49,7 @@
     }
 
     .super-sect-2 {
-        @apply bg-n300;
+        @apply bg-neutral-300;
         &:not(.appeared) {
             sl-icon {
                 @apply translate-x-24

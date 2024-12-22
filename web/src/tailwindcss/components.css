@@ -17,7 +17,7 @@
     }
 
     .real-body {
-        @apply flex flex-col h-full overflow-auto text-neutral-300;
+        @apply flex flex-col h-full overflow-auto text-neutral-300 dark:text-neutral-700;
         .center-content {
             @apply flex flex-col h-full w-full justify-center items-center;
         }
@@ -28,7 +28,7 @@
     }
 
     .anchor-header {
-        @apply aligned relative p-2 border-n200 font-bold;
+        @apply aligned relative p-2 border-neutral-200 font-bold;
         &:is(h1) {
             @apply text-4xl mx-4 mt-12 mb-6;
         }
@@ -50,7 +50,7 @@
     }
 
     code, pre {
-        @apply border-n200 border bg-n50 rounded p-1;
+        @apply border-neutral-200 border bg-neutral-50 rounded p-1;
     }
 
     pre {
@@ -60,10 +60,10 @@
     table {
         @apply border-collapse;
         & > tbody {
-            @apply border-n200 border bg-n50 rounded;
+            @apply border-neutral-200 border bg-neutral-50 rounded;
         }
         th, td {
-            @apply p-2 border border-n200;
+            @apply p-2 border border-neutral-200;
         }
         th {
             @apply bg-neutral-900;
@@ -98,7 +98,7 @@
     }
 
     #content {
-        @apply bg-n50 flex flex-row h-full overflow-hidden;
+        @apply bg-neutral-50 flex flex-row h-full overflow-hidden;
     }
 
     .chat-body {
@@ -112,7 +112,7 @@
     #chat {
         @apply relative snap-y flex flex-col w-full h-full p-1 pb-6 overflow-y-auto overflow-x-hidden;
         .message {
-            @apply relative snap-center bg-n0 flex flex-col max-w-full rounded-md p-2 gap-1;
+            @apply relative snap-center bg-neutral-0 flex flex-col max-w-full rounded-md p-2 gap-1;
             .prefix {
                 @apply aligned;
                 sl-format-date {
@@ -150,13 +150,13 @@
         }
 
         #send-message-error:not(:empty) {
-            @apply p-1;
+            @apply p-1 text-white;
         }
 
         .box {
             @apply flex flex-col w-full rounded rounded-b-xl;
             &:has(#send-message-error:not(:empty)) {
-                @apply bg-red-500;
+                @apply bg-danger-500;
             }
         }
 
@@ -174,7 +174,7 @@
     }
 
     .chat-sidebar {
-        @apply bg-n100 flex flex-col p-3 gap-1 h-full w-56 visible max-[420px]:hidden;
+        @apply bg-neutral-100 flex flex-col p-3 gap-1 h-full w-56 visible max-[420px]:hidden;
         .tiny-divider, .member {
             @apply aligned p-1;
         }
