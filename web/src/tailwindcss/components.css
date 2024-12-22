@@ -1,5 +1,5 @@
-@tailwind components;
 @tailwind utilities;
+@tailwind components;
 
 @layer utilities {
     .limited {
@@ -78,12 +78,24 @@
     }
 
     .card-group-container {
-        @apply h-72;
+        @apply h-80;
         .card-group {
-            @apply aligned flex-row whitespace-nowrap overflow-x-auto;
+            @apply aligned flex-row justify-start whitespace-nowrap overflow-x-auto;
             .group-card {
                 &::part(base) {
-                    @apply min-w-56 min-h-64 block;
+                    @apply min-w-56 max-w-56 min-h-64 max-h-64 block overflow-hidden;
+                }
+                .group-card-header {
+                    @apply aligned justify-between w-full overflow-hidden;
+                    .suffix {
+                        @apply flex w-full justify-end items-center flex-col overflow-hidden;
+                    }
+                }
+                .groupname {
+                    @apply w-full;
+                }
+                .group-actions {
+                    @apply aligned w-full justify-end;
                 }
             }
             a > .group-card {
@@ -105,7 +117,7 @@
         @apply relative flex flex-col w-full h-full p-1;
     }
 
-    .nickname {
+    .nickname, .groupname {
         @apply limited max-w-52;
     }
 

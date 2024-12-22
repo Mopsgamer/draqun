@@ -15,15 +15,18 @@
             {{$rights := userRightsOf $group.Id $this.User.Id}}
             <a href="/chat/groups/{{$group.Id}}">
                 <sl-card id="my-group-{{$group.Id}}" data-id="{{$group.Id}}" class="group-card">
-                    <h2 class="aligned justify-between" slot="header">
-                        <sl-avatar shape="rounded">
+                    <h2 class="group-card-header" slot="header">
+                        <sl-avatar class="prefix" shape="rounded">
                             <sl-icon slot="icon" name="people-fill"></sl-icon>
                         </sl-avatar>
-                        <div class="aligned">
-                            {{$group.Nick}}
+                        <div class="suffix">
+                            <div class="groupname" title="{{$group.Nick}}">
+                                {{- $group.Nick -}}
+                            </div>
                             {{- if or $member.IsOwner $rights.ChangeGroup}}
-                            <sl-icon-button name="gear" href="#group-settings-dialog-{{$group.Id}}">
-                            </sl-icon-button>
+                            <div class="group-actions">
+                                {{template "partials/group-actions" $group}}
+                            </div>
                             {{- end}}
                         </div>
                     </h2>
