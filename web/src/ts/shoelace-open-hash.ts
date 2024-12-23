@@ -37,8 +37,12 @@ function openDialogFromHash() {
     }
 
     let foundDialogFromHash = false;
-    const selector = "sl-dialog, sl-drawer"
-    for (const slOpenable of document.querySelectorAll<SlDialog | SlDrawer>(selector)) {
+    const selector = "sl-dialog, sl-drawer";
+    for (
+        const slOpenable of document.querySelectorAll<SlDialog | SlDrawer>(
+            selector,
+        )
+    ) {
         if (slOpenable.id === id || slOpenable.querySelector("#" + id)) {
             foundDialogFromHash = true;
             slOpenable.open = true;

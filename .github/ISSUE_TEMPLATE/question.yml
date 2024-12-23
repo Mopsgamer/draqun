@@ -3,20 +3,20 @@ description: Ask a question about the project.
 title: "qa: "
 labels: ["question"]
 body:
-  - type: input
-    id: question
-    attributes:
-      label: Your Question
-      placeholder: "Briefly state your question"
-    validations:
-      required: true
-  - type: textarea
-    id: details
-    attributes:
-      label: Details
-      placeholder: "Provide additional context or details"
-  - type: textarea
-    id: additional
-    attributes:
-      label: Additional Information
-      placeholder: "Any other relevant information"
+    - type: input
+      id: question
+      attributes:
+          label: Your Question
+          placeholder: "Briefly state your question"
+      validations:
+          required: true
+    - type: textarea
+      id: details
+      attributes:
+          label: Details
+          placeholder: "Provide additional context or details"
+    - type: textarea
+      id: additional
+      attributes:
+          label: Additional Information
+          placeholder: "Any other relevant information"

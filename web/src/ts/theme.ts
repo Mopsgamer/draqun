@@ -6,10 +6,10 @@ enum Theme {
     system = "system",
 }
 
-const themeList = new Set(Object.values(Theme))
+const themeList = new Set(Object.values(Theme));
 
 function isTheme(theme: unknown): theme is Theme {
-    return themeList.has(theme as Theme)
+    return themeList.has(theme as Theme);
 }
 
 /**
@@ -19,7 +19,7 @@ function isTheme(theme: unknown): theme is Theme {
 function getTheme(): Theme {
     const theme = localStorage.getItem("theme") ?? Theme.system;
     if (!isTheme(theme)) {
-        return Theme.system
+        return Theme.system;
     }
 
     return theme;
@@ -43,36 +43,44 @@ function setTheme(theme: Theme): void {
 }
 
 function updateThemeMenuElements(): void {
-    const menuList = Array.from(document.querySelectorAll('.theme-menu'));
+    const menuList = Array.from(document.querySelectorAll(".theme-menu"));
     const allItemList = menuList.flatMap(
-        menu => Array.from(menu.querySelectorAll<SlMenuItem>('sl-menu-item[type=checkbox][value]'))
-    )
+        (menu) =>
+            Array.from(
+                menu.querySelectorAll<SlMenuItem>(
+                    "sl-menu-item[type=checkbox][value]",
+                ),
+            ),
+    );
 
-    const theme = getTheme()
+    const theme = getTheme();
     for (const child of allItemList) {
-        child.checked = (child.value === theme)
+        child.checked = child.value === theme;
     }
 }
 
 function initThemeMenuElements(): void {
-    const menuList = Array.from(document.querySelectorAll('.theme-menu'));
+    const menuList = Array.from(document.querySelectorAll(".theme-menu"));
 
     for (const menu of menuList) {
-        (menu as SlMenu).addEventListener('sl-select', event => {
+        (menu as SlMenu).addEventListener("sl-select", (event) => {
             const item = event.detail.item as SlMenuItem;
-            if (item.type !== 'checkbox') {
+            if (item.type !== "checkbox") {
                 return;
             }
 
-            const theme = item.value
+            const theme = item.value;
             if (!isTheme(theme)) {
-                console.error(`Unknown theme ${theme}, can not change: %o.`, item)
-                item.checked = !item.checked
+                console.error(
+                    `Unknown theme ${theme}, can not change: %o.`,
+                    item,
+                );
+                item.checked = !item.checked;
                 return;
             }
 
-            setTheme(theme)
-            updateThemeMenuElements()
+            setTheme(theme);
+            updateThemeMenuElements();
         });
     }
 }
@@ -95,8 +103,8 @@ function initTheme(): void {
     }
 }
 
-initTheme()
+initTheme();
 document.addEventListener("DOMContentLoaded", () => {
-    updateThemeMenuElements()
-    initThemeMenuElements()
+    updateThemeMenuElements();
+    initThemeMenuElements();
 });
