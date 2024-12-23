@@ -3,7 +3,7 @@ import { setBasePath } from "@shoelace-style/shoelace";
 
 import * as HTMX from "htmx.org";
 import "./shoelace-htmx-extension.js";
-import "./shoelace-dialog-from-hash.ts";
+import "./shoelace-open-hash.ts";
 
 declare namespace globalThis {
     let htmx: typeof HTMX;

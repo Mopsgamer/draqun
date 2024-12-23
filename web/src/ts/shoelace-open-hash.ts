@@ -1,4 +1,4 @@
-import type { SlDialog } from "@shoelace-style/shoelace";
+import type { SlDialog, SlDrawer } from "@shoelace-style/shoelace";
 
 function removeHash() {
     let scrollV, scrollH;
@@ -37,23 +37,24 @@ function openDialogFromHash() {
     }
 
     let foundDialogFromHash = false;
-    for (const slDialog of document.querySelectorAll<SlDialog>("sl-dialog")) {
-        if (slDialog.id === id || slDialog.querySelector("#" + id)) {
+    const selector = "sl-dialog, sl-drawer"
+    for (const slOpenable of document.querySelectorAll<SlDialog | SlDrawer>(selector)) {
+        if (slOpenable.id === id || slOpenable.querySelector("#" + id)) {
             foundDialogFromHash = true;
-            slDialog.open = true;
-            slDialog.addEventListener("sl-after-hide", () => {
-                if (!location.hash.includes(slDialog.id)) {
+            slOpenable.open = true;
+            slOpenable.addEventListener("sl-after-hide", () => {
+                if (!location.hash.includes(slOpenable.id)) {
                     return;
                 }
                 const anotherOpened = document.querySelector(
-                    "sl-dialog[open]:not([open=false])",
+                    `:is(${selector})[open]:not([open=false])`,
                 );
                 location.hash = anotherOpened?.id ?? "";
                 cleanHash();
             }, { once: true });
             continue;
         }
-        slDialog.open = false;
+        slOpenable.open = false;
     }
 
     if (!foundDialogFromHash) {
