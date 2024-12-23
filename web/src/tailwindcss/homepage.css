@@ -3,7 +3,11 @@
 @layer components {
 
     .super-sect-base {
-        @apply relative text-center py-12 flex justify-around items-center overflow-hidden;
+        @apply relative text-center px-5 py-12 gap-5 flex justify-around items-center overflow-hidden;
+    }
+
+    .super-sect-base-description {
+        @apply text-balance font-bold relative z-10 w-3/4;
     }
 
     .super-sect {
@@ -27,7 +31,7 @@
             @apply text-7xl w-1/4 drop-shadow-lg;
         }
         .description {
-            @apply font-bold relative z-10 w-3/4;
+            @apply super-sect-base-description;
         }
         &:not(.appeared) {
             sl-icon, .description {

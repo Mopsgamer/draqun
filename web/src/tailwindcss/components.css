@@ -1,3 +1,4 @@
+@tailwind base;
 @tailwind utilities;
 @tailwind components;
 
@@ -9,24 +10,19 @@
     .aligned {
         @apply relative flex items-center gap-2;
     }
+
+    .column {
+        @apply flex flex-col gap-4;
+    }
+}
+
+@layer base {
+    form {
+        @apply column;
+    }
 }
 
 @layer components {
-    body:has(:not(:defined)) {
-        visibility: hidden;
-    }
-
-    .real-body {
-        @apply flex flex-col h-full overflow-auto text-neutral-300 dark:text-neutral-700;
-        .center-content {
-            @apply flex flex-col h-full w-full justify-center items-center;
-        }
-    }
-
-    form, .column {
-        @apply flex flex-col gap-4;
-    }
-
     .anchor-header {
         @apply aligned relative p-2 border-neutral-200 font-bold;
         &:is(h1) {
@@ -49,27 +45,6 @@
         }
     }
 
-    code, pre {
-        @apply border-neutral-200 border bg-neutral-50 rounded p-1;
-    }
-
-    pre {
-        @apply overflow-auto;
-    }
-
-    table {
-        @apply border-collapse;
-        & > tbody {
-            @apply border bg-neutral-50 rounded;
-        }
-        th, td {
-            @apply p-2 border border-neutral-300 text-neutral-700;
-        }
-        th {
-            @apply bg-neutral-200;
-        }
-    }
-
     .dialog-footer {
         @apply flex flex-col gap-2;
         div {
@@ -77,40 +52,39 @@
         }
     }
 
-    .card-group-container {
-        @apply h-80;
-        .card-group {
-            @apply aligned flex-row justify-start whitespace-nowrap overflow-x-auto;
-            .group-card {
-                &::part(base) {
-                    @apply min-w-56 max-w-56 min-h-64 max-h-64 block overflow-hidden;
-                }
-                .group-card-header {
-                    @apply aligned justify-between w-full overflow-hidden;
-                    .suffix {
-                        @apply flex w-full justify-end items-center flex-col overflow-hidden;
-                    }
-                }
-                .groupname {
-                    @apply w-full;
-                }
-                .group-actions {
-                    @apply aligned w-full justify-end;
-                }
-            }
-            a > .group-card {
-                &::part(base) {
-                    @apply cursor-pointer;
-                }
-                &:hover::part(base) {
-                    --sl-panel-background-color: var(--sl-color-neutral-100);
-                }
-            }
+    sl-carousel.group-card {
+        &::part(base) {
+            @apply min-h-44;
         }
     }
 
-    #content {
-        @apply bg-neutral-50 flex flex-row h-full overflow-hidden;
+    sl-card.group-card {
+        a > & {
+            &::part(base) {
+                @apply cursor-pointer;
+            }
+            &:hover::part(base) {
+                --sl-panel-background-color: var(--sl-color-neutral-100);
+            }
+        }
+        & {
+            --padding: var(--sl-spacing-small);
+        }
+        &::part(base) {
+            @apply min-w-full max-w-full min-h-full max-h-full block overflow-hidden;
+        }
+        .group-card-header {
+            @apply aligned justify-between w-full overflow-hidden;
+            .suffix {
+                @apply flex w-full justify-end items-center flex-col overflow-hidden;
+            }
+        }
+        .groupname {
+            @apply w-full;
+        }
+        .group-actions {
+            @apply aligned w-full justify-end;
+        }
     }
 
     .chat-body {
@@ -122,7 +96,6 @@
     }
 
     #chat {
-        @apply relative snap-y flex flex-col w-full h-full p-1 pb-6 overflow-y-auto overflow-x-hidden;
         .message {
             @apply relative snap-center bg-neutral-0 flex flex-col max-w-full rounded-md p-2 gap-1;
             .prefix {
@@ -177,7 +150,7 @@
         }
 
         .bottom {
-            @apply h-7;
+            @apply h-fit flex-wrap;
         }
 
         sl-textarea::part(textarea) {

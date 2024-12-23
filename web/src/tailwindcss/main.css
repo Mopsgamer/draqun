@@ -7,12 +7,64 @@
 @import url("./docs.css");
 
 @tailwind base;
-@tailwind components;
 @tailwind utilities;
+@tailwind components;
 
 @layer base {
+    #header {
+        @apply p-4 bg-neutral-200 flex justify-between;
+        & > nav {
+            @apply flex items-center;
+        }
+        sl-icon-button {
+            @apply text-3xl;
+        }
+    }
+
+    #real-body {
+        @apply flex flex-col h-full overflow-auto text-neutral-300 dark:text-neutral-700;
+        .center-content {
+            @apply flex flex-col h-full w-full justify-center items-center;
+        }
+    }
+
+    #content {
+        @apply bg-neutral-50 flex flex-row h-full overflow-hidden;
+    }
+
+    #chat {
+        @apply relative snap-y flex flex-col w-full h-full p-1 pb-6 overflow-y-auto overflow-x-hidden;
+    }
+}
+
+@layer base {
+    body:has(:not(:defined)) {
+        visibility: hidden;
+    }
+
     body {
-        @apply h-screen bg-neutral-100;
+        @apply h-svh bg-neutral-100;
+    }
+
+    code, pre {
+        @apply border-neutral-200 border bg-neutral-50 rounded p-1;
+    }
+
+    pre {
+        @apply overflow-auto;
+    }
+
+    table {
+        @apply border-collapse;
+        & > tbody {
+            @apply border bg-neutral-50 rounded;
+        }
+        th, td {
+            @apply p-2 border border-neutral-300 text-neutral-700;
+        }
+        th {
+            @apply bg-neutral-200;
+        }
     }
 }
 
