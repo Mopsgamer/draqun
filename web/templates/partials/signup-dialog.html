@@ -5,7 +5,7 @@
         Sign Up
     </h1>
     <form id="signup-form" name="signup-form" hx-post="/account/create" hx-swap="outerHTML" hx-target="#signup-error">
-        <sl-input label="Nick" type="text" id="signup-nickname" name="nickname" required></sl-input>
+        <sl-input autofocus label="Nick" type="text" id="signup-nickname" name="nickname" required></sl-input>
         <sl-input label="Name" type="text" autocomplete="username" id="signup-username" name="username"
             required></sl-input>
         <sl-input label="Email" type="email" autocomplete="email" id="signup-email" name="email" required></sl-input>

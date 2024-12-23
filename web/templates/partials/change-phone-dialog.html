@@ -5,7 +5,7 @@
     </h1>
     <form id="change-phone-form" name="change-phone-form" hx-put="/account/change/phone" hx-swap="outerHTML"
         hx-target="#change-phone-error">
-        <sl-input label="Current password" type="password" id="change-phone-current-password" name="current-password" required password-toggle>
+        <sl-input autofocus label="Current password" type="password" id="change-phone-current-password" name="current-password" required password-toggle>
         </sl-input>
 
         <sl-input label="New phone" type="tel" id="new-phone" name="new-phone">

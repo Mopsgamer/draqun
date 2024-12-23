@@ -6,7 +6,7 @@
     </h1>
     <form id="login-form" name="login-form" hx-post="/account/login" hx-swap="outerHTML"
         hx-target="#login-error">
-        <sl-input label="Email" type="email" autocomplete="email" id="login-email" name="email" required>
+        <sl-input autofocus label="Email" type="email" autocomplete="email" id="login-email" name="email" required>
         </sl-input>
 
         <sl-input label="Password" type="password" autocomplete="current-password" name="password" id="login-password" required password-toggle>
