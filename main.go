@@ -11,6 +11,6 @@ import (
 func main() {
 	environment.Load()
 	if app, err := internal.NewApp(); err == nil {
-		log.Fatal(app.Listen(":3000"))
+		log.Fatal(app.Listen(":" + environment.Port))
 	}
 }

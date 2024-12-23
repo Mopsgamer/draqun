@@ -63,6 +63,10 @@ function initEnvFile(): void {
         comment:
             "use any online jwt generator to fill this value: https://jwtsecret.com/generate",
     });
+    defaultEnv.set(envKeys.PORT, {
+        value: "3000",
+        comment: "application port\ndefault: 3000",
+    });
     defaultEnv.set(envKeys.DB_PASSWORD, { comment: "connection password" });
     defaultEnv.set(envKeys.DB_NAME, {
         value: "restapp",
@@ -78,7 +82,7 @@ function initEnvFile(): void {
     });
     defaultEnv.set(envKeys.DB_PORT, {
         value: "3306",
-        comment: "connection port\ndefault: 3306",
+        comment: "database port\ndefault: 3306",
     });
 
     const path = ".env";

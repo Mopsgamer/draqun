@@ -23,6 +23,7 @@ const (
 
 var (
 	JWTKey string
+	Port   string
 
 	DBUser     string
 	DBPassword string
@@ -47,6 +48,7 @@ func Load() {
 		log.Fatalf(environmentString+" can not be %v. Should be in the range: %v - %v.", Environment, EnvironmentTest, EnvironmentProduction)
 	}
 	JWTKey = os.Getenv("JWT_KEY")
+	Port = os.Getenv("PORT")
 	DBUser = os.Getenv("DB_USER")
 	DBPassword = os.Getenv("DB_PASSWORD")
 	DBName = os.Getenv("DB_NAME")
