@@ -2,7 +2,7 @@
 
 @layer components {
     sl-tooltip {
-        --max-width: 100vw;
+        --max-width: 100svw;
     }
     sl-menu > sl-divider {
         @apply border-b border-neutral-200;
@@ -22,10 +22,10 @@
         }
     }
     sl-dialog.fullscreen-base::part(panel) {
-        @apply w-screen h-screen border-r-0;
-        min-width: 100vw;
-        min-height: 100vh;
-        max-width: 100vw;
-        max-height: 100vh;
+        @apply w-screen h-svh border-r-0;
+        min-width: 100svw;
+        min-height: 100svh;
+        max-width: 100svw;
+        max-height: 100svh;
     }
 }
