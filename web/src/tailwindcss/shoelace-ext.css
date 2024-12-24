@@ -22,7 +22,7 @@
         }
     }
     sl-dialog.fullscreen-base::part(panel) {
-        @apply w-screen h-svh border-r-0;
+        @apply w-screen h-svh;
         min-width: 100svw;
         min-height: 100svh;
         max-width: 100svw;

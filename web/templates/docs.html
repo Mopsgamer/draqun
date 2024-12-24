@@ -1,3 +1,4 @@
+<script src="/static/js/docs.js"></script>
 <div class="api-docs m-page">
     <sl-tab-group placement="top">
         <sl-tab slot="nav" panel="rest" active>
@@ -28,46 +29,18 @@
             {{- template "partials/docs-graphql-fields" $type.Fields}}
             {{- end}}
             <h4 class="anchor-header">Sandbox</h4>
-            <div class="flex flex-row w-full p-2 gap-2">
-                <sl-textarea id="gql-input" class="h-full w-full font-[monospace]" resize="auto"
-                    help-text="Ctrl+Enter for sending." value="{{.GraphqlExample}}"></sl-textarea>
-                <pre id="gql-output" class="w-full max-w-[50%]"></pre>
+            <div class="flex flex-col md:flex-row w-full p-2 gap-2">
+                <div class="flex flex-col h-full w-full gap-2">
+                    <sl-textarea id="gql-input" class="h-full w-full font-[monospace]" resize="auto" value="{{.GraphqlExample}}"></sl-textarea>
+                    <sl-button id="gql-send" class="w-full">
+                        <sl-icon name="caret-right-fill"></sl-icon>
+                        <span class="note-header">
+                            Ctrl+Enter
+                        </span>
+                    </sl-button>
+                </div>
+                <pre id="gql-output" class="w-full md:max-w-[50%]"></pre>
             </div>
-            <script>
-                let inp = document.getElementById('gql-input')
-                let outp = document.getElementById('gql-output')
-                inp.addEventListener('keydown', (event) => {
-                    if (event.key !== 'Enter' || !event.ctrlKey) {
-                        return
-                    }
-                    gqlSend(inp.value)
-                })
-
-                customElements.whenDefined('sl-textarea').then(() => gqlSend(inp.value))
-
-                async function gqlSend(query) {
-                    try {
-                        const response = await fetch('/gql', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                query, // GraphQL expects a `query` property
-                            }),
-                        });
-
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-
-                        const result = await response.json();
-                        outp.textContent = JSON.stringify(result, null, '  ');
-                    } catch (error) {
-                        outp.textContent = `Error: ${error.message}`;
-                    }
-                }
-            </script>
         </sl-tab-panel>
     </sl-tab-group>
 </div>

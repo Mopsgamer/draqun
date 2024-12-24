@@ -163,7 +163,7 @@
     }
 
     .chat-sidebar {
-        @apply bg-neutral-100 flex flex-col p-3 gap-1 h-full w-56 visible max-[420px]:hidden;
+        @apply bg-neutral-100 flex-col p-3 gap-1 h-full w-56 hidden sm:flex;
         .tiny-divider, .member {
             @apply aligned p-1;
         }
