@@ -1,7 +1,8 @@
-<div class="text-3xl font-bold">
+<div class="text-3xl font-bold aligned">
     {{- if isString .}}
-    {{.}} - Under construction
+    Under construction <sl-icon name="hammer"></sl-icon> - {{.}}
     {{- else}}
+    <sl-icon name="exclamation-triangle"></sl-icon>
     {{.StatusCode}} - {{.StatusMessage}}
     {{- end}}
 </div>
