@@ -22,7 +22,7 @@
     }
 
     #footer {
-        @apply relative flex flex-row justify-evenly bg-neutral-200 p-24 gap-12;
+        @apply relative flex flex-row flex-wrap justify-between bg-neutral-200 p-24 gap-12;
         section {
             @apply flex flex-col gap-4;
             h1 {
