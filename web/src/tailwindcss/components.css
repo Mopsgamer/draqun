@@ -45,6 +45,10 @@
         }
     }
 
+    .note-header {
+        @apply text-neutral-500 p-2 font-semibold;
+    }
+
     .dialog-footer {
         @apply flex flex-col gap-2;
         div {

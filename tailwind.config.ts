@@ -14,6 +14,9 @@ const config: Config = {
                 "1300": "1300ms",
                 "1400": "1400ms",
             },
+            margin: {
+                "page": "1.25rem",
+            },
             colors: {
                 "neutral-0": "var(--sl-color-neutral-0)",
                 "neutral-50": "var(--sl-color-neutral-50)",

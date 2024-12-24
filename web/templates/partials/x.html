@@ -1,9 +1,17 @@
 <div class="text-3xl font-bold">
+    {{- if isString .}}
+    {{.}} - Under construction
+    {{- else}}
     {{.StatusCode}} - {{.StatusMessage}}
+    {{- end}}
 </div>
 <div>
     <sl-button variant="text" href="/">
         <sl-icon name="house-heart" slot="prefix"></sl-icon>
         Discover
+    </sl-button>
+    <sl-button variant="text" href="/chat">
+        <sl-icon name="house" slot="prefix"></sl-icon>
+        Chat
     </sl-button>
 </div>

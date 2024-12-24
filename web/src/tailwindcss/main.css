@@ -12,7 +12,7 @@
 
 @layer base {
     #header {
-        @apply p-4 bg-neutral-200 flex justify-between;
+        @apply relative flex justify-between bg-neutral-200 p-4;
         & > nav {
             @apply flex items-center;
         }
@@ -21,8 +21,24 @@
         }
     }
 
+    #footer {
+        @apply relative flex flex-row justify-evenly bg-neutral-200 p-24 gap-12;
+        section {
+            @apply flex flex-col gap-4;
+            h1 {
+                @apply font-bold text-3xl;
+            }
+            nav {
+                @apply flex flex-col gap-1 text-lg;
+                a {
+                    @apply flex items-center gap-3;
+                }
+            }
+        }
+    }
+
     #real-body {
-        @apply flex flex-col h-full overflow-auto text-neutral-300 dark:text-neutral-700;
+        @apply relative flex flex-col h-full overflow-auto text-neutral-300 dark:text-neutral-700;
         .center-content {
             @apply flex flex-col h-full w-full justify-center items-center;
         }

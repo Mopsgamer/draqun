@@ -1,4 +1,4 @@
-import { SlMenu, type SlMenuItem } from "@shoelace-style/shoelace";
+import type { SlMenu, SlMenuItem } from "@shoelace-style/shoelace";
 
 enum Theme {
     dark = "sl-theme-dark",

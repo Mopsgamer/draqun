@@ -158,6 +158,9 @@ func NewApp() (*fiber.App, error) {
 	// pages
 	docs := initDocs()
 	app.Get("/", UseHTTPPage("index", &fiber.Map{"Title": "Discover"}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/terms", UseHTTPPage("terms", &fiber.Map{"Title": "Terms", "CenterContent": true}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/privacy", UseHTTPPage("privacy", &fiber.Map{"Title": "Privacy", "CenterContent": true}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/acknowledgements", UseHTTPPage("acknowledgements", &fiber.Map{"Title": "Acknowledgements"}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/docs", UseHTTPPage("docs", &fiber.Map{
 		"Title":          "Docs",
 		"Docs":           docs,

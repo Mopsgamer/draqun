@@ -1,6 +1,7 @@
 package logic_http
 
 import (
+	"restapp/internal/environment"
 	"restapp/internal/i18n"
 	"restapp/internal/logic"
 
@@ -27,6 +28,9 @@ func (r LogicHTTP) RenderPage(templatePath string, bind *fiber.Map, redirect Red
 
 func (r LogicHTTP) MapPage(bind *fiber.Map) fiber.Map {
 	bindx := fiber.Map{}
+
+	bindx["DenoJson"] = environment.DenoJson
+	bindx["GoMod"] = environment.GoMod
 
 	rights, member, user, group := r.Rights()
 	if user != nil {

@@ -1,0 +1,25 @@
+<div class="m-page font-[monospace]">
+    <h1 class="anchor-header">
+        <sl-icon name="hearts"></sl-icon>
+        Acknowledgements
+    </h1>
+    <div class="note-header">
+        These are the open source libraries we use to make Restapp.
+    </div>
+    <div class="font-[monospace]">
+        {{- range $name, $module := .DenoJson.Imports -}}
+        <div class="flex flex-row justify-between w-full">
+            <div>{{$name}}</div>
+            <div>{{$module}}</div>
+        </div>
+        {{- end -}}
+    </div>
+    <div class="font-[monospace]">
+        {{- range $i, $module := .GoMod.Require -}}
+        <div class="flex flex-row justify-between w-full">
+            <div>{{index $module.Syntax.Token 0}}</div>
+            <div>{{$module.Mod}}</div>
+        </div>
+        {{- end -}}
+    </div>
+</div>

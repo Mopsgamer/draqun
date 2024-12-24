@@ -1,4 +1,6 @@
 {
+    "name": "@m234/restapp",
+    "version": "0.0.0-alpha",
     "nodeModulesDir": "auto",
     "tasks": {
         "init": "deno run -A scripts/init.ts",
@@ -26,6 +28,7 @@
         "mysql2": "npm:mysql2@^3.11.5",
         "tailwindcss": "npm:tailwindcss@^3.4.17"
     },
+    "exports": {},
     "fmt": {
         "indentWidth": 4
     },

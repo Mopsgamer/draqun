@@ -52,6 +52,8 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 		"hide": func(text string) string {
 			return strings.Repeat("*", len(text))
 		},
+		"isString": satisfies[string],
+		"isMap":    satisfies[fiber.Map],
 		"newMap": func(args ...any) fiber.Map {
 			result := fiber.Map{}
 			for i := 0; i < len(args)-1; i = i + 2 {
@@ -75,6 +77,11 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 	})
 
 	return engine
+}
+
+func satisfies[T any](v any) bool {
+	_, ok := v.(T)
+	return ok
 }
 
 func paginate[T any](slice []T, n int) [][]T {
