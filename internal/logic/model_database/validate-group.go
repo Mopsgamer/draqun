@@ -17,7 +17,7 @@ func IsValidGroupName(str string) bool {
 
 func IsValidGroupPassword(str *string) bool {
 	if str == nil {
-		return true
+		return true // allow no group password
 	}
 	return IsValidString(*str, RegexpGroupPassword, 255)
 }

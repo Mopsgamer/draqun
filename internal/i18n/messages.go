@@ -15,7 +15,7 @@ const (
 	MessageDetailUserPassword     = "Must contain only letters (A-Z, a-z), numbers (0-9), spaces, or these special characters: , . ~ - + % $ ^ & * _ ! ? ( ) [ ] { } `. Must be at least 8 characters long and no more than 255 characters."
 	MessageDetailUserNick         = "Must be between 1 and 255 characters long and can contain any characters."
 	MessageDetailUserEmail        = "Must be a valid email."
-	MessageDetailUSerPhone        = "Must be a valid phone number."
+	MessageDetailUserPhone        = "Must be a valid E.164 phone number. Spaces ignored."
 
 	MessageErrNoRights                      = "You do not have the necessary rights or permissions to perform this action."
 	MessageErrGroupNotFound                 = "Group not found."
@@ -36,7 +36,7 @@ const (
 	MessageErrUserName                      = "Invalid user name pattern. " + MessageDetailUserName
 	MessageErrEmail                         = "Invalid email pattern. " + MessageDetailUserEmail
 	MessageErrEmailSame                     = "The new email is the same as the old one."
-	MessageErrPhone                         = "Invalid phone number pattern. " + MessageDetailUSerPhone
+	MessageErrPhone                         = "Invalid phone number pattern. " + MessageDetailUserPhone
 	MessageErrPhoneSame                     = "The new phone is the same as the old one."
 	MessageErrBadConfirmPassword            = "Passwords are not same."
 	MessageErrBadUsernameConfirm            = "Usernames are not same."

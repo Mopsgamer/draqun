@@ -43,7 +43,7 @@ func (r LogicHTTP) GroupCreate() error {
 		return r.RenderDanger(i18n.MessageErrGroupMode+" Got: '"+req.Mode+"'.", id)
 	}
 
-	// TODO: validate avatar
+	// TODO: validate group avatar
 
 	group := req.Group(user.Id)
 	groupId := r.DB.GroupCreate(*group)

@@ -44,12 +44,11 @@ func (r LogicHTTP) UserSignUp() error {
 		return r.RenderWarning(i18n.MessageErrUserExistsEmail, id)
 	}
 
-	// TODO: phone validation
-	// if !model_database.ValidatePhone(req.Phone) {
-	// 	return r.RenderWarning(i18n.MessageErrPhone, id)
-	// }
+	if !model_database.IsValidUserPhone(req.Phone) {
+		return r.RenderWarning(i18n.MessageErrPhone, id)
+	}
 
-	// TODO: validate avatar and other properties
+	// TODO: validate user avatar
 
 	if req.ConfirmPassword != req.Password {
 		return r.RenderWarning(i18n.MessageErrBadConfirmPassword, id)
@@ -223,10 +222,9 @@ func (r LogicHTTP) UserChangePhone() error {
 		return r.RenderWarning(i18n.MessageErrPhoneSame, id)
 	}
 
-	// TODO: Phone validation.
-	// if !model_database.ValidatePhone(req.NewPhone) {
-	// 	return r.RenderWarning(i18n.MessageErrPhone, id)
-	// }
+	if !model_database.IsValidUserPhone(req.NewPhone) {
+		return r.RenderWarning(i18n.MessageErrPhone, id)
+	}
 
 	if !user.CheckPassword(req.CurrentPassword) {
 		return r.RenderWarning(i18n.MessageErrBadPassword, id)
