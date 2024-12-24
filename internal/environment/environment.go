@@ -2,7 +2,6 @@ package environment
 
 import (
 	"bufio"
-	_ "embed"
 	"encoding/json"
 	"fmt"
 	"os"
