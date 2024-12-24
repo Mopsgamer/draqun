@@ -85,10 +85,7 @@ async function buildTask(options: BuildOptions, title?: string): Promise<void> {
         }
         const watcher = Deno.watchFs(whenChange, { recursive: true });
         (async () => {
-            for await (const event of watcher) {
-                if (event.kind !== "modify") {
-                    continue;
-                }
+            for await (const _ of watcher) {
                 await ctx.rebuild();
                 logBuild.success("Bundled: " + directory);
             }

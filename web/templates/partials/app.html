@@ -30,17 +30,15 @@
     {{- end}}
     <div hx-ext="debug" id="real-body">
         {{- template "partials/app-header" .}}
-        <div id="content">
-            {{- if ne .Group nil}}
-            {{- if eq .Member nil}}
-            {{- template "partials/app-group-join" .}}
-            {{- else}}
-            {{- template "partials/app-group" .}}
-            {{- end}}
-            {{- else}}
-            {{- template "partials/app-home" .}}
-            {{- end}}
-        </div>
+        {{- if ne .Group nil}}
+        {{/**/}}{{- if eq .Member nil}}
+        {{/**/}}{{- template "partials/app-group-join" .}}
+        {{/**/}}{{- else}}
+        {{/**/}}{{- template "partials/app-group" .}}
+        {{- end}}
+        {{- else}}
+        {{- template "partials/app-home" .}}
+        {{- end}}
     </div>
 </body>
 

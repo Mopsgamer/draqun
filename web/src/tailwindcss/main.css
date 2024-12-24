@@ -12,7 +12,7 @@
 
 @layer base {
     #header {
-        @apply relative flex justify-between bg-neutral-200 p-4;
+        @apply relative flex justify-between bg-neutral-100 p-4;
         & > nav {
             @apply flex items-center;
         }
@@ -37,19 +37,24 @@
         }
     }
 
+    /* normal body contains modals. real body must not */
     #real-body {
-        @apply relative flex flex-col h-full overflow-auto text-neutral-300 dark:text-neutral-700;
+        @apply relative flex flex-col h-full overflow-auto;
         .center-content {
-            @apply flex flex-col h-full w-full justify-center items-center;
+            @apply flex flex-col size-full justify-center items-center;
         }
     }
 
-    #content {
-        @apply bg-neutral-50 flex flex-row h-full overflow-hidden;
+    /* content between header and footer */
+    #app-content {
+        @apply relative bg-neutral-50 flex flex-col w-svw h-svh overflow-hidden;
+        &:has(#chat) {
+            @apply flex-row;
+        }
     }
 
     #chat {
-        @apply relative snap-y flex flex-col w-full h-full p-1 pb-6 overflow-y-auto overflow-x-hidden;
+        @apply relative snap-y flex flex-col size-full p-3 pb-6 overflow-y-auto overflow-x-hidden;
     }
 }
 
@@ -59,7 +64,7 @@
     }
 
     body {
-        @apply h-svh bg-neutral-100;
+        @apply h-svh bg-neutral-100 text-neutral-700;
     }
 
     code, pre {

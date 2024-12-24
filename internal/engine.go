@@ -5,7 +5,6 @@ import (
 	"restapp/internal/logic"
 	"restapp/internal/logic/database"
 	"restapp/internal/logic/model_database"
-	"slices"
 	"strings"
 	"time"
 
@@ -22,7 +21,13 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 	}
 
 	engine.AddFuncMap(map[string]interface{}{
-		"paginateGroups": paginate[model_database.Group],
+		"concatString": func(v ...string) string {
+			result := ""
+			for _, str := range v {
+				result += str
+			}
+			return result
+		},
 		"hideEmail": func(text string) string {
 			splits := strings.Split(text, "@")
 			if len(splits) != 2 {
@@ -82,13 +87,4 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 func satisfies[T any](v any) bool {
 	_, ok := v.(T)
 	return ok
-}
-
-func paginate[T any](slice []T, n int) [][]T {
-	result := [][]T{}
-	for v := range slices.Chunk(slice, n) {
-		result = append(result, v)
-	}
-
-	return result
 }

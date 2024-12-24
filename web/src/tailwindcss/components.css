@@ -63,19 +63,17 @@
     }
 
     sl-card.group-card {
+        --padding: theme('spacing.3');
+        &::part(base) {
+            @apply min-w-full max-w-full min-h-full max-h-full block overflow-hidden;
+        }
         a > & {
             &::part(base) {
                 @apply cursor-pointer;
             }
             &:hover::part(base) {
-                --sl-panel-background-color: var(--sl-color-neutral-100);
+                --sl-panel-background-color: theme('colors.neutral-100');
             }
-        }
-        & {
-            --padding: var(--sl-spacing-small);
-        }
-        &::part(base) {
-            @apply min-w-full max-w-full min-h-full max-h-full block overflow-hidden;
         }
         .group-card-header {
             @apply aligned justify-between w-full overflow-hidden;
@@ -91,48 +89,51 @@
         }
     }
 
-    .chat-body {
-        @apply relative flex flex-col w-full h-full p-1;
-    }
-
     .nickname, .groupname {
         @apply limited max-w-52;
     }
 
-    #chat {
-        .message {
-            @apply relative snap-center bg-neutral-0 flex flex-col max-w-full rounded-md p-2 gap-1;
-            .prefix {
-                @apply aligned;
-                sl-format-date {
-                    @apply text-neutral-500;
-                }
-            }
-            .text {
-                @apply aligned pl-10;
+    .message {
+        @apply relative snap-center bg-neutral-0 flex flex-col max-w-full rounded-md p-2 gap-1;
+        .prefix {
+            @apply aligned;
+            sl-format-date {
+                @apply text-neutral-500;
             }
         }
-        .message.join-start {
-            @apply rounded-t-none;
+        .text {
+            @apply aligned pl-10;
         }
-        .message.join-end {
-            @apply rounded-b-none;
+    }
+
+    .message.join-start {
+        @apply rounded-t-none;
+    }
+
+    .message.join-end {
+        @apply rounded-b-none;
+    }
+
+    .hide-date {
+        .prefix {
+            @apply hidden;
         }
-        .hide-date {
-            .prefix {
-                @apply hidden;
-            }
-        }
-        .message + .message:not(.join-start) {
-            @apply mt-2;
-        }
+    }
+
+    .message + .message:not(.join-start) {
+        @apply mt-2;
+    }
+
+    .chat-body {
+        @apply relative flex flex-col size-full;
     }
 
     .chat-input {
         @apply aligned flex-col w-full p-5 pb-9 pt-6 h-fit gap-2;
-        --sl-input-filled-background-color: var(--sl-color-neutral-200);
-        --sl-input-filled-background-color-focus: var(--sl-color-neutral-0);
-        --sl-input-filled-background-color-hover: var(--sl-color-neutral-300);
+        --sl-input-font-size-medium: theme('fontSize.base');
+        --sl-input-filled-background-color: theme('colors.neutral-200');
+        --sl-input-filled-background-color-focus: theme('colors.neutral-0');
+        --sl-input-filled-background-color-hover: theme('colors.neutral-300');
 
         & > * {
             @apply aligned flex-row w-full;
@@ -158,23 +159,18 @@
         }
 
         sl-textarea::part(textarea) {
-            @apply max-h-20 overflow-auto;
+            @apply max-h-20 overflow-auto leading-5;
         }
     }
 
     .chat-sidebar {
-        @apply bg-neutral-100 flex-col p-3 gap-1 h-full w-56 hidden sm:flex;
-        .tiny-divider, .member {
-            @apply aligned p-1;
-        }
-        .tiny-divider {
-            @apply text-blue-300;
-        }
-        .member {
-            @apply aligned bg-black/[.1] rounded-md select-none overflow-hidden;
-            .text {
-                @apply aligned flex-col overflow-hidden w-full;
-            }
+        @apply hidden sm:flex flex-col box-border p-3 h-full w-56 gap-2;
+    }
+
+    .member {
+        @apply aligned bg-black/[.1] p-1 rounded-md select-none overflow-hidden;
+        .text {
+            @apply aligned flex-col overflow-hidden w-full;
         }
     }
 }

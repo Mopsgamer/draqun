@@ -24,7 +24,7 @@
                 <div class="groupname">{{- .Group.Nick -}}</div>
                 {{- if or .Member.IsOwner .Rights.ChangeGroup}}
                 <div class="group-actions" slot="suffix">
-                {{template "partials/group-actions" .Group}}
+                    {{template "partials/group-actions" .Group}}
                 </div>
                 {{- end}}
             </sl-breadcrumb-item>
