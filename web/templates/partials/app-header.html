@@ -1,6 +1,8 @@
 <header id="header">
     <nav>
-        <sl-icon-button name="house" href="/chat"></sl-icon-button>
+        {{- if ne .Group nil}}
+        <sl-icon-button id="members-toggler" name="people"></sl-icon-button>
+        {{- end}}
         <!-- TODO: implement search -->
     </nav>
     <nav>

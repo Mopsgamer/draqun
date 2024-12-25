@@ -1,7 +1,6 @@
 @tailwind components;
 
 @layer components {
-
     .super-sect-base {
         @apply relative text-center px-5 py-12 gap-5 flex justify-around items-center overflow-hidden;
     }

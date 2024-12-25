@@ -1,4 +1,5 @@
 import type { SlButton, SlTextarea } from "@shoelace-style/shoelace";
+import { domLoaded } from "./lib.ts";
 
 async function gqlSend(query: string, outp: HTMLDivElement) {
     try {
@@ -19,13 +20,13 @@ async function gqlSend(query: string, outp: HTMLDivElement) {
         const result = await response.json();
         outp.textContent = JSON.stringify(result, null, "  ");
     } catch (error) {
-        outp.textContent = `Error: ${
-            error instanceof Error ? error.message : error
-        }`;
+        outp.textContent = error instanceof Error
+            ? error.message
+            : String(error);
     }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+domLoaded.then(() => {
     const inp = document.getElementById("gql-input")! as SlTextarea;
     const btn = document.getElementById("gql-send")! as SlButton;
     const outp = document.getElementById("gql-output")! as HTMLDivElement;

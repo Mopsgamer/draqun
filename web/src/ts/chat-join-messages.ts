@@ -1,9 +1,7 @@
-// deno-lint-ignore-file no-window-prefix no-window
-import { chatJoinMessages } from "./lib.ts";
+import { chatJoinMessages, domLoaded } from "./lib.ts";
 
-window.addEventListener("DOMContentLoaded", () => {
-    const chat = document.getElementById("chat");
-    if (!chat) return;
+domLoaded.then(() => {
+    const chat = document.getElementById("chat")!;
 
     const observer = new MutationObserver(() => {
         chatJoinMessages();

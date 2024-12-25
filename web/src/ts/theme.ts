@@ -1,4 +1,5 @@
 import type { SlMenu, SlMenuItem } from "@shoelace-style/shoelace";
+import { domLoaded } from "./lib.ts";
 
 enum Theme {
     dark = "sl-theme-dark",
@@ -104,7 +105,7 @@ function initTheme(): void {
 }
 
 initTheme();
-document.addEventListener("DOMContentLoaded", () => {
+domLoaded.then(() => {
     updateThemeMenuElements();
     initThemeMenuElements();
 });

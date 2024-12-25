@@ -96,3 +96,17 @@ export function chatJoinMessages(): void {
         }
     }
 }
+
+export const domLoaded = new Promise<void>((resolve) => {
+    addEventListener("DOMContentLoaded", () => {
+        resolve();
+    });
+});
+
+export function toggleFocus(element: HTMLElement): void {
+    if (element.matches(":focus")) {
+        element.blur();
+    } else {
+        element.focus();
+    }
+}

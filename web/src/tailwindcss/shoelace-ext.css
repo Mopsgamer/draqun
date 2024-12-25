@@ -7,7 +7,7 @@
     sl-menu > sl-divider {
         @apply border-b border-neutral-200;
         &:last-child, &:first-child, sl-divider + sl-divider {
-            @apply hidden
+            @apply hidden;
         }
     }
     sl-button {

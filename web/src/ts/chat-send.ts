@@ -1,11 +1,9 @@
-// deno-lint-ignore-file no-window-prefix no-window
-import { findLastMessage } from "./lib.ts";
+import { domLoaded, findLastMessage } from "./lib.ts";
 
-window.addEventListener("DOMContentLoaded", () => {
+domLoaded.then(() => {
     const form = document.getElementById(
         "send-message-form",
-    ) as HTMLFormElement | undefined;
-    if (!form) return;
+    )! as HTMLFormElement;
 
     form.addEventListener(
         "htmx:afterRequest",
@@ -13,5 +11,6 @@ window.addEventListener("DOMContentLoaded", () => {
             this.reset();
         },
     );
+
     findLastMessage()?.scrollIntoView();
 });
