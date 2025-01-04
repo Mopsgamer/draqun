@@ -1,8 +1,8 @@
 package internal
 
 import (
-	"restapp/internal/logic/database"
-	"restapp/internal/logic/model_graphql"
+	"restapp/internal/controller/database"
+	"restapp/internal/controller/model_graphql"
 	"strconv"
 
 	"github.com/graphql-go/graphql"

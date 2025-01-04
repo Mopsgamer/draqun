@@ -1,10 +1,10 @@
 package internal
 
 import (
+	"restapp/internal/controller"
+	"restapp/internal/controller/database"
+	"restapp/internal/controller/model_database"
 	"restapp/internal/environment"
-	"restapp/internal/logic"
-	"restapp/internal/logic/database"
-	"restapp/internal/logic/model_database"
 	"strings"
 	"time"
 
@@ -73,7 +73,7 @@ func NewAppHtmlEngine(db *database.Database) *html.Engine {
 		},
 
 		"groupLink": func(group model_database.Group) string {
-			return "localhost:3000" + logic.PathRedirectGroupJoin(group.Name)
+			return "localhost:3000" + controller.PathRedirectGroupJoin(group.Name)
 		},
 		"userRightsOf":    db.MemberRights,
 		"userMemberOf":    db.MemberById,

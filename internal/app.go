@@ -3,12 +3,12 @@ package internal
 import (
 	"fmt"
 	"reflect"
+	"restapp/internal/controller"
+	"restapp/internal/controller/controller_http"
+	"restapp/internal/controller/controller_ws"
+	"restapp/internal/controller/database"
+	"restapp/internal/controller/model_http"
 	"restapp/internal/environment"
-	"restapp/internal/logic"
-	"restapp/internal/logic/database"
-	"restapp/internal/logic/logic_http"
-	"restapp/internal/logic/logic_websocket"
-	"restapp/internal/logic/model_request"
 	"restapp/websocket"
 
 	"github.com/gofiber/fiber/v3"
@@ -42,24 +42,24 @@ func NewApp() (*fiber.App, error) {
 
 	app.Use(logger.New())
 
-	appLogic := &logic.Logic{DB: db}
-	UseHTTP := func(handler func(r logic_http.LogicHTTP) error) fiber.Handler {
+	ctl := &controller.Controller{DB: db}
+	UseHTTP := func(handler func(r controller_http.ControllerHttp) error) fiber.Handler {
 		return func(c fiber.Ctx) error {
-			logic := logic_http.LogicHTTP{
-				Logic: appLogic,
-				Ctx:   c,
+			controller := controller_http.ControllerHttp{
+				Controller: ctl,
+				Ctx:        c,
 			}
 			if websocket.IsWebSocketUpgrade(c) {
 				return c.Next()
 			}
-			return handler(logic)
+			return handler(controller)
 		}
 	}
 
 	UseHTTPPage := func(
 		templatePath string,
 		bind *fiber.Map,
-		redirectOn logic_http.RedirectCompute,
+		redirectOn controller_http.RedirectCompute,
 		layouts ...string,
 	) fiber.Handler {
 		bindx := fiber.Map{
@@ -70,7 +70,7 @@ func NewApp() (*fiber.App, error) {
 				bindx[k] = v
 			}
 		}
-		return UseHTTP(func(r logic_http.LogicHTTP) error {
+		return UseHTTP(func(r controller_http.ControllerHttp) error {
 			return r.RenderPage(
 				templatePath,
 				&bindx,
@@ -82,45 +82,45 @@ func NewApp() (*fiber.App, error) {
 
 	UseWebsocket := func(
 		subscribe []string,
-		handler func(ws *logic_websocket.LogicWebsocket) error,
+		handler func(ws *controller_ws.ControllerWs) error,
 	) fiber.Handler {
 		return func(c fiber.Ctx) error {
-			http := logic_http.LogicHTTP{
-				Logic: appLogic,
-				Ctx:   c,
+			ctlHttp := controller_http.ControllerHttp{
+				Controller: ctl,
+				Ctx:        c,
 			}
-			if !websocket.IsWebSocketUpgrade(http.Ctx) {
-				http.Ctx.Next()
+			if !websocket.IsWebSocketUpgrade(ctlHttp.Ctx) {
+				ctlHttp.Ctx.Next()
 			}
 
-			ip := http.Ctx.IP()
-			bind := http.MapPage(nil)
+			ip := ctlHttp.Ctx.IP()
+			bind := ctlHttp.MapPage(nil)
 
 			websocket.New(func(conn *websocket.Conn) {
 				// NOTE: Inside this method the 'c' variable is already updated
 				// and some methods can not work. They should be used outside.
-				ws := logic_websocket.New(
-					appLogic,
+				ctlWs := controller_ws.New(
+					ctl,
 					conn,
 					app,
 					ip,
 					&bind,
 				)
 
-				user := ws.User()
+				user := ctlWs.User()
 
-				logic_websocket.WebsocketConnections.Connect(user.Id, &ws)
-				defer logic_websocket.WebsocketConnections.Close(user.Id, &ws)
-				for !ws.Closed {
-					messageType, message, err := ws.Ctx.ReadMessage()
+				controller_ws.UserSessionMap.Connect(user.Id, &ctlWs)
+				defer controller_ws.UserSessionMap.Close(user.Id, &ctlWs)
+				for !ctlWs.Closed {
+					messageType, message, err := ctlWs.Ctx.ReadMessage()
 					if err != nil {
 						break
 					}
 
 					// start := time.Now()
-					ws.MessageType = messageType
-					ws.Message = message
-					err = handler(&ws)
+					ctlWs.MessageType = messageType
+					ctlWs.Message = message
+					err = handler(&ctlWs)
 
 					// colorErr := fiber.DefaultColors.Green
 					// if err != nil {
@@ -144,8 +144,8 @@ func NewApp() (*fiber.App, error) {
 						break
 					}
 				}
-				ws.Ctx.Close()
-			})(http.Ctx)
+				ctlWs.Ctx.Close()
+			})(ctlHttp.Ctx)
 
 			return nil
 		}
@@ -157,10 +157,10 @@ func NewApp() (*fiber.App, error) {
 
 	// pages
 	docs := initDocs()
-	app.Get("/", UseHTTPPage("index", &fiber.Map{"Title": "Discover"}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/terms", UseHTTPPage("terms", &fiber.Map{"Title": "Terms", "CenterContent": true}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/privacy", UseHTTPPage("privacy", &fiber.Map{"Title": "Privacy", "CenterContent": true}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/acknowledgements", UseHTTPPage("acknowledgements", &fiber.Map{"Title": "Acknowledgements"}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/", UseHTTPPage("index", &fiber.Map{"Title": "Discover"}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/terms", UseHTTPPage("terms", &fiber.Map{"Title": "Terms", "CenterContent": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/privacy", UseHTTPPage("privacy", &fiber.Map{"Title": "Privacy", "CenterContent": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/acknowledgements", UseHTTPPage("acknowledgements", &fiber.Map{"Title": "Acknowledgements"}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/docs", UseHTTPPage("docs", &fiber.Map{
 		"Title":          "Docs",
 		"Docs":           docs,
@@ -168,9 +168,9 @@ func NewApp() (*fiber.App, error) {
 		"GraphqlTypes":   graphqlTypes,
 		"GraphqlRequest": fieldsOf(GraphqlInput{}),
 		"GraphqlExample": graphqlExampleQuery,
-	}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
+	}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/settings", UseHTTPPage("settings", &fiber.Map{"Title": "Settings"},
-		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
+		func(r controller_http.ControllerHttp, bind *fiber.Map) string {
 			if user := r.User(); user == nil {
 				return "/"
 			}
@@ -178,12 +178,12 @@ func NewApp() (*fiber.App, error) {
 		}, "partials/main"),
 	)
 	app.Get("/chat", UseHTTPPage("chat", &fiber.Map{"Title": "Home", "IsChatPage": true},
-		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
+		func(r controller_http.ControllerHttp, bind *fiber.Map) string {
 			return ""
 		}),
 	)
 	app.Get("/chat/groups/:group_id", UseHTTPPage("chat", &fiber.Map{"Title": "Group", "IsChatPage": true},
-		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
+		func(r controller_http.ControllerHttp, bind *fiber.Map) string {
 			member, _, group := r.Member()
 
 			if member == nil {
@@ -195,14 +195,14 @@ func NewApp() (*fiber.App, error) {
 		}),
 	)
 	app.Get("/chat/groups/join/:group_name", UseHTTPPage("chat", &fiber.Map{"Title": "Join group", "IsChatPage": true},
-		func(r logic_http.LogicHTTP, bind *fiber.Map) string {
+		func(r controller_http.ControllerHttp, bind *fiber.Map) string {
 			member, group, _ := r.Member()
 			if group == nil {
 				return "/chat"
 			}
 
 			if member != nil {
-				return logic.PathRedirectGroup(group.Id)
+				return controller.PathRedirectGroup(group.Id)
 			}
 
 			(*bind)["Title"] = "Join " + group.Nick
@@ -246,56 +246,56 @@ func NewApp() (*fiber.App, error) {
 	})
 
 	// get
-	ListenDoc("get", "Get messages section.", fieldsOf(model_request.MessagesPage{}), "/groups/:group_id/messages/page/:messages_page",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.MessagesPage() }))
-	ListenDoc("get", "Get members section.", fieldsOf(model_request.MembersPage{}), "/groups/:group_id/members/page/:members_page",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.MembersPage() }))
+	ListenDoc("get", "Get messages section.", fieldsOf(model_http.MessagesPage{}), "/groups/:group_id/messages/page/:messages_page",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.MessagesPage() }))
+	ListenDoc("get", "Get members section.", fieldsOf(model_http.MembersPage{}), "/groups/:group_id/members/page/:members_page",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.MembersPage() }))
 
 	// post
-	ListenDoc("post", "Create new account.", fieldsOf(model_request.UserSignUp{}), "/account/create",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserSignUp() }))
-	ListenDoc("post", "Get new authorization token.", fieldsOf(model_request.UserLogin{}), "/account/login",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserLogin() }))
-	ListenDoc("post", "Create new group.", fieldsOf(model_request.GroupCreate{}), "/groups/create",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupCreate() }))
-	ListenDoc("post", "Create (send) new message.", fieldsOf(model_request.MessageCreate{}), "/groups/:group_id/messages/create",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.MessageCreate() }))
+	ListenDoc("post", "Create new account.", fieldsOf(model_http.UserSignUp{}), "/account/create",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserSignUp() }))
+	ListenDoc("post", "Get new authorization token.", fieldsOf(model_http.UserLogin{}), "/account/login",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserLogin() }))
+	ListenDoc("post", "Create new group.", fieldsOf(model_http.GroupCreate{}), "/groups/create",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.GroupCreate() }))
+	ListenDoc("post", "Create (send) new message.", fieldsOf(model_http.MessageCreate{}), "/groups/:group_id/messages/create",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.MessageCreate() }))
 
 	// put
-	ListenDoc("put", "Change name identificator.", fieldsOf(model_request.UserChangeName{}), "/account/change/name",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangeName() }))
-	ListenDoc("put", "Cahnge email.", fieldsOf(model_request.UserChangeEmail{}), "/account/change/email",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangeEmail() }))
-	ListenDoc("put", "Change phone.", fieldsOf(model_request.UserChangePhone{}), "/account/change/phone",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangePhone() }))
-	ListenDoc("put", "Change password.", fieldsOf(model_request.UserChangePassword{}), "/account/change/password",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserChangePassword() }))
+	ListenDoc("put", "Change name identificator.", fieldsOf(model_http.UserChangeName{}), "/account/change/name",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserChangeName() }))
+	ListenDoc("put", "Cahnge email.", fieldsOf(model_http.UserChangeEmail{}), "/account/change/email",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserChangeEmail() }))
+	ListenDoc("put", "Change phone.", fieldsOf(model_http.UserChangePhone{}), "/account/change/phone",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserChangePhone() }))
+	ListenDoc("put", "Change password.", fieldsOf(model_http.UserChangePassword{}), "/account/change/password",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserChangePassword() }))
 	Listen("put", "/account/logout",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserLogout() }))
-	ListenDoc("put", "Join the group immediately.", fieldsOf(model_request.GroupJoin{}), "/groups/:group_id/join",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupJoin() }))
-	ListenDoc("put", "Change group information and settings.", fieldsOf(model_request.GroupChange{}), "/groups/:group_id/change",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupChange() }))
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserLogout() }))
+	ListenDoc("put", "Join the group immediately.", fieldsOf(model_http.GroupJoin{}), "/groups/:group_id/join",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.GroupJoin() }))
+	ListenDoc("put", "Change group information and settings.", fieldsOf(model_http.GroupChange{}), "/groups/:group_id/change",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.GroupChange() }))
 
 	// delete
-	ListenDoc("delete", "Leave the group immediately.", fieldsOf(model_request.GroupLeave{}), "/groups/:group_id/leave",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupLeave() }))
-	ListenDoc("delete", "Delete group.", fieldsOf(model_request.GroupDelete{}), "/groups/:group_id",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.GroupDelete() }))
-	ListenDoc("delete", "Delete account.", fieldsOf(model_request.UserDelete{}), "/account/delete",
-		UseHTTP(func(r logic_http.LogicHTTP) error { return r.UserDelete() }))
+	ListenDoc("delete", "Leave the group immediately.", fieldsOf(model_http.GroupLeave{}), "/groups/:group_id/leave",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.GroupLeave() }))
+	ListenDoc("delete", "Delete group.", fieldsOf(model_http.GroupDelete{}), "/groups/:group_id",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.GroupDelete() }))
+	ListenDoc("delete", "Delete account.", fieldsOf(model_http.UserDelete{}), "/account/delete",
+		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserDelete() }))
 
 	// websoket
 	app.Get("/groups/:group_id", UseWebsocket([]string{
-		logic_websocket.SubForMessages,
-	}, func(ws *logic_websocket.LogicWebsocket) error { return ws.SubscribeGroup() }))
+		controller_ws.SubForMessages,
+	}, func(ws *controller_ws.ControllerWs) error { return ws.SubscribeGroup() }))
 
 	app.Use(UseHTTPPage("partials/x", &fiber.Map{
 		"Title":         fmt.Sprintf("%d", fiber.StatusNotFound),
 		"StatusCode":    fiber.StatusNotFound,
 		"StatusMessage": fiber.ErrNotFound.Message,
 		"CenterContent": true,
-	}, func(r logic_http.LogicHTTP, bind *fiber.Map) string { return "" }, "partials/main"))
+	}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
 
 	return app, nil
 }

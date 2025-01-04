@@ -1,6 +1,6 @@
 package i18n
 
-import "restapp/internal/logic/model_database"
+import "restapp/internal/controller/model_database"
 
 const (
 	MessageFatalDatabaseQuery   = "Fatal database error."
