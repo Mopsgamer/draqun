@@ -108,7 +108,7 @@ func (r ControllerHttp) GroupChange() error {
 	}
 
 	if !member.IsOwner {
-		if !rights.ChangeGroup {
+		if !rights.GroupChange {
 			return r.RenderDanger(i18n.MessageErrNoRights, id)
 		}
 	}

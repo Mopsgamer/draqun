@@ -58,10 +58,10 @@ func (r ControllerHttp) GroupLeave() error {
 		return r.RenderDanger(i18n.MessageErrNotGroupMember, id)
 	}
 
-	// FIXME: do not leave if last owner and there are other non-owner members.
+	// TODO: do not leave if last owner and there are other non-owner members.
 	// Ask for assigning new owner before leave.
 
-	// FIXME: delete group on leave if no other members.
+	// TODO: delete group on leave if no other members.
 
 	r.HTMXRedirect("/chat")
 	return r.RenderSuccess(i18n.MessageSuccLeavedGroup, id)

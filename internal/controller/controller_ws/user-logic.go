@@ -33,6 +33,8 @@ func (ws *ControllerWs) SubscribeGroup() error {
 	}
 
 	member := ws.DB.MemberById(group.Id, user.Id)
+
+	// TODO: ChatWrite should be simple
 	if !member.IsOwner {
 		if member.IsBanned {
 			return ws.SendString(i18n.MessageErrNoRights)

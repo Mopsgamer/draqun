@@ -90,7 +90,7 @@ func (db Database) GroupDelete(groupId uint64) bool {
 		return false
 	}
 
-	// FIXME: delete roles(!) and messages(?) when deleting group
+	// TODO: delete roles(!) and messages(?) when deleting group
 
 	return true
 }

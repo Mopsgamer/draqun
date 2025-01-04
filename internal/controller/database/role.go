@@ -50,8 +50,8 @@ func (db Database) RoleCreate(role model_database.Role) *uint32 {
 		role.ChatDelete,
 		role.Kick,
 		role.Ban,
-		role.ChangeGroup,
-		role.ChangeMember,
+		role.GroupChange,
+		role.MemberChange,
 	)
 
 	if err != nil {

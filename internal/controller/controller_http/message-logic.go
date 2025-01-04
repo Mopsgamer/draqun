@@ -33,6 +33,8 @@ func (r ControllerHttp) MessageCreate() error {
 	}
 
 	message := req.Message(user.Id)
+
+	// TODO: ChatWrite should be simple
 	if !member.IsOwner {
 		if member.IsBanned {
 			return r.Ctx.SendString(i18n.MessageErrNoRights)
