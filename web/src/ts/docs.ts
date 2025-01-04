@@ -1,5 +1,8 @@
 import type { SlButton, SlTextarea } from "@shoelace-style/shoelace";
 import { domLoaded } from "./lib.ts";
+import CodeMirror from "@codemiror/view";
+
+import "./main.ts";
 
 async function gqlSend(query: string, outp: HTMLDivElement) {
     try {
@@ -30,6 +33,8 @@ domLoaded.then(() => {
     const inp = document.getElementById("gql-input")! as SlTextarea;
     const btn = document.getElementById("gql-send")! as SlButton;
     const outp = document.getElementById("gql-output")! as HTMLDivElement;
+
+    CodeMirror.
 
     customElements.whenDefined("sl-textarea").then(() =>
         gqlSend(inp.value, outp)

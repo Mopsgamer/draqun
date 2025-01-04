@@ -34,6 +34,10 @@
         }
     }
 
+    #main {
+        @apply h-full overflow-auto;
+    }
+
     #footer {
         @apply relative flex flex-row flex-wrap justify-between bg-neutral-200 p-24 gap-12;
         section {

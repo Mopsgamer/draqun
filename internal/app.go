@@ -163,6 +163,7 @@ func NewApp() (*fiber.App, error) {
 	app.Get("/acknowledgements", UseHTTPPage("acknowledgements", &fiber.Map{"Title": "Acknowledgements"}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/docs", UseHTTPPage("docs", &fiber.Map{
 		"Title":          "Docs",
+		"IsDocsPage":     true,
 		"Docs":           docs,
 		"GraphqlFields":  graphqlFields,
 		"GraphqlTypes":   graphqlTypes,

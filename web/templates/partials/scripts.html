@@ -1,5 +1,7 @@
 {{- if .IsChatPage}}
 <script type="module" src="/static/js/app.js"></script>
+{{- else if .IsDocsPage}}
+<script type="module" src="/static/js/docs.js"></script>
 {{- else}}
 <script type="module" src="/static/js/main.js"></script>
 {{- end}}
