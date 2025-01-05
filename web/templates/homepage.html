@@ -1,4 +1,4 @@
-<section class="super-sect relative flex items-center justify-center text-center py-16 h-svh">
+<section class="super-sect sl-theme-light relative flex items-center justify-center text-center py-16 h-svh">
     <div class="relative z-10">
         <h2 class="text-primary-600 text-6xl font-semibold mb-4">Start Chatting</h2>
         <p class="text-primary-800 mb-6">Join conversations instantly with Restapp.</p>
@@ -31,7 +31,7 @@
         <p class="text-green-400 mb-6">Create private groups using a password or chat with your friends privately.</p>
     </div>
 </section>
-<section class="super-sect pt-28">
+<section class="super-sect sl-theme-light pt-28">
     <div class="super-sect-join from-n100 to-transparent top-0 bottom-auto"></div>
     <div class="relative z-10">
         <h2 class="text-primary-600 text-3xl font-semibold mb-4">Still not sure?</h2>
@@ -41,12 +41,3 @@
         </sl-button>
     </div>
 </section>
-<script>
-    const superSectionList = document.querySelectorAll('section[class*=super-sect]')
-    for (const superSection of superSectionList) {
-        superSection.setAttribute("hx-trigger", "intersect")
-        superSection.addEventListener("htmx:trigger", function() {
-            superSection.classList.add('appeared')
-        })
-    }
-</script>

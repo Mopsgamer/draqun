@@ -1,13 +1,27 @@
-.sl-theme-light, .sl-theme-dark {
-    --sl-color-primary-50: var(--sl-color-teal-50);
-    --sl-color-primary-100: var(--sl-color-teal-100);
-    --sl-color-primary-200: var(--sl-color-teal-200);
-    --sl-color-primary-300: var(--sl-color-teal-300);
-    --sl-color-primary-400: var(--sl-color-teal-400);
-    --sl-color-primary-500: var(--sl-color-teal-500);
-    --sl-color-primary-600: var(--sl-color-teal-600);
-    --sl-color-primary-700: var(--sl-color-teal-700);
-    --sl-color-primary-800: var(--sl-color-teal-800);
-    --sl-color-primary-900: var(--sl-color-teal-900);
-    --sl-color-primary-950: var(--sl-color-teal-950);
+.sl-theme-light {
+    --sl-color-primary-50: theme('colors.teal.50');
+    --sl-color-primary-100: theme('colors.teal.100');
+    --sl-color-primary-200: theme('colors.teal.200');
+    --sl-color-primary-300: theme('colors.teal.300');
+    --sl-color-primary-400: theme('colors.teal.400');
+    --sl-color-primary-500: theme('colors.teal.500');
+    --sl-color-primary-600: theme('colors.teal.600');
+    --sl-color-primary-700: theme('colors.teal.700');
+    --sl-color-primary-800: theme('colors.teal.800');
+    --sl-color-primary-900: theme('colors.teal.900');
+    --sl-color-primary-950: theme('colors.teal.950');
+}
+
+.sl-theme-dark {
+    --sl-color-primary-50: theme('colors.teal.950');
+    --sl-color-primary-100: theme('colors.teal.900');
+    --sl-color-primary-200: theme('colors.teal.800');
+    --sl-color-primary-300: theme('colors.teal.700');
+    --sl-color-primary-400: theme('colors.teal.600');
+    --sl-color-primary-500: theme('colors.teal.500');
+    --sl-color-primary-600: theme('colors.teal.400');
+    --sl-color-primary-700: theme('colors.teal.300');
+    --sl-color-primary-800: theme('colors.teal.200');
+    --sl-color-primary-900: theme('colors.teal.100');
+    --sl-color-primary-950: theme('colors.teal.50');
 }
