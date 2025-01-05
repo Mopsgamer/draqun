@@ -36,13 +36,6 @@ var graphqlFields = func(db database.Database) graphql.Fields {
 	}
 }
 
-var graphqlExampleQuery = "query {\n" +
-	"\tmembers(groupId: \"1\") {\n" +
-	"\t\tid\n" +
-	"\t\tname\n" +
-	"\t}\n" +
-	"}"
-
 type GraphqlInput struct {
 	Query         string         `json:"query"`
 	OperationName string         `json:"operationName"`

@@ -157,7 +157,7 @@ func NewApp() (*fiber.App, error) {
 
 	// pages
 	docs := initDocs()
-	app.Get("/", UseHTTPPage("index", &fiber.Map{"Title": "Discover"}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/", UseHTTPPage("index", &fiber.Map{"Title": "Discover", "IsHomePage": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/terms", UseHTTPPage("terms", &fiber.Map{"Title": "Terms", "CenterContent": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/privacy", UseHTTPPage("privacy", &fiber.Map{"Title": "Privacy", "CenterContent": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/acknowledgements", UseHTTPPage("acknowledgements", &fiber.Map{"Title": "Acknowledgements"}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
@@ -168,7 +168,6 @@ func NewApp() (*fiber.App, error) {
 		"GraphqlFields":  graphqlFields,
 		"GraphqlTypes":   graphqlTypes,
 		"GraphqlRequest": fieldsOf(GraphqlInput{}),
-		"GraphqlExample": graphqlExampleQuery,
 	}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/settings", UseHTTPPage("settings", &fiber.Map{"Title": "Settings"},
 		func(r controller_http.ControllerHttp, bind *fiber.Map) string {

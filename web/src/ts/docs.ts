@@ -1,6 +1,5 @@
 import type { SlButton, SlTextarea } from "@shoelace-style/shoelace";
 import { domLoaded } from "./lib.ts";
-import CodeMirror from "@codemiror/view";
 
 import "./main.ts";
 
@@ -30,24 +29,25 @@ async function gqlSend(query: string, outp: HTMLDivElement) {
 }
 
 domLoaded.then(() => {
-    const inp = document.getElementById("gql-input")! as SlTextarea;
-    const btn = document.getElementById("gql-send")! as SlButton;
-    const outp = document.getElementById("gql-output")! as HTMLDivElement;
+    const editor = document.getElementById("gql-input")! as SlTextarea;
+    const executeButton = document.getElementById("gql-send")! as SlButton;
+    const resultView = document.getElementById("gql-output")! as HTMLDivElement;
+    const example = (document.getElementById("gql-example")! as HTMLTemplateElement).innerHTML!;
 
-    CodeMirror.
-
-    customElements.whenDefined("sl-textarea").then(() =>
-        gqlSend(inp.value, outp)
-    );
-
-    btn.addEventListener("click", () => {
-        gqlSend(inp.value, outp);
+    customElements.whenDefined("sl-textarea").then(() => {
+        console.log("ex: %o", example)
+        editor.value = example;
+        gqlSend(editor.value, resultView)
     });
 
-    inp.addEventListener("keydown", (event) => {
+    executeButton.addEventListener("click", () => {
+        gqlSend(editor.value, resultView);
+    });
+
+    editor.addEventListener("keydown", (event) => {
         if (event.key !== "Enter" || !event.ctrlKey) {
             return;
         }
-        gqlSend(inp.value, outp);
+        gqlSend(editor.value, resultView);
     });
 });

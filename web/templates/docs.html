@@ -28,9 +28,17 @@
             {{- template "partials/docs-graphql-fields" $type.Fields}}
             {{- end}}
             <h4 class="anchor-header">Sandbox</h4>
-            <div class="flex flex-col md:flex-row w-full p-2 gap-2">
-                <div class="flex flex-col h-full w-full gap-2">
-                    <sl-textarea id="gql-input" class="h-full w-full font-[monospace]" resize="auto" value="{{.GraphqlExample}}"></sl-textarea>
+            <template id="gql-example">
+                {{- "query {\n" }}
+                {{- "    members(groupId: \"1\") {\n" }}
+                {{- "        id\n" }}
+                {{- "        name\n" }}
+                {{- "    }\n" }}
+                {{- "}" }}
+            </template>
+            <div class="grid grid-cols-2 md:flex-row w-full p-2 gap-2">
+                <div class="flex flex-col gap-2">
+                    <sl-textarea id="gql-input" class="h-full w-full font-[monospace]" resize="auto" value=""></sl-textarea>
                     <sl-button id="gql-send" class="w-full">
                         <sl-icon name="caret-right-fill"></sl-icon>
                         <span class="note-header">
@@ -38,7 +46,7 @@
                         </span>
                     </sl-button>
                 </div>
-                <pre id="gql-output" class="w-full md:max-w-[50%]"></pre>
+                <pre id="gql-output"></pre>
             </div>
         </sl-tab-panel>
     </sl-tab-group>

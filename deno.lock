@@ -24,7 +24,7 @@
     "npm:htmx.org@^1.9.12": "1.9.12",
     "npm:mysql2@^3.11.5": "3.11.5",
     "npm:tailwindcss@^3.4.14": "3.4.14_postcss@8.4.47",
-    "npm:tailwindcss@^3.4.17": "3.4.17_postcss@8.4.47"
+    "npm:tailwindcss@^4.0.0-beta.8": "4.0.0-beta.8"
   },
   "jsr": {
     "@luca/esbuild-deno-loader@0.11.1": {
@@ -669,9 +669,6 @@
     "lilconfig@3.1.2": {
       "integrity": "sha512-eop+wDAvpItUys0FWkHIKeC9ybYrTGbU41U5K7+bttZZeohvnY7M9dZ5kB21GNWiFT2q1OoPTvncPCgSOVO5ow=="
     },
-    "lilconfig@3.1.3": {
-      "integrity": "sha512-/vlFKAoH5Cgt3Ie+JLhRbwOsCQePABiU3tJ1egGvyQ+33R/vcwM2Zl2QR/LzjsBeItPt3oSVXapn+m4nQDvpzw=="
-    },
     "lines-and-columns@1.2.4": {
       "integrity": "sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg=="
     },
@@ -1044,32 +1041,8 @@
         "sucrase"
       ]
     },
-    "tailwindcss@3.4.17_postcss@8.4.47": {
-      "integrity": "sha512-w33E2aCvSDP0tW9RZuNXadXlkHXqFzSkQew/aIa2i/Sj8fThxwovwlXHSPXTbAHwEIhBFXAedUhP2tueAKP8Og==",
-      "dependencies": [
-        "@alloc/quick-lru",
-        "arg",
-        "chokidar",
-        "didyoumean",
-        "dlv",
-        "fast-glob",
-        "glob-parent@6.0.2",
-        "is-glob",
-        "jiti",
-        "lilconfig@3.1.3",
-        "micromatch",
-        "normalize-path",
-        "object-hash",
-        "picocolors",
-        "postcss",
-        "postcss-import",
-        "postcss-js",
-        "postcss-load-config",
-        "postcss-nested",
-        "postcss-selector-parser",
-        "resolve",
-        "sucrase"
-      ]
+    "tailwindcss@4.0.0-beta.8": {
+      "integrity": "sha512-21HmdRq9tHDLJZavb2cRBGJxBvRODpwb0/t3tRbMOl65hJE6zG6K6lD6lLS3IOC35u4SOjKjdZiJJi9AuWCf+Q=="
     },
     "thenify-all@1.6.0": {
       "integrity": "sha512-RNxQH/qI8/t3thXJDwcstUO4zeqo64+Uy/+sNVRBx4Xn2OX+OZ9oP+iJnNFqplFra2ZUVeKCSa2oVWi3T4uVmA==",
@@ -1161,7 +1134,7 @@
       "npm:htmx-ext-ws@^2.0.2",
       "npm:htmx.org@^1.9.12",
       "npm:mysql2@^3.11.5",
-      "npm:tailwindcss@^3.4.17"
+      "npm:tailwindcss@^4.0.0-beta.8"
     ]
   }
 }

@@ -1,8 +1,13 @@
 {{- if .IsChatPage}}
 <script type="module" src="/static/js/app.js"></script>
+<link rel="stylesheet" href="/static/css/main.css">
 {{- else if .IsDocsPage}}
 <script type="module" src="/static/js/docs.js"></script>
+<link rel="stylesheet" href="/static/css/docs.css">
+{{- else if .IsHomePage}}
+<script type="module" src="/static/js/main.js"></script>
+<link rel="stylesheet" href="/static/css/homepage.css">
 {{- else}}
 <script type="module" src="/static/js/main.js"></script>
-{{- end}}
 <link rel="stylesheet" href="/static/css/main.css">
+{{- end}}
