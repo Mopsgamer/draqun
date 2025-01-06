@@ -181,10 +181,19 @@ func NewApp() (*fiber.App, error) {
 	app.Get("/terms", UseHttpPage("terms", &fiber.Map{"Title": "Terms", "CenterContent": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/privacy", UseHttpPage("privacy", &fiber.Map{"Title": "Privacy", "CenterContent": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
 	app.Get("/acknowledgements", UseHttpPage("acknowledgements", &fiber.Map{"Title": "Acknowledgements"}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/docs", UseHttpPage("docs", &fiber.Map{
-		"Title":          "Docs",
+	app.Get("/docs", func(ctx fiber.Ctx) error {
+		return ctx.Redirect().To("/docs/rest")
+	})
+	app.Get("/docs/rest", UseHttpPage("docs-rest", &fiber.Map{
+		"Title":          "Rest Docs",
 		"IsDocsPage":     true,
+		"IsDocsPageRest": true,
 		"Docs":           docs,
+	}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/docs/gql", UseHttpPage("docs-gql", &fiber.Map{
+		"Title":          "GraphQL Docs",
+		"IsDocsPage":     true,
+		"IsDocsPageGql":  true,
 		"GraphqlFields":  graphqlFields,
 		"GraphqlTypes":   graphqlTypes,
 		"GraphqlRequest": docsgen.FieldsOf(GraphqlInput{}),

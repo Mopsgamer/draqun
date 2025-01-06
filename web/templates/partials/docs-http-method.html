@@ -4,9 +4,9 @@
 {{- if eq .Method "put"}}{{$variant = "warning"}}{{end}}
 {{- if eq .Method "delete"}}{{$variant = "danger"}}{{end}}
 <div class="http-method">
-    <div class="align">
+    <div class="aligned">
         <sl-tag size="medium" variant="{{$variant}}" class="method uppercase">{{.Method}}</sl-tag>
-        <code class="path">{{.Path}}</code>
+        <code class="w-full overflow-y-auto path">{{.Path}}</code>
     </div>
     <div class="description">
         {{- .Description -}}

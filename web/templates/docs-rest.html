@@ -1,0 +1,12 @@
+<div class="api-docs m-page">
+    <h1 class="anchor-header">
+        REST
+        {{- template "partials/docs-switch" .}}
+    </h1>
+    {{- range $method, $methodRouteList := .Docs.HTTP}}
+    <!-- <h2 class="anchor-header uppercase">{{$method}}</h2> -->
+    {{- range $i, $methodRoute := $methodRouteList}}
+    {{- template "partials/docs-http-method" $methodRoute}}
+    {{- end}}
+    {{- end}}
+</div>

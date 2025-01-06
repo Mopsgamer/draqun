@@ -4,30 +4,28 @@
 
 @layer components {
     .api-docs {
-        .http-method {
-            table {
-                @apply text-neutral-300;
-                .name {
-                    @apply text-cyan-700;
-                    &:is(.sl-theme-dark *) {
-                        @apply text-cyan-300;
-                    }
+        .http-method table {
+            @apply text-neutral-300;
+            .name {
+                @apply text-cyan-700;
+                &:is(.sl-theme-dark *) {
+                    @apply text-cyan-300;
                 }
-                .type {
-                    @apply text-green-700;
-                    &:is(.sl-theme-dark *) {
-                        @apply text-green-300;
-                    }
+            }
+            .type {
+                @apply text-green-700;
+                &:is(.sl-theme-dark *) {
+                    @apply text-green-300;
                 }
-                .tag {
-                    @apply text-orange-700;
-                    &:is(.sl-theme-dark *) {
-                        @apply text-orange-300;
-                    }
+            }
+            .tag {
+                @apply text-orange-700;
+                &:is(.sl-theme-dark *) {
+                    @apply text-orange-300;
                 }
-                .anon *:is(.name, .type, .tag) {
-                    @apply text-opacity-30;
-                }
+            }
+            .anon *:is(.name, .type, .tag) {
+                @apply text-opacity-30;
             }
         }
         .http-method + .http-method {

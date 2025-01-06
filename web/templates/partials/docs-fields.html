@@ -1,14 +1,17 @@
-<table>
-    <tr class="header">
-        <th>Name</th>
-        <th>Type</th>
-        <th>Tag</th>
-    </tr>
-    {{- range $i, $field := .}}
-    <tr class='{{if $field.Anonymous}}anon{{end}}'>
-        <td class="name">{{$field.Name}}</td>
-        <td class="type">{{$field.Type}}</td>
-        <td class="tag">{{$field.Tag}}</td>
-    </tr>
-    {{- end}}
-</table>
+<div class="w-full overflow-y-auto">
+    <table>
+        <tr class="header">
+            <th>Name</th>
+            <th>Type</th>
+            <th>Tag</th>
+        </tr>
+        {{- range $i, $field := .}}
+        {{- if $field.Anonymous}}{{continue}}{{end -}}
+        <tr class='{{if $field.Anonymous}}anon{{end}}'>
+            <td class="name">{{$field.Name}}</td>
+            <td class="type">{{$field.Type}}</td>
+            <td class="tag">{{$field.Tag}}</td>
+        </tr>
+        {{- end}}
+    </table>
+</div>
