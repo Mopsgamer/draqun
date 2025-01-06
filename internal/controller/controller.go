@@ -3,16 +3,10 @@ package controller
 import (
 	"bytes"
 	"html/template"
-	"restapp/internal/controller/database"
-	"restapp/internal/controller/model_database"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 )
-
-type Controller struct {
-	DB *database.Database
-}
 
 // Converts the pointer to the value
 func MapMerge(maps ...*fiber.Map) fiber.Map {
@@ -55,20 +49,4 @@ func WrapOob(swap string, message *string) string {
 	}
 
 	return "<div hx-swap-oob=\"" + swap + "\">" + msg + "</div>"
-}
-
-func (controller Controller) CachedMessageList(messageList []model_database.Message) []fiber.Map {
-	result := []fiber.Map{}
-	users := map[uint64]model_database.User{}
-	for _, message := range messageList {
-		if _, ok := users[message.AuthorId]; !ok {
-			users[message.AuthorId] = *controller.DB.UserById(message.AuthorId)
-		}
-		author := users[message.AuthorId]
-		result = append(result, fiber.Map{
-			"Message": message,
-			"Author":  author,
-		})
-	}
-	return result
 }

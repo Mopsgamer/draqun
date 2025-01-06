@@ -8,6 +8,8 @@ import (
 	"restapp/internal/controller/controller_ws"
 	"restapp/internal/controller/database"
 	"restapp/internal/controller/model_http"
+	"restapp/internal/controller/model_ws"
+	"restapp/internal/docsgen"
 	"restapp/internal/environment"
 	"restapp/websocket"
 
@@ -42,21 +44,28 @@ func NewApp() (*fiber.App, error) {
 
 	app.Use(logger.New())
 
-	ctl := &controller.Controller{DB: db}
-	UseHTTP := func(handler func(r controller_http.ControllerHttp) error) fiber.Handler {
-		return func(c fiber.Ctx) error {
-			controller := controller_http.ControllerHttp{
-				Controller: ctl,
-				Ctx:        c,
+	UseHttp := func(handler func(ctl controller_http.ControllerHttp) error) fiber.Handler {
+		return func(ctx fiber.Ctx) error {
+			ctl := controller_http.ControllerHttp{
+				Ctx: ctx,
+				DB:  *db,
 			}
-			if websocket.IsWebSocketUpgrade(c) {
-				return c.Next()
+
+			if websocket.IsWebSocketUpgrade(ctx) {
+				return ctx.Next()
 			}
-			return handler(controller)
+
+			return handler(ctl)
 		}
 	}
 
-	UseHTTPPage := func(
+	UseHttpResp := func(resp controller_http.Response) fiber.Handler {
+		return UseHttp(func(ctl controller_http.ControllerHttp) error {
+			return resp.HandleHtmx(ctl)
+		})
+	}
+
+	UseHttpPage := func(
 		templatePath string,
 		bind *fiber.Map,
 		redirectOn controller_http.RedirectCompute,
@@ -65,13 +74,18 @@ func NewApp() (*fiber.App, error) {
 		bindx := fiber.Map{
 			"Title": "?",
 		}
-		if bind != nil {
-			for k, v := range *bind {
-				bindx[k] = v
-			}
-		}
-		return UseHTTP(func(r controller_http.ControllerHttp) error {
-			return r.RenderPage(
+		bindx = controller.MapMerge(&bindx, bind)
+		return UseHttp(func(ctl controller_http.ControllerHttp) error {
+			x := new(model_http.MemberOfUriGroup)
+			ctl.BindAll(x)
+			rights, member, group, user := x.Rights(ctl)
+			bindx = controller.MapMerge(&bindx, &fiber.Map{
+				"User":   user,
+				"Group":  group,
+				"Member": member,
+				"Rights": rights,
+			})
+			return ctl.RenderPage(
 				templatePath,
 				&bindx,
 				redirectOn,
@@ -80,39 +94,36 @@ func NewApp() (*fiber.App, error) {
 		})
 	}
 
-	UseWebsocket := func(
+	UseWs := func(
 		subscribe []string,
-		handler func(ws *controller_ws.ControllerWs) error,
+		handler func(ctl controller_ws.ControllerWs) error,
 	) fiber.Handler {
 		return func(c fiber.Ctx) error {
 			ctlHttp := controller_http.ControllerHttp{
-				Controller: ctl,
-				Ctx:        c,
+				Ctx: c,
+				DB:  *db,
 			}
+
 			if !websocket.IsWebSocketUpgrade(ctlHttp.Ctx) {
 				ctlHttp.Ctx.Next()
 			}
 
-			ip := ctlHttp.Ctx.IP()
-			bind := ctlHttp.MapPage(nil)
+			// ctlWs MUST be created before websocket handler,
+			// because some methods become unavailable after protocol upgraded.
+			ctlWs := controller_ws.New(ctlHttp)
+
+			request := new(model_http.MemberOfUriGroup)
+			ctlHttp.BindAll(request)
+			ctlWs.User = request.User(ctlHttp)
+			ctlWs.Group = request.Group(ctlHttp)
 
 			websocket.New(func(conn *websocket.Conn) {
-				// NOTE: Inside this method the 'c' variable is already updated
-				// and some methods can not work. They should be used outside.
-				ctlWs := controller_ws.New(
-					ctl,
-					conn,
-					app,
-					ip,
-					&bind,
-				)
+				ctlWs.Conn = conn
 
-				user := ctlWs.User()
-
-				controller_ws.UserSessionMap.Connect(user.Id, &ctlWs)
-				defer controller_ws.UserSessionMap.Close(user.Id, &ctlWs)
+				controller_ws.UserSessionMap.Connect(ctlWs.User.Id, ctlWs)
+				defer controller_ws.UserSessionMap.Close(ctlWs.User.Id, ctlWs)
 				for !ctlWs.Closed {
-					messageType, message, err := ctlWs.Ctx.ReadMessage()
+					messageType, message, err := ctlWs.Conn.ReadMessage()
 					if err != nil {
 						break
 					}
@@ -120,7 +131,7 @@ func NewApp() (*fiber.App, error) {
 					// start := time.Now()
 					ctlWs.MessageType = messageType
 					ctlWs.Message = message
-					err = handler(&ctlWs)
+					err = handler(*ctlWs)
 
 					// colorErr := fiber.DefaultColors.Green
 					// if err != nil {
@@ -144,11 +155,20 @@ func NewApp() (*fiber.App, error) {
 						break
 					}
 				}
-				ctlWs.Ctx.Close()
+				ctlWs.Conn.Close()
 			})(ctlHttp.Ctx)
 
 			return nil
 		}
+	}
+
+	UseWsResp := func(
+		subscribe []string,
+		resp controller_ws.Response,
+	) fiber.Handler {
+		return UseWs(subscribe, func(ctl controller_ws.ControllerWs) error {
+			return resp.HandleHtmx(ctl)
+		})
 	}
 
 	// static
@@ -156,73 +176,77 @@ func NewApp() (*fiber.App, error) {
 	app.Get("/partials*", static.New("./web/templates/partials", static.Config{Browse: true}))
 
 	// pages
-	docs := initDocs()
-	app.Get("/", UseHTTPPage("homepage", &fiber.Map{"Title": "Discover", "IsHomePage": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/terms", UseHTTPPage("terms", &fiber.Map{"Title": "Terms", "CenterContent": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/privacy", UseHTTPPage("privacy", &fiber.Map{"Title": "Privacy", "CenterContent": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/acknowledgements", UseHTTPPage("acknowledgements", &fiber.Map{"Title": "Acknowledgements"}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/docs", UseHTTPPage("docs", &fiber.Map{
+	docs := docsgen.New()
+	app.Get("/", UseHttpPage("homepage", &fiber.Map{"Title": "Discover", "IsHomePage": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/terms", UseHttpPage("terms", &fiber.Map{"Title": "Terms", "CenterContent": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/privacy", UseHttpPage("privacy", &fiber.Map{"Title": "Privacy", "CenterContent": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/acknowledgements", UseHttpPage("acknowledgements", &fiber.Map{"Title": "Acknowledgements"}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
+	app.Get("/docs", UseHttpPage("docs", &fiber.Map{
 		"Title":          "Docs",
 		"IsDocsPage":     true,
 		"Docs":           docs,
 		"GraphqlFields":  graphqlFields,
 		"GraphqlTypes":   graphqlTypes,
-		"GraphqlRequest": fieldsOf(GraphqlInput{}),
+		"GraphqlRequest": docsgen.FieldsOf(GraphqlInput{}),
 	}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/settings", UseHTTPPage("settings", &fiber.Map{"Title": "Settings"},
+	app.Get("/settings", UseHttpPage("settings", &fiber.Map{"Title": "Settings"},
 		func(r controller_http.ControllerHttp, bind *fiber.Map) string {
-			if user := r.User(); user == nil {
-				return "/"
-			}
+			// FIXME:
+			// if user := r.User(); user == nil {
+			// 	return "/"
+			// }
 			return ""
 		}, "partials/main"),
 	)
-	app.Get("/chat", UseHTTPPage("chat", &fiber.Map{"Title": "Home", "IsChatPage": true},
+	app.Get("/chat", UseHttpPage("chat", &fiber.Map{"Title": "Home", "IsChatPage": true},
 		func(r controller_http.ControllerHttp, bind *fiber.Map) string {
 			return ""
 		}),
 	)
-	app.Get("/chat/groups/:group_id", UseHTTPPage("chat", &fiber.Map{"Title": "Group", "IsChatPage": true},
+	app.Get("/chat/groups/:group_id", UseHttpPage("chat", &fiber.Map{"Title": "Group", "IsChatPage": true},
 		func(r controller_http.ControllerHttp, bind *fiber.Map) string {
-			member, _, group := r.Member()
+			// FIXME:
+			// member, _, group := r.Member()
 
-			if member == nil {
-				return "/chat"
-			}
+			// if member == nil {
+			// 	return "/chat"
+			// }
 
-			(*bind)["Title"] = group.Nick
+			// (*bind)["Title"] = group.Nick
 			return ""
 		}),
 	)
-	app.Get("/chat/groups/join/:group_name", UseHTTPPage("chat", &fiber.Map{"Title": "Join group", "IsChatPage": true},
+	app.Get("/chat/groups/join/:group_name", UseHttpPage("chat", &fiber.Map{"Title": "Join group", "IsChatPage": true},
 		func(r controller_http.ControllerHttp, bind *fiber.Map) string {
-			member, group, _ := r.Member()
-			if group == nil {
-				return "/chat"
-			}
+			// FIXME:
+			// member, group, _ := r.Member()
+			// if group == nil {
+			// 	return "/chat"
+			// }
 
-			if member != nil {
-				return controller.PathRedirectGroup(group.Id)
-			}
+			// if member != nil {
+			// 	return controller.PathRedirectGroup(group.Id)
+			// }
 
-			(*bind)["Title"] = "Join " + group.Nick
+			// (*bind)["Title"] = "Join " + group.Nick
 			return ""
 		}),
 	)
 
-	Listen := func(method, path string, handler fiber.Handler) fiber.Router {
-		return app.Add([]string{method}, path, handler)
+	Listen := func(method, path string, response controller_http.Response) fiber.Router {
+		return app.Add([]string{method}, path, UseHttpResp(response))
 	}
 
-	ListenDoc := func(method, description string, fields []reflect.StructField, path string, handler fiber.Handler) fiber.Router {
-		docs.HTTP[method] = append(docs.HTTP[method], DocsHTTPMethod{
+	var ListenDoc = func(method, description string, path string, request []reflect.StructField, response controller_http.Response) fiber.Router {
+		docs.HTTP[method] = append(docs.HTTP[method], docsgen.DocsHTTPMethod{
 			Path:        path,
 			Method:      method,
 			Description: description,
-			Request:     fields,
+			Request:     request,
 			Response:    "Currently, it's always an html string response.",
 		})
-		return Listen(method, path, handler)
+
+		return Listen(method, path, response)
 	}
 
 	// graphql
@@ -246,51 +270,132 @@ func NewApp() (*fiber.App, error) {
 	})
 
 	// get
-	ListenDoc("get", "Get messages section.", fieldsOf(model_http.MessagesPage{}), "/groups/:group_id/messages/page/:messages_page",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.MessagesPage() }))
-	ListenDoc("get", "Get members section.", fieldsOf(model_http.MembersPage{}), "/groups/:group_id/members/page/:members_page",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.MembersPage() }))
+	ListenDoc(
+		"get",
+		"Get messages section.",
+		"/groups/:group_id/messages/page/:messages_page",
+		docsgen.FieldsOf(model_http.MessagesPage{}),
+		new(model_http.MessagesPage),
+	)
+	ListenDoc(
+		"get",
+		"Get members section.",
+		"/groups/:group_id/members/page/:members_page",
+		docsgen.FieldsOf(model_http.MembersPage{}),
+		new(model_http.MembersPage),
+	)
 
 	// post
-	ListenDoc("post", "Create new account.", fieldsOf(model_http.UserSignUp{}), "/account/create",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserSignUp() }))
-	ListenDoc("post", "Get new authorization token.", fieldsOf(model_http.UserLogin{}), "/account/login",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserLogin() }))
-	ListenDoc("post", "Create new group.", fieldsOf(model_http.GroupCreate{}), "/groups/create",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.GroupCreate() }))
-	ListenDoc("post", "Create (send) new message.", fieldsOf(model_http.MessageCreate{}), "/groups/:group_id/messages/create",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.MessageCreate() }))
+	ListenDoc(
+		"post",
+		"Create new account.",
+		"/account/create",
+		docsgen.FieldsOf(model_http.UserSignUp{}),
+		new(model_http.UserSignUp),
+	)
+	ListenDoc(
+		"post",
+		"Get new authorization token.",
+		"/account/login",
+		docsgen.FieldsOf(model_http.UserLogin{}),
+		new(model_http.UserLogin),
+	)
+	ListenDoc(
+		"post",
+		"Create new group.",
+		"/groups/create",
+		docsgen.FieldsOf(model_http.GroupCreate{}),
+		new(model_http.GroupCreate),
+	)
+	ListenDoc(
+		"post",
+		"Create (send) new message.",
+		"/groups/:group_id/messages/create",
+		docsgen.FieldsOf(model_http.MessageCreate{}),
+		new(model_http.MessageCreate),
+	)
 
 	// put
-	ListenDoc("put", "Change name identificator.", fieldsOf(model_http.UserChangeName{}), "/account/change/name",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserChangeName() }))
-	ListenDoc("put", "Cahnge email.", fieldsOf(model_http.UserChangeEmail{}), "/account/change/email",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserChangeEmail() }))
-	ListenDoc("put", "Change phone.", fieldsOf(model_http.UserChangePhone{}), "/account/change/phone",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserChangePhone() }))
-	ListenDoc("put", "Change password.", fieldsOf(model_http.UserChangePassword{}), "/account/change/password",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserChangePassword() }))
-	Listen("put", "/account/logout",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserLogout() }))
-	ListenDoc("put", "Join the group immediately.", fieldsOf(model_http.GroupJoin{}), "/groups/:group_id/join",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.GroupJoin() }))
-	ListenDoc("put", "Change group information and settings.", fieldsOf(model_http.GroupChange{}), "/groups/:group_id/change",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.GroupChange() }))
+	ListenDoc(
+		"put",
+		"Change name identificator.",
+		"/account/change/name",
+		docsgen.FieldsOf(model_http.UserChangeName{}),
+		new(model_http.UserChangeName),
+	)
+	ListenDoc(
+		"put",
+		"Cahnge email.",
+		"/account/change/email",
+		docsgen.FieldsOf(model_http.UserChangeEmail{}),
+		new(model_http.UserChangeEmail),
+	)
+	ListenDoc(
+		"put",
+		"Change phone.",
+		"/account/change/phone",
+		docsgen.FieldsOf(model_http.UserChangePhone{}),
+		new(model_http.UserChangePhone),
+	)
+	ListenDoc(
+		"put",
+		"Change password.",
+		"/account/change/password",
+		docsgen.FieldsOf(model_http.UserChangePassword{}),
+		new(model_http.UserChangePassword),
+	)
+	ListenDoc(
+		"put",
+		"Remove authorization cookie and refresh page.",
+		"/account/logout",
+		docsgen.FieldsOf(model_http.UserLogout{}),
+		new(model_http.UserLogout),
+	)
+	ListenDoc(
+		"put",
+		"Join the group immediately.",
+		"/groups/:group_id/join",
+		docsgen.FieldsOf(model_http.GroupJoin{}),
+		new(model_http.GroupJoin),
+	)
+	ListenDoc(
+		"put",
+		"Change group information and settings.",
+		"/groups/:group_id/change",
+		docsgen.FieldsOf(model_http.GroupChange{}),
+		new(model_http.GroupChange),
+	)
 
 	// delete
-	ListenDoc("delete", "Leave the group immediately.", fieldsOf(model_http.GroupLeave{}), "/groups/:group_id/leave",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.GroupLeave() }))
-	ListenDoc("delete", "Delete group.", fieldsOf(model_http.GroupDelete{}), "/groups/:group_id",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.GroupDelete() }))
-	ListenDoc("delete", "Delete account.", fieldsOf(model_http.UserDelete{}), "/account/delete",
-		UseHTTP(func(r controller_http.ControllerHttp) error { return r.UserDelete() }))
+	ListenDoc(
+		"delete",
+		"Leave the group immediately.",
+		"/groups/:group_id/leave",
+		docsgen.FieldsOf(model_http.GroupLeave{}),
+		new(model_http.GroupLeave),
+	)
+	ListenDoc(
+		"delete",
+		"Delete group.",
+		"/groups/:group_id",
+		docsgen.FieldsOf(model_http.GroupDelete{}),
+		new(model_http.GroupDelete),
+	)
+	ListenDoc(
+		"delete",
+		"Delete account.",
+		"/account/delete",
+		docsgen.FieldsOf(model_http.UserDelete{}),
+		new(model_http.UserDelete),
+	)
 
 	// websoket
-	app.Get("/groups/:group_id", UseWebsocket([]string{
-		controller_ws.SubForMessages,
-	}, func(ws *controller_ws.ControllerWs) error { return ws.SubscribeGroup() }))
+	app.Get("/groups/:group_id", UseWsResp(
+		[]string{controller_ws.SubForMessages},
+		&model_ws.WebsocketGroup{},
+	))
 
-	app.Use(UseHTTPPage("partials/x", &fiber.Map{
+	app.Use(UseHttpPage("partials/x", &fiber.Map{
 		"Title":         fmt.Sprintf("%d", fiber.StatusNotFound),
 		"StatusCode":    fiber.StatusNotFound,
 		"StatusMessage": fiber.ErrNotFound.Message,

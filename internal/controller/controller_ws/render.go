@@ -6,7 +6,7 @@ import (
 )
 
 func (ws *ControllerWs) SendBytes(message []byte) error {
-	return ws.Ctx.WriteMessage(websocket.TextMessage, message)
+	return ws.Conn.WriteMessage(websocket.TextMessage, message)
 }
 
 func (ws *ControllerWs) SendString(message string) error {

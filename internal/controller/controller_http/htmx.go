@@ -5,7 +5,6 @@ import (
 	"strings"
 )
 
-// Otherwise json, graphql or something.
 func (r *ControllerHttp) IsHTMX() bool {
 	return r.Ctx.Get("HX-Request") == "true"
 }

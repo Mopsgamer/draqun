@@ -92,11 +92,7 @@ func (db Database) MemberRoleList(groupId, userId uint64) []model_database.Role 
 
 func (db Database) MemberRights(groupId, userId uint64) model_database.Role {
 	roleList := db.MemberRoleList(groupId, userId)
-	rights := model_database.Role{
-		ChatRead:   true,
-		ChatWrite:  true,
-		ChatDelete: true,
-	}
+	rights := model_database.RoleDefault
 	if len(roleList) == 0 {
 		return rights
 	}

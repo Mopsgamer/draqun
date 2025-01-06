@@ -3,8 +3,25 @@ package database
 import (
 	"restapp/internal/controller/model_database"
 
+	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 )
+
+func (db Database) CachedMessageList(messageList []model_database.Message) []fiber.Map {
+	result := []fiber.Map{}
+	users := map[uint64]model_database.User{}
+	for _, message := range messageList {
+		if _, ok := users[message.AuthorId]; !ok {
+			users[message.AuthorId] = *db.UserById(message.AuthorId)
+		}
+		author := users[message.AuthorId]
+		result = append(result, fiber.Map{
+			"Message": message,
+			"Author":  author,
+		})
+	}
+	return result
+}
 
 func (db Database) MessageById(messageId uint64) *model_database.Message {
 	message := new(model_database.Message)

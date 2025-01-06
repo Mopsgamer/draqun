@@ -7,15 +7,15 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-type MembersPage struct {
+type MessagesPage struct {
 	MemberOfUriGroup
-	Page uint64 `uri:"members_page"`
+	Page uint64 `uri:"messages_page"`
 }
 
-const MembersPagination uint64 = 5
+const MessagesPagination uint64 = 5
 
-func (request *MembersPage) HandleHtmx(ctl controller_http.ControllerHttp) error {
-	id := "error-loading-member-list"
+func (request *MessagesPage) HandleHtmx(ctl controller_http.ControllerHttp) error {
+	id := "error-loading-message-list"
 	if err := ctl.BindAll(request); err != nil {
 		return ctl.RenderInternalError(id)
 	}
@@ -34,16 +34,12 @@ func (request *MembersPage) HandleHtmx(ctl controller_http.ControllerHttp) error
 		return ctl.Ctx.SendString(i18n.MessageErrNotGroupMember)
 	}
 
-	memberList := ctl.DB.MemberListPage(request.GroupId, request.Page, MembersPagination)
-	str, err := ctl.RenderString("partials/chat-members", fiber.Map{
-		"GroupId":           request.GroupId,
-		"MemberList":        memberList,
-		"MembersPageNext":   request.Page + 1,
-		"MembersPagination": MembersPagination,
-	})
-	if err != nil {
-		return err
-	}
-
+	messageList := ctl.DB.MessageListPage(request.GroupId, request.Page, MessagesPagination)
+	str, _ := ctl.RenderString("partials/chat-messages", ctl.MapPage(&fiber.Map{
+		"GroupId":            request.GroupId,
+		"MessageList":        ctl.DB.CachedMessageList(messageList),
+		"MessagesPageNext":   request.Page + 1,
+		"MessagesPagination": MessagesPagination,
+	}))
 	return ctl.Ctx.SendString(str)
 }

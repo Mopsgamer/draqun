@@ -1,4 +1,4 @@
-package internal
+package docsgen
 
 import "reflect"
 
@@ -14,12 +14,12 @@ type DocsHTTPMethod struct {
 	Response    string
 }
 
-func initDocs() *Docs {
+func New() *Docs {
 	return &Docs{
 		HTTP: map[string][]DocsHTTPMethod{},
 	}
 }
 
-func fieldsOf(o any) []reflect.StructField {
+func FieldsOf(o any) []reflect.StructField {
 	return reflect.VisibleFields(reflect.TypeOf(o))
 }

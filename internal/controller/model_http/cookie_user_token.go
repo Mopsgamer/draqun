@@ -1,0 +1,67 @@
+package model_http
+
+import (
+	"errors"
+	"fmt"
+	"restapp/internal/controller/controller_http"
+	"restapp/internal/controller/model_database"
+	"restapp/internal/environment"
+
+	"github.com/gofiber/fiber/v3/log"
+	"github.com/golang-jwt/jwt/v5"
+)
+
+type CookieUserToken struct {
+	UserToken string `cookie:"Authorization"`
+}
+
+// Get owner of the request using the "Authorization" header.
+func (request *CookieUserToken) User(ctl controller_http.ControllerHttp) *model_database.User {
+	if request.UserToken == "" {
+		return nil
+	}
+
+	CatchTokenErr := func(err error) *model_database.User {
+		log.Error(err)
+
+		return nil
+	}
+
+	if len(request.UserToken) < 8 || request.UserToken[:7] != "Bearer " {
+		err := errors.New("invalid authorization format. Expected: Bearer and the token string")
+		return CatchTokenErr(err)
+	}
+
+	tokenString := request.UserToken[7:]
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			return nil, err
+		}
+
+		tokenBytes := []byte(environment.JWTKey)
+		return tokenBytes, nil
+	})
+
+	if err != nil {
+		return CatchTokenErr(err)
+	}
+
+	if !token.Valid {
+		err = errors.New("invalid token")
+		return CatchTokenErr(err)
+	}
+
+	const prop = "Email"
+	claims := token.Claims.(jwt.MapClaims)
+	email, ok := claims[prop].(string)
+	if !ok {
+		err = fmt.Errorf("can not get claim property '"+prop+"'. Claims: %v", claims)
+		return CatchTokenErr(err)
+	}
+
+	// FIXME: Should check password.
+
+	return ctl.DB.UserByEmail(email)
+}
