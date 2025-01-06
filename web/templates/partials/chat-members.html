@@ -9,6 +9,7 @@
     </div>
 </div>
 {{- if and (eq $i 0) (eq (len $this.MemberList) $this.MembersPagination)}}
+{{/*FIXME: members should be inside #members*/}}
 <div class="load-scroll" hx-trigger="intersect once" hx-swap="outerHTML"
     hx-get="/groups/{{$this.GroupId}}/members/page/{{$this.MembersPageNext}}"></div>
 {{- end}}

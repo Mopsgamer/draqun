@@ -21,6 +21,9 @@
             padding-inline-start: 0;
         }
     }
+    sl-dialog::part(header) {
+        @apply shadow-md z-10;
+    }
     sl-dialog.fullscreen-base::part(panel) {
         @apply w-screen h-svh;
         min-width: 100svw;

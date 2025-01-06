@@ -16,14 +16,14 @@
         @apply relative flex items-center gap-2;
     }
 
-    .column {
+    .page-column {
         @apply flex flex-col gap-4;
     }
 }
 
 @layer base {
     #header {
-        @apply relative flex justify-between bg-neutral-100 p-4;
+        @apply relative flex justify-between bg-neutral-100 p-4 shadow-lg z-10;
         & > nav {
             @apply flex items-center;
         }
@@ -84,11 +84,11 @@
     }
 
     #members-view {
-        @apply p-3 md:w-56;
+        @apply p-3 md:w-56 text-2xl md:text-base bg-neutral-50 snap-y;
     }
 
     #chat {
-        @apply relative snap-y flex flex-col size-full p-3 pb-6 overflow-y-auto overflow-x-hidden;
+        @apply relative bg-neutral-100 snap-y flex flex-col size-full p-3 pb-6 overflow-y-auto overflow-x-hidden;
     }
 }
 
@@ -125,7 +125,7 @@
 
 @layer base {
     form {
-        @apply column;
+        @apply page-column;
     }
 }
 
@@ -201,7 +201,7 @@
     }
 
     .message {
-        @apply relative snap-center bg-neutral-0 flex flex-col max-w-full rounded-md p-2 gap-1;
+        @apply relative flex flex-col max-w-full rounded-md p-2 gap-1;
         .prefix {
             @apply aligned;
             sl-format-date {
@@ -267,9 +267,9 @@
     }
 
     .member {
-        @apply aligned bg-black/[.1] p-1 rounded-md select-none overflow-hidden;
+        @apply aligned bg-black/[.1] snap-center p-4 md:p-1.5 rounded-md select-none overflow-hidden;
         .text {
-            @apply aligned flex-col overflow-hidden w-full;
+            @apply aligned overflow-hidden w-full;
         }
     }
 }
