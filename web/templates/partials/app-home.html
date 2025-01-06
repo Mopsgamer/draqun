@@ -21,7 +21,7 @@
                     <div class="groupname" title="{{$group.Nick}}">
                         {{- $group.Nick -}}
                     </div>
-                    {{- /*TODO ChangeGroup should be simple */}}
+                    {{- /*TODO: ChangeGroup should be simple */}}
                     {{- if or $member.IsOwner $rights.ChangeGroup}}
                     <div class="group-actions">
                         {{template "partials/group-actions" $group}}

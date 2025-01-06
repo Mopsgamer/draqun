@@ -22,7 +22,7 @@
     {{- range $i, $group := userMemberships $this.User.Id}}
     {{$member := userMemberOf $group.Id $this.User.Id}}
     {{$rights := userRightsOf $group.Id $this.User.Id}}
-    {{- /*TODO ChangeGroup should be simple */}}
+    {{- /*TODO: ChangeGroup should be simple */}}
     {{- if or $member.IsOwner $rights.ChangeGroup}}
     {{- template "partials/group-settings-dialog" (newMap "Group" $group)}}
     {{- end}}

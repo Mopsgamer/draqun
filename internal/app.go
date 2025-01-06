@@ -68,7 +68,7 @@ func NewApp() (*fiber.App, error) {
 	UseHttpPage := func(
 		templatePath string,
 		bind *fiber.Map,
-		redirectOn controller_http.RedirectCompute,
+		redirect controller_http.RedirectCompute,
 		layouts ...string,
 	) fiber.Handler {
 		bindx := fiber.Map{
@@ -88,7 +88,7 @@ func NewApp() (*fiber.App, error) {
 			return ctl.RenderPage(
 				templatePath,
 				&bindx,
-				redirectOn,
+				redirect,
 				layouts...,
 			)
 		})
@@ -177,19 +177,27 @@ func NewApp() (*fiber.App, error) {
 
 	// pages
 	docs := docsgen.New()
-	app.Get("/", UseHttpPage("homepage", &fiber.Map{"Title": "Discover", "IsHomePage": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/terms", UseHttpPage("terms", &fiber.Map{"Title": "Terms", "CenterContent": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/privacy", UseHttpPage("privacy", &fiber.Map{"Title": "Privacy", "CenterContent": true}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/acknowledgements", UseHttpPage("acknowledgements", &fiber.Map{"Title": "Acknowledgements"}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/docs", func(ctx fiber.Ctx) error {
-		return ctx.Redirect().To("/docs/rest")
-	})
+	var noRedirect controller_http.RedirectCompute = func(ctl controller_http.ControllerHttp, bind *fiber.Map) string { return "" }
+	var guestNoAccessRedirect controller_http.RedirectCompute = func(ctl controller_http.ControllerHttp, bind *fiber.Map) string {
+		request := new(model_http.CookieUserToken)
+		ctl.BindAll(request)
+		user := request.User(ctl)
+		if user == nil {
+			return "/"
+		}
+		return ""
+	}
+	app.Get("/", UseHttpPage("homepage", &fiber.Map{"Title": "Discover", "IsHomePage": true}, noRedirect, "partials/main"))
+	app.Get("/terms", UseHttpPage("terms", &fiber.Map{"Title": "Terms", "CenterContent": true}, noRedirect, "partials/main"))
+	app.Get("/privacy", UseHttpPage("privacy", &fiber.Map{"Title": "Privacy", "CenterContent": true}, noRedirect, "partials/main"))
+	app.Get("/acknowledgements", UseHttpPage("acknowledgements", &fiber.Map{"Title": "Acknowledgements"}, noRedirect, "partials/main"))
+	app.Get("/docs", func(ctx fiber.Ctx) error { return ctx.Redirect().To("/docs/rest") })
 	app.Get("/docs/rest", UseHttpPage("docs-rest", &fiber.Map{
 		"Title":          "Rest Docs",
 		"IsDocsPage":     true,
 		"IsDocsPageRest": true,
 		"Docs":           docs,
-	}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
+	}, noRedirect, "partials/main"))
 	app.Get("/docs/gql", UseHttpPage("docs-gql", &fiber.Map{
 		"Title":          "GraphQL Docs",
 		"IsDocsPage":     true,
@@ -197,47 +205,37 @@ func NewApp() (*fiber.App, error) {
 		"GraphqlFields":  graphqlFields,
 		"GraphqlTypes":   graphqlTypes,
 		"GraphqlRequest": docsgen.FieldsOf(GraphqlInput{}),
-	}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
-	app.Get("/settings", UseHttpPage("settings", &fiber.Map{"Title": "Settings"},
-		func(r controller_http.ControllerHttp, bind *fiber.Map) string {
-			// FIXME:
-			// if user := r.User(); user == nil {
-			// 	return "/"
-			// }
-			return ""
-		}, "partials/main"),
-	)
-	app.Get("/chat", UseHttpPage("chat", &fiber.Map{"Title": "Home", "IsChatPage": true},
-		func(r controller_http.ControllerHttp, bind *fiber.Map) string {
-			return ""
-		}),
-	)
+	}, noRedirect, "partials/main"))
+	app.Get("/settings", UseHttpPage("settings", &fiber.Map{"Title": "Settings"}, guestNoAccessRedirect, "partials/main"))
+	app.Get("/chat", UseHttpPage("chat", &fiber.Map{"Title": "Home", "IsChatPage": true}, noRedirect))
 	app.Get("/chat/groups/:group_id", UseHttpPage("chat", &fiber.Map{"Title": "Group", "IsChatPage": true},
-		func(r controller_http.ControllerHttp, bind *fiber.Map) string {
-			// FIXME:
-			// member, _, group := r.Member()
+		func(ctl controller_http.ControllerHttp, bind *fiber.Map) string {
+			request := new(model_http.MemberOfUriGroup)
+			ctl.BindAll(request)
+			member, group, _ := request.Member(ctl)
 
-			// if member == nil {
-			// 	return "/chat"
-			// }
+			if member == nil {
+				return "/chat"
+			}
 
-			// (*bind)["Title"] = group.Nick
+			(*bind)["Title"] = group.Nick
 			return ""
 		}),
 	)
 	app.Get("/chat/groups/join/:group_name", UseHttpPage("chat", &fiber.Map{"Title": "Join group", "IsChatPage": true},
-		func(r controller_http.ControllerHttp, bind *fiber.Map) string {
-			// FIXME:
-			// member, group, _ := r.Member()
-			// if group == nil {
-			// 	return "/chat"
-			// }
+		func(ctl controller_http.ControllerHttp, bind *fiber.Map) string {
+			request := new(model_http.MemberOfUriGroup)
+			ctl.BindAll(request)
+			member, group, _ := request.Member(ctl)
+			if group == nil {
+				return "/chat"
+			}
 
-			// if member != nil {
-			// 	return controller.PathRedirectGroup(group.Id)
-			// }
+			if member != nil {
+				return controller.PathRedirectGroup(group.Id)
+			}
 
-			// (*bind)["Title"] = "Join " + group.Nick
+			(*bind)["Title"] = "Join " + group.Nick
 			return ""
 		}),
 	)
@@ -409,7 +407,7 @@ func NewApp() (*fiber.App, error) {
 		"StatusCode":    fiber.StatusNotFound,
 		"StatusMessage": fiber.ErrNotFound.Message,
 		"CenterContent": true,
-	}, func(r controller_http.ControllerHttp, bind *fiber.Map) string { return "" }, "partials/main"))
+	}, noRedirect, "partials/main"))
 
 	return app, nil
 }

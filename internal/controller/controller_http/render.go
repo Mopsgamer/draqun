@@ -15,10 +15,8 @@ type RedirectCompute func(ctl ControllerHttp, bind *fiber.Map) string
 // Special
 func (r ControllerHttp) RenderPage(templatePath string, bind *fiber.Map, redirect RedirectCompute, layouts ...string) error {
 	bindx := r.MapPage(bind)
-	if redirect != nil {
-		if path := redirect(r, bind); path != "" {
-			return r.Ctx.Redirect().To(path)
-		}
+	if path := redirect(r, bind); path != "" {
+		return r.Ctx.Redirect().To(path)
 	}
 	if title, ok := (*bind)["Title"].(string); ok {
 		bindx["Title"] = "Restapp - " + title
