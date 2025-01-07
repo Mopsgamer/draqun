@@ -120,7 +120,7 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
 
 		conn := &Conn{}
 
-		if err := upgrader.Upgrade(c.Context(), func(fconn *websocket.Conn) {
+		if err := upgrader.Upgrade(c.RequestCtx(), func(fconn *websocket.Conn) {
 			conn.Conn = fconn
 			defer releaseConn(conn)
 			defer cfg.RecoverHandler(conn)
@@ -227,7 +227,7 @@ func IsUnexpectedCloseError(err error, expectedCodes ...int) bool {
 // IsWebSocketUpgrade returns true if the client requested upgrade to the
 // WebSocket protocol.
 func IsWebSocketUpgrade(c fiber.Ctx) bool {
-	return websocket.FastHTTPIsWebSocketUpgrade(c.Context())
+	return websocket.FastHTTPIsWebSocketUpgrade(c.RequestCtx())
 }
 
 // JoinMessages concatenates received messages to create a single io.Reader.

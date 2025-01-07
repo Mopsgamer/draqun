@@ -13,7 +13,7 @@
     "npm:@types/diff@*": "6.0.0",
     "npm:@types/mysql@*": "2.15.26",
     "npm:@types/node@*": "22.5.4",
-    "npm:consola@^3.3.0": "3.3.0",
+    "npm:consola@^3.3.3": "3.3.3",
     "npm:diff@7": "7.0.0",
     "npm:dotenv@^16.4.7": "16.4.7",
     "npm:esbuild-plugin-copy@^2.1.1": "2.1.1_esbuild@0.24.2",
@@ -22,7 +22,7 @@
     "npm:htmx-ext-debug@2": "2.0.0",
     "npm:htmx-ext-ws@^2.0.2": "2.0.2",
     "npm:htmx.org@^1.9.12": "1.9.12",
-    "npm:mysql2@^3.11.5": "3.11.5",
+    "npm:mysql2@^3.12.0": "3.12.0",
     "npm:tailwindcss@^3.4.14": "3.4.14_postcss@8.4.47",
     "npm:tailwindcss@^4.0.0-beta.8": "4.0.0-beta.8"
   },
@@ -383,8 +383,8 @@
         "@floating-ui/utils"
       ]
     },
-    "consola@3.3.0": {
-      "integrity": "sha512-kxltocVQCwQNFvw40dlVRYeAkAvtYjMFZYNlOcsF5wExPpGwPxMwgx4IfDJvBRPtBpnQwItd5WkTaR0ZwT/TmQ=="
+    "consola@3.3.3": {
+      "integrity": "sha512-Qil5KwghMzlqd51UXM0b6fyaGHtOC22scxrwrz4A2882LyUMwQjnvaedN1HAeXzphspQ6CpHkzMAWxBTUruDLg=="
     },
     "cross-spawn@7.0.3": {
       "integrity": "sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==",
@@ -731,8 +731,8 @@
     "minipass@7.1.2": {
       "integrity": "sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw=="
     },
-    "mysql2@3.11.5": {
-      "integrity": "sha512-0XFu8rUmFN9vC0ME36iBvCUObftiMHItrYFhlCRvFWbLgpNqtC4Br/NmZX1HNCszxT0GGy5QtP+k3Q3eCJPaYA==",
+    "mysql2@3.12.0": {
+      "integrity": "sha512-C8fWhVysZoH63tJbX8d10IAoYCyXy4fdRFz2Ihrt9jtPILYynFEKUUzpp1U7qxzDc3tMbotvaBH+sl6bFnGZiw==",
       "dependencies": [
         "aws-ssl-profiles",
         "denque",
@@ -1124,7 +1124,7 @@
       "jsr:@std/fs@^1.0.8",
       "jsr:@std/path@^1.0.8",
       "npm:@shoelace-style/shoelace@^2.19.1",
-      "npm:consola@^3.3.0",
+      "npm:consola@^3.3.3",
       "npm:diff@7",
       "npm:dotenv@^16.4.7",
       "npm:esbuild-plugin-copy@^2.1.1",
@@ -1133,7 +1133,7 @@
       "npm:htmx-ext-debug@2",
       "npm:htmx-ext-ws@^2.0.2",
       "npm:htmx.org@^1.9.12",
-      "npm:mysql2@^3.11.5",
+      "npm:mysql2@^3.12.0",
       "npm:tailwindcss@^4.0.0-beta.8"
     ]
   }
