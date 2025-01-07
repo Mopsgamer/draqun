@@ -1,9 +1,9 @@
 {{- if ne .User nil}}
 <sl-dialog label="Dialog" id="new-group-dialog">
-    <h1 slot="label" class="aligned">
+    <span slot="label" class="aligned">
         <sl-icon name="people"></sl-icon>
         Create new group
-    </h1>
+    </span>
     <form id="new-group-form" name="new-group-form" hx-post="/groups/create" hx-swap="outerHTML"
         hx-target="#new-group-error">
         <sl-input autofocus label="Nick" type="text" id="new-group-nick" name="nick" required></sl-input>

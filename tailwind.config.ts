@@ -14,7 +14,7 @@ const config: Config = {
                 "1300": "1300ms",
                 "1400": "1400ms",
             },
-            margin: {
+            spacing: {
                 "page": "1.25rem",
             },
             colors: {

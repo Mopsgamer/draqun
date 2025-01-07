@@ -7,7 +7,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
+@layer base {
     .limited {
         @apply overflow-hidden text-ellipsis;
     }
@@ -16,7 +16,7 @@
         @apply relative flex items-center gap-2;
     }
 
-    .page-column {
+    .section {
         @apply flex flex-col gap-4;
     }
 }
@@ -40,8 +40,8 @@
         @apply relative flex flex-row flex-wrap justify-between bg-neutral-200 p-24 gap-12;
         section {
             @apply flex flex-col gap-4;
-            h1 {
-                @apply font-bold text-3xl;
+            h1, h2, h3, h4, h5, h6 {
+                @apply m-0 border-none;
             }
             nav {
                 @apply flex flex-col gap-1 text-lg;
@@ -121,37 +121,35 @@
             @apply bg-neutral-200;
         }
     }
-}
 
-@layer base {
     form {
-        @apply page-column;
+        @apply section;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply aligned relative p-2 border-neutral-200 font-bold;
+    }
+    h1 {
+        @apply text-4xl mt-12 mb-6;
+    }
+    h2 {
+        @apply text-3xl mt-9 mb-5 border-b;
+    }
+    h3 {
+        @apply text-2xl mt-9 mb-4 border-b;
+    }
+    h4 {
+        @apply text-xl mt-7 mb-3 border-b;
+    }
+    h5 {
+        @apply text-lg mt-7 mb-2;
+    }
+    h6 {
+        @apply text-base mt-5 mb-1;
     }
 }
 
 @layer components {
-    .anchor-header {
-        @apply aligned relative p-2 border-neutral-200 font-bold;
-        &:is(h1) {
-            @apply text-4xl mx-4 mt-12 mb-6;
-        }
-        &:is(h2) {
-            @apply text-3xl mx-3 mt-9 mb-5 border-b;
-        }
-        &:is(h3) {
-            @apply text-2xl mx-3 mt-9 mb-4 border-b;
-        }
-        &:is(h4) {
-            @apply text-xl mx-2 mt-7 mb-3 border-b;
-        }
-        &:is(h5) {
-            @apply text-lg mx-2 mt-7 mb-2;
-        }
-        &:is(h6) {
-            @apply text-base mx-1 mt-5 mb-1;
-        }
-    }
-
     .note-header {
         @apply text-neutral-500 p-2 font-semibold;
     }
@@ -184,12 +182,12 @@
         }
         .group-card-header {
             @apply aligned justify-between w-full overflow-hidden;
+            .groupname {
+                @apply font-semibold w-full;
+            }
             .suffix {
                 @apply flex w-full justify-end items-center flex-col overflow-hidden;
             }
-        }
-        .groupname {
-            @apply w-full;
         }
         .group-actions {
             @apply aligned w-full justify-end;

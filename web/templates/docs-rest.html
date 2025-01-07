@@ -1,9 +1,9 @@
-<div class="api-docs page-column m-page">
+<div class="api-docs p-page">
     <h1 class="anchor-header">
         REST
     </h1>
     {{- range $method, $methodRouteList := .Docs.HTTP}}
-    <!-- <h2 class="anchor-header uppercase">{{$method}}</h2> -->
+    <h2 class="anchor-header uppercase">{{$method}}</h2>
     {{- range $i, $methodRoute := $methodRouteList}}
     {{- template "partials/docs-http-method" $methodRoute}}
     {{- end}}

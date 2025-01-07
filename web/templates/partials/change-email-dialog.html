@@ -1,8 +1,8 @@
 <sl-dialog label="Dialog" id="change-email-dialog">
-    <h1 slot="label" class="aligned">
+    <span slot="label" class="aligned">
         <sl-icon name="mailbox"></sl-icon>
         Change email
-    </h1>
+    </span>
     <form id="change-email-form" name="change-email-form" hx-put="/account/change/email" hx-swap="outerHTML"
         hx-target="#change-email-error">
         <sl-input autofocus label="Current password" type="password" autocomplete="current-password" id="change-email-current-password" name="current-password" required password-toggle>

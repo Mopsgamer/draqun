@@ -1,37 +1,39 @@
 {{- $this := . -}}
 <main id="app-content">
-    <h2 class="anchor-header">
-        Groups
-        <sl-button href="#new-group-dialog" size="small" variant="success">
-            <sl-icon name="plus" slot="suffix"></sl-icon>
-            Create
-        </sl-button>
-    </h2>
-    <div class="flex flex-row gap-2 p-4">
-    {{- range $i, $group := userMemberships $this.User.Id -}}
-    {{- $member := userMemberOf $group.Id $this.User.Id -}}
-    {{- $rights := userRightsOf $group.Id $this.User.Id -}}
-    <a href="/chat/groups/{{$group.Id}}">
-        <sl-card id="my-group-{{$group.Id}}" data-id="{{$group.Id}}" class="group-card">
-            <h2 class="group-card-header" slot="header">
-                <sl-avatar class="prefix" shape="rounded">
-                    <sl-icon slot="icon" name="people-fill"></sl-icon>
-                </sl-avatar>
-                <div class="suffix">
-                    <div class="groupname" title="{{$group.Nick}}">
-                        {{- $group.Nick -}}
+    <div class="p-page">
+        <h2 class="anchor-header">
+            Groups
+            <sl-button href="#new-group-dialog" size="small" variant="success">
+                <sl-icon name="plus" slot="suffix"></sl-icon>
+                Create
+            </sl-button>
+        </h2>
+        <div class="flex flex-row gap-2 p-4">
+            {{- range $i, $group := userMemberships $this.User.Id -}}
+            {{- $member := userMemberOf $group.Id $this.User.Id -}}
+            {{- $rights := userRightsOf $group.Id $this.User.Id -}}
+            <a href="/chat/groups/{{$group.Id}}">
+                <sl-card id="my-group-{{$group.Id}}" data-id="{{$group.Id}}" class="group-card">
+                    <div class="group-card-header" slot="header">
+                        <sl-avatar class="prefix" shape="rounded">
+                            <sl-icon slot="icon" name="people-fill"></sl-icon>
+                        </sl-avatar>
+                        <div class="suffix">
+                            <div class="groupname" title="{{$group.Nick}}">
+                                {{- $group.Nick -}}
+                            </div>
+                            {{- /*TODO: ChangeGroup should be simple */}}
+                            {{- if or $member.IsOwner $rights.ChangeGroup}}
+                            <div class="group-actions">
+                                {{template "partials/group-actions" $group}}
+                            </div>
+                            {{- end}}
+                        </div>
                     </div>
-                    {{- /*TODO: ChangeGroup should be simple */}}
-                    {{- if or $member.IsOwner $rights.ChangeGroup}}
-                    <div class="group-actions">
-                        {{template "partials/group-actions" $group}}
-                    </div>
-                    {{- end}}
-                </div>
-            </h2>
-            {{$group.Description}}
-        </sl-card>
-    </a>
-    {{- end -}}
+                    {{$group.Description}}
+                </sl-card>
+            </a>
+            {{- end -}}
+        </div>
     </div>
 </main>

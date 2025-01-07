@@ -1,7 +1,11 @@
 import { chatJoinMessages, domLoaded } from "./lib.ts";
 
 domLoaded.then(() => {
-    const chat = document.getElementById("chat")!;
+    const chat = document.getElementById("chat");
+
+    if (!chat) {
+        return
+    }
 
     const observer = new MutationObserver(() => {
         chatJoinMessages();

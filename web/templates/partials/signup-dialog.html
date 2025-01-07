@@ -1,9 +1,9 @@
 {{- if eq .User nil}}
 <sl-dialog label="Dialog" id="signup-dialog">
-    <h1 slot="label" class="aligned">
+    <span slot="label" class="aligned">
         <sl-icon name="box-arrow-in-right"></sl-icon>
         Sign Up
-    </h1>
+    </span>
     <form id="signup-form" name="signup-form" hx-post="/account/create" hx-swap="outerHTML" hx-target="#signup-error">
         <sl-input autofocus label="Nick" type="text" id="signup-nickname" name="nickname" required></sl-input>
         <sl-input label="Name" type="text" autocomplete="username" id="signup-username" name="username"

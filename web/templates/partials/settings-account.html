@@ -1,4 +1,4 @@
-<div class="page-column">
+<div>
     <h2 class="anchor-header">
         <sl-icon name="person"></sl-icon>
         Account settings
@@ -7,59 +7,48 @@
     {{- template "partials/change-password-dialog" .}}
     {{- template "partials/change-phone-dialog" .}}
     {{- template "partials/account-delete-dialog" .}}
-    <sl-card>
-        <h1 slot="header" class="aligned">
-            <sl-icon name="pen"></sl-icon>
-            Profile
-        </h1>
-        <form id="change-name-form" hx-put="/account/change/name" hx-swap="outerHTML"
-        hx-target="#change-name-error">
-            <sl-input label="Nickname" type="text" id="new-nickname" name="new-nickname" value="{{.User.Nick}}"></sl-input>
-            <sl-input label="Username" type="text" id="new-username" name="new-username" value="{{.User.Name}}"></sl-input>
-            <sl-alert id="change-name-error" variant="warning"></sl-alert>
-        </form>
-        <div slot="footer" class="dialog-footer">
+    <h4 slot="header" class="anchor-header">
+        <sl-icon name="pen"></sl-icon>
+        Profile
+    </h4>
+    <form id="change-name-form" hx-put="/account/change/name" hx-swap="outerHTML" hx-target="#change-name-error">
+        <sl-input label="Nickname" type="text" id="new-nickname" name="new-nickname" value="{{.User.Nick}}"></sl-input>
+        <sl-input label="Username" type="text" id="new-username" name="new-username" value="{{.User.Name}}"></sl-input>
+        <sl-alert id="change-name-error" variant="warning"></sl-alert>
+        <div class="dialog-footer">
             <div>
                 <sl-button type="submit" form="change-name-form" variant="primary">Save</sl-button>
             </div>
         </div>
-    </sl-card>
-    <sl-card>
-        <h1 slot="header" class="aligned">
-            <sl-icon name="mailbox"></sl-icon>
-            Email
-        </h1>
-        <div class="flex justify-between">
-            {{- hideEmail .User.Email}}
-            <sl-button variant="primary" href="#change-email-dialog">Change email</sl-button>
-        </div>
-    </sl-card>
-    <sl-card>
-        <h1 slot="header" class="aligned">
-            <sl-icon name="telephone"></sl-icon>
-            Phone
-        </h1>
-        <div class="flex justify-between">
-            {{if ne .User.Phone nil}}{{- hidePhone .User.Phone}}{{else}}None{{end}}
-            <sl-button variant="primary" href="#change-phone-dialog">Change phone</sl-button>
-        </div>
-    </sl-card>
-    <sl-card>
-        <h1 slot="header" class="aligned">
-            <sl-icon name="lock"></sl-icon>
-            Password
-        </h1>
-        <div class="flex gap-2">
-            <sl-button variant="primary" href="#change-password-dialog">Change password</sl-button>
-        </div>
-    </sl-card>
-    <sl-card>
-        <h1 slot="header" class="aligned">
-            <sl-icon name="exclamation-triangle"></sl-icon>
-            Danger zone
-        </h1>
-        <div class="flex gap-2">
-            <sl-button variant="danger" href="#account-delete-dialog">Delete account</sl-button>
-        </div>
-    </sl-card>
+    </form>
+    <h4 slot="header" class="anchor-header">
+        <sl-icon name="mailbox"></sl-icon>
+        Email
+    </h4>
+    <div class="flex justify-between">
+        {{- hideEmail .User.Email}}
+        <sl-button variant="primary" href="#change-email-dialog">Change email</sl-button>
+    </div>
+    <h4 slot="header" class="anchor-header">
+        <sl-icon name="telephone"></sl-icon>
+        Phone
+    </h4>
+    <div class="flex justify-between">
+        {{if ne .User.Phone nil}}{{- hidePhone .User.Phone}}{{else}}None{{end}}
+        <sl-button variant="primary" href="#change-phone-dialog">Change phone</sl-button>
+    </div>
+    <h4 slot="header" class="anchor-header">
+        <sl-icon name="lock"></sl-icon>
+        Password
+    </h4>
+    <div class="flex gap-2">
+        <sl-button variant="primary" href="#change-password-dialog">Change password</sl-button>
+    </div>
+    <h4 slot="header" class="anchor-header">
+        <sl-icon name="exclamation-triangle"></sl-icon>
+        Danger zone
+    </h4>
+    <div class="flex gap-2">
+        <sl-button variant="danger" href="#account-delete-dialog">Delete account</sl-button>
+    </div>
 </div>

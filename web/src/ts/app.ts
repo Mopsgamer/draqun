@@ -23,7 +23,10 @@ domLoaded.then(() => {
             HTMLElement
         >,
     );
-    const membersView = document.getElementById("members-view")!;
+    const membersView = document.getElementById("members-view");
+    if (!membersView) {
+        return
+    }
     membersToggler.addEventListener(
         "click",
         () => closeAllBut(membersView, secondaryViewList),
