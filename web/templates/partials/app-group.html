@@ -4,7 +4,7 @@
         </main>
         {{- template "partials/chat-input" .}}
     </div>
-    <div id="members-view" hx-trigger="load" hx-get="/groups/{{.Group.Id}}/members/page/1" hx-swap="beforeend">
+    <div id="members-view" hx-trigger="load" hx-get="/groups/{{.Group.Id}}/members/page/1" hx-target="#members" hx-swap="beforeend">
         <div class="aligned" slot="label">
             Members - {{len (groupMembers .Group.Id)}}
         </div>
