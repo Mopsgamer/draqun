@@ -23,7 +23,7 @@
 
 @layer base {
     #header {
-        @apply relative flex justify-between bg-neutral-100 p-4 shadow-lg z-10;
+        @apply relative flex justify-between bg-neutral-100 p-4 shadow-lg z-20;
         & > nav {
             @apply flex items-center;
         }
