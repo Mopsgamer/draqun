@@ -16,7 +16,6 @@ import (
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/static"
-	"github.com/graphql-go/graphql"
 )
 
 // Initialize gofiber application, including DB and view engine.
@@ -25,12 +24,6 @@ func NewApp() (*fiber.App, error) {
 	if errDBLoad != nil {
 		log.Error(errDBLoad)
 		return nil, errDBLoad
-	}
-
-	schema, graphqlFields, errGraphqlLoad := initGraphql(*db)
-	if errGraphqlLoad != nil {
-		log.Error(errGraphqlLoad)
-		return nil, errGraphqlLoad
 	}
 
 	engine := NewAppHtmlEngine(db)
@@ -190,18 +183,9 @@ func NewApp() (*fiber.App, error) {
 	app.Get("/acknowledgements", UseHttpPage("acknowledgements", &fiber.Map{"Title": "Acknowledgements"}, noRedirect, "partials/main"))
 	app.Get("/docs", func(ctx fiber.Ctx) error { return ctx.Redirect().To("/docs/rest") })
 	app.Get("/docs/rest", UseHttpPage("docs-rest", &fiber.Map{
-		"Title":          "Rest Docs",
-		"IsDocsPage":     true,
-		"IsDocsPageRest": true,
-		"Docs":           docs,
-	}, noRedirect, "partials/main"))
-	app.Get("/docs/gql", UseHttpPage("docs-gql", &fiber.Map{
-		"Title":          "GraphQL Docs",
-		"IsDocsPage":     true,
-		"IsDocsPageGql":  true,
-		"GraphqlFields":  graphqlFields,
-		"GraphqlTypes":   graphqlTypes,
-		"GraphqlRequest": docsgen.FieldsOf(GraphqlInput{}),
+		"Title":      "Rest Docs",
+		"IsDocsPage": true,
+		"Docs":       docs,
 	}, noRedirect, "partials/main"))
 	app.Get("/settings", UseHttpPage("settings", &fiber.Map{"Title": "Settings"}, guestNoAccessRedirect, "partials/main"))
 	app.Get("/chat", UseHttpPage("chat", &fiber.Map{"Title": "Home", "IsChatPage": true}, noRedirect))
@@ -252,26 +236,6 @@ func NewApp() (*fiber.App, error) {
 
 		return Listen(method, path, response)
 	}
-
-	// graphql
-	app.Post("/gql", func(ctx fiber.Ctx) error {
-		var input GraphqlInput
-		if err := ctx.Bind().Body(&input); err != nil {
-			return ctx.
-				Status(fiber.StatusInternalServerError).
-				SendString(err.Error())
-		}
-
-		result := graphql.Do(graphql.Params{
-			Schema:         schema,
-			RequestString:  input.Query,
-			OperationName:  input.OperationName,
-			VariableValues: input.Variables,
-		})
-
-		ctx.Set("Content-Type", "application/graphql-response+json")
-		return ctx.JSON(result)
-	})
 
 	// get
 	ListenDoc(
