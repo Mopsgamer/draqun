@@ -29,6 +29,8 @@ func (ctl ControllerHttp) MapPage(bind *fiber.Map) fiber.Map {
 
 	bindx["DenoJson"] = environment.DenoJson
 	bindx["GoMod"] = environment.GoMod
+	bindx["GitHash"] = environment.GitHash
+	bindx["GitHashLong"] = environment.GitHashLong
 
 	bindx = controller.MapMerge(&bindx, bind)
 	return bindx

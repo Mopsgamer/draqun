@@ -3,6 +3,7 @@ package environment
 import (
 	"encoding/json"
 	"os"
+	"os/exec"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3/log"
@@ -19,10 +20,12 @@ const (
 )
 
 var (
-	JWTKey   string
-	Port     string
-	DenoJson DenoConfig
-	GoMod    modfile.File
+	JWTKey      string
+	Port        string
+	DenoJson    DenoConfig
+	GoMod       modfile.File
+	GitHash     string
+	GitHashLong string
 
 	DBUser     string
 	DBPassword string
@@ -84,4 +87,17 @@ func Load() {
 	}
 
 	GoMod = *gomod
+
+	GitHash = commandOutput("git", "log", "-n1", `--format="%h"`)
+	GitHashLong = commandOutput("git", "log", "-n1", `--format="%H"`)
+}
+
+func commandOutput(name string, arg ...string) string {
+	bytes, err := exec.Command(name, arg...).Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// "hash"\n -> hash
+	return string(bytes)[1 : len(bytes)-2]
 }

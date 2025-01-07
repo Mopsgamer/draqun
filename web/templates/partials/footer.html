@@ -51,6 +51,9 @@
         </nav>
     </section>
     <div class="absolute right-0 bottom-0 text-neutral-500 p-2 font-[monospace]">
-        version: {{.DenoJson.Version}}
+        version: {{.DenoJson.Version}} (<a
+        class="text-blue-700 underline"
+        href="https://github.com/Mopsgamer/restapp/commit/{{.GitHashLong}}"
+        >{{.GitHash}}</a>)
     </div>
 </footer>
