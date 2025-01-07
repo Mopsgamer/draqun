@@ -53,15 +53,21 @@ func (request *CookieUserToken) User(ctl controller_http.ControllerHttp) *model_
 		return CatchTokenErr(err)
 	}
 
-	const prop = "Email"
 	claims := token.Claims.(jwt.MapClaims)
-	email, ok := claims[prop].(string)
+	email, ok := claims["Email"].(string)
 	if !ok {
-		err = fmt.Errorf("can not get claim property '"+prop+"'. Claims: %v", claims)
-		return CatchTokenErr(err)
+		return CatchTokenErr(errors.New("expected any email from the token"))
 	}
 
-	// FIXME: Should check password.
+	pass, ok := claims["Password"].(string)
+	if !ok {
+		return CatchTokenErr(errors.New("expected any password from the token"))
+	}
 
-	return ctl.DB.UserByEmail(email)
+	user := ctl.DB.UserByEmail(email)
+	if pass != user.Password {
+		return CatchTokenErr(errors.New("got incorrect password from the token"))
+	}
+
+	return user
 }
