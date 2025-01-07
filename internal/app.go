@@ -10,7 +10,6 @@ import (
 	"restapp/internal/controller/model_http"
 	"restapp/internal/controller/model_ws"
 	"restapp/internal/docsgen"
-	"restapp/internal/environment"
 	"restapp/websocket"
 
 	"github.com/gofiber/fiber/v3"
@@ -22,8 +21,6 @@ import (
 
 // Initialize gofiber application, including DB and view engine.
 func NewApp() (*fiber.App, error) {
-	environment.WaitForBuild()
-
 	db, errDBLoad := database.InitDB()
 	if errDBLoad != nil {
 		log.Error(errDBLoad)

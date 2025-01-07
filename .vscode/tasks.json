@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Initialize Project",
+            "label": "Init",
             "type": "shell",
             "command": "deno",
             "args": [
@@ -10,10 +10,15 @@
                 "-A",
                 "scripts/init.ts"
             ],
+            "detail": "Initialize the ./.env file, then database tables.",
+            "icon": {
+                "id": "gear",
+                "color": "terminal.ansiBlue"
+            },
             "problemMatcher": []
         },
         {
-            "label": "Build Project",
+            "label": "Build",
             "type": "shell",
             "command": "deno",
             "args": [
@@ -21,10 +26,15 @@
                 "-A",
                 "scripts/build.ts"
             ],
+            "detail": "Build the ./web folder.",
+            "icon": {
+                "id": "tools",
+                "color": "terminal.ansiGreen"
+            },
             "problemMatcher": []
         },
         {
-            "label": "Watch for Changes",
+            "label": "Watch",
             "type": "shell",
             "command": "deno",
             "args": [
@@ -32,30 +42,41 @@
                 "build",
                 "--watch"
             ],
+            "detail": "Watch and rebuild on ./web changes.",
+            "icon": {
+                "id": "eye",
+                "color": "terminal.ansiYellow"
+            },
             "problemMatcher": []
         },
         {
-            "label": "Serve Project",
+            "label": "Serve",
             "type": "shell",
             "command": "go",
             "args": [
                 "run",
                 "."
             ],
+            "detail": "Serve locally.",
+            "icon": {
+                "id": "server",
+                "color": "terminal.ansiMagenta"
+            },
             "problemMatcher": []
         },
         {
-            "label": "Initialize and Build",
+            "label": "Init & Build",
             "type": "shell",
             "command": "deno",
             "args": [
                 "task",
-                "init",
-                "&&",
-                "deno",
-                "task",
-                "build"
+                "init:build"
             ],
+            "detail": "Fresh start.",
+            "icon": {
+                "id": "refresh",
+                "color": "terminal.ansiCyan"
+            },
             "problemMatcher": []
         }
     ]
