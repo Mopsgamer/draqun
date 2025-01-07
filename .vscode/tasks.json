@@ -1,0 +1,62 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Initialize Project",
+            "type": "shell",
+            "command": "deno",
+            "args": [
+                "run",
+                "-A",
+                "scripts/init.ts"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Build Project",
+            "type": "shell",
+            "command": "deno",
+            "args": [
+                "run",
+                "-A",
+                "scripts/build.ts"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Watch for Changes",
+            "type": "shell",
+            "command": "deno",
+            "args": [
+                "task",
+                "build",
+                "--watch"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Serve Project",
+            "type": "shell",
+            "command": "go",
+            "args": [
+                "run",
+                "."
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Initialize and Build",
+            "type": "shell",
+            "command": "deno",
+            "args": [
+                "task",
+                "init",
+                "&&",
+                "deno",
+                "task",
+                "build"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

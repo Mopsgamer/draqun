@@ -31,18 +31,19 @@ async function gqlSend(query: string, outp: HTMLDivElement) {
 domLoaded.then(() => {
     const editor = document.getElementById("gql-input") as SlTextarea | null;
     if (!editor) {
-        return
+        return;
     }
 
     const executeButton = document.getElementById("gql-send")! as SlButton;
     const resultView = document.getElementById("gql-output")! as HTMLDivElement;
-    const example = document.getElementById("gql-example")! as HTMLTemplateElement;
-
+    const example = document.getElementById(
+        "gql-example",
+    )! as HTMLTemplateElement;
 
     customElements.whenDefined("sl-textarea").then(() => {
-        console.log("ex: %o", example)
+        console.log("ex: %o", example);
         editor.value = example.innerHTML;
-        gqlSend(editor.value, resultView)
+        gqlSend(editor.value, resultView);
     });
 
     executeButton.addEventListener("click", () => {

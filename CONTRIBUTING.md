@@ -1,5 +1,25 @@
 # Contributing to restapp
 
+## Changing the code base
+
+The best way is to use 2 terminals:
+
+```bash
+deno task serve
+```
+
+```bash
+deno task watch
+```
+
+> [!NOTE]
+> You can use VSC tasks for this.
+
+The `watch` and `build` scripts are not tied with the server code base. That
+means you should restart your server if you are making changes to the
+`./internal` or if you are using `build`and making changes to the `./web`. Also
+you should reload pages manually.
+
 ## About DOM (HTMX, Shoelace) and Session
 
 Resources:
@@ -14,19 +34,11 @@ We are using HTMX. JavaScript (TypeScript) is an utility for importing
 libraries, extending DOM and web-components functionality. We are fetching HTML
 from the server instead of JSON - use the power of hypertext with HTMX.
 
-Possible reasons to add the TypeScript:
-
-- Importing or fixing a library or plugin: HTMX, tailwind, any web-components
-  library, etc.
-- Fixing or extending DOM features: make libraries to work together, adding new
-  web-component, etc.
-
 > [!WARNING]
 > DOM manipulations should be provided through HTMX and the server. Cookies
 > should be changed by the server, if possible.
 >
-> Always send HTML as a response, if the request initialized by HTMX. Script
-> tags available.
+> Always send HTML as a response, if the request initialized by HTMX.
 
 ### About templates
 
