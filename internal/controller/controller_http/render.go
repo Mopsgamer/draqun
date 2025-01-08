@@ -25,12 +25,17 @@ func (r ControllerHttp) RenderPage(templatePath string, bind *fiber.Map, redirec
 }
 
 func (ctl ControllerHttp) MapPage(bind *fiber.Map) fiber.Map {
-	bindx := fiber.Map{}
+	bindx := fiber.Map{
+		"DenoJson":    environment.DenoJson,
+		"GoMod":       environment.GoMod,
+		"GitHash":     environment.GitHash,
+		"GitHashLong": environment.GitHashLong,
 
-	bindx["DenoJson"] = environment.DenoJson
-	bindx["GoMod"] = environment.GoMod
-	bindx["GitHash"] = environment.GitHash
-	bindx["GitHashLong"] = environment.GitHashLong
+		"User":   ctl.User,
+		"Group":  ctl.Group,
+		"Member": ctl.Member,
+		"Rights": ctl.Rights,
+	}
 
 	bindx = controller.MapMerge(&bindx, bind)
 	return bindx

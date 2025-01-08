@@ -25,7 +25,7 @@ domLoaded.then(() => {
     );
     const membersView = document.getElementById("members-view");
     if (!membersView) {
-        return
+        return;
     }
     membersToggler.addEventListener(
         "click",

@@ -111,49 +111,57 @@ export function toggleFocus(element: HTMLElement): void {
     }
 }
 
-const usedAnchorIds = new Set<string>()
+const usedAnchorIds = new Set<string>();
 export function initAnchorHeadersFor(target: HTMLElement): void {
-    const hAnchorList = Array.from(target.getElementsByClassName('anchor-header'))
-        .filter(el => /H[1-6]/.test(el.tagName)) as HTMLHeadingElement[]
+    const hAnchorList = Array.from(
+        target.getElementsByClassName("anchor-header"),
+    )
+        .filter((el) => /H[1-6]/.test(el.tagName)) as HTMLHeadingElement[];
 
     for (const hAnchor of hAnchorList) {
-        initAnchorHeader(hAnchor)
+        initAnchorHeader(hAnchor);
     }
 }
 
 export function initAnchorHeader(hAnchor: HTMLHeadingElement): void {
     const text = Array.from(hAnchor.childNodes)
-    .filter(el => el.nodeType === el.TEXT_NODE)
-    .map(el => el.textContent).join('')
+        .filter((el) => el.nodeType === el.TEXT_NODE)
+        .map((el) => el.textContent).join("");
 
     if (!text) {
-        console.error('Invalid anchor-header text content\n%o', hAnchor)
-        return
+        console.error("Invalid anchor-header text content\n%o", hAnchor);
+        return;
     }
 
-    const hashId = (text.trim().replaceAll(/[^a-zA-Z]/g, '_'))
+    const hashId = text.trim().replaceAll(/[^a-zA-Z]/g, "_");
     if (usedAnchorIds.has(hashId)) {
-        console.warn('Repeating anchor-header id: %o\nElement: %o', hashId, hAnchor)
-        const element = document.getElementById(hashId)
+        console.warn(
+            "Repeating anchor-header id: %o\nElement: %o",
+            hashId,
+            hAnchor,
+        );
+        const element = document.getElementById(hashId);
         if (element) {
-            uninitAnchorHeader(element)
+            uninitAnchorHeader(element);
         }
-        return
+        return;
     }
 
-    hAnchor.id = hashId
-    usedAnchorIds.add(hashId)
+    hAnchor.id = hashId;
+    usedAnchorIds.add(hashId);
 
-    const a = document.createElement('a')
-    a.href = '#' + hashId
-    a.classList.add('anchor-header-link')
-    a.append('#')
-    hAnchor.append(a)
+    const a = document.createElement("a");
+    a.href = "#" + hashId;
+    a.classList.add("anchor-header-link");
+    a.append("#");
+    hAnchor.append(a);
 }
 
 export function uninitAnchorHeader(hAnchor: HTMLElement): void {
-    hAnchor.removeAttribute('id')
-    for (const element of hAnchor.getElementsByClassName('anchor-header-link')) {
-        element.remove()
+    hAnchor.removeAttribute("id");
+    for (
+        const element of hAnchor.getElementsByClassName("anchor-header-link")
+    ) {
+        element.remove();
     }
 }

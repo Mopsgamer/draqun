@@ -41,6 +41,14 @@ func NewApp() (*fiber.App, error) {
 				DB:  *db,
 			}
 
+			x := new(model_http.MemberOfUriGroup)
+			ctl.BindAll(x)
+			rights, member, group, user := x.Rights(ctl)
+			ctl.User = user
+			ctl.Group = group
+			ctl.Member = member
+			ctl.Rights = rights
+
 			if websocket.IsWebSocketUpgrade(ctx) {
 				return ctx.Next()
 			}
@@ -66,15 +74,6 @@ func NewApp() (*fiber.App, error) {
 		}
 		bindx = controller.MapMerge(&bindx, bind)
 		return UseHttp(func(ctl controller_http.ControllerHttp) error {
-			x := new(model_http.MemberOfUriGroup)
-			ctl.BindAll(x)
-			rights, member, group, user := x.Rights(ctl)
-			bindx = controller.MapMerge(&bindx, &fiber.Map{
-				"User":   user,
-				"Group":  group,
-				"Member": member,
-				"Rights": rights,
-			})
 			return ctl.RenderPage(
 				templatePath,
 				&bindx,

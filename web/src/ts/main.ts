@@ -15,4 +15,4 @@ import("htmx-ext-debug");
 
 setBasePath("/static/shoelace");
 
-domLoaded.then(() => initAnchorHeadersFor(document.body))
+domLoaded.then(() => initAnchorHeadersFor(document.body));

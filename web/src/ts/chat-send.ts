@@ -6,7 +6,7 @@ domLoaded.then(() => {
     ) as HTMLFormElement | null;
 
     if (!form) {
-        return
+        return;
     }
 
     form.addEventListener(

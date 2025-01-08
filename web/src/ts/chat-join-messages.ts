@@ -4,7 +4,7 @@ domLoaded.then(() => {
     const chat = document.getElementById("chat");
 
     if (!chat) {
-        return
+        return;
     }
 
     const observer = new MutationObserver(() => {
