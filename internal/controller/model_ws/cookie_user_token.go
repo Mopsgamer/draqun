@@ -10,6 +10,6 @@ type CookieUserToken struct {
 }
 
 // Get owner of the request using the "Authorization" header.
-func (request *CookieUserToken) User(ctl controller_ws.ControllerWs) *model_database.User {
+func (request *CookieUserToken) User(ctl *controller_ws.ControllerWs) *model_database.User {
 	return ctl.User
 }

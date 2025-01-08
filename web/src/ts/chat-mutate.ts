@@ -1,4 +1,4 @@
-import { chatJoinMessages, domLoaded } from "./lib.ts";
+import { chatJoinMessages, chatScrollDownIfNoScroll, domLoaded } from "./lib.ts";
 
 domLoaded.then(() => {
     const chat = document.getElementById("chat");
@@ -9,6 +9,7 @@ domLoaded.then(() => {
 
     const observer = new MutationObserver(() => {
         chatJoinMessages();
+        chatScrollDownIfNoScroll()
     });
     observer.observe(chat, { childList: true, subtree: true });
 });

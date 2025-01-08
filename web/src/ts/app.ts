@@ -1,8 +1,8 @@
 import "./main.ts";
 
-import "./chat-scroll.ts";
+import "./chat-mutate.ts";
 import "./chat-send.ts";
-import "./chat-join-messages.ts";
+import "./chat-mutate.ts";
 import { domLoaded } from "./lib.ts";
 
 import("htmx-ext-ws");

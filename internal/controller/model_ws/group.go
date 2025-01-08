@@ -10,7 +10,7 @@ type WebsocketGroup struct {
 	MemberOfUriGroup
 }
 
-func (request *WebsocketGroup) HandleHtmx(ctl controller_ws.ControllerWs) error {
+func (request *WebsocketGroup) HandleHtmx(ctl *controller_ws.ControllerWs) error {
 	id := "send-message-error"
 
 	rights, member, group, user := request.Rights(ctl)

@@ -49,10 +49,6 @@ func NewApp() (*fiber.App, error) {
 			ctl.Member = member
 			ctl.Rights = rights
 
-			if websocket.IsWebSocketUpgrade(ctx) {
-				return ctx.Next()
-			}
-
 			return handler(ctl)
 		}
 	}
@@ -85,26 +81,16 @@ func NewApp() (*fiber.App, error) {
 
 	UseWs := func(
 		subscribe []string,
-		handler func(ctl controller_ws.ControllerWs) error,
+		handler func(ctl *controller_ws.ControllerWs) error,
 	) fiber.Handler {
-		return func(c fiber.Ctx) error {
-			ctlHttp := controller_http.ControllerHttp{
-				Ctx: c,
-				DB:  *db,
-			}
-
+		return UseHttp(func(ctlHttp controller_http.ControllerHttp) error {
 			if !websocket.IsWebSocketUpgrade(ctlHttp.Ctx) {
-				ctlHttp.Ctx.Next()
+				return ctlHttp.Ctx.Next()
 			}
 
 			// ctlWs MUST be created before websocket handler,
 			// because some methods become unavailable after protocol upgraded.
 			ctlWs := controller_ws.New(ctlHttp)
-
-			request := new(model_http.MemberOfUriGroup)
-			ctlHttp.BindAll(request)
-			ctlWs.User = request.User(ctlHttp)
-			ctlWs.Group = request.Group(ctlHttp)
 
 			websocket.New(func(conn *websocket.Conn) {
 				ctlWs.Conn = conn
@@ -120,7 +106,7 @@ func NewApp() (*fiber.App, error) {
 					// start := time.Now()
 					ctlWs.MessageType = messageType
 					ctlWs.Message = message
-					err = handler(*ctlWs)
+					err = handler(ctlWs)
 
 					// colorErr := fiber.DefaultColors.Green
 					// if err != nil {
@@ -144,18 +130,19 @@ func NewApp() (*fiber.App, error) {
 						break
 					}
 				}
+				ctlWs.Closed = true
 				ctlWs.Conn.Close()
 			})(ctlHttp.Ctx)
 
 			return nil
-		}
+		})
 	}
 
 	UseWsResp := func(
 		subscribe []string,
 		resp controller_ws.Response,
 	) fiber.Handler {
-		return UseWs(subscribe, func(ctl controller_ws.ControllerWs) error {
+		return UseWs(subscribe, func(ctl *controller_ws.ControllerWs) error {
 			return resp.HandleHtmx(ctl)
 		})
 	}

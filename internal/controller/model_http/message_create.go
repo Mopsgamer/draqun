@@ -69,19 +69,23 @@ func (request *MessageCreate) HandleHtmx(ctl controller_http.ControllerHttp) err
 		"MessageList": ctl.DB.CachedMessageList([]model_database.Message{*message}),
 	}))
 
-	controller_ws.UserSessionMap.Push(func(userId uint64) bool {
-		member := ctl.DB.MemberById(group.Id, userId)
-		if member == nil {
-			return false
-		}
+	controller_ws.UserSessionMap.Push(
+		func(userId uint64) bool {
+			member := ctl.DB.MemberById(group.Id, userId)
+			if member == nil {
+				return false
+			}
 
-		if member.IsOwner {
-			return true
-		}
+			if member.IsOwner {
+				return true
+			}
 
-		rights := ctl.DB.MemberRights(group.Id, userId)
-		return bool(rights.ChatRead)
-	}, controller.WrapOob("beforeend:#chat", &str), controller_ws.SubForMessages)
+			rights := ctl.DB.MemberRights(group.Id, userId)
+			return bool(rights.ChatRead)
+		},
+		controller.WrapOob("beforeend:#chat", &str),
+		controller_ws.SubForMessages,
+	)
 
 	return ctl.Ctx.SendString("")
 }

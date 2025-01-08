@@ -10,7 +10,7 @@ type MemberOfUriGroup struct {
 	CookieUserToken
 }
 
-func (request *MemberOfUriGroup) Member(ctl controller_ws.ControllerWs) (*model_database.Member, *model_database.Group, *model_database.User) {
+func (request *MemberOfUriGroup) Member(ctl *controller_ws.ControllerWs) (*model_database.Member, *model_database.Group, *model_database.User) {
 	user := request.User(ctl)
 	group := request.Group(ctl)
 
@@ -21,7 +21,7 @@ func (request *MemberOfUriGroup) Member(ctl controller_ws.ControllerWs) (*model_
 	return nil, group, user
 }
 
-func (request *MemberOfUriGroup) Rights(ctl controller_ws.ControllerWs) (*model_database.Role, *model_database.Member, *model_database.Group, *model_database.User) {
+func (request *MemberOfUriGroup) Rights(ctl *controller_ws.ControllerWs) (*model_database.Role, *model_database.Member, *model_database.Group, *model_database.User) {
 	member, group, user := request.Member(ctl)
 
 	if group != nil && user != nil {

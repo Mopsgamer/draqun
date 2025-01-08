@@ -199,30 +199,45 @@
     }
 
     .message {
-        @apply relative flex flex-col max-w-full rounded-md p-2 gap-1;
-        .prefix {
+        @apply relative flex flex-col max-w-full /*rounded-md*/ p-2 gap-1;
+        .header {
+            @apply aligned justify-between top-0 right-0 left-0;
+        }
+        .prefix, .suffix {
             @apply aligned;
-            sl-format-date {
-                @apply text-neutral-500;
-            }
+        }
+        .date {
+            @apply text-neutral-500 invisible;
         }
         .text {
             @apply aligned pl-10;
         }
     }
 
+    .message:hover {
+        .date {
+            @apply visible;
+        }
+    }
+
+    .message.same-date {
+        .header {
+            @apply absolute;
+        }
+        .prefix {
+            @apply invisible;
+        }
+    }
+
     .message.join-start {
         @apply rounded-t-none;
+        .prefix {
+            @apply invisible;
+        }
     }
 
     .message.join-end {
         @apply rounded-b-none;
-    }
-
-    .hide-date {
-        .prefix {
-            @apply hidden;
-        }
     }
 
     .message + .message:not(.join-start) {

@@ -11,6 +11,6 @@
         <div id="members"></div>
     </div>
     <sl-visually-hidden>
-        <div hx-ext="ws" ws-connect="/groups/{{.Group.Id}}" hx-trigger="every 1.6s" ws-send=""></div>
+        <div id="ws-chat" hx-ext="ws" ws-connect="/groups/{{.Group.Id}}" hx-trigger="every 1.6s" ws-send=""></div>
     </sl-visually-hidden>
 </div>

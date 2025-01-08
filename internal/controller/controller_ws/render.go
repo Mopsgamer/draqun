@@ -38,7 +38,7 @@ func (ws *ControllerWs) Flush() error {
 		return err
 	}
 	ws.dataToFlush = ""
-	return err
+	return nil
 }
 
 func wrapSendNotice(ws *ControllerWs, message, id string) error {

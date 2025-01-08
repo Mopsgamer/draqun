@@ -16,8 +16,10 @@ type ControllerWs struct {
 	App  *fiber.App
 	IP   string
 
-	User  *model_database.User
-	Group *model_database.Group
+	User   *model_database.User
+	Group  *model_database.Group
+	Member *model_database.Member
+	Rights *model_database.Role
 
 	MessageType int
 	Message     []byte
@@ -27,7 +29,7 @@ type ControllerWs struct {
 }
 
 type Response interface {
-	HandleHtmx(ctl ControllerWs) error
+	HandleHtmx(ctl *ControllerWs) error
 }
 
 func New(ctlHttp controller_http.ControllerHttp) *ControllerWs {
@@ -35,15 +37,20 @@ func New(ctlHttp controller_http.ControllerHttp) *ControllerWs {
 		DB:  ctlHttp.DB,
 		App: ctlHttp.Ctx.App(),
 		IP:  ctlHttp.Ctx.IP(),
+
+		User:   ctlHttp.User,
+		Group:  ctlHttp.Group,
+		Member: ctlHttp.Member,
+		Rights: ctlHttp.Rights,
 	}
 
 	return &ws
 }
 
-func (ws ControllerWs) GetMessageString() string {
+func (ws *ControllerWs) GetMessageString() string {
 	return string(ws.Message)
 }
 
-func (ws ControllerWs) GetMessageJSON(out any) error {
+func (ws *ControllerWs) GetMessageJSON(out any) error {
 	return json.Unmarshal(ws.Message, out)
 }

@@ -76,7 +76,7 @@ export function chatJoinMessages(): void {
             continue;
         }
 
-        const shouldJoin = element.getAttribute("data-author") ===
+        const sameAuthor = element.getAttribute("data-author") ===
             element.nextElementSibling.getAttribute("data-author");
 
         const dateDiff = new Date(
@@ -85,16 +85,43 @@ export function chatJoinMessages(): void {
             new Date(
                 element.getAttribute("data-created-at")!,
             ).getTime();
-        const shouldJoinDate = dateDiff < 1000 * 60 * 5; // 5 minutes
+        const sameDate = dateDiff < 1000 * 60 * 5; // 5 minutes
 
-        if (shouldJoin) {
+        // join same author messages always
+
+        // if (sameAuthor) {
+        //     element.classList.add("join-end");
+        //     element.nextElementSibling.classList.add("join-start");
+        //     if (sameDate) {
+        //         element.nextElementSibling.classList.add("same-date");
+        //     }
+        // }
+
+        // join same author messages only if same date
+
+        if (sameAuthor && sameDate) {
             element.classList.add("join-end");
             element.nextElementSibling.classList.add("join-start");
-            if (shouldJoinDate) {
-                element.nextElementSibling.classList.add("hide-date");
-            }
+            element.nextElementSibling.classList.add("same-date");
         }
     }
+}
+
+export function chatScrollDownIfNoScroll(): void {
+    const chat = document.getElementById("chat");
+    if (!chat) return;
+
+    const isScrolledToBottom =
+        chat.scrollHeight - chat.scrollTop - chat.clientHeight < 450;
+    if (isScrolledToBottom) {
+        chat.scrollTop = chat.scrollHeight;
+    }
+}
+
+export function chatScrollDown(): void {
+    const chat = document.getElementById("chat");
+    if (!chat) return;
+    chat.scrollTop = chat.scrollHeight;
 }
 
 export const domLoaded = new Promise<void>((resolve) => {
