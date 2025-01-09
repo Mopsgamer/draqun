@@ -38,27 +38,30 @@ function openDialogFromHash() {
 
     let foundDialogFromHash = false;
     const selector = "sl-dialog, sl-drawer";
-    for (
-        const slOpenable of document.querySelectorAll<SlDialog | SlDrawer>(
-            selector,
-        )
-    ) {
-        if (slOpenable.id === id || slOpenable.querySelector("#" + id)) {
-            foundDialogFromHash = true;
-            slOpenable.open = true;
-            slOpenable.addEventListener("sl-after-hide", () => {
-                if (!location.hash.includes(slOpenable.id)) {
-                    return;
-                }
-                const anotherOpened = document.querySelector(
-                    `:is(${selector})[open]:not([open=false])`,
-                );
-                location.hash = anotherOpened?.id ?? "";
-                cleanHash();
-            }, { once: true });
+    type SlOpenable = SlDialog | SlDrawer;
+    const slOpenableList = document.querySelectorAll<SlOpenable>(
+        selector,
+    );
+    for (const slOpenable of slOpenableList) {
+        if (
+            slOpenable.id !== id &&
+            !slOpenable.querySelector("#" + id)
+        ) {
+            slOpenable.open = false;
             continue;
         }
-        slOpenable.open = false;
+
+        foundDialogFromHash = true;
+        slOpenable.open = true;
+        slOpenable.addEventListener("sl-after-hide", () => {
+            if (!location.hash.includes(slOpenable.id)) return;
+
+            const anotherOpened = document.querySelector(
+                `:is(${selector})[open]:not([open=false])`,
+            );
+            location.hash = anotherOpened?.id ?? "";
+            cleanHash();
+        }, { once: true });
     }
 
     if (!foundDialogFromHash) {

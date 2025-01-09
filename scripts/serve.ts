@@ -1,4 +1,4 @@
-import {envKeys} from './tool.ts'
+import { envKeys } from "./tool.ts";
 
 const watchDir = "./internal";
 
@@ -23,10 +23,10 @@ async function watchAndRestart() {
         if (
             event.kind === "modify" || event.kind === "create" ||
             event.kind === "remove"
-        ) {
-            console.log("File change detected, restarting Deno task...");
-            await startDenoTask(); // Restart the Deno task on change
-        }
+        ) continue;
+
+        console.log("File change detected, restarting Deno task...");
+        await startDenoTask(); // Restart the Deno task on change
     }
 }
 

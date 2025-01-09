@@ -19,16 +19,13 @@ function closeAllBut(element: HTMLElement, secondaryViewList: HTMLElement[]) {
 domLoaded.then(() => {
     const membersToggler = document.getElementById("members-toggler")!;
     const secondaryViewList = Array.from(
-        document.getElementsByClassName("secondary-view") as HTMLCollectionOf<
-            HTMLElement
-        >,
-    );
+        document.getElementsByClassName("secondary-view"),
+    ) as HTMLElement[];
+
     const membersView = document.getElementById("members-view");
-    if (!membersView) {
-        return;
-    }
-    membersToggler.addEventListener(
-        "click",
-        () => closeAllBut(membersView, secondaryViewList),
-    );
+    if (!membersView) return;
+
+    membersToggler.addEventListener("click", () => {
+        closeAllBut(membersView, secondaryViewList);
+    });
 });

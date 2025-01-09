@@ -2,9 +2,9 @@ import dotenv from "dotenv";
 // @deno-types="npm:@types/mysql"
 import mysql from "mysql2";
 import { existsSync } from "@std/fs";
-import { envKeys, logInitDb, logInitFiles } from "./tool.ts";
+import { decoder, encoder, envKeys, logInitDb, logInitFiles } from "./tool.ts";
 import { promisify } from "node:util";
-import { parse } from "node:path";
+import { parse } from "@std/path/parse";
 
 async function initMysqlTables(): Promise<void> {
     const sqlFileList = [
@@ -86,12 +86,10 @@ function initEnvFile(): void {
     });
 
     const path = ".env";
-    const decoder = new TextDecoder("utf-8");
     const env = existsSync(path)
         ? dotenv.parse(decoder.decode(Deno.readFileSync(path)))
         : {};
 
-    const encoder = new TextEncoder();
     Deno.writeFileSync(
         path,
         encoder.encode(

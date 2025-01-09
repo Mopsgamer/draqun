@@ -7,9 +7,7 @@ import {
 domLoaded.then(() => {
     const chat = document.getElementById("chat");
 
-    if (!chat) {
-        return;
-    }
+    if (!chat) return;
 
     const observer = new MutationObserver(() => {
         chatJoinMessages();

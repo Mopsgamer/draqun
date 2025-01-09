@@ -19,6 +19,7 @@ export function isMessageElement(value: unknown): value is HTMLDivElement {
 export function findLastMessage(): Element | undefined {
     const chat = document.getElementById("chat");
     if (!chat) return;
+
     return Array.from(chat.getElementsByClassName("message")).reverse()[0];
 }
 
@@ -50,9 +51,7 @@ export function getFormPropData(form: HTMLFormElement, capital = false) {
         if (
             typeof name !== "string" || typeof value !== "string" || !name ||
             !value
-        ) {
-            continue;
-        }
+        ) continue;
 
         if (capital) {
             name = name[0].toUpperCase() + name.substring(1);
@@ -68,32 +67,27 @@ export function chatJoinMessages(): void {
     if (!chat) return;
 
     for (const element of chat.children) {
-        if (!isMessageElement(element)) {
-            continue;
-        }
+        if (!isMessageElement(element)) continue;
 
-        if (!isMessageElement(element.nextElementSibling)) {
-            continue;
-        }
+        const next = element.nextElementSibling;
+        if (!isMessageElement(next)) continue;
 
-        const sameAuthor = element.getAttribute("data-author") ===
-            element.nextElementSibling.getAttribute("data-author");
+        const elementAuthorId = element.getAttribute("data-author");
+        const nextAuthorId = next.getAttribute("data-author");
+        const sameAuthor = elementAuthorId === nextAuthorId;
 
-        const dateDiff = new Date(
-            element.nextElementSibling.getAttribute("data-created-at")!,
-        ).getTime() -
-            new Date(
-                element.getAttribute("data-created-at")!,
-            ).getTime();
+        const elementDate = new Date(element.getAttribute("data-created-at")!);
+        const nextDate = new Date(next.getAttribute("data-created-at")!);
+        const dateDiff = nextDate.getTime() - elementDate.getTime();
         const sameDate = dateDiff < 1000 * 60 * 5; // 5 minutes
 
         // join same author messages always
 
         // if (sameAuthor) {
         //     element.classList.add("join-end");
-        //     element.nextElementSibling.classList.add("join-start");
+        //     next.classList.add("join-start");
         //     if (sameDate) {
-        //         element.nextElementSibling.classList.add("same-date");
+        //         next.classList.add("same-date");
         //     }
         // }
 
@@ -101,8 +95,8 @@ export function chatJoinMessages(): void {
 
         if (sameAuthor && sameDate) {
             element.classList.add("join-end");
-            element.nextElementSibling.classList.add("join-start");
-            element.nextElementSibling.classList.add("same-date");
+            next.classList.add("join-start");
+            next.classList.add("same-date");
         }
     }
 }

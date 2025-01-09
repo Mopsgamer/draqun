@@ -5,9 +5,7 @@ domLoaded.then(() => {
         "send-message-form",
     ) as HTMLFormElement | null;
 
-    if (!form) {
-        return;
-    }
+    if (!form) return;
 
     form.addEventListener(
         "htmx:afterRequest",
