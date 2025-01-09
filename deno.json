@@ -5,7 +5,7 @@
     "tasks": {
         "init": "deno run -A scripts/init.ts",
         "init:build": "deno task init && deno task build",
-        "serve": "go run .",
+        "serve": "deno run -A scripts/serve.ts",
         "build": "deno run -A scripts/build.ts",
         "watch": "deno task build --watch"
     },
