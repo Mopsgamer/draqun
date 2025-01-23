@@ -1,8 +1,8 @@
 package model_http
 
 import (
-	"restapp/internal/controller/controller_http"
-	"restapp/internal/i18n"
+	"github.com/Mopsgamer/vibely/internal/controller/controller_http"
+	"github.com/Mopsgamer/vibely/internal/i18n"
 )
 
 type GroupLeave struct {

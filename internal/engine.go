@@ -1,12 +1,13 @@
 package internal
 
 import (
-	"restapp/internal/controller"
-	"restapp/internal/controller/database"
-	"restapp/internal/controller/model_database"
-	"restapp/internal/environment"
 	"strings"
 	"time"
+
+	"github.com/Mopsgamer/vibely/internal/controller"
+	"github.com/Mopsgamer/vibely/internal/controller/database"
+	"github.com/Mopsgamer/vibely/internal/controller/model_database"
+	"github.com/Mopsgamer/vibely/internal/environment"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/template/html/v2"

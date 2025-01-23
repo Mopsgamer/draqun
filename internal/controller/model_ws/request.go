@@ -2,8 +2,9 @@ package model_ws
 
 import (
 	"regexp"
-	"restapp/internal/controller/controller_ws"
 	"strings"
+
+	"github.com/Mopsgamer/vibely/internal/controller/controller_ws"
 )
 
 type Request struct {

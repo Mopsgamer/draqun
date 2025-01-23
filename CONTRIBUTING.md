@@ -1,4 +1,4 @@
-# Contributing to restapp
+# Contributing
 
 ## Changing the code base
 

@@ -1,8 +1,8 @@
 package model_http
 
 import (
-	"restapp/internal/controller/controller_http"
-	"restapp/internal/controller/model_database"
+	"github.com/Mopsgamer/vibely/internal/controller/controller_http"
+	"github.com/Mopsgamer/vibely/internal/controller/model_database"
 )
 
 type MemberOfUriGroup struct {

@@ -2,10 +2,11 @@ package controller_ws
 
 import (
 	"encoding/json"
-	"restapp/internal/controller/controller_http"
-	"restapp/internal/controller/database"
-	"restapp/internal/controller/model_database"
-	"restapp/websocket"
+
+	"github.com/Mopsgamer/vibely/internal/controller/controller_http"
+	"github.com/Mopsgamer/vibely/internal/controller/database"
+	"github.com/Mopsgamer/vibely/internal/controller/model_database"
+	"github.com/Mopsgamer/vibely/websocket"
 
 	"github.com/gofiber/fiber/v3"
 )

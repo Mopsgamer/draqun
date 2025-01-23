@@ -1,10 +1,10 @@
 package model_http
 
 import (
-	"restapp/internal/controller"
-	"restapp/internal/controller/controller_http"
-	"restapp/internal/controller/model_database"
-	"restapp/internal/i18n"
+	"github.com/Mopsgamer/vibely/internal/controller"
+	"github.com/Mopsgamer/vibely/internal/controller/controller_http"
+	"github.com/Mopsgamer/vibely/internal/controller/model_database"
+	"github.com/Mopsgamer/vibely/internal/i18n"
 )
 
 type GroupJoin struct {

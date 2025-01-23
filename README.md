@@ -1,7 +1,7 @@
-# restapp
+# Vibely
 
-[![github](https://img.shields.io/github/stars/Mopsgamer/restapp.svg?style=flat)](https://github.com/Mopsgamer/restapp)
-[![github issues](https://img.shields.io/github/issues/Mopsgamer/restapp.svg?style=flat)](https://github.com/Mopsgamer/restapp/issues)
+[![github](https://img.shields.io/github/stars/Mopsgamer/vibely.svg?style=flat)](https://github.com/Mopsgamer/vibely)
+[![github issues](https://img.shields.io/github/issues/Mopsgamer/vibely.svg?style=flat)](https://github.com/Mopsgamer/vibely/issues)
 
 Definitely a cool chat application.
 

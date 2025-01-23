@@ -1,8 +1,8 @@
 package controller_http
 
 import (
-	"restapp/internal/controller/database"
-	"restapp/internal/controller/model_database"
+	"github.com/Mopsgamer/vibely/internal/controller/database"
+	"github.com/Mopsgamer/vibely/internal/controller/model_database"
 
 	"github.com/gofiber/fiber/v3"
 )

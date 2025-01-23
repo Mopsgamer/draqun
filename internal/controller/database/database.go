@@ -2,7 +2,8 @@ package database
 
 import (
 	"fmt"
-	"restapp/internal/environment"
+
+	"github.com/Mopsgamer/vibely/internal/environment"
 
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/jmoiron/sqlx"

@@ -1,4 +1,4 @@
-module restapp
+module github.com/Mopsgamer/vibely
 
 go 1.23
 
@@ -11,7 +11,6 @@ require (
 	github.com/gofiber/template/html/v2 v2.1.2
 	github.com/gofiber/utils/v2 v2.0.0-beta.7
 	github.com/golang-jwt/jwt/v5 v5.2.1
-	github.com/graphql-go/graphql v0.8.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/valyala/fasthttp v1.58.0

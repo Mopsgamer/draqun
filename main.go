@@ -1,8 +1,8 @@
 package main
 
 import (
-	"restapp/internal"
-	"restapp/internal/environment"
+	"github.com/Mopsgamer/vibely/internal"
+	"github.com/Mopsgamer/vibely/internal/environment"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gofiber/fiber/v3/log"

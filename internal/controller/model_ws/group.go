@@ -1,8 +1,8 @@
 package model_ws
 
 import (
-	"restapp/internal/controller/controller_ws"
-	"restapp/internal/i18n"
+	"github.com/Mopsgamer/vibely/internal/controller/controller_ws"
+	"github.com/Mopsgamer/vibely/internal/i18n"
 )
 
 type WebsocketGroup struct {

@@ -1,6 +1,6 @@
 package i18n
 
-import "restapp/internal/controller/model_database"
+import "github.com/Mopsgamer/vibely/internal/controller/model_database"
 
 const (
 	MessageFatalDatabaseQuery   = "Fatal database error."

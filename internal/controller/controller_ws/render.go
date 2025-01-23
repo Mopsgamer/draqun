@@ -1,8 +1,8 @@
 package controller_ws
 
 import (
-	"restapp/internal/controller"
-	"restapp/websocket"
+	"github.com/Mopsgamer/vibely/internal/controller"
+	"github.com/Mopsgamer/vibely/websocket"
 )
 
 func (ws *ControllerWs) SendBytes(message []byte) error {

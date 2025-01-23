@@ -3,9 +3,10 @@ package model_http
 import (
 	"errors"
 	"fmt"
-	"restapp/internal/controller/controller_http"
-	"restapp/internal/controller/model_database"
-	"restapp/internal/environment"
+
+	"github.com/Mopsgamer/vibely/internal/controller/controller_http"
+	"github.com/Mopsgamer/vibely/internal/controller/model_database"
+	"github.com/Mopsgamer/vibely/internal/environment"
 
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/golang-jwt/jwt/v5"

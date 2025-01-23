@@ -60,8 +60,8 @@ function initEnvFile(): void {
         comment: "can be 0 (test), 1 (dev) or 2 (prod)\ndefault: 1",
     });
     defaultEnv.set(envKeys.JWT_KEY, {
-        comment:
-            "use any online jwt generator to fill this value: https://jwtsecret.com/generate",
+        comment: "use any online jwt generator to fill this value:\n" +
+            "- https://jwtsecret.com/generate",
     });
     defaultEnv.set(envKeys.PORT, {
         value: "3000",
@@ -69,12 +69,13 @@ function initEnvFile(): void {
     });
     defaultEnv.set(envKeys.DB_PASSWORD, { comment: "connection password" });
     defaultEnv.set(envKeys.DB_NAME, {
-        value: "restapp",
-        comment: "connection name\ndefault: restapp",
+        value: "mysql",
+        comment: "connection name\ndefault: mysql",
     });
     defaultEnv.set(envKeys.DB_USER, {
-        value: "root",
-        comment: "connection user\nroot user is not recommended\ndefault: root",
+        value: "admin",
+        comment:
+            "connection user\nroot user is not recommended\ndefault: admin",
     });
     defaultEnv.set(envKeys.DB_HOST, {
         value: "localhost",

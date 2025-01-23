@@ -1,8 +1,8 @@
 package model_ws
 
 import (
-	"restapp/internal/controller/controller_ws"
-	"restapp/internal/controller/model_database"
+	"github.com/Mopsgamer/vibely/internal/controller/controller_ws"
+	"github.com/Mopsgamer/vibely/internal/controller/model_database"
 )
 
 type UriGroupId struct {

@@ -42,7 +42,7 @@ async function build(
     const { outdir, outfile, entryPoints = [], whenChange = [] } = options;
 
     const directory = outdir || dirname(outfile!);
-    logBuild.info(directory)
+    logBuild.info(directory);
 
     const entryPointsNormalized = Array.isArray(entryPoints)
         ? entryPoints
@@ -79,12 +79,12 @@ async function build(
     await ctx.rebuild();
     if (!isWatch) {
         await ctx.dispose();
-        logBuild.success(directory)
+        logBuild.success(directory);
         return;
     }
 
     await ctx.watch();
-    logBuild.success(directory)
+    logBuild.success(directory);
     if (whenChange.length === 0) return;
 
     const watcher = Deno.watchFs(whenChange, { recursive: true });

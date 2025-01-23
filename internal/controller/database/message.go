@@ -1,7 +1,7 @@
 package database
 
 import (
-	"restapp/internal/controller/model_database"
+	"github.com/Mopsgamer/vibely/internal/controller/model_database"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"

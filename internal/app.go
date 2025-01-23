@@ -3,14 +3,15 @@ package internal
 import (
 	"fmt"
 	"reflect"
-	"restapp/internal/controller"
-	"restapp/internal/controller/controller_http"
-	"restapp/internal/controller/controller_ws"
-	"restapp/internal/controller/database"
-	"restapp/internal/controller/model_http"
-	"restapp/internal/controller/model_ws"
-	"restapp/internal/docsgen"
-	"restapp/websocket"
+
+	"github.com/Mopsgamer/vibely/internal/controller"
+	"github.com/Mopsgamer/vibely/internal/controller/controller_http"
+	"github.com/Mopsgamer/vibely/internal/controller/controller_ws"
+	"github.com/Mopsgamer/vibely/internal/controller/database"
+	"github.com/Mopsgamer/vibely/internal/controller/model_http"
+	"github.com/Mopsgamer/vibely/internal/controller/model_ws"
+	"github.com/Mopsgamer/vibely/internal/docsgen"
+	"github.com/Mopsgamer/vibely/websocket"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"

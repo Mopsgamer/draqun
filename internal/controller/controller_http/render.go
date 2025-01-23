@@ -1,9 +1,9 @@
 package controller_http
 
 import (
-	"restapp/internal/controller"
-	"restapp/internal/environment"
-	"restapp/internal/i18n"
+	"github.com/Mopsgamer/vibely/internal/controller"
+	"github.com/Mopsgamer/vibely/internal/environment"
+	"github.com/Mopsgamer/vibely/internal/i18n"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -19,7 +19,7 @@ func (r ControllerHttp) RenderPage(templatePath string, bind *fiber.Map, redirec
 		return r.Ctx.Redirect().To(path)
 	}
 	if title, ok := (*bind)["Title"].(string); ok {
-		bindx["Title"] = "Restapp - " + title
+		bindx["Title"] = "Vibely - " + title
 	}
 	return r.Ctx.Render(templatePath, bindx, layouts...)
 }

@@ -1,8 +1,9 @@
 package model_http
 
 import (
-	"restapp/internal/controller/controller_http"
 	"time"
+
+	"github.com/Mopsgamer/vibely/internal/controller/controller_http"
 
 	"github.com/gofiber/fiber/v3"
 )
