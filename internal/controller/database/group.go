@@ -2,8 +2,6 @@ package database
 
 import (
 	"github.com/Mopsgamer/vibely/internal/controller/model_database"
-
-	"github.com/gofiber/fiber/v3/log"
 )
 
 // Create new DB record.
@@ -32,7 +30,7 @@ func (db Database) GroupCreate(group model_database.Group) *uint64 {
 	)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return nil
 	}
 
@@ -68,7 +66,7 @@ func (db Database) GroupUpdate(group model_database.Group) bool {
 	)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return false
 	}
 	return true
@@ -79,14 +77,14 @@ func (db Database) GroupDelete(groupId uint64) bool {
 	query := `DELETE FROM app_groups WHERE id = ?`
 	_, err := db.Sql.Exec(query, groupId)
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return false
 	}
 
 	query = `DELETE FROM app_group_members WHERE group_id = ?`
 	_, err = db.Sql.Exec(query, groupId)
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return false
 	}
 
@@ -102,7 +100,7 @@ func (db Database) GroupById(groupId uint64) *model_database.Group {
 	err := db.Sql.Get(group, query, groupId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return nil
 	}
 	return group
@@ -115,7 +113,7 @@ func (db Database) GroupByName(groupName string) *model_database.Group {
 	err := db.Sql.Get(group, query, groupName)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return nil
 	}
 	return group

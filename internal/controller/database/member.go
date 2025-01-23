@@ -2,8 +2,6 @@ package database
 
 import (
 	"github.com/Mopsgamer/vibely/internal/controller/model_database"
-
-	"github.com/gofiber/fiber/v3/log"
 )
 
 func (db Database) MemberById(groupId, userId uint64) *model_database.Member {
@@ -12,7 +10,7 @@ func (db Database) MemberById(groupId, userId uint64) *model_database.Member {
 	err := db.Sql.Get(member, query, groupId, userId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return nil
 	}
 	return member
@@ -58,7 +56,7 @@ func (db Database) UserJoinGroup(newMember model_database.Member) bool {
 	)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return false
 	}
 	return true
@@ -69,7 +67,7 @@ func (db Database) UserLeaveGroup(userId, groupId uint64) bool {
 	_, err := db.Sql.Exec(query, groupId, userId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return false
 	}
 	return true
@@ -84,7 +82,7 @@ func (db Database) MemberList(groupId uint64) []model_database.User {
 	err := db.Sql.Select(memberList, query, groupId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return *memberList
 	}
 	return *memberList
@@ -100,7 +98,7 @@ func (db Database) MemberListPage(groupId uint64, page uint64, perPage uint64) [
 	to := page * perPage
 	err := db.Sql.Select(memberList, query, groupId, from, to)
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return *memberList
 	}
 	return *memberList

@@ -2,8 +2,6 @@ package database
 
 import (
 	"github.com/Mopsgamer/vibely/internal/controller/model_database"
-
-	"github.com/gofiber/fiber/v3/log"
 )
 
 // Create new DB record.
@@ -32,7 +30,7 @@ func (db Database) UserCreate(user model_database.User) *uint64 {
 	)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return nil
 	}
 
@@ -68,7 +66,7 @@ func (db Database) UserUpdate(user model_database.User) bool {
 	)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return false
 	}
 	return true
@@ -80,7 +78,7 @@ func (db Database) UserDelete(userId uint64) bool {
 	_, err := db.Sql.Exec(query, userId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return false
 	}
 	return true
@@ -93,7 +91,7 @@ func (db Database) UserByEmail(email string) *model_database.User {
 	err := db.Sql.Get(user, query, email)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return nil
 	}
 	return user
@@ -106,7 +104,7 @@ func (db Database) UserById(userId uint64) *model_database.User {
 	err := db.Sql.Get(user, query, userId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return nil
 	}
 	return user
@@ -119,7 +117,7 @@ func (db Database) UserByUsername(username string) *model_database.User {
 	err := db.Sql.Get(user, query, username)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return nil
 	}
 	return user
@@ -135,7 +133,7 @@ func (db Database) UserOwnGroupList(userId uint64) []model_database.Group {
 	err := db.Sql.Select(groupList, query, userId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return *groupList
 	}
 	return *groupList
@@ -151,7 +149,7 @@ func (db Database) UserGroupList(userId uint64) []model_database.Group {
 	err := db.Sql.Select(groupList, query, userId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return *groupList
 	}
 	return *groupList

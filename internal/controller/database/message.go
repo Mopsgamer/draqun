@@ -4,7 +4,6 @@ import (
 	"github.com/Mopsgamer/vibely/internal/controller/model_database"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/log"
 )
 
 func (db Database) CachedMessageList(messageList []model_database.Message) []fiber.Map {
@@ -29,7 +28,7 @@ func (db Database) MessageById(messageId uint64) *model_database.Message {
 	err := db.Sql.Get(message, query, messageId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return nil
 	}
 	return message
@@ -52,7 +51,7 @@ func (db Database) MessageCreate(message model_database.Message) *uint64 {
 	)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return nil
 	}
 
@@ -66,7 +65,7 @@ func (db Database) MessageList(groupId uint64) []model_database.Message {
 	err := db.Sql.Select(messageList, query, groupId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return *messageList
 	}
 	return *messageList
@@ -80,7 +79,7 @@ func (db *Database) MessageFirst(groupId uint64) *model_database.Message {
 	err := db.Sql.Get(message, query, groupId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return message
 	}
 	return message
@@ -94,7 +93,7 @@ func (db *Database) MessageLast(groupId uint64) *model_database.Message {
 	err := db.Sql.Get(message, query, groupId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return message
 	}
 	return message
@@ -114,7 +113,7 @@ func (db Database) MessageListPage(groupId uint64, page uint64, perPage uint64) 
 	err := db.Sql.Select(messageList, query, groupId, from, to)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return *messageList
 	}
 	return *messageList

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/Mopsgamer/vibely/internal/environment"
@@ -11,6 +12,14 @@ import (
 
 func New(sqlDB *sqlx.DB) Database {
 	return Database{sqlDB}
+}
+
+func logSqlError(err error) {
+	if err == sql.ErrNoRows {
+		return
+	}
+
+	logSqlError(err)
 }
 
 // The SQL DB wrapper.
@@ -50,7 +59,7 @@ func (db Database) Context() *DatabaseContext {
 	context := new(DatabaseContext)
 	err := db.Sql.Get(context, `SELECT LAST_INSERT_ID() AS new_id`)
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return nil
 	}
 

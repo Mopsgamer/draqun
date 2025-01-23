@@ -2,8 +2,6 @@ package database
 
 import (
 	"github.com/Mopsgamer/vibely/internal/controller/model_database"
-
-	"github.com/gofiber/fiber/v3/log"
 )
 
 func (db Database) RoleAssign(right model_database.RoleAssign) bool {
@@ -21,7 +19,7 @@ func (db Database) RoleAssign(right model_database.RoleAssign) bool {
 	)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return false
 	}
 
@@ -55,7 +53,7 @@ func (db Database) RoleCreate(role model_database.Role) *uint32 {
 	)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return nil
 	}
 
@@ -69,7 +67,7 @@ func (db Database) RoleById(roleId uint64) *model_database.Role {
 	err := db.Sql.Get(role, query, roleId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return role
 	}
 	return role
@@ -84,7 +82,7 @@ func (db Database) MemberRoleList(groupId, userId uint64) []model_database.Role 
 	err := db.Sql.Select(roleList, query, groupId, userId)
 
 	if err != nil {
-		log.Error(err)
+		logSqlError(err)
 		return *roleList
 	}
 	return *roleList
