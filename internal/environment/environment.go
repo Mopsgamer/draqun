@@ -91,16 +91,16 @@ func Load() {
 
 	GoMod = *gomod
 
-	GitHash = commandOutput("git", "log", "-n1", `--format="%h"`)
-	GitHashLong = commandOutput("git", "log", "-n1", `--format="%H"`)
+	GitHash, _ = commandOutput("git", "log", "-n1", `--format="%h"`)
+	GitHashLong, _ = commandOutput("git", "log", "-n1", `--format="%H"`)
 }
 
-func commandOutput(name string, arg ...string) string {
+func commandOutput(name string, arg ...string) (string, error) {
 	bytes, err := exec.Command(name, arg...).Output()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	// "hash"\n -> hash
-	return string(bytes)[1 : len(bytes)-2]
+	return string(bytes)[1 : len(bytes)-2], nil
 }

@@ -51,9 +51,9 @@
         </nav>
     </section>*/}}
     <div class="absolute right-0 bottom-0 text-neutral-500 p-2 font-[monospace]">
-        version: {{.DenoJson.Version}} (<a
+        version: {{.DenoJson.Version}}{{if ne .GitHash ""}} (<a
         class="text-cyan-500 underline"
         href="{{.GitHubRepo}}/commit/{{.GitHashLong}}"
-        >{{.GitHash}}</a>)
+        >{{.GitHash}}</a>){{end -}}
     </div>
 </footer>
