@@ -1,6 +1,4 @@
 import * as HTMX from "htmx.org";
-// @deno-types="npm:@types/diff"
-// import * as diff from "diff";
 import { SlButton } from "@shoelace-style/shoelace";
 import { getFormPropData } from "./lib.ts";
 

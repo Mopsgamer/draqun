@@ -14,7 +14,6 @@
     "npm:@types/mysql@*": "2.15.26",
     "npm:@types/node@*": "22.5.4",
     "npm:consola@^3.3.3": "3.3.3",
-    "npm:diff@7": "7.0.0",
     "npm:dotenv@^16.4.7": "16.4.7",
     "npm:esbuild-plugin-copy@^2.1.1": "2.1.1_esbuild@0.24.2",
     "npm:esbuild-plugin-tailwindcss@^1.2.1": "1.2.1_postcss@8.4.47",
@@ -405,9 +404,6 @@
     },
     "didyoumean@1.2.2": {
       "integrity": "sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw=="
-    },
-    "diff@7.0.0": {
-      "integrity": "sha512-PJWHUb1RFevKCwaFA9RlG5tCd+FO5iRh9A8HEtkmBH2Li03iJriB6m6JIN4rGz3K3JLawI7/veA1xzRKP6ISBw=="
     },
     "dir-glob@3.0.1": {
       "integrity": "sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==",
@@ -1125,7 +1121,6 @@
       "jsr:@std/path@^1.0.8",
       "npm:@shoelace-style/shoelace@^2.19.1",
       "npm:consola@^3.3.3",
-      "npm:diff@7",
       "npm:dotenv@^16.4.7",
       "npm:esbuild-plugin-copy@^2.1.1",
       "npm:esbuild-plugin-tailwindcss@^1.2.1",
