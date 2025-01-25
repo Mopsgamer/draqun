@@ -43,11 +43,11 @@
 
         <sl-divider></sl-divider>
 
-        {{- if .IsChatPage }}
+        {{- if not .IsHomePage }}
         <a href="/">
             <sl-menu-item>
                 <sl-icon slot="prefix" name="house-heart"></sl-icon>
-                Discover
+                Home
             </sl-menu-item>
         </a>
         {{- end}}

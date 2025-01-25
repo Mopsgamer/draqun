@@ -164,7 +164,7 @@ func NewApp() (*fiber.App, error) {
 		}
 		return ""
 	}
-	app.Get("/", UseHttpPage("homepage", &fiber.Map{"Title": "Discover", "IsHomePage": true}, noRedirect, "partials/main"))
+	app.Get("/", UseHttpPage("homepage", &fiber.Map{"Title": "Home", "IsHomePage": true}, noRedirect, "partials/main"))
 	app.Get("/terms", UseHttpPage("terms", &fiber.Map{"Title": "Terms", "CenterContent": true}, noRedirect, "partials/main"))
 	app.Get("/privacy", UseHttpPage("privacy", &fiber.Map{"Title": "Privacy", "CenterContent": true}, noRedirect, "partials/main"))
 	app.Get("/acknowledgements", UseHttpPage("acknowledgements", &fiber.Map{"Title": "Acknowledgements"}, noRedirect, "partials/main"))

@@ -2,11 +2,11 @@
     <section class="nav-block">
         <h1>Project</h1>
         <nav>
-            <a href="https://github.com/Mopsgamer/vibely" target="_blank" rel="noopener">
+            <a href="{{.GitHubRepo}}" target="_blank" rel="noopener">
                 <sl-icon name="github"></sl-icon>
                 Repository
             </a>
-            <a href="https://github.com/Mopsgamer/vibely/issues" target="_blank" rel="noopener">
+            <a href="{{.GitHubRepo}}/issues" target="_blank" rel="noopener">
                 <sl-icon name="mailbox-flag"></sl-icon>
                 Feedback
             </a>
@@ -33,7 +33,7 @@
             </a>
         </nav>
     </section>*/}}
-    <section class="nav-block">
+    {{/*<section class="nav-block">
         <h1>Security</h1>
         <nav>
             <a href="mailto:kisillev020304@gmail.com">
@@ -49,11 +49,11 @@
                 Privacy Policy
             </a>
         </nav>
-    </section>
+    </section>*/}}
     <div class="absolute right-0 bottom-0 text-neutral-500 p-2 font-[monospace]">
         version: {{.DenoJson.Version}} (<a
         class="text-cyan-500 underline"
-        href="https://github.com/Mopsgamer/vibely/commit/{{.GitHashLong}}"
+        href="{{.GitHubRepo}}/commit/{{.GitHashLong}}"
         >{{.GitHash}}</a>)
     </div>
 </footer>

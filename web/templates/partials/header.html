@@ -3,16 +3,18 @@
         <sl-dropdown class="aligned" id="page-nav">
             <sl-icon-button name="list" slot="trigger"></sl-icon-button>
             <sl-menu>
-                <a href="/">
-                    <sl-menu-item>
-                        <sl-icon name="house-heart" slot="prefix"></sl-icon>
-                        Discover
-                    </sl-menu-item>
-                </a>
+                {{if not .IsHomePage}}
+                    <a href="/">
+                        <sl-menu-item>
+                            <sl-icon name="house-heart" slot="prefix"></sl-icon>
+                            Home
+                        </sl-menu-item>
+                    </a>
+                {{end}}
                 <a href="/chat">
                     <sl-menu-item>
                         <sl-icon name="house" slot="prefix"></sl-icon>
-                        Vibely
+                        Open {{.AppName}}
                     </sl-menu-item>
                 </a>
                 <a href="/docs">

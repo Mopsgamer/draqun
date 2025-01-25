@@ -19,13 +19,15 @@ func (r ControllerHttp) RenderPage(templatePath string, bind *fiber.Map, redirec
 		return r.Ctx.Redirect().To(path)
 	}
 	if title, ok := (*bind)["Title"].(string); ok {
-		bindx["Title"] = "Vibely - " + title
+		bindx["Title"] = environment.AppName + " - " + title
 	}
 	return r.Ctx.Render(templatePath, bindx, layouts...)
 }
 
 func (ctl ControllerHttp) MapPage(bind *fiber.Map) fiber.Map {
 	bindx := fiber.Map{
+		"AppName":     environment.AppName,
+		"GitHubRepo":  environment.GitHubRepo,
 		"DenoJson":    environment.DenoJson,
 		"GoMod":       environment.GoMod,
 		"GitHash":     environment.GitHash,

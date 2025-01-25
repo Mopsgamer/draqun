@@ -16,7 +16,7 @@
         <sl-breadcrumb class="ml-3">
             <sl-breadcrumb-item href="/chat">
                 <sl-icon name="house" slot="prefix"></sl-icon>
-                Vibely
+                {{.AppName}}
             </sl-breadcrumb-item>
             {{- if ne .Group nil}}
             <sl-breadcrumb-item href="/chat/groups/{{.Group.Id}}">

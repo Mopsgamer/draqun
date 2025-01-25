@@ -11,10 +11,13 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
+const AppName string = "Vibely"
+const GitHubRepo string = "https://github.com/Mopsgamer/vibely"
+
 var Environment int
 
 const (
-	EnvironmentTest = iota
+	EnvironmentTest int = iota
 	EnvironmentDevelopment
 	EnvironmentProduction
 )
