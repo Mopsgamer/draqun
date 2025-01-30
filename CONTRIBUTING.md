@@ -2,10 +2,12 @@
 
 ## Changing the code base
 
-The best way is to use 2 terminals:
+The `watch` and `build` client code base (./web) is not tied with the server
+code base (./internal). The best way is to use 2 terminals (3-rd for other
+tasks):
 
 ```bash
-deno task serve
+deno task serve --watch
 ```
 
 ```bash
@@ -13,12 +15,7 @@ deno task watch
 ```
 
 > [!NOTE]
-> You can use VSC tasks for this.
-
-The `watch` and `build` scripts are not tied with the server code base. That
-means you should restart your server if you are making changes to the
-`./internal` or if you are using `build`and making changes to the `./web`. Also
-you should reload pages manually.
+> You can use Visual Studio Code's task commands: `Tasks: Run Task`.
 
 ## About DOM (HTMX, Shoelace) and Session
 
@@ -32,13 +29,7 @@ Resources:
 
 We are using HTMX. JavaScript (TypeScript) is an utility for importing
 libraries, extending DOM and web-components functionality. We are fetching HTML
-from the server instead of JSON - use the power of hypertext with HTMX.
-
-> [!WARNING]
-> DOM manipulations should be provided through HTMX and the server. Cookies
-> should be changed by the server, if possible.
->
-> Always send HTML as a response, if the request initialized by HTMX.
+from the server instead of JSON.
 
 ### About templates
 
@@ -46,8 +37,6 @@ Files in the [./web/templates](./web/templates) can be rendered through Go's
 template language: <https://pkg.go.dev/html/template>.
 
 That means, you can use specific syntax and replacements, but the variables
-should be declared by the server, such as `{{.User}}`.
-
-The User and other variables should be used to generate user/group-specific
-content (logout button, profile, etc): `{{- if ne .User nil}}`,
-`{{- if eq .User nil}}`.
+should be declared by the server. You can find more it in the server code base
+(./internal). Specific functions are declared in the engine file
+(./internal/engine.go).
