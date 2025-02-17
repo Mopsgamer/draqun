@@ -1,6 +1,6 @@
 **/node_modules
 .env
-.vscode/launch.json
+*debug*.exe
 web/assets
 web/static
 .air.toml
