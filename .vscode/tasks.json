@@ -6,9 +6,8 @@
             "type": "shell",
             "command": "deno",
             "args": [
-                "run",
-                "-A",
-                "scripts/init.ts"
+                "task",
+                "init"
             ],
             "detail": "Initialize the ./.env file, then database tables.",
             "icon": {
@@ -22,9 +21,8 @@
             "type": "shell",
             "command": "deno",
             "args": [
-                "run",
-                "-A",
-                "scripts/build.ts"
+                "task",
+                "build"
             ],
             "detail": "Build the ./client folder.",
             "icon": {
@@ -34,7 +32,7 @@
             "problemMatcher": []
         },
         {
-            "label": "Watch",
+            "label": "Build & Watch",
             "type": "shell",
             "command": "deno",
             "args": [
@@ -44,7 +42,7 @@
             ],
             "detail": "Watch and rebuild on ./client changes.",
             "icon": {
-                "id": "eye",
+                "id": "tools",
                 "color": "terminal.ansiYellow"
             },
             "problemMatcher": []
@@ -52,15 +50,31 @@
         {
             "label": "Serve",
             "type": "shell",
-            "command": "go",
+            "command": "deno",
             "args": [
-                "run",
-                "."
+                "task",
+                "serve"
             ],
             "detail": "Serve locally.",
             "icon": {
                 "id": "server",
                 "color": "terminal.ansiMagenta"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Serve & Watch",
+            "type": "shell",
+            "command": "deno",
+            "args": [
+                "task",
+                "serve",
+                "--watch"
+            ],
+            "detail": "Serve and restart on ./server changes.",
+            "icon": {
+                "id": "server",
+                "color": "terminal.ansiYellow"
             },
             "problemMatcher": []
         },
