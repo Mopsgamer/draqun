@@ -7,6 +7,7 @@ import { exists, existsSync } from "@std/fs";
 import { envKeys, logBuild } from "./tool.ts";
 import dotenv from "dotenv";
 
+const folder = "client"
 dotenv.config();
 const isWatch = Deno.args.includes("--watch");
 
@@ -17,7 +18,7 @@ type BuildOptions = esbuild.BuildOptions & {
 const environment = Number(Deno.env.get(envKeys.ENVIRONMENT));
 const minify = environment > 1;
 logBuild.info(`${envKeys.ENVIRONMENT} = ${environment}`);
-logBuild.info(`Starting bundling web${isWatch ? " in watch mode" : ""}...`);
+logBuild.info(`Starting bundling ${folder}${isWatch ? " in watch mode" : ""}...`);
 
 const options: esbuild.BuildOptions = {
     bundle: true,
@@ -122,18 +123,18 @@ function copy(from: string, to: string): Promise<void> {
 
 await build({
     ...options,
-    outdir: "./web/static/js",
-    entryPoints: ["./web/src/ts/**/*"],
+    outdir: `./${folder}/static/js`,
+    entryPoints: [`./${folder}/src/ts/**/*`],
     plugins: [...denoPlugins()],
 });
 
 await build({
     ...options,
-    outdir: "./web/static/css",
-    entryPoints: ["./web/src/tailwindcss/**/*"],
+    outdir: `./${folder}/static/css`,
+    entryPoints: [`./${folder}/src/tailwindcss/**/*`],
     whenChange: [
-        "./web/templates",
-        "./web/src/tailwindcss",
+        `./${folder}/templates`,
+        `./${folder}/src/tailwindcss`,
         // "./tailwind.config.ts", // should reload process, anyway won't work
     ],
     external: ["/static/assets/*"],
@@ -144,12 +145,12 @@ await build({
 
 await copy(
     "./node_modules/@shoelace-style/shoelace/dist/**/*",
-    "./web/static/shoelace",
+    `./${folder}/static/shoelace`,
 );
 
 await copy(
-    "./web/src/assets/**/*",
-    "./web/static/assets",
+    `./${folder}/src/assets/**/*`,
+    `./${folder}/static/assets`,
 );
 
 logBuild.success("Bundled successfully");

@@ -26,7 +26,7 @@
                 "-A",
                 "scripts/build.ts"
             ],
-            "detail": "Build the ./web folder.",
+            "detail": "Build the ./client folder.",
             "icon": {
                 "id": "tools",
                 "color": "terminal.ansiGreen"
@@ -42,7 +42,7 @@
                 "build",
                 "--watch"
             ],
-            "detail": "Watch and rebuild on ./web changes.",
+            "detail": "Watch and rebuild on ./client changes.",
             "icon": {
                 "id": "eye",
                 "color": "terminal.ansiYellow"

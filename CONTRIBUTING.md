@@ -2,8 +2,8 @@
 
 ## Changing the code base
 
-The `watch` and `build` client code base (./web) is not tied with the server
-code base (./internal). The best way is to use 2 terminals (3-rd for other
+The `watch` and `build` client code base (./client) is not tied with the server
+code base (./server). The best way is to use 2 terminals (3-rd for other
 tasks):
 
 ```bash
@@ -33,10 +33,10 @@ from the server instead of JSON.
 
 ### About templates
 
-Files in the [./web/templates](./web/templates) can be rendered through Go's
+Files in the [./client/templates](./client/templates) can be rendered through Go's
 template language: <https://pkg.go.dev/html/template>.
 
 That means, you can use specific syntax and replacements, but the variables
 should be declared by the server. You can find more it in the server code base
-(./internal). Specific functions are declared in the engine file
-(./internal/engine.go).
+(./server). Specific functions are declared in the engine file
+(./server/engine.go).

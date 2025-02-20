@@ -1,6 +1,6 @@
 import { envKeys } from "./tool.ts";
 
-const watchDir = "./internal";
+const watchDir = "./server";
 
 let serverProcess: Deno.ChildProcess | undefined = undefined;
 async function startDenoTask() {

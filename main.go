@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/Mopsgamer/draqun/internal"
-	"github.com/Mopsgamer/draqun/internal/environment"
+	internal "github.com/Mopsgamer/draqun/server"
+	"github.com/Mopsgamer/draqun/server/environment"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gofiber/fiber/v3/log"
