@@ -3,10 +3,10 @@ package model_http
 import (
 	"time"
 
-	"github.com/Mopsgamer/vibely/internal/controller"
-	"github.com/Mopsgamer/vibely/internal/controller/controller_http"
-	"github.com/Mopsgamer/vibely/internal/controller/model_database"
-	"github.com/Mopsgamer/vibely/internal/i18n"
+	"github.com/Mopsgamer/draqun/internal/controller"
+	"github.com/Mopsgamer/draqun/internal/controller/controller_http"
+	"github.com/Mopsgamer/draqun/internal/controller/model_database"
+	"github.com/Mopsgamer/draqun/internal/i18n"
 )
 
 const (

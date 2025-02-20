@@ -1,8 +1,8 @@
 package controller_ws
 
 import (
-	"github.com/Mopsgamer/vibely/internal/controller"
-	"github.com/Mopsgamer/vibely/websocket"
+	"github.com/Mopsgamer/draqun/internal/controller"
+	"github.com/Mopsgamer/draqun/websocket"
 )
 
 func (ws *ControllerWs) SendBytes(message []byte) error {

@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Mopsgamer/vibely/internal/controller/controller_http"
-	"github.com/Mopsgamer/vibely/internal/controller/model_database"
-	"github.com/Mopsgamer/vibely/internal/environment"
+	"github.com/Mopsgamer/draqun/internal/controller/controller_http"
+	"github.com/Mopsgamer/draqun/internal/controller/model_database"
+	"github.com/Mopsgamer/draqun/internal/environment"
 
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/golang-jwt/jwt/v5"

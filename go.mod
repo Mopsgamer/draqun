@@ -1,4 +1,4 @@
-module github.com/Mopsgamer/vibely
+module github.com/Mopsgamer/draqun
 
 go 1.23
 

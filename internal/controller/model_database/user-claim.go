@@ -23,7 +23,7 @@ func (c User) GetNotBefore() (*jwt.NumericDate, error) {
 }
 
 func (c User) GetIssuer() (string, error) {
-	return "vibely", nil
+	return "draqun", nil
 }
 
 func (c User) GetSubject() (string, error) {

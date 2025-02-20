@@ -4,10 +4,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Mopsgamer/vibely/internal/controller"
-	"github.com/Mopsgamer/vibely/internal/controller/database"
-	"github.com/Mopsgamer/vibely/internal/controller/model_database"
-	"github.com/Mopsgamer/vibely/internal/environment"
+	"github.com/Mopsgamer/draqun/internal/controller"
+	"github.com/Mopsgamer/draqun/internal/controller/database"
+	"github.com/Mopsgamer/draqun/internal/controller/model_database"
+	"github.com/Mopsgamer/draqun/internal/environment"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/template/html/v2"

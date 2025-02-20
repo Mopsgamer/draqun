@@ -1,8 +1,8 @@
 package model_ws
 
 import (
-	"github.com/Mopsgamer/vibely/internal/controller/controller_ws"
-	"github.com/Mopsgamer/vibely/internal/controller/model_database"
+	"github.com/Mopsgamer/draqun/internal/controller/controller_ws"
+	"github.com/Mopsgamer/draqun/internal/controller/model_database"
 )
 
 type UriGroupId struct {

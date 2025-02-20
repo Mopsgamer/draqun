@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Mopsgamer/vibely/internal/controller/controller_ws"
+	"github.com/Mopsgamer/draqun/internal/controller/controller_ws"
 )
 
 type Request struct {

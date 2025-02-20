@@ -12,4 +12,4 @@ CREATE TABLE IF NOT EXISTS app_users (
     UNIQUE (username),
     UNIQUE (email),
     UNIQUE (phone)
-) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Vibely users';
+) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Draqun users';

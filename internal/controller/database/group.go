@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/Mopsgamer/vibely/internal/controller/model_database"
+	"github.com/Mopsgamer/draqun/internal/controller/model_database"
 )
 
 // Create new DB record.

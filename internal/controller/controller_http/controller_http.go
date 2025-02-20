@@ -1,8 +1,8 @@
 package controller_http
 
 import (
-	"github.com/Mopsgamer/vibely/internal/controller/database"
-	"github.com/Mopsgamer/vibely/internal/controller/model_database"
+	"github.com/Mopsgamer/draqun/internal/controller/database"
+	"github.com/Mopsgamer/draqun/internal/controller/model_database"
 
 	"github.com/gofiber/fiber/v3"
 )

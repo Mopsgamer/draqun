@@ -1,7 +1,7 @@
-# Vibely
+# Draqun
 
-[![github](https://img.shields.io/github/stars/Mopsgamer/vibely.svg?style=flat)](https://github.com/Mopsgamer/vibely)
-[![github issues](https://img.shields.io/github/issues/Mopsgamer/vibely.svg?style=flat)](https://github.com/Mopsgamer/vibely/issues)
+[![github](https://img.shields.io/github/stars/Mopsgamer/draqun.svg?style=flat)](https://github.com/Mopsgamer/draqun)
+[![github issues](https://img.shields.io/github/issues/Mopsgamer/draqun.svg?style=flat)](https://github.com/Mopsgamer/draqun/issues)
 
 Definitely a cool chat application.
 

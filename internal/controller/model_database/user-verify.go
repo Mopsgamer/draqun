@@ -1,7 +1,7 @@
 package model_database
 
 import (
-	"github.com/Mopsgamer/vibely/internal/environment"
+	"github.com/Mopsgamer/draqun/internal/environment"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"

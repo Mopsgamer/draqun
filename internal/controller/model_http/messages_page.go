@@ -1,8 +1,8 @@
 package model_http
 
 import (
-	"github.com/Mopsgamer/vibely/internal/controller/controller_http"
-	"github.com/Mopsgamer/vibely/internal/i18n"
+	"github.com/Mopsgamer/draqun/internal/controller/controller_http"
+	"github.com/Mopsgamer/draqun/internal/i18n"
 
 	"github.com/gofiber/fiber/v3"
 )

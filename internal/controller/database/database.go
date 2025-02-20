@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/Mopsgamer/vibely/internal/environment"
+	"github.com/Mopsgamer/draqun/internal/environment"
 
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/jmoiron/sqlx"

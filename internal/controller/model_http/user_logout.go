@@ -3,7 +3,7 @@ package model_http
 import (
 	"time"
 
-	"github.com/Mopsgamer/vibely/internal/controller/controller_http"
+	"github.com/Mopsgamer/draqun/internal/controller/controller_http"
 
 	"github.com/gofiber/fiber/v3"
 )
