@@ -14,16 +14,17 @@
         "@shoelace-style/shoelace": "npm:@shoelace-style/shoelace@^2.19.1",
         "@std/fs": "jsr:@std/fs@^1.0.8",
         "@std/path": "jsr:@std/path@^1.0.8",
+        "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.0.12",
         "consola": "npm:consola@^3.3.3",
         "dotenv": "npm:dotenv@^16.4.7",
         "esbuild": "npm:esbuild@^0.24.2",
         "esbuild-plugin-copy": "npm:esbuild-plugin-copy@^2.1.1",
-        "esbuild-plugin-tailwindcss": "npm:esbuild-plugin-tailwindcss@^1.2.1",
         "htmx-ext-debug": "npm:htmx-ext-debug@^2.0.0",
         "htmx-ext-ws": "npm:htmx-ext-ws@^2.0.2",
         "htmx.org": "npm:htmx.org@^1.9.12",
         "mysql2": "npm:mysql2@^3.12.0",
-        "tailwindcss": "npm:tailwindcss@^3.4.17"
+        "postcss": "npm:postcss@^8.5.3",
+        "tailwindcss": "npm:tailwindcss@^4.0.12"
     },
     "exports": {},
     "fmt": {

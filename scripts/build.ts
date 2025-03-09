@@ -1,13 +1,14 @@
 import * as esbuild from "esbuild";
 import { copy as copyPlugin } from "esbuild-plugin-copy";
-import { tailwindPlugin } from "esbuild-plugin-tailwindcss";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { dirname } from "@std/path";
 import { exists, existsSync } from "@std/fs";
 import { envKeys, logBuild } from "./tool.ts";
 import dotenv from "dotenv";
+import postcss from "postcss";
+import tailwindcss from "@tailwindcss/postcss";
 
-const folder = "client"
+const folder = "client";
 dotenv.config();
 const isWatch = Deno.args.includes("--watch");
 
@@ -18,7 +19,9 @@ type BuildOptions = esbuild.BuildOptions & {
 const environment = Number(Deno.env.get(envKeys.ENVIRONMENT));
 const minify = environment > 1;
 logBuild.info(`${envKeys.ENVIRONMENT} = ${environment}`);
-logBuild.info(`Starting bundling ${folder}${isWatch ? " in watch mode" : ""}...`);
+logBuild.info(
+    `Starting bundling ${folder}${isWatch ? " in watch mode" : ""}...`,
+);
 
 const options: esbuild.BuildOptions = {
     bundle: true,
@@ -135,11 +138,35 @@ await build({
     whenChange: [
         `./${folder}/templates`,
         `./${folder}/src/tailwindcss`,
-        // "./tailwind.config.ts", // should reload process, anyway won't work
+        "./tailwind.config.ts",
     ],
     external: ["/static/assets/*"],
     plugins: [
-        tailwindPlugin({ configPath: "./tailwind.config.ts" }),
+        {
+            name: "postcss-tailwind",
+            setup(build: esbuild.PluginBuild): void {
+                build.onResolve({ filter: /tailwind/ }, (args) => {
+                    return {
+                        path: args.path,
+                        external: true,
+                    };
+                });
+
+                build.onLoad({ filter: /\.css$/ }, async (args) => {
+                    const source = Deno.readTextFileSync(args.path);
+                    const result = postcss([
+                        tailwindcss({ optimize: false }),
+                    ]).process(source, { from: args.path });
+
+                    const contents = (await result).css;
+
+                    return {
+                        contents,
+                        loader: "css",
+                    };
+                });
+            },
+        },
     ],
 });
 
