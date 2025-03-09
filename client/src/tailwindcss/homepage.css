@@ -1,5 +1,5 @@
 @import "./main.css";
-@reference "./theme.css";
+@import "tailwindcss";
 
 .super-sect, .super-sect-1, .super-sect-2 {
     @apply relative text-center px-5 py-12 gap-5 flex justify-around items-center overflow-hidden;

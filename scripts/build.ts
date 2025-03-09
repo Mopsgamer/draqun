@@ -1,19 +1,18 @@
 import * as esbuild from "esbuild";
 import { copy as copyPlugin } from "esbuild-plugin-copy";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
-import { dirname } from "@std/path";
-import { exists, existsSync } from "@std/fs";
+import { existsSync } from "@std/fs";
 import { envKeys, logBuild } from "./tool.ts";
 import dotenv from "dotenv";
-import postcss from "postcss";
-import tailwindcss from "@tailwindcss/postcss";
+import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
+import { dirname } from "@std/path/dirname";
 
 const folder = "client";
 dotenv.config();
 const isWatch = Deno.args.includes("--watch");
 
 type BuildOptions = esbuild.BuildOptions & {
-    whenChange?: string | string[];
+    whenChange?: string[];
 };
 
 const environment = Number(Deno.env.get(envKeys.ENVIRONMENT));
@@ -40,13 +39,15 @@ const options: esbuild.BuildOptions = {
     ],
 };
 
+let buildCalls = 0
 async function build(
     options: BuildOptions,
 ): Promise<void> {
     const { outdir, outfile, entryPoints = [], whenChange = [] } = options;
+    buildCalls++;
 
     const directory = outdir || dirname(outfile!);
-    logBuild.info(directory);
+    logBuild.info(`${directory} ${buildCalls}/${calls.length}`);
 
     const entryPointsNormalized = Array.isArray(entryPoints)
         ? entryPoints
@@ -61,37 +62,64 @@ async function build(
         }
     });
 
-    if (
-        badEntryPoints.length > 0
-    ) throw new Error(`File expected to exist: ${badEntryPoints.join(", ")}`);
+    if (badEntryPoints.length > 0) {
+        logBuild.fatal(`File expected to exist: ${badEntryPoints.join(", ")}`);
+        return;
+    }
 
-    if (
-        !outfile && !outdir
-    ) throw new Error(`Provide outdir or outfile.`);
+    if (!outfile && !outdir) {
+        logBuild.fatal(`Provide outdir or outfile.`);
+        return;
+    }
 
-    if (
-        outfile && outdir
-    ) throw new Error(`Can not use outdir and outfile at the same time.`);
-
-    if (await exists(directory)) {
-        await Deno.remove(directory, { recursive: true });
+    if (outfile && outdir) {
+        logBuild.fatal(`Can not use outdir and outfile at the same time.`);
+        return;
     }
 
     const safeOptions = options;
     delete safeOptions.whenChange;
     const ctx = await esbuild.context(safeOptions as esbuild.BuildOptions);
-    await ctx.rebuild();
+
+    async function rebuild() {
+        try {
+            const result = await ctx.rebuild();
+            for (const warn of result.warnings) {
+                logBuild.warn(warn)
+            }
+            for (const error of result.errors) {
+                logBuild.error(error)
+            }
+        } catch (error) {
+            logBuild.fatal(error);
+        }
+    }
+
+    await rebuild();
     if (!isWatch) {
-        await ctx.dispose();
-        logBuild.success(directory);
+        await ctx!.dispose();
         return;
     }
 
-    await ctx.watch();
-    logBuild.success(directory);
+    try {
+        await ctx.watch();
+    } catch (error) {
+        logBuild.fatal(error);
+        return;
+    }
+
     if (whenChange.length === 0) return;
 
-    const watcher = Deno.watchFs(whenChange, { recursive: true });
+    let watcher: Deno.FsWatcher;
+    try {
+        watcher = Deno.watchFs(whenChange, { recursive: true });
+    } catch (error) {
+        logBuild.error(error);
+        logBuild.fatal(
+            "Bad paths, can not add watcher: " + whenChange.join(", ") + ".",
+        );
+        return;
+    }
 
     // this callback won't block the process.
     // buildTask will return while ignoring loop
@@ -102,9 +130,7 @@ async function build(
                 event.kind === "remove"
             ) return;
 
-            try {
-                await ctx.rebuild();
-            } catch { /* empty */ }
+            await rebuild()
         }
         await ctx.dispose();
     })();
@@ -124,61 +150,43 @@ function copy(from: string, to: string): Promise<void> {
     });
 }
 
-await build({
+const calls: unknown[][] = [
+[copy,
+    "./node_modules/@shoelace-style/shoelace/dist/assets/**/*",
+    `./${folder}/static/shoelace/assets`,
+],
+
+[copy,
+    `./${folder}/src/assets/**/*`,
+    `./${folder}/static/assets`,
+],
+
+[build,{
     ...options,
     outdir: `./${folder}/static/js`,
     entryPoints: [`./${folder}/src/ts/**/*`],
     plugins: [...denoPlugins()],
-});
+}],
 
-await build({
+[build, {
     ...options,
     outdir: `./${folder}/static/css`,
-    entryPoints: [`./${folder}/src/tailwindcss/**/*`],
+    entryPoints: [`./${folder}/src/tailwindcss/**/*.css`],
     whenChange: [
         `./${folder}/templates`,
         `./${folder}/src/tailwindcss`,
-        "./tailwind.config.ts",
     ],
     external: ["/static/assets/*"],
     plugins: [
-        {
-            name: "postcss-tailwind",
-            setup(build: esbuild.PluginBuild): void {
-                build.onResolve({ filter: /tailwind/ }, (args) => {
-                    return {
-                        path: args.path,
-                        external: true,
-                    };
-                });
-
-                build.onLoad({ filter: /\.css$/ }, async (args) => {
-                    const source = Deno.readTextFileSync(args.path);
-                    const result = postcss([
-                        tailwindcss({ optimize: false }),
-                    ]).process(source, { from: args.path });
-
-                    const contents = (await result).css;
-
-                    return {
-                        contents,
-                        loader: "css",
-                    };
-                });
-            },
-        },
+        tailwindcssPlugin()
     ],
-});
+}],
+]
 
-await copy(
-    "./node_modules/@shoelace-style/shoelace/dist/**/*",
-    `./${folder}/static/shoelace`,
-);
-
-await copy(
-    `./${folder}/src/assets/**/*`,
-    `./${folder}/static/assets`,
-);
+for (const [fn, ...args] of calls) {
+    // deno-lint-ignore ban-types
+    await (fn as Function)(...args)
+}
 
 logBuild.success("Bundled successfully");
 if (isWatch) {

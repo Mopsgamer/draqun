@@ -1,5 +1,5 @@
 @import "./main.css";
-@reference "./theme.css";
+@import "tailwindcss";
 
 .api-docs {
     .http-method table {

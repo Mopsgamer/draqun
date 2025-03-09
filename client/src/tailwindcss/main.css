@@ -1,8 +1,5 @@
-@import "../../../node_modules/@shoelace-style/shoelace/dist/themes/light.css";
-@import "../../../node_modules/@shoelace-style/shoelace/dist/themes/dark.css";
 @import "./theme.css";
 @import "./shoelace-ext.css";
-@import "tailwindcss";
 
 @utility limited {
     @apply overflow-hidden text-ellipsis;
@@ -170,7 +167,7 @@ sl-card.group-card {
             @apply cursor-pointer;
         }
         &:hover::part(base) {
-            --sl-panel-background-color: var(--colors-neutral-100);
+            --sl-panel-background-color: var(--color-neutral-100);
         }
     }
     .group-card-header {
