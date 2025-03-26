@@ -39,7 +39,7 @@ const options: esbuild.BuildOptions = {
     ],
 };
 
-let buildCalls = 0
+let buildCalls = 0;
 async function build(
     options: BuildOptions,
 ): Promise<void> {
@@ -85,10 +85,10 @@ async function build(
         try {
             const result = await ctx.rebuild();
             for (const warn of result.warnings) {
-                logBuild.warn(warn)
+                logBuild.warn(warn);
             }
             for (const error of result.errors) {
-                logBuild.error(error)
+                logBuild.error(error);
             }
         } catch (error) {
             logBuild.fatal(error);
@@ -130,7 +130,7 @@ async function build(
                 event.kind === "remove"
             ) return;
 
-            await rebuild()
+            await rebuild();
         }
         await ctx.dispose();
     })();
@@ -151,41 +151,39 @@ function copy(from: string, to: string): Promise<void> {
 }
 
 const calls: unknown[][] = [
-[copy,
-    "./node_modules/@shoelace-style/shoelace/dist/assets/**/*",
-    `./${folder}/static/shoelace/assets`,
-],
-
-[copy,
-    `./${folder}/src/assets/**/*`,
-    `./${folder}/static/assets`,
-],
-
-[build,{
-    ...options,
-    outdir: `./${folder}/static/js`,
-    entryPoints: [`./${folder}/src/ts/**/*`],
-    plugins: [...denoPlugins()],
-}],
-
-[build, {
-    ...options,
-    outdir: `./${folder}/static/css`,
-    entryPoints: [`./${folder}/src/tailwindcss/**/*.css`],
-    whenChange: [
-        `./${folder}/templates`,
-        `./${folder}/src/tailwindcss`,
+    [
+        copy,
+        "./node_modules/@shoelace-style/shoelace/dist/assets/**/*",
+        `./${folder}/static/shoelace/assets`,
     ],
-    external: ["/static/assets/*"],
-    plugins: [
-        tailwindcssPlugin()
-    ],
-}],
-]
+
+    [copy, `./${folder}/src/assets/**/*`, `./${folder}/static/assets`],
+
+    [build, {
+        ...options,
+        outdir: `./${folder}/static/js`,
+        entryPoints: [`./${folder}/src/ts/**/*`],
+        plugins: [...denoPlugins()],
+    }],
+
+    [build, {
+        ...options,
+        outdir: `./${folder}/static/css`,
+        entryPoints: [`./${folder}/src/tailwindcss/**/*.css`],
+        whenChange: [
+            `./${folder}/templates`,
+            `./${folder}/src/tailwindcss`,
+        ],
+        external: ["/static/assets/*"],
+        plugins: [
+            tailwindcssPlugin(),
+        ],
+    }],
+];
 
 for (const [fn, ...args] of calls) {
     // deno-lint-ignore ban-types
-    await (fn as Function)(...args)
+    await (fn as Function)(...args);
 }
 
 logBuild.success("Bundled successfully");
