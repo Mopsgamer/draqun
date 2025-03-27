@@ -25,6 +25,9 @@
     .title {
         @apply text-7xl;
     }
+    .title, .description {
+        @apply drop-shadow-sm;
+    }
 }
 
 .super-sect-1, .super-sect-2 {
