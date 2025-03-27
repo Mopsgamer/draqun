@@ -1,8 +1,7 @@
 module github.com/Mopsgamer/draqun
 
 go 1.23
-
-toolchain go1.23.2
+toolchain go1.24.1
 
 require (
 	github.com/fasthttp/websocket v1.5.12
@@ -10,11 +9,11 @@ require (
 	github.com/gofiber/fiber/v3 v3.0.0-beta.4
 	github.com/gofiber/template/html/v2 v2.1.2
 	github.com/gofiber/utils/v2 v2.0.0-beta.7
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/valyala/fasthttp v1.58.0
-	golang.org/x/crypto v0.32.0
+	golang.org/x/crypto v0.35.0
 	golang.org/x/mod v0.22.0
 )
 
@@ -35,7 +34,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 )
