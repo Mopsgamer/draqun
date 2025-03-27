@@ -1,6 +1,6 @@
+@reference "tailwindcss";
 @import "../../../node_modules/@shoelace-style/shoelace/dist/themes/light.css";
 @import "../../../node_modules/@shoelace-style/shoelace/dist/themes/dark.css";
-@import "tailwindcss";
 @config "../../tailwind.config.ts";
 
 .sl-theme-light {

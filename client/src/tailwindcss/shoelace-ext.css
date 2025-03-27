@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@reference "./theme.css";
 
 sl-tooltip {
     --max-width: 100svw;
