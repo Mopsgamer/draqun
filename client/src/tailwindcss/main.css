@@ -1,291 +1,278 @@
-@import url("../../../node_modules/@shoelace-style/shoelace/dist/themes/light.css");
-@import url("../../../node_modules/@shoelace-style/shoelace/dist/themes/dark.css");
-@import url("./theme.css");
-@import url("./shoelace-ext.css");
+@import "tailwindcss";
+@import "./theme.css";
+@import "./shoelace-ext.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@utility limited {
+    @apply overflow-hidden text-ellipsis;
+}
 
-@layer base {
-    .limited {
-        @apply overflow-hidden text-ellipsis;
+@utility aligned {
+    @apply relative flex items-center gap-2;
+}
+
+@utility section {
+    @apply flex flex-col gap-4;
+}
+
+#header {
+    @apply relative flex justify-between bg-neutral-100 p-4 shadow-lg z-20;
+    & > nav {
+        @apply flex items-center;
     }
-
-    .aligned {
-        @apply relative flex items-center gap-2;
-    }
-
-    .section {
-        @apply flex flex-col gap-4;
+    sl-icon-button {
+        @apply text-3xl;
     }
 }
 
-@layer base {
-    #header {
-        @apply relative flex justify-between bg-neutral-100 p-4 shadow-lg z-20;
-        & > nav {
-            @apply flex items-center;
-        }
-        sl-icon-button {
-            @apply text-3xl;
-        }
-    }
+#main {
+    @apply h-full overflow-auto;
+}
 
-    #main {
-        @apply h-full overflow-auto;
-    }
-
-    #footer {
-        @apply relative flex flex-row flex-wrap justify-between bg-neutral-200 p-24 gap-12;
-        section {
-            @apply flex flex-col gap-4;
-            h1, h2, h3, h4, h5, h6 {
-                @apply m-0 border-none;
-            }
-            nav {
-                @apply flex flex-col gap-1 text-lg;
-                a {
-                    @apply flex items-center gap-3;
-                    &:hover {
-                        @apply text-primary-600;
-                    }
+#footer {
+    @apply relative flex flex-row flex-wrap justify-between bg-neutral-200 p-24 gap-12;
+    section {
+        @apply flex flex-col gap-4;
+        h1, h2, h3, h4, h5, h6 {
+            @apply m-0 border-none;
+        }
+        nav {
+            @apply flex flex-col gap-1 text-lg;
+            a {
+                @apply flex items-center gap-3;
+                &:hover {
+                    @apply text-primary-600;
                 }
             }
         }
     }
+}
 
-    /* normal body contains modals. real body must not */
-    #real-body {
-        @apply relative flex flex-col h-full overflow-auto;
-        .center-content {
-            @apply flex flex-col size-full justify-center items-center;
-        }
-    }
-
-    /* content between header and footer */
-    #app-content {
-        @apply relative bg-neutral-50 flex flex-col w-svw h-svh overflow-hidden;
-        &:has(#chat) {
-            @apply flex-row;
-        }
-    }
-
-    #chat-view, #members-view {
-        @apply relative flex flex-col size-full gap-1;
-    }
-
-    :is(#members-view) {
-        @apply hidden;
-        &.open {
-            @apply flex;
-        }
-    }
-
-    #chat-view {
-        @apply gap-2 hidden group-[:not(:has(.open))]:flex md:flex;
-    }
-
-    #members-view {
-        @apply p-3 md:w-56 text-2xl md:text-base bg-neutral-50 snap-y;
-    }
-
-    #chat {
-        @apply relative bg-neutral-100 snap-y flex flex-col size-full p-3 pb-6 overflow-y-auto overflow-x-hidden;
+/* normal body contains modals. real body must not */
+#real-body {
+    @apply relative flex flex-col h-full overflow-auto;
+    .center-content {
+        @apply flex flex-col size-full justify-center items-center;
     }
 }
 
-@layer base {
-    body:has(:not(:defined)) {
-        @apply hidden;
-    }
-
-    body {
-        @apply h-svh bg-neutral-100 text-neutral-700;
-    }
-
-    code, pre {
-        @apply border-neutral-200 border bg-neutral-50 rounded p-1;
-    }
-
-    pre {
-        @apply overflow-auto;
-    }
-
-    table {
-        @apply border-collapse;
-        & > tbody {
-            @apply border bg-neutral-50 rounded;
-        }
-        th, td {
-            @apply p-2 border border-neutral-300 text-neutral-700;
-        }
-        th {
-            @apply bg-neutral-200;
-        }
-    }
-
-    form {
-        @apply section;
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        @apply aligned relative p-2 border-neutral-200 font-bold;
-    }
-    h1 {
-        @apply text-4xl mt-12 mb-6;
-    }
-    h2 {
-        @apply text-3xl mt-9 mb-5 border-b;
-    }
-    h3 {
-        @apply text-2xl mt-9 mb-4 border-b;
-    }
-    h4 {
-        @apply text-xl mt-7 mb-3 border-b;
-    }
-    h5 {
-        @apply text-lg mt-7 mb-2;
-    }
-    h6 {
-        @apply text-base mt-5 mb-1;
+/* content between header and footer */
+#app-content {
+    @apply relative bg-neutral-50 flex flex-col w-svw h-svh overflow-hidden;
+    &:has(#chat) {
+        @apply flex-row;
     }
 }
 
-@layer components {
-    .note-header {
-        @apply text-neutral-500 p-2 font-semibold;
-    }
+#chat-view, #members-view {
+    @apply relative flex flex-col size-full gap-1;
+}
 
-    .dialog-footer {
-        @apply flex flex-col gap-2;
-        div {
-            @apply aligned flex justify-end items-center gap-2;
-        }
+:is(#members-view) {
+    @apply hidden;
+    &.open {
+        @apply flex;
     }
+}
 
-    sl-carousel.group-card {
+#chat-view {
+    @apply gap-2 hidden group-[:not(:has(.open))]:flex md:flex;
+}
+
+#members-view {
+    @apply p-3 md:w-56 text-2xl md:text-base bg-neutral-50 snap-y;
+}
+
+#chat {
+    @apply relative bg-neutral-100 snap-y flex flex-col size-full p-3 pb-6 overflow-y-auto overflow-x-hidden;
+}
+
+body:has(:not(:defined)) {
+    @apply hidden;
+}
+
+body {
+    @apply h-svh bg-neutral-100 text-neutral-700;
+}
+
+code, pre {
+    @apply border-neutral-200 border bg-neutral-50 rounded-sm p-1;
+}
+
+pre {
+    @apply overflow-auto;
+}
+
+table {
+    @apply border-collapse;
+    & > tbody {
+        @apply border bg-neutral-50 rounded-sm;
+    }
+    th, td {
+        @apply p-2 border border-neutral-300 text-neutral-700;
+    }
+    th {
+        @apply bg-neutral-200;
+    }
+}
+
+form {
+    @apply section;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    @apply aligned relative p-2 border-neutral-200 font-bold;
+}
+h1 {
+    @apply text-4xl mt-12 mb-6;
+}
+h2 {
+    @apply text-3xl mt-9 mb-5 border-b;
+}
+h3 {
+    @apply text-2xl mt-9 mb-4 border-b;
+}
+h4 {
+    @apply text-xl mt-7 mb-3 border-b;
+}
+h5 {
+    @apply text-lg mt-7 mb-2;
+}
+h6 {
+    @apply text-base mt-5 mb-1;
+}
+
+.note-header {
+    @apply text-neutral-500 p-2 font-semibold;
+}
+
+.dialog-footer {
+    @apply flex flex-col gap-2;
+    div {
+        @apply aligned flex justify-end items-center gap-2;
+    }
+}
+
+sl-carousel.group-card {
+    &::part(base) {
+        @apply min-h-44;
+    }
+}
+
+sl-card.group-card {
+    --padding: var(--spacing-3);
+    &::part(base) {
+        @apply min-w-full max-w-full min-h-full max-h-full block overflow-hidden;
+    }
+    a > & {
         &::part(base) {
-            @apply min-h-44;
+            @apply cursor-pointer;
+        }
+        &:hover::part(base) {
+            --sl-panel-background-color: var(--color-neutral-100);
+        }
+    }
+    .group-card-header {
+        @apply aligned justify-between w-full overflow-hidden;
+        .groupname {
+            @apply font-semibold w-full;
+        }
+        .suffix {
+            @apply flex w-full justify-end items-center flex-col overflow-hidden;
+        }
+    }
+    .group-actions {
+        @apply aligned w-full justify-end;
+    }
+}
+
+.nickname, .groupname {
+    @apply limited max-w-52;
+}
+
+.message {
+    @apply relative flex flex-col max-w-full /*rounded-md*/ p-2 gap-1;
+    .header {
+        @apply aligned justify-between top-0 right-0 left-0;
+    }
+    .prefix, .suffix {
+        @apply aligned;
+    }
+    .date {
+        @apply text-neutral-500 invisible;
+    }
+    .text {
+        @apply aligned pl-10;
+    }
+}
+
+.message:hover {
+    .date {
+        @apply visible;
+    }
+}
+
+.message.same-date {
+    .header {
+        @apply absolute;
+    }
+    .prefix {
+        @apply invisible;
+    }
+}
+
+.message.join-start {
+    @apply rounded-t-none;
+    .prefix {
+        @apply invisible;
+    }
+}
+
+.message.join-end {
+    @apply rounded-b-none;
+}
+
+.message + .message:not(.join-start) {
+    @apply mt-2;
+}
+
+.chat-input {
+    @apply aligned flex-col w-full p-5 pb-9 pt-6 h-fit gap-2;
+    --sl-input-font-size-medium: var(--text-base);
+    --sl-input-filled-background-color: var(--color-neutral-200);
+    --sl-input-filled-background-color-focus: var(--color-neutral-0);
+    --sl-input-filled-background-color-hover: var(--color-neutral-300);
+
+    & > * {
+        @apply aligned flex-row w-full;
+    }
+
+    #send-message-error:not(:empty) {
+        @apply p-1 text-white;
+    }
+
+    .box {
+        @apply flex flex-col w-full rounded-sm rounded-b-xl;
+        &:has(#send-message-error:not(:empty)) {
+            @apply bg-danger-500;
         }
     }
 
-    sl-card.group-card {
-        --padding: theme('spacing.3');
-        &::part(base) {
-            @apply min-w-full max-w-full min-h-full max-h-full block overflow-hidden;
-        }
-        a > & {
-            &::part(base) {
-                @apply cursor-pointer;
-            }
-            &:hover::part(base) {
-                --sl-panel-background-color: theme('colors.neutral-100');
-            }
-        }
-        .group-card-header {
-            @apply aligned justify-between w-full overflow-hidden;
-            .groupname {
-                @apply font-semibold w-full;
-            }
-            .suffix {
-                @apply flex w-full justify-end items-center flex-col overflow-hidden;
-            }
-        }
-        .group-actions {
-            @apply aligned w-full justify-end;
-        }
+    .right {
+        @apply flex flex-col;
     }
 
-    .nickname, .groupname {
-        @apply limited max-w-52;
+    .bottom {
+        @apply h-fit flex-wrap;
     }
 
-    .message {
-        @apply relative flex flex-col max-w-full /*rounded-md*/ p-2 gap-1;
-        .header {
-            @apply aligned justify-between top-0 right-0 left-0;
-        }
-        .prefix, .suffix {
-            @apply aligned;
-        }
-        .date {
-            @apply text-neutral-500 invisible;
-        }
-        .text {
-            @apply aligned pl-10;
-        }
+    sl-textarea::part(textarea) {
+        @apply max-h-20 overflow-auto leading-5;
     }
+}
 
-    .message:hover {
-        .date {
-            @apply visible;
-        }
-    }
-
-    .message.same-date {
-        .header {
-            @apply absolute;
-        }
-        .prefix {
-            @apply invisible;
-        }
-    }
-
-    .message.join-start {
-        @apply rounded-t-none;
-        .prefix {
-            @apply invisible;
-        }
-    }
-
-    .message.join-end {
-        @apply rounded-b-none;
-    }
-
-    .message + .message:not(.join-start) {
-        @apply mt-2;
-    }
-
-    .chat-input {
-        @apply aligned flex-col w-full p-5 pb-9 pt-6 h-fit gap-2;
-        --sl-input-font-size-medium: theme('fontSize.base');
-        --sl-input-filled-background-color: theme('colors.neutral-200');
-        --sl-input-filled-background-color-focus: theme('colors.neutral-0');
-        --sl-input-filled-background-color-hover: theme('colors.neutral-300');
-
-        & > * {
-            @apply aligned flex-row w-full;
-        }
-
-        #send-message-error:not(:empty) {
-            @apply p-1 text-white;
-        }
-
-        .box {
-            @apply flex flex-col w-full rounded rounded-b-xl;
-            &:has(#send-message-error:not(:empty)) {
-                @apply bg-danger-500;
-            }
-        }
-
-        .right {
-            @apply flex flex-col;
-        }
-
-        .bottom {
-            @apply h-fit flex-wrap;
-        }
-
-        sl-textarea::part(textarea) {
-            @apply max-h-20 overflow-auto leading-5;
-        }
-    }
-
-    .member {
-        @apply aligned bg-black/[.1] snap-center p-4 md:p-1.5 rounded-md select-none overflow-hidden;
-        .text {
-            @apply aligned overflow-hidden w-full;
-        }
+.member {
+    @apply aligned bg-black/10 snap-center p-4 md:p-1.5 rounded-md select-none overflow-hidden;
+    .text {
+        @apply aligned overflow-hidden w-full;
     }
 }

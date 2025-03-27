@@ -1,34 +1,36 @@
-@tailwind components;
+@reference "tailwindcss";
+@reference "./theme.css";
 
-@layer components {
-    sl-tooltip {
-        --max-width: 100svw;
+@layer base {
+    [slot=prefix] {
+        margin-inline-end: var(--sl-spacing-x-small) !important;
     }
-    sl-menu > sl-divider {
-        @apply border-b border-neutral-200;
-        &:last-child, &:first-child, sl-divider + sl-divider {
-            @apply hidden;
-        }
+    [slot=suffix] {
+        margin-inline-start: var(--sl-spacing-x-small) !important;
     }
-    sl-button {
-        &:not([variant=text]):is(.sl-theme-light *)::part(base) {
-            @apply text-neutral-900;
-        }
-        &.no-end::part(base) {
-            padding-inline-end: 0;
-        }
-        &.no-start::part(base) {
-            padding-inline-start: 0;
-        }
+}
+
+sl-tooltip {
+    --max-width: 100svw;
+}
+sl-menu > sl-divider {
+    @apply border-b border-neutral-200;
+    &:last-child, &:first-child, sl-divider + sl-divider {
+        @apply hidden;
     }
-    sl-dialog::part(header) {
-        @apply shadow-md z-10;
+}
+sl-button {
+    &:not([variant=text]):is(.sl-theme-dark *)::part(base) {
+        @apply text-neutral-900;
     }
-    sl-dialog.fullscreen-base::part(panel) {
-        @apply w-screen h-svh;
-        min-width: 100svw;
-        min-height: 100svh;
-        max-width: 100svw;
-        max-height: 100svh;
-    }
+}
+sl-dialog::part(header) {
+    @apply shadow-md z-10;
+}
+sl-dialog.fullscreen-base::part(panel) {
+    @apply w-screen h-svh;
+    min-width: 100svw;
+    min-height: 100svh;
+    max-width: 100svw;
+    max-height: 100svh;
 }
