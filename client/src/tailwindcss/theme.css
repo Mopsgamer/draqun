@@ -1,7 +1,10 @@
 @reference "tailwindcss";
 @config "../../tailwind.config.ts";
-@import "../../../node_modules/@shoelace-style/shoelace/dist/themes/light.css";
-@import "../../../node_modules/@shoelace-style/shoelace/dist/themes/dark.css";
+@layer base {
+    @import "../../../node_modules/@shoelace-style/shoelace/dist/themes/light.css";
+    @import "../../../node_modules/@shoelace-style/shoelace/dist/themes/dark.css";
+}
+
 
 .sl-theme-light {
     --sl-color-primary-50: oklch(0.984 0.014 180.72);
