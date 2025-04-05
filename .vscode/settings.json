@@ -4,7 +4,7 @@
     ],
     "deno.enable": true,
     "files.associations": {
-        "**/tailwind*/**/*.css": "tailwindcss",
+        "**/tailwind*/**/*.css": "tailwindcss"
     },
     "gopls": {
         "ui.semanticTokens": true
