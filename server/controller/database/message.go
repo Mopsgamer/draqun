@@ -1,9 +1,13 @@
 package database
 
 import (
+	"database/sql"
+
 	"github.com/Mopsgamer/draqun/server/controller/model_database"
+	"github.com/doug-martin/goqu/v9"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/log"
 )
 
 func (db Database) CachedMessageList(messageList []model_database.Message) []fiber.Map {
@@ -23,49 +27,23 @@ func (db Database) CachedMessageList(messageList []model_database.Message) []fib
 }
 
 func (db Database) MessageById(messageId uint64) *model_database.Message {
-	message := new(model_database.Message)
-	query := `SELECT * FROM app_group_messages WHERE id = ?`
-	err := db.Sql.Get(message, query, messageId)
-
-	if err != nil {
-		logSqlError(err)
-		return nil
-	}
-	return message
+	return First[model_database.Message](db, "app_group_messages", goqu.Ex{"id": messageId})
 }
 
 func (db Database) MessageCreate(message model_database.Message) *uint64 {
-	query :=
-		`INSERT INTO app_group_messages (
-			group_id,
-			author_id,
-			content,
-			created_at
-		)
-    	VALUES (?, ?, ?, ?)`
-	_, err := db.Sql.Exec(query,
-		message.GroupId,
-		message.AuthorId,
-		message.Content,
-		message.CreatedAt,
-	)
-
-	if err != nil {
-		logSqlError(err)
-		return nil
-	}
-
-	newId := &db.Context().LastInsertId
-	return newId
+	return Insert(db, "app_group_messages", message)
 }
 
 func (db Database) MessageList(groupId uint64) []model_database.Message {
 	messageList := &[]model_database.Message{}
 	query := `SELECT * FROM app_group_messages WHERE group_id = ?`
-	err := db.Sql.Select(messageList, query, groupId)
+	err := db.Sqlx.Select(messageList, query, groupId)
 
 	if err != nil {
-		logSqlError(err)
+		if err == sql.ErrNoRows {
+			return *messageList
+		}
+		log.Error(err)
 		return *messageList
 	}
 	return *messageList
@@ -76,10 +54,10 @@ func (db *Database) MessageFirst(groupId uint64) *model_database.Message {
 	query := `SELECT * FROM app_group_messages
 		WHERE group_id = ?
 		ORDER BY id ASC LIMIT 1`
-	err := db.Sql.Get(message, query, groupId)
+	err := db.Sqlx.Get(message, query, groupId)
 
 	if err != nil {
-		logSqlError(err)
+		log.Error(err)
 		return message
 	}
 	return message
@@ -90,10 +68,10 @@ func (db *Database) MessageLast(groupId uint64) *model_database.Message {
 	query := `SELECT * FROM app_group_messages
 		WHERE group_id = ?
 		ORDER BY id DESC LIMIT 1`
-	err := db.Sql.Get(message, query, groupId)
+	err := db.Sqlx.Get(message, query, groupId)
 
 	if err != nil {
-		logSqlError(err)
+		log.Error(err)
 		return message
 	}
 	return message
@@ -110,10 +88,13 @@ func (db Database) MessageListPage(groupId uint64, page uint64, perPage uint64) 
 	ORDER BY id ASC`
 	from := (page - 1) * perPage
 	to := page * perPage
-	err := db.Sql.Select(messageList, query, groupId, from, to)
+	err := db.Sqlx.Select(messageList, query, groupId, from, to)
 
 	if err != nil {
-		logSqlError(err)
+		if err == sql.ErrNoRows {
+			return *messageList
+		}
+		log.Error(err)
 		return *messageList
 	}
 	return *messageList

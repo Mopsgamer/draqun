@@ -26,7 +26,7 @@ type ControllerWs struct {
 	Message     []byte
 	dataToFlush string
 	Closed      bool
-	Subs        []string
+	Subs        []Subscription
 }
 
 type Response interface {

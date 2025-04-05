@@ -87,7 +87,7 @@ func (request *GroupCreate) HandleHtmx(ctl controller_http.ControllerHttp) error
 		IsBanned: false,
 	}
 
-	if !ctl.DB.UserJoinGroup(member) {
+	if !ctl.DB.MemberCreate(member) {
 		return ctl.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 

@@ -5,8 +5,10 @@ import (
 	"sync"
 )
 
+type Subscription string
+
 const (
-	SubForMessages string = "messages"
+	SubForMessages Subscription = "messages"
 )
 
 var UserSessionMap = userSessionMap{
@@ -21,7 +23,7 @@ type userSessionMap struct {
 }
 
 // Push data for each connection by user id.
-func (conns *userSessionMap) Push(filter func(uint64) bool, data string, sub string) {
+func (conns *userSessionMap) Push(filter func(uint64) bool, data string, sub Subscription) {
 	conns.mutex.Lock()
 	for userId := range *conns.mp {
 		if !filter(userId) {

@@ -14,10 +14,12 @@ import (
 const AppName string = "Draqun"
 const GitHubRepo string = "https://github.com/Mopsgamer/draqun"
 
-var Environment int
+type EnvironmentMode int
+
+var Environment EnvironmentMode
 
 const (
-	EnvironmentTest int = iota
+	EnvironmentTest EnvironmentMode = iota
 	EnvironmentDevelopment
 	EnvironmentProduction
 )
@@ -51,10 +53,11 @@ func Load() {
 
 	var err error
 	environmentString := "ENVIRONMENT"
-	Environment, err = strconv.Atoi(os.Getenv(environmentString))
+	environmentInt, err := strconv.Atoi(os.Getenv(environmentString))
 	if err != nil {
 		log.Fatalf(environmentString+" can not be '%v'. Should be an integer.", os.Getenv(environmentString))
 	}
+	Environment = EnvironmentMode(environmentInt)
 	if Environment < EnvironmentTest || Environment > EnvironmentProduction {
 		log.Fatalf(environmentString+" can not be %v. Should be in the range: %v - %v.", Environment, EnvironmentTest, EnvironmentProduction)
 	}

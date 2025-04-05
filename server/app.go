@@ -81,7 +81,7 @@ func NewApp() (*fiber.App, error) {
 	}
 
 	UseWs := func(
-		subscribe []string,
+		subscribe []controller_ws.Subscription,
 		handler func(ctl *controller_ws.ControllerWs) error,
 	) fiber.Handler {
 		return UseHttp(func(ctlHttp controller_http.ControllerHttp) error {
@@ -140,7 +140,7 @@ func NewApp() (*fiber.App, error) {
 	}
 
 	UseWsResp := func(
-		subscribe []string,
+		subscribe []controller_ws.Subscription,
 		resp controller_ws.Response,
 	) fiber.Handler {
 		return UseWs(subscribe, func(ctl *controller_ws.ControllerWs) error {
@@ -346,7 +346,7 @@ func NewApp() (*fiber.App, error) {
 
 	// websoket
 	app.Get("/groups/:group_id", UseWsResp(
-		[]string{controller_ws.SubForMessages},
+		[]controller_ws.Subscription{controller_ws.SubForMessages},
 		&model_ws.WebsocketGroup{},
 	))
 
