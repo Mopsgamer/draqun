@@ -5,6 +5,7 @@ go 1.23.0
 toolchain go1.24.1
 
 require (
+	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/fasthttp/websocket v1.5.12
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gofiber/fiber/v3 v3.0.0-beta.4
@@ -21,7 +22,6 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
-	github.com/doug-martin/goqu/v9 v9.19.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/gofiber/schema v1.2.0 // indirect
 	github.com/gofiber/template v1.8.3 // indirect
