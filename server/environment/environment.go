@@ -31,9 +31,9 @@ var (
 	UserAuthTokenExpiration time.Duration
 	ChatMessageMaxLength    int
 
-	Environment   BuildMode
-	FSCompilation bool
-	Port          string
+	Environment BuildMode
+	FSCompiled  bool
+	Port        string
 
 	DenoJson    DenoConfig
 	GoMod       modfile.File
@@ -64,7 +64,7 @@ func Load() {
 	ChatMessageMaxLength = int(getenvInt("CHAT_MESSAGE_MAX_LENGTH"))
 
 	Environment = BuildMode(getenvInt("ENVIRONMENT"))
-	FSCompilation = getenvBool("FS_COMPILATION")
+	FSCompiled = getenvBool("FS_COMPILED")
 	Port = os.Getenv("PORT")
 
 	DenoJson = getJson[DenoConfig]("deno.json")

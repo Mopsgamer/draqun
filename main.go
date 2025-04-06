@@ -15,7 +15,7 @@ var embedFS embed.FS
 
 func main() {
 	environment.Load()
-	if app, err := server.NewApp(nil); err == nil {
+	if app, err := server.NewApp(embedFS); err == nil {
 		err = app.Listen(":" + environment.Port) // normal
 
 		if err == nil {

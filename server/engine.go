@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"io/fs"
+	"net/http"
 	"strings"
 	"time"
 
@@ -14,8 +16,13 @@ import (
 )
 
 // Initialize the view engine.
-func NewAppHtmlEngine(directory string, db *database.Database) *html.Engine {
-	engine := html.New(directory, ".html")
+func NewAppHtmlEngine(db *database.Database, embedFS fs.FS, directory string) *html.Engine {
+	var engine *html.Engine
+	if embedFS == nil {
+		engine = html.New(directory, ".html")
+	} else {
+		engine = html.NewFileSystem(http.FS(embedFS), ".html")
+	}
 
 	if environment.Environment == environment.BuildModeDevelopment {
 		engine.Reload(true)
