@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3/log"
@@ -26,14 +27,14 @@ const (
 // TODO: Should be configurable using database.
 // App settings.
 var (
-	UserAuthTokenExpiration time.Duration = 24 * time.Hour
-	ChatMessageMaxLength    int           = 8000
-)
+	JWTKey                  string
+	UserAuthTokenExpiration time.Duration
+	ChatMessageMaxLength    int
 
-var (
-	Environment BuildMode
-	JWTKey      string
-	Port        string
+	Environment   BuildMode
+	FSCompilation bool
+	Port          string
+
 	DenoJson    DenoConfig
 	GoMod       modfile.File
 	GitHash     string
@@ -58,51 +59,24 @@ func Load() {
 		log.Fatal(err)
 	}
 
-	var err error
-	bmStr := "ENVIRONMENT"
-	bmInt, err := strconv.Atoi(os.Getenv(bmStr))
-	if err != nil {
-		log.Fatalf(bmStr+" can not be '%v'. Should be an integer.", os.Getenv(bmStr))
-	}
-	Environment = BuildMode(bmInt)
-	if Environment < BuildModeTest || Environment > BuildModeProduction {
-		log.Fatalf(bmStr+" can not be %v. Should be in the range: %v - %v.", Environment, BuildModeTest, BuildModeProduction)
-	}
 	JWTKey = os.Getenv("JWT_KEY")
+	UserAuthTokenExpiration = time.Duration(getenvInt("USER_AUTH_TOKEN_EXPIRATION")) * time.Minute
+	ChatMessageMaxLength = int(getenvInt("CHAT_MESSAGE_MAX_LENGTH"))
+
+	Environment = BuildMode(getenvInt("ENVIRONMENT"))
+	FSCompilation = getenvBool("FS_COMPILATION")
 	Port = os.Getenv("PORT")
-	DBUser = os.Getenv("DB_USER")
-	DBPassword = os.Getenv("DB_PASSWORD")
-	DBName = os.Getenv("DB_NAME")
-	DBHost = os.Getenv("DB_HOST")
-	DBPort = os.Getenv("DB_PORT")
 
-	denoConfig, err := os.ReadFile("deno.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	deno := new(DenoConfig)
-	err = json.Unmarshal(denoConfig, deno)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	DenoJson = *deno
-
-	gomodBytes, err := os.ReadFile("go.mod")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	gomod, err := modfile.Parse("go.mod", gomodBytes, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	GoMod = *gomod
-
+	DenoJson = getJson[DenoConfig]("deno.json")
+	GoMod = getGoMod()
 	GitHash, _ = commandOutput("git", "log", "-n1", `--format="%h"`)
 	GitHashLong, _ = commandOutput("git", "log", "-n1", `--format="%H"`)
+
+	DBHost = os.Getenv("DB_HOST")
+	DBName = os.Getenv("DB_NAME")
+	DBPassword = os.Getenv("DB_PASSWORD")
+	DBPort = os.Getenv("DB_PORT")
+	DBUser = os.Getenv("DB_USER")
 }
 
 func commandOutput(name string, arg ...string) (string, error) {
@@ -113,4 +87,48 @@ func commandOutput(name string, arg ...string) (string, error) {
 
 	// "hash"\n -> hash
 	return string(bytes)[1 : len(bytes)-2], nil
+}
+
+func getenvInt(key string) int64 {
+	val := os.Getenv(key)
+	result, err := strconv.ParseInt(val, 0, 64)
+	if err != nil {
+		log.Fatalf(key+" can not be '%v'. Should be an integer.", os.Getenv(key))
+	}
+
+	return result
+}
+
+func getenvBool(key string) bool {
+	val := strings.ToLower(os.Getenv(key))
+	return val == "1" || val == "true" || val == "y" || val == "yes"
+}
+
+func getJson[T any](file string) T {
+	buf, err := os.ReadFile(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	val := new(T)
+	err = json.Unmarshal(buf, val)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return *val
+}
+
+func getGoMod() modfile.File {
+	buf, err := os.ReadFile("go.mod")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gomod, err := modfile.Parse("go.mod", buf, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return *gomod
 }

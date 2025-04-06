@@ -11,14 +11,14 @@ export const encoder = new TextEncoder();
 export const decoder = new TextDecoder("utf-8");
 
 export enum envKeys {
-    /**
-     * Can be 0 (test), 1 (dev) or 2 (prod)
-     * @default 1
-     */
-    ENVIRONMENT = "ENVIRONMENT",
-
-    PORT = "PORT",
     JWT_KEY = "JWT_KEY",
+    USER_AUTH_TOKEN_EXPIRATION = "USER_AUTH_TOKEN_EXPIRATION",
+    CHAT_MESSAGE_MAX_LENGTH = "CHAT_MESSAGE_MAX_LENGTH",
+
+    ENVIRONMENT = "ENVIRONMENT",
+    FS_COMPILATION = "FS_COMPILATION",
+    PORT = "PORT",
+
     DB_PASSWORD = "DB_PASSWORD",
     DB_NAME = "DB_NAME",
     DB_USER = "DB_USER",

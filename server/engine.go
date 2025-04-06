@@ -14,8 +14,8 @@ import (
 )
 
 // Initialize the view engine.
-func NewAppHtmlEngine(db *database.Database) *html.Engine {
-	engine := html.New("./client/templates", ".html")
+func NewAppHtmlEngine(directory string, db *database.Database) *html.Engine {
+	engine := html.New(directory, ".html")
 
 	if environment.Environment == environment.BuildModeDevelopment {
 		engine.Reload(true)

@@ -1,7 +1,9 @@
 package internal
 
 import (
+	_ "embed"
 	"fmt"
+	"io/fs"
 	"reflect"
 
 	"github.com/Mopsgamer/draqun/server/controller"
@@ -20,14 +22,14 @@ import (
 )
 
 // Initialize gofiber application, including DB and view engine.
-func NewApp() (*fiber.App, error) {
+func NewApp(embedFS fs.FS) (*fiber.App, error) {
 	db, errDBLoad := database.InitDB()
 	if errDBLoad != nil {
 		log.Error(errDBLoad)
 		return nil, errDBLoad
 	}
 
-	engine := NewAppHtmlEngine(db)
+	engine := NewAppHtmlEngine("./client/templates", db)
 	app := fiber.New(fiber.Config{
 		Views:             engine,
 		PassLocalsToViews: true,
@@ -149,8 +151,8 @@ func NewApp() (*fiber.App, error) {
 	}
 
 	// static
-	app.Get("/static/*", static.New("./client/static", static.Config{Browse: true}))
-	app.Get("/partials*", static.New("./client/templates/partials", static.Config{Browse: true}))
+	app.Get("/static*", static.New("client/static", static.Config{Browse: true, FS: embedFS}))
+	app.Get("/partials*", static.New("client/templates/partials", static.Config{Browse: true, FS: embedFS}))
 
 	// pages
 	docs := docsgen.New()

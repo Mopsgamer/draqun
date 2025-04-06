@@ -1,16 +1,21 @@
 package main
 
 import (
-	internal "github.com/Mopsgamer/draqun/server"
+	"embed"
+
+	server "github.com/Mopsgamer/draqun/server"
 	"github.com/Mopsgamer/draqun/server/environment"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gofiber/fiber/v3/log"
 )
 
+//go:embed client/static/** client/templates/**
+var embedFS embed.FS
+
 func main() {
 	environment.Load()
-	if app, err := internal.NewApp(); err == nil {
+	if app, err := server.NewApp(nil); err == nil {
 		err = app.Listen(":" + environment.Port) // normal
 
 		if err == nil {
