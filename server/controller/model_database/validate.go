@@ -10,6 +10,6 @@ func IsValidString(str string, rg string, maxLen int) bool {
 	return l >= 0 && l <= maxLen && regexp.MustCompile(rg).MatchString(str)
 }
 
-func IsValidEnum(str string, values []string) bool {
-	return slices.Contains(values, str)
+func IsValidEnum[T ~int](val int, choices []T) bool {
+	return slices.Contains(choices, T(val))
 }

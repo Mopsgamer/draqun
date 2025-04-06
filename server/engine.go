@@ -17,7 +17,7 @@ import (
 func NewAppHtmlEngine(db *database.Database) *html.Engine {
 	engine := html.New("./client/templates", ".html")
 
-	if environment.Environment == environment.EnvironmentDevelopment {
+	if environment.Environment == environment.BuildModeDevelopment {
 		engine.Reload(true)
 	}
 

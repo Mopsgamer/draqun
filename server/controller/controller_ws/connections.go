@@ -18,8 +18,7 @@ var UserSessionMap = userSessionMap{
 
 type userSessionMap struct {
 	mutex *sync.Mutex
-	// A websocket connection list for each user id.
-	mp *map[uint64][]*ControllerWs
+	mp    *map[uint64][]*ControllerWs // A websocket connection list for each user id.
 }
 
 // Push data for each connection by user id.
@@ -37,6 +36,10 @@ func (conns *userSessionMap) Push(filter func(uint64) bool, data string, sub Sub
 		}
 	}
 	conns.mutex.Unlock()
+}
+
+func (conns *userSessionMap) Connections(userId uint64) []*ControllerWs {
+	return (*conns.mp)[userId]
 }
 
 func (conns *userSessionMap) Connect(userId uint64, ws *ControllerWs) {

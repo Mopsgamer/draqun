@@ -1,8 +1,13 @@
 package i18n
 
-import "github.com/Mopsgamer/draqun/server/controller/model_database"
+import (
+	"fmt"
 
-const (
+	"github.com/Mopsgamer/draqun/server/environment"
+)
+
+// TODO: Use english-only errors.
+var (
 	MessageFatalDatabaseQuery   = "Fatal database error."
 	MessageFatalTokenGeneration = "Fatal token generation."
 
@@ -10,7 +15,7 @@ const (
 	MessageDetailGroupName        = MessageDetailUserName
 	MessageDetailGroupPassword    = MessageDetailUserPassword
 	MessageDetailGroupDescription = "Must be between 0 and 500 characters long and can contain any characters."
-	MessageDetailGroupMode        = "Must be " + model_database.GroupModeDm + ", " + model_database.GroupModePrivate + " or " + model_database.GroupModePrivate + "."
+	MessageDetailGroupMode        = "Must be 0, 1 or 2."
 	MessageDetailUserName         = "Must contain only letters (A-Z, a-z), numbers (0-9), and these special characters: . _ . No spaces. Must be at least 1 characters long and no more than 255 characters."
 	MessageDetailUserPassword     = "Must contain only letters (A-Z, a-z), numbers (0-9), spaces, or these special characters: , . ~ - + % $ ^ & * _ ! ? ( ) [ ] { } `. Must be at least 8 characters long and no more than 255 characters."
 	MessageDetailUserNick         = "Must be between 1 and 255 characters long and can contain any characters."
@@ -26,7 +31,7 @@ const (
 	MessageErrGroupDescription              = "Invalid group description. " + MessageDetailGroupDescription
 	MessageErrGroupMode                     = "Invalid group mode. " + MessageDetailGroupMode
 	MessageErrUselessChange                 = "No changes. "
-	MessageErrMessageContent                = "The message must be between 1 and " + model_database.ContentMaxLengthString + " characters long."
+	MessageErrMessageContent                = fmt.Sprintf("The message must be between 1 and %d characters long.", environment.ChatMessageMaxLength)
 	MessageErrNotGroupMember                = "Not a member of the group."
 	MessageErrAlreadyGroupMember            = "Already a member of the group."
 	MessageErrInvalidRequest                = "Invalid request payload."

@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/joho/godotenv"
@@ -14,17 +15,23 @@ import (
 const AppName string = "Draqun"
 const GitHubRepo string = "https://github.com/Mopsgamer/draqun"
 
-type EnvironmentMode int
-
-var Environment EnvironmentMode
+type BuildMode int
 
 const (
-	EnvironmentTest EnvironmentMode = iota
-	EnvironmentDevelopment
-	EnvironmentProduction
+	BuildModeTest BuildMode = iota
+	BuildModeDevelopment
+	BuildModeProduction
+)
+
+// TODO: Should be configurable using database.
+// App settings.
+var (
+	UserAuthTokenExpiration time.Duration = 24 * time.Hour
+	ChatMessageMaxLength    int           = 8000
 )
 
 var (
+	Environment BuildMode
 	JWTKey      string
 	Port        string
 	DenoJson    DenoConfig
@@ -52,14 +59,14 @@ func Load() {
 	}
 
 	var err error
-	environmentString := "ENVIRONMENT"
-	environmentInt, err := strconv.Atoi(os.Getenv(environmentString))
+	bmStr := "ENVIRONMENT"
+	bmInt, err := strconv.Atoi(os.Getenv(bmStr))
 	if err != nil {
-		log.Fatalf(environmentString+" can not be '%v'. Should be an integer.", os.Getenv(environmentString))
+		log.Fatalf(bmStr+" can not be '%v'. Should be an integer.", os.Getenv(bmStr))
 	}
-	Environment = EnvironmentMode(environmentInt)
-	if Environment < EnvironmentTest || Environment > EnvironmentProduction {
-		log.Fatalf(environmentString+" can not be %v. Should be in the range: %v - %v.", Environment, EnvironmentTest, EnvironmentProduction)
+	Environment = BuildMode(bmInt)
+	if Environment < BuildModeTest || Environment > BuildModeProduction {
+		log.Fatalf(bmStr+" can not be %v. Should be in the range: %v - %v.", Environment, BuildModeTest, BuildModeProduction)
 	}
 	JWTKey = os.Getenv("JWT_KEY")
 	Port = os.Getenv("PORT")

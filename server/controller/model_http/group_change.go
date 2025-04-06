@@ -1,6 +1,8 @@
 package model_http
 
 import (
+	"fmt"
+
 	"github.com/Mopsgamer/draqun/server/controller/controller_http"
 	"github.com/Mopsgamer/draqun/server/controller/model_database"
 	"github.com/Mopsgamer/draqun/server/i18n"
@@ -11,7 +13,7 @@ type GroupChange struct {
 	Name        string  `form:"name"`
 	Nick        string  `form:"nick"`
 	Password    *string `form:"password"`
-	Mode        string  `form:"mode"`
+	Mode        int     `form:"mode"`
 	Description string  `form:"description"`
 	Avatar      string  `form:"avatar"`
 }
@@ -42,7 +44,7 @@ func (request *GroupChange) HandleHtmx(ctl controller_http.ControllerHttp) error
 	hasChanges := request.Nick != group.Nick ||
 		group.Name != request.Name ||
 		group.Description != request.Description ||
-		group.Mode != request.Mode ||
+		group.Mode != model_database.GroupMode(request.Mode) ||
 		group.Password != request.Password
 
 	if !hasChanges {
@@ -65,14 +67,14 @@ func (request *GroupChange) HandleHtmx(ctl controller_http.ControllerHttp) error
 		return ctl.RenderDanger(i18n.MessageErrGroupDescription, id)
 	}
 
-	if !model_database.IsValidGroupMode(request.Mode) {
-		return ctl.RenderDanger(i18n.MessageErrGroupMode+" Got: '"+request.Mode+"'.", id)
+	if ok := model_database.IsValidGroupMode(request.Mode); !ok {
+		return ctl.RenderDanger(fmt.Sprintf(i18n.MessageErrGroupMode+" Got: '%d'.", request.Mode), id)
 	}
 
 	group.Nick = request.Nick
 	group.Name = request.Name
 	group.Description = request.Description
-	group.Mode = request.Mode
+	group.Mode = model_database.GroupMode(request.Mode)
 	group.Password = request.Password
 	if !ctl.DB.GroupUpdate(*group) {
 		return ctl.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
