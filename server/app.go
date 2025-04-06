@@ -35,7 +35,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 		return nil, errDBLoad
 	}
 
-	engine := NewAppHtmlEngine(db, embedFs, "./client/templates")
+	engine := NewAppHtmlEngine(db, embedFs, "client/templates")
 	app := fiber.New(fiber.Config{
 		Views:             engine,
 		PassLocalsToViews: true,
@@ -157,8 +157,16 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 	}
 
 	// static
-	app.Get("/static*", static.New("client/static", static.Config{Browse: true, FS: embedFs}))
-	app.Get("/partials*", static.New("client/templates/partials", static.Config{Browse: true, FS: embedFs}))
+	embedStatic, err := fs.Sub(embedFs, "client/static")
+	if err != nil {
+		return nil, err
+	}
+	app.Get("/static*", static.New("", static.Config{Browse: true, FS: embedStatic}))
+	embedPartials, err := fs.Sub(embedFs, "client/templates/partials")
+	if err != nil {
+		return nil, err
+	}
+	app.Get("/partials*", static.New("", static.Config{Browse: true, FS: embedPartials}))
 
 	// pages
 	docs := docsgen.New()
