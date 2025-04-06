@@ -2,7 +2,7 @@ import * as esbuild from "esbuild";
 import { copy as copyPlugin } from "esbuild-plugin-copy";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { existsSync } from "@std/fs";
-import { envKeys, logBuild } from "./tool.ts";
+import { environment, envKeys, logBuild } from "./tool.ts";
 import dotenv from "dotenv";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { dirname } from "@std/path/dirname";
@@ -15,7 +15,6 @@ type BuildOptions = esbuild.BuildOptions & {
     whenChange?: string[];
 };
 
-const environment = Number(Deno.env.get(envKeys.ENVIRONMENT));
 const minify = environment > 1;
 logBuild.info(`${envKeys.ENVIRONMENT} = ${environment}`);
 logBuild.info(

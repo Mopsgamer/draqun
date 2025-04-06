@@ -25,3 +25,5 @@ export enum envKeys {
     DB_HOST = "DB_HOST",
     DB_PORT = "DB_PORT",
 }
+
+export const environment = Number(Deno.env.get(envKeys.ENVIRONMENT));
