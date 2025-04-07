@@ -3,6 +3,7 @@ package model_database
 import (
 	"time"
 
+	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -11,7 +12,7 @@ func (c User) GetAudience() (jwt.ClaimStrings, error) {
 }
 
 func (c User) GetExpirationTime() (*jwt.NumericDate, error) {
-	return jwt.NewNumericDate(time.Now().Add(UserTokenExpiration)), nil
+	return jwt.NewNumericDate(time.Now().Add(environment.UserAuthTokenExpiration)), nil
 }
 
 func (c User) GetIssuedAt() (*jwt.NumericDate, error) {

@@ -6,25 +6,28 @@
         "init": "deno run -A scripts/init.ts",
         "init:build": "deno task init && deno task build",
         "serve": "deno run -A scripts/serve.ts",
-        "build": "deno run -A scripts/build.ts",
-        "watch": "deno task build --watch"
+        "compile:client": "deno run -A scripts/build.ts",
+        "compile:server": "go build -o ./dist/server main.go",
+        "compile:server:lite": "go build -tags lite -o ./dist/server lite.go",
+        "compile:server:prod": "go build -tags prod -o ./dist/server lite.go",
+        "compile:server:test": "go build -tags lite test -o ./dist/server lite.go"
     },
     "imports": {
         "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.1",
         "@shoelace-style/shoelace": "npm:@shoelace-style/shoelace@^2.20.1",
         "@std/fs": "jsr:@std/fs@^1.0.15",
         "@std/path": "jsr:@std/path@^1.0.8",
-        "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.0.17",
+        "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.1.3",
         "consola": "npm:consola@^3.4.2",
         "dotenv": "npm:dotenv@^16.4.7",
-        "esbuild": "npm:esbuild@^0.25.1",
+        "esbuild": "npm:esbuild@^0.25.2",
         "esbuild-plugin-copy": "npm:esbuild-plugin-copy@^2.1.1",
         "esbuild-plugin-tailwindcss": "npm:esbuild-plugin-tailwindcss@^2.0.1",
         "htmx-ext-debug": "npm:htmx-ext-debug@^2.0.1",
         "htmx-ext-ws": "npm:htmx-ext-ws@^2.0.3",
         "htmx.org": "npm:htmx.org@^1.9.12",
         "mysql2": "npm:mysql2@^3.14.0",
-        "tailwindcss": "npm:tailwindcss@^4.0.17"
+        "tailwindcss": "npm:tailwindcss@^4.1.3"
     },
     "exports": {},
     "fmt": {

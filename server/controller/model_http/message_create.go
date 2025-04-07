@@ -1,7 +1,7 @@
 package model_http
 
 import (
-	"strconv"
+	"fmt"
 	"strings"
 	"time"
 
@@ -9,6 +9,7 @@ import (
 	"github.com/Mopsgamer/draqun/server/controller/controller_http"
 	"github.com/Mopsgamer/draqun/server/controller/controller_ws"
 	"github.com/Mopsgamer/draqun/server/controller/model_database"
+	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/i18n"
 
 	"github.com/gofiber/fiber/v3"
@@ -57,7 +58,7 @@ func (request *MessageCreate) HandleHtmx(ctl controller_http.ControllerHttp) err
 	}
 
 	if !model_database.IsValidMessageContent(message.Content) {
-		return ctl.Ctx.SendString(i18n.MessageErrMessageContent + " Length: " + strconv.Itoa(len(message.Content)) + "/" + model_database.ContentMaxLengthString)
+		return ctl.Ctx.SendString(fmt.Sprintf(i18n.MessageErrMessageContent+" Length: %d/%d", len(message.Content), environment.ChatMessageMaxLength))
 	}
 
 	messageId := ctl.DB.MessageCreate(*message)

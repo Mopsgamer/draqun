@@ -1,7 +1,9 @@
 package internal
 
 import (
+	_ "embed"
 	"fmt"
+	"io/fs"
 	"reflect"
 
 	"github.com/Mopsgamer/draqun/server/controller"
@@ -20,14 +22,14 @@ import (
 )
 
 // Initialize gofiber application, including DB and view engine.
-func NewApp() (*fiber.App, error) {
+func NewApp(embedFS fs.FS) (*fiber.App, error) {
 	db, errDBLoad := database.InitDB()
 	if errDBLoad != nil {
 		log.Error(errDBLoad)
 		return nil, errDBLoad
 	}
 
-	engine := NewAppHtmlEngine(db)
+	engine := NewAppHtmlEngine(db, embedFS, "client/templates")
 	app := fiber.New(fiber.Config{
 		Views:             engine,
 		PassLocalsToViews: true,
@@ -81,7 +83,7 @@ func NewApp() (*fiber.App, error) {
 	}
 
 	UseWs := func(
-		subscribe []string,
+		subscribe []controller_ws.Subscription,
 		handler func(ctl *controller_ws.ControllerWs) error,
 	) fiber.Handler {
 		return UseHttp(func(ctlHttp controller_http.ControllerHttp) error {
@@ -140,7 +142,7 @@ func NewApp() (*fiber.App, error) {
 	}
 
 	UseWsResp := func(
-		subscribe []string,
+		subscribe []controller_ws.Subscription,
 		resp controller_ws.Response,
 	) fiber.Handler {
 		return UseWs(subscribe, func(ctl *controller_ws.ControllerWs) error {
@@ -148,9 +150,22 @@ func NewApp() (*fiber.App, error) {
 		})
 	}
 
+	UseStatic := func(dir string) fiber.Handler {
+		if embedFS == nil {
+			return static.New(dir, static.Config{Browse: true})
+		}
+
+		Fs, err := fs.Sub(embedFS, dir)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		return static.New("", static.Config{Browse: true, FS: Fs})
+	}
+
 	// static
-	app.Get("/static/*", static.New("./client/static", static.Config{Browse: true}))
-	app.Get("/partials*", static.New("./client/templates/partials", static.Config{Browse: true}))
+	app.Get("/static*", UseStatic("client/static"))
+	app.Get("/partials*", UseStatic("client/templates/partials"))
 
 	// pages
 	docs := docsgen.New()
@@ -158,7 +173,7 @@ func NewApp() (*fiber.App, error) {
 	var guestNoAccessRedirect controller_http.RedirectCompute = func(ctl controller_http.ControllerHttp, bind *fiber.Map) string {
 		request := new(model_http.CookieUserToken)
 		ctl.BindAll(request)
-		user := request.User(ctl)
+		user, _ := request.User(ctl)
 		if user == nil {
 			return "/"
 		}
@@ -346,7 +361,7 @@ func NewApp() (*fiber.App, error) {
 
 	// websoket
 	app.Get("/groups/:group_id", UseWsResp(
-		[]string{controller_ws.SubForMessages},
+		[]controller_ws.Subscription{controller_ws.SubForMessages},
 		&model_ws.WebsocketGroup{},
 	))
 

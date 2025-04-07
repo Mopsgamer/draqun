@@ -2,25 +2,18 @@ import * as esbuild from "esbuild";
 import { copy as copyPlugin } from "esbuild-plugin-copy";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { existsSync } from "@std/fs";
-import { envKeys, logBuild } from "./tool.ts";
-import dotenv from "dotenv";
+import { logBuild } from "./tool.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { dirname } from "@std/path/dirname";
 
 const folder = "client";
-dotenv.config();
-const isWatch = Deno.args.includes("--watch");
+const isWatch = Deno.args.includes("wait");
 
 type BuildOptions = esbuild.BuildOptions & {
     whenChange?: string[];
 };
 
-const environment = Number(Deno.env.get(envKeys.ENVIRONMENT));
-const minify = environment > 1;
-logBuild.info(`${envKeys.ENVIRONMENT} = ${environment}`);
-logBuild.info(
-    `Starting bundling ${folder}${isWatch ? " in watch mode" : ""}...`,
-);
+const minify = Deno.args.includes("min");
 
 const options: esbuild.BuildOptions = {
     bundle: true,
@@ -150,23 +143,34 @@ function copy(from: string, to: string): Promise<void> {
     });
 }
 
-const calls: unknown[][] = [
-    [
-        copy,
+// deno-lint-ignore no-explicit-any
+type Call<Args extends (...args: any[]) => Promise<void>> = [
+    fn: (...args: Parameters<Args>) => Promise<void>,
+    params: Parameters<Args>,
+    group: string[],
+];
+
+const slAlias = ["shoelace", "shoe", "sl"];
+
+const calls: (Call<typeof copy> | Call<typeof build>)[] = [
+    [copy, [
         "./node_modules/@shoelace-style/shoelace/dist/assets/**/*",
         `./${folder}/static/shoelace/assets`,
-    ],
+    ], [...slAlias]],
 
-    [copy, `./${folder}/src/assets/**/*`, `./${folder}/static/assets`],
+    [copy, [
+        `./${folder}/src/assets/**/*`,
+        `./${folder}/static/assets`,
+    ], ["assets"]],
 
-    [build, {
+    [build, [{
         ...options,
         outdir: `./${folder}/static/js`,
         entryPoints: [`./${folder}/src/ts/**/*`],
         plugins: [...denoPlugins()],
-    }],
+    }], ["js", ...slAlias]],
 
-    [build, {
+    [build, [{
         ...options,
         outdir: `./${folder}/static/css`,
         entryPoints: [`./${folder}/src/tailwindcss/**/*.css`],
@@ -178,12 +182,55 @@ const calls: unknown[][] = [
         plugins: [
             tailwindcssPlugin(),
         ],
-    }],
+    }], ["css", ...slAlias]],
 ];
 
-for (const [fn, ...args] of calls) {
-    // deno-lint-ignore ban-types
-    await (fn as Function)(...args);
+const existingGroups = Array.from(new Set(calls.flatMap((c) => c[2])));
+const extraGroups = ["min", "watch", "all", "help"];
+const availableGroups = [...extraGroups, ...existingGroups];
+
+if (Deno.args.includes("help")) {
+    logBuild.info(
+        "Available options: %s.",
+        availableGroups.join(", "),
+    );
+    logBuild.info(
+        "Usage example:\n\n\tdeno task compile:client js css min watch\n",
+    );
+    Deno.exit();
+}
+
+const unknownGroups = Deno.args.filter(
+    (a) => !availableGroups.includes(a),
+);
+if (unknownGroups.length > 0) {
+    logBuild.warn(
+        `Unknown groups: ${unknownGroups.join(", ")}\n` +
+            "Available groups: %s.",
+        availableGroups.join(", "),
+    );
+}
+
+logBuild.info(
+    `Starting bundling ${folder}${isWatch ? " in watch mode" : ""}...`,
+);
+
+const existingGroupsUsed = !Deno.args.includes("all") &&
+    existingGroups.some((g) => Deno.args.includes(g));
+
+if (existingGroupsUsed) {
+    calls.length = 0;
+    calls.push(
+        ...calls.filter(([, a, groups]) => {
+            logBuild.start(a, groups);
+            return groups.some((g) => Deno.args.includes(g));
+        }),
+    );
+}
+
+for (const [fn, args] of calls) {
+    // deno-lint-ignore no-explicit-any
+    await fn(...args as any);
 }
 
 logBuild.success("Bundled successfully");

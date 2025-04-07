@@ -1,6 +1,7 @@
 package model_http
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/controller"
@@ -19,7 +20,7 @@ type GroupCreate struct {
 	Name        string  `form:"name"`
 	Nick        string  `form:"nick"`
 	Password    *string `form:"password"`
-	Mode        string  `form:"mode"`
+	Mode        int     `form:"mode"`
 	Description string  `form:"description"`
 	Avatar      string  `form:"avatar"`
 }
@@ -30,7 +31,7 @@ func (request *GroupCreate) HandleHtmx(ctl controller_http.ControllerHttp) error
 		return ctl.RenderInternalError(id)
 	}
 
-	user := request.User(ctl)
+	user, _ := request.User(ctl)
 	if user == nil {
 		reqLogout := UserLogout{CookieUserToken: request.CookieUserToken}
 		return reqLogout.HandleHtmx(ctl)
@@ -57,7 +58,7 @@ func (request *GroupCreate) HandleHtmx(ctl controller_http.ControllerHttp) error
 	}
 
 	if !model_database.IsValidGroupMode(request.Mode) {
-		return ctl.RenderDanger(i18n.MessageErrGroupMode+" Got: '"+request.Mode+"'.", id)
+		return ctl.RenderDanger(fmt.Sprintf(i18n.MessageErrGroupMode+" Got: '%d'.", request.Mode), id)
 	}
 
 	// TODO: validate group avatar
@@ -66,7 +67,7 @@ func (request *GroupCreate) HandleHtmx(ctl controller_http.ControllerHttp) error
 		CreatorId:   user.Id,
 		Nick:        request.Nick,
 		Name:        request.Name,
-		Mode:        request.Mode,
+		Mode:        model_database.GroupMode(request.Mode),
 		Description: request.Description,
 		Password:    request.Password,
 		Avatar:      request.Avatar,
@@ -87,7 +88,7 @@ func (request *GroupCreate) HandleHtmx(ctl controller_http.ControllerHttp) error
 		IsBanned: false,
 	}
 
-	if !ctl.DB.UserJoinGroup(member) {
+	if !ctl.DB.MemberCreate(member) {
 		return ctl.RenderDanger(i18n.MessageFatalDatabaseQuery, id)
 	}
 

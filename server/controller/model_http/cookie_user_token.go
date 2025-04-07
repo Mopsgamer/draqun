@@ -8,8 +8,12 @@ import (
 	"github.com/Mopsgamer/draqun/server/controller/model_database"
 	"github.com/Mopsgamer/draqun/server/environment"
 
-	"github.com/gofiber/fiber/v3/log"
 	"github.com/golang-jwt/jwt/v5"
+)
+
+var (
+	ErrInvalidToken      = errors.New("invalid authorization token format")
+	ErrInvalidAuthHeader = errors.New("invalid authorization header format")
 )
 
 type CookieUserToken struct {
@@ -17,28 +21,22 @@ type CookieUserToken struct {
 }
 
 // Get owner of the request using the "Authorization" header.
-func (request *CookieUserToken) User(ctl controller_http.ControllerHttp) *model_database.User {
+func (request *CookieUserToken) User(ctl controller_http.ControllerHttp) (user *model_database.User, err error) {
+	user = nil
 	if request.UserToken == "" {
-		return nil
-	}
-
-	CatchTokenErr := func(err error) *model_database.User {
-		log.Error(err)
-
-		return nil
+		return user, nil
 	}
 
 	if len(request.UserToken) < 8 || request.UserToken[:7] != "Bearer " {
-		err := errors.New("invalid authorization format. Expected: Bearer and the token string")
-		return CatchTokenErr(err)
+		return user, ErrInvalidAuthHeader
 	}
 
 	tokenString := request.UserToken[7:]
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			return nil, err
+			err := errors.Join(ErrInvalidToken, fmt.Errorf("unexpected signing method: %v", token.Header["alg"]))
+			return user, err
 		}
 
 		tokenBytes := []byte(environment.JWTKey)
@@ -46,29 +44,24 @@ func (request *CookieUserToken) User(ctl controller_http.ControllerHttp) *model_
 	})
 
 	if err != nil {
-		return CatchTokenErr(err)
-	}
-
-	if !token.Valid {
-		err = errors.New("invalid token")
-		return CatchTokenErr(err)
+		return user, errors.Join(ErrInvalidToken, err)
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
 	email, ok := claims["Email"].(string)
 	if !ok {
-		return CatchTokenErr(errors.New("expected any email from the token"))
+		return user, errors.Join(ErrInvalidToken, errors.New("expected any email"))
 	}
 
 	pass, ok := claims["Password"].(string)
 	if !ok {
-		return CatchTokenErr(errors.New("expected any password from the token"))
+		return user, errors.Join(ErrInvalidToken, errors.New("expected any password"))
 	}
 
-	user := ctl.DB.UserByEmail(email)
+	user = ctl.DB.UserByEmail(email)
 	if pass != user.Password {
-		return CatchTokenErr(errors.New("got incorrect password from the token"))
+		return user, errors.Join(ErrInvalidToken, errors.New("incorrect password"))
 	}
 
-	return user
+	return user, nil
 }

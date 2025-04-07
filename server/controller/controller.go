@@ -8,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v3/log"
 )
 
-// Converts the pointer to the value
+// Converts the pointer to a value
 func MapMerge(maps ...*fiber.Map) fiber.Map {
 	merge := fiber.Map{}
 	for _, m := range maps {

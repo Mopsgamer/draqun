@@ -1,76 +1,24 @@
 package database
 
 import (
+	"database/sql"
+
 	"github.com/Mopsgamer/draqun/server/controller/model_database"
+	"github.com/doug-martin/goqu/v9"
+	"github.com/gofiber/fiber/v3/log"
 )
 
 func (db Database) RoleAssign(right model_database.RoleAssign) bool {
-	query :=
-		`INSERT INTO app_group_role_assigns (
-			group_id,
-			user_id,
-			right_id
-		)
-    	VALUES (?, ?, ?)`
-	_, err := db.Sql.Exec(query,
-		right.GroupId,
-		right.UserId,
-		right.RightId,
-	)
-
-	if err != nil {
-		logSqlError(err)
-		return false
-	}
-
-	return true
+	return Insert(db, "app_group_role_assigns", right) != nil
 }
 
 func (db Database) RoleCreate(role model_database.Role) *uint32 {
-	query :=
-		`INSERT INTO app_group_roles (
-			name,
-			color,
-			perm_chat_read,
-			perm_chat_write,
-			perm_chat_delete,
-			perm_kick,
-			perm_ban,
-			perm_change_group,
-			perm_change_member
-		)
-    	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	_, err := db.Sql.Exec(query,
-		role.Name,
-		role.Color,
-		role.ChatRead,
-		role.ChatWrite,
-		role.ChatDelete,
-		role.Kick,
-		role.Ban,
-		role.GroupChange,
-		role.MemberChange,
-	)
-
-	if err != nil {
-		logSqlError(err)
-		return nil
-	}
-
-	newId := uint32(db.Context().LastInsertId)
-	return &newId
+	id := uint32(*Insert(db, "app_group_roles", role))
+	return &id
 }
 
 func (db Database) RoleById(roleId uint64) *model_database.Role {
-	role := new(model_database.Role)
-	query := `SELECT * FROM app_group_roles WHERE id = ?`
-	err := db.Sql.Get(role, query, roleId)
-
-	if err != nil {
-		logSqlError(err)
-		return role
-	}
-	return role
+	return First[model_database.Role](db, "app_group_roles", goqu.Ex{"id": roleId})
 }
 
 func (db Database) MemberRoleList(groupId, userId uint64) []model_database.Role {
@@ -79,10 +27,13 @@ func (db Database) MemberRoleList(groupId, userId uint64) []model_database.Role 
 	FROM app_group_roles
 	LEFT JOIN app_group_role_assigns ON app_group_role_assigns.right_id = app_group_roles.id
 	WHERE app_group_role_assigns.group_id = ? AND app_group_role_assigns.user_id = ?`
-	err := db.Sql.Select(roleList, query, groupId, userId)
+	err := db.Sqlx.Select(roleList, query, groupId, userId)
 
 	if err != nil {
-		logSqlError(err)
+		if err == sql.ErrNoRows {
+			return *roleList
+		}
+		log.Error(err)
 		return *roleList
 	}
 	return *roleList

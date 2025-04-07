@@ -51,39 +51,44 @@ async function initMysqlTables(): Promise<void> {
 
 function initEnvFile(): void {
     type EnvKeyEntry = {
-        value?: string;
+        value?: string | number | boolean;
         comment?: string;
     };
     const defaultEnv = new Map<string, EnvKeyEntry>();
-    defaultEnv.set(envKeys.ENVIRONMENT, {
-        value: "1",
-        comment: "can be 0 (test), 1 (dev) or 2 (prod)\ndefault: 1",
-    });
     defaultEnv.set(envKeys.JWT_KEY, {
         comment: "use any online jwt generator to fill this value:\n" +
             "- https://jwtsecret.com/generate",
     });
-    defaultEnv.set(envKeys.PORT, {
-        value: "3000",
-        comment: "application port\ndefault: 3000",
+    defaultEnv.set(envKeys.USER_AUTH_TOKEN_EXPIRATION, {
+        value: 180,
+        comment: "in minutes",
     });
+    defaultEnv.set(envKeys.CHAT_MESSAGE_MAX_LENGTH, {
+        value: 8000,
+        comment: "max characters quantity after spaces are trimed",
+    });
+
+    defaultEnv.set(envKeys.PORT, {
+        value: 3000,
+        comment: "application port",
+    });
+
     defaultEnv.set(envKeys.DB_PASSWORD, { comment: "connection password" });
     defaultEnv.set(envKeys.DB_NAME, {
         value: "mysql",
-        comment: "connection name\ndefault: mysql",
+        comment: "connection name",
     });
     defaultEnv.set(envKeys.DB_USER, {
         value: "admin",
-        comment:
-            "connection user\nroot user is not recommended\ndefault: admin",
+        comment: "connection user\nroot user is not recommended",
     });
     defaultEnv.set(envKeys.DB_HOST, {
         value: "localhost",
-        comment: "connection host\ndefault: localhost",
+        comment: "connection host",
     });
     defaultEnv.set(envKeys.DB_PORT, {
-        value: "3306",
-        comment: "database port\ndefault: 3306",
+        value: 3306,
+        comment: "database port",
     });
 
     const path = ".env";
@@ -96,8 +101,13 @@ function initEnvFile(): void {
         encoder.encode(
             Array.from(defaultEnv.entries()).map(
                 ([key, { value, comment }]) => {
-                    env[key] ||= value ?? "";
+                    env[key] ||= value === undefined ? "" : String(value);
                     Deno.env.set(key, env[key]);
+                    if (value == undefined) {
+                        comment += "\ndefault: <empty>";
+                    } else {
+                        comment += "\ndefault: " + value;
+                    }
                     return `${
                         comment
                             ? "# " + comment.replaceAll("\n", "\n# ") + "\n"

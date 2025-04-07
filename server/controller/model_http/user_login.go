@@ -5,6 +5,7 @@ import (
 
 	"github.com/Mopsgamer/draqun/server/controller/controller_http"
 	"github.com/Mopsgamer/draqun/server/controller/model_database"
+	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/i18n"
 
 	"github.com/gofiber/fiber/v3"
@@ -26,7 +27,7 @@ func (request *UserLogin) GiveToken(ctl controller_http.ControllerHttp, user mod
 	ctl.Ctx.Cookie(&fiber.Cookie{
 		Name:    "Authorization",
 		Value:   "Bearer " + token,
-		Expires: time.Now().Add(model_database.UserTokenExpiration),
+		Expires: time.Now().Add(environment.UserAuthTokenExpiration),
 	})
 
 	return nil

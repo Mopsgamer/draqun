@@ -17,12 +17,12 @@
             "problemMatcher": []
         },
         {
-            "label": "Build",
+            "label": "Compile Client",
             "type": "shell",
             "command": "deno",
             "args": [
                 "task",
-                "build"
+                "compile:client"
             ],
             "detail": "Build the ./client folder.",
             "icon": {
@@ -32,18 +32,34 @@
             "problemMatcher": []
         },
         {
-            "label": "Build & Watch",
+            "label": "Compile Client & Watch",
             "type": "shell",
             "command": "deno",
             "args": [
                 "task",
-                "build",
-                "--watch"
+                "compile:client",
+                "watch"
             ],
             "detail": "Watch and rebuild on ./client changes.",
             "icon": {
                 "id": "tools",
                 "color": "terminal.ansiYellow"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Compile Client Shoelace",
+            "type": "shell",
+            "command": "deno",
+            "args": [
+                "task",
+                "compile:client",
+                "shoelace"
+            ],
+            "detail": "Compile only the Shoelace assets for the client.",
+            "icon": {
+                "id": "tools",
+                "color": "terminal.ansiBlue"
             },
             "problemMatcher": []
         },
@@ -59,22 +75,6 @@
             "icon": {
                 "id": "server",
                 "color": "terminal.ansiMagenta"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "Serve & Watch",
-            "type": "shell",
-            "command": "deno",
-            "args": [
-                "task",
-                "serve",
-                "--watch"
-            ],
-            "detail": "Serve and restart on ./server changes.",
-            "icon": {
-                "id": "server",
-                "color": "terminal.ansiYellow"
             },
             "problemMatcher": []
         },

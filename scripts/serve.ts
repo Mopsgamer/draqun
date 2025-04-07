@@ -1,36 +1,46 @@
-import { envKeys } from "./tool.ts";
+import { environment, logBuild } from "./tool.ts";
 
-const watchDir = "./server";
+const paths = ["server", "main.go"];
 
+const serverCommand = new Deno.Command("go", {
+    args: ["run", "."],
+});
 let serverProcess: Deno.ChildProcess | undefined = undefined;
-async function startDenoTask() {
-    // If there is an existing process, kill it
-    if (serverProcess) {
-        console.log("Stopping existing Deno task...");
-        serverProcess.kill("SIGTERM");
-        await serverProcess.status;
-    }
 
-    const serverCommand = new Deno.Command("go", {
-        args: ["run", "."],
-    });
+function start() {
     serverProcess = serverCommand.spawn();
 }
 
 async function watchAndRestart() {
-    const watcher = Deno.watchFs(watchDir, { recursive: true });
+    start();
+    const watcher = Deno.watchFs(paths, { recursive: true });
     for await (const event of watcher) {
         if (
-            event.kind === "modify" || event.kind === "create" ||
-            event.kind === "remove"
+            !(
+                event.kind === "modify" || event.kind === "create" ||
+                event.kind === "remove"
+            )
         ) continue;
 
-        console.log("File change detected, restarting Deno task...");
-        await startDenoTask(); // Restart the Deno task on change
+        tryToKill();
+        logBuild.info("File change detected: %s. Restarting...", event.kind);
+        start();
     }
 }
 
-await startDenoTask();
-if (Number(Deno.env.get(envKeys.ENVIRONMENT)) < 2) {
-    await watchAndRestart();
+function tryToKill() {
+    if (serverProcess == undefined) {
+        return;
+    }
+    try {
+        serverProcess.kill("SIGTERM");
+    } catch { /* empty */ }
+    serverProcess = undefined;
+}
+
+if (environment < 2) {
+    logBuild.info("Watching for server code changes...");
+    watchAndRestart();
+} else {
+    start();
 }
