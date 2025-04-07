@@ -13,7 +13,7 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
-const AppName string = "Draqun"
+const AppName string = "DraqunXXXXXXXXXX"
 const GitHubRepo string = "https://github.com/Mopsgamer/draqun"
 
 type BuildMode int

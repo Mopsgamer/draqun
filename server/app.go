@@ -162,7 +162,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 		return nil, err
 	}
 	app.Get("/static*", static.New("", static.Config{Browse: true, FS: embedStatic}))
-	embedPartials, err := fs.Sub(embedFs, "client/templates/partials")
+	embedPartials, err := fs.Sub(embedFs, "client/templates/partialss")
 	if err != nil {
 		return nil, err
 	}

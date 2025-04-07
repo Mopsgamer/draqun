@@ -1,4 +1,7 @@
 import consola from "consola";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 consola.options.formatOptions.columns = 3;
 

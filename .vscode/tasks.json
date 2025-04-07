@@ -48,6 +48,22 @@
             "problemMatcher": []
         },
         {
+            "label": "Compile Client Shoelace",
+            "type": "shell",
+            "command": "deno",
+            "args": [
+                "task",
+                "compile:client",
+                "shoelace"
+            ],
+            "detail": "Compile only the Shoelace assets for the client.",
+            "icon": {
+                "id": "tools",
+                "color": "terminal.ansiBlue"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "Serve",
             "type": "shell",
             "command": "deno",
@@ -59,22 +75,6 @@
             "icon": {
                 "id": "server",
                 "color": "terminal.ansiMagenta"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "Serve & Watch",
-            "type": "shell",
-            "command": "deno",
-            "args": [
-                "task",
-                "serve",
-                "--watch"
-            ],
-            "detail": "Serve and restart on ./server changes.",
-            "icon": {
-                "id": "server",
-                "color": "terminal.ansiYellow"
             },
             "problemMatcher": []
         },

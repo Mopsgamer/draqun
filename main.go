@@ -2,6 +2,9 @@ package main
 
 import (
 	"embed"
+	"os"
+	"os/signal"
+	"syscall"
 
 	server "github.com/Mopsgamer/draqun/server"
 	"github.com/Mopsgamer/draqun/server/environment"
@@ -15,6 +18,16 @@ var embedFS embed.FS
 
 func main() {
 	environment.Load()
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-sigs
+		log.Info("Served!")
+		os.Exit(0)
+	}()
+
 	if app, err := server.NewApp(embedFS); err == nil {
 		err = app.Listen(":" + environment.Port) // normal
 
