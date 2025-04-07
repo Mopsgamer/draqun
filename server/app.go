@@ -13,7 +13,6 @@ import (
 	"github.com/Mopsgamer/draqun/server/controller/model_http"
 	"github.com/Mopsgamer/draqun/server/controller/model_ws"
 	"github.com/Mopsgamer/draqun/server/docsgen"
-	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/websocket"
 
 	"github.com/gofiber/fiber/v3"
@@ -24,18 +23,13 @@ import (
 
 // Initialize gofiber application, including DB and view engine.
 func NewApp(embedFS fs.FS) (*fiber.App, error) {
-	var embedFs fs.FS = nil
-	if environment.FSCompiled {
-		embedFs = embedFS
-	}
-
 	db, errDBLoad := database.InitDB()
 	if errDBLoad != nil {
 		log.Error(errDBLoad)
 		return nil, errDBLoad
 	}
 
-	engine := NewAppHtmlEngine(db, embedFs, "client/templates")
+	engine := NewAppHtmlEngine(db, embedFS, "client/templates")
 	app := fiber.New(fiber.Config{
 		Views:             engine,
 		PassLocalsToViews: true,
@@ -156,17 +150,22 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 		})
 	}
 
+	UseStatic := func(dir string) fiber.Handler {
+		if embedFS == nil {
+			return static.New(dir, static.Config{Browse: true})
+		}
+
+		Fs, err := fs.Sub(embedFS, dir)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		return static.New("", static.Config{Browse: true, FS: Fs})
+	}
+
 	// static
-	embedStatic, err := fs.Sub(embedFs, "client/static")
-	if err != nil {
-		return nil, err
-	}
-	app.Get("/static*", static.New("", static.Config{Browse: true, FS: embedStatic}))
-	embedPartials, err := fs.Sub(embedFs, "client/templates/partialss")
-	if err != nil {
-		return nil, err
-	}
-	app.Get("/partials*", static.New("", static.Config{Browse: true, FS: embedPartials}))
+	app.Get("/static*", UseStatic("client/static"))
+	app.Get("/partials*", UseStatic("client/templates/partials"))
 
 	// pages
 	docs := docsgen.New()

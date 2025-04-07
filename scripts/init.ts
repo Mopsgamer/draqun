@@ -72,10 +72,6 @@ function initEnvFile(): void {
         value: 1,
         comment: "can be 0 (test), 1 (dev) or 2 (prod)",
     });
-    defaultEnv.set(envKeys.FS_COMPILED, {
-        value: false,
-        comment: "whether include client files within server binary",
-    });
     defaultEnv.set(envKeys.PORT, {
         value: 3000,
         comment: "application port",

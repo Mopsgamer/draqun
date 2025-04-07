@@ -7,7 +7,8 @@
         "init:build": "deno task init && deno task build",
         "serve": "deno run -A scripts/serve.ts",
         "compile:client": "deno run -A scripts/build.ts",
-        "compile:server": "go build -o ./dist/server main.go"
+        "compile:server": "go build -o ./dist/server main.go",
+        "compile:server:lite": "go build -tags lite -o ./dist/server lite.go"
     },
     "imports": {
         "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.1",

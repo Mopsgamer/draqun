@@ -13,7 +13,7 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
-const AppName string = "DraqunXXXXXXXXXX"
+const AppName string = "Draqun"
 const GitHubRepo string = "https://github.com/Mopsgamer/draqun"
 
 type BuildMode int
@@ -32,7 +32,6 @@ var (
 	ChatMessageMaxLength    int
 
 	Environment BuildMode
-	FSCompiled  bool
 	Port        string
 
 	DenoJson    DenoConfig
@@ -64,7 +63,6 @@ func Load() {
 	ChatMessageMaxLength = int(getenvInt("CHAT_MESSAGE_MAX_LENGTH"))
 
 	Environment = BuildMode(getenvInt("ENVIRONMENT"))
-	FSCompiled = getenvBool("FS_COMPILED")
 	Port = os.Getenv("PORT")
 
 	DenoJson = getJson[DenoConfig]("deno.json")
