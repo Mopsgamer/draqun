@@ -68,10 +68,6 @@ function initEnvFile(): void {
         comment: "max characters quantity after spaces are trimed",
     });
 
-    defaultEnv.set(envKeys.ENVIRONMENT, {
-        value: 1,
-        comment: "can be 0 (test), 1 (dev) or 2 (prod)",
-    });
     defaultEnv.set(envKeys.PORT, {
         value: 3000,
         comment: "application port",

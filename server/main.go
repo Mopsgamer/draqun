@@ -15,12 +15,12 @@ import (
 func Serve(embedFS fs.FS) {
 	clientEmbedVersion := "client embedded"
 	if embedFS == nil {
-		clientEmbedVersion = "lite"
+		clientEmbedVersion = "client not embedded"
 	}
 
 	environment.Load()
 
-	log.Infof("Server version: %s, %s", environment.DenoJson.Version, clientEmbedVersion)
+	log.Infof("Server version: %s, %s, %s", environment.DenoJson.Version, clientEmbedVersion, environment.BuildModeName)
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
@@ -38,7 +38,7 @@ func Serve(embedFS fs.FS) {
 			return
 		}
 
-		if environment.Environment == environment.BuildModeProduction {
+		if environment.BuildModeValue == environment.BuildModeProduction {
 			log.Fatal(err)
 			return
 		}

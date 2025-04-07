@@ -25,7 +25,7 @@ func NewAppHtmlEngine(db *database.Database, embedFS fs.FS, directory string) *h
 		engine = html.NewFileSystem(http.FS(embedTemplates), ".html")
 	}
 
-	if environment.Environment == environment.BuildModeDevelopment {
+	if environment.BuildModeValue == environment.BuildModeDevelopment {
 		engine.Reload(true)
 	}
 

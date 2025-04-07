@@ -18,7 +18,6 @@ export enum envKeys {
     USER_AUTH_TOKEN_EXPIRATION = "USER_AUTH_TOKEN_EXPIRATION",
     CHAT_MESSAGE_MAX_LENGTH = "CHAT_MESSAGE_MAX_LENGTH",
 
-    ENVIRONMENT = "ENVIRONMENT",
     PORT = "PORT",
 
     DB_PASSWORD = "DB_PASSWORD",
@@ -27,5 +26,3 @@ export enum envKeys {
     DB_HOST = "DB_HOST",
     DB_PORT = "DB_PORT",
 }
-
-export const environment = Number(Deno.env.get(envKeys.ENVIRONMENT));

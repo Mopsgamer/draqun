@@ -92,21 +92,6 @@
                 "color": "terminal.ansiCyan"
             },
             "problemMatcher": []
-        },
-        {
-            "label": "Compile Server",
-            "type": "shell",
-            "command": "deno",
-            "args": [
-                "task",
-                "compile:server"
-            ],
-            "detail": "Compile the server code.",
-            "icon": {
-                "id": "tools",
-                "color": "terminal.ansiCyan"
-            },
-            "problemMatcher": []
         }
     ]
 }

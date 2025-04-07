@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3/log"
@@ -31,8 +30,7 @@ var (
 	UserAuthTokenExpiration time.Duration
 	ChatMessageMaxLength    int
 
-	Environment BuildMode
-	Port        string
+	Port string
 
 	DenoJson    DenoConfig
 	GoMod       modfile.File
@@ -62,7 +60,6 @@ func Load() {
 	UserAuthTokenExpiration = time.Duration(getenvInt("USER_AUTH_TOKEN_EXPIRATION")) * time.Minute
 	ChatMessageMaxLength = int(getenvInt("CHAT_MESSAGE_MAX_LENGTH"))
 
-	Environment = BuildMode(getenvInt("ENVIRONMENT"))
 	Port = os.Getenv("PORT")
 
 	DenoJson = getJson[DenoConfig]("deno.json")
@@ -97,10 +94,10 @@ func getenvInt(key string) int64 {
 	return result
 }
 
-func getenvBool(key string) bool {
-	val := strings.ToLower(os.Getenv(key))
-	return val == "1" || val == "true" || val == "y" || val == "yes"
-}
+// func getenvBool(key string) bool {
+// 	val := strings.ToLower(os.Getenv(key))
+// 	return val == "1" || val == "true" || val == "y" || val == "yes"
+// }
 
 func getJson[T any](file string) T {
 	buf, err := os.ReadFile(file)
