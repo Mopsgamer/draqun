@@ -1,4 +1,4 @@
-import { environment, logBuild } from "./tool.ts";
+import { logBuild } from "./tool.ts";
 
 const paths = ["server", "main.go"];
 
@@ -38,9 +38,4 @@ function tryToKill() {
     serverProcess = undefined;
 }
 
-if (environment < 2) {
-    logBuild.info("Watching for server code changes...");
-    watchAndRestart();
-} else {
-    start();
-}
+watchAndRestart();
