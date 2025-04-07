@@ -31,7 +31,7 @@ func (request *GroupCreate) HandleHtmx(ctl controller_http.ControllerHttp) error
 		return ctl.RenderInternalError(id)
 	}
 
-	user := request.User(ctl)
+	user, _ := request.User(ctl)
 	if user == nil {
 		reqLogout := UserLogout{CookieUserToken: request.CookieUserToken}
 		return reqLogout.HandleHtmx(ctl)

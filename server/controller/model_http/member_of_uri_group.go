@@ -11,7 +11,7 @@ type MemberOfUriGroup struct {
 }
 
 func (request *MemberOfUriGroup) Member(ctl controller_http.ControllerHttp) (*model_database.Member, *model_database.Group, *model_database.User) {
-	user := request.User(ctl)
+	user, _ := request.User(ctl)
 	group := request.Group(ctl)
 
 	if group != nil && user != nil {

@@ -18,7 +18,7 @@ func (request *UserChangeEmail) HandleHtmx(ctl controller_http.ControllerHttp) e
 		return ctl.RenderInternalError(id)
 	}
 
-	user := request.User(ctl)
+	user, _ := request.User(ctl)
 	if user == nil {
 		reqLogout := UserLogout{CookieUserToken: request.CookieUserToken}
 		return reqLogout.HandleHtmx(ctl)

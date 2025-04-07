@@ -19,7 +19,7 @@ func (request *UserChangePassword) HandleHtmx(ctl controller_http.ControllerHttp
 		return ctl.RenderInternalError(id)
 	}
 
-	user := request.User(ctl)
+	user, _ := request.User(ctl)
 	if user == nil {
 		reqLogout := UserLogout{CookieUserToken: request.CookieUserToken}
 		return reqLogout.HandleHtmx(ctl)

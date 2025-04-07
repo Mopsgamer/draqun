@@ -173,7 +173,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 	var guestNoAccessRedirect controller_http.RedirectCompute = func(ctl controller_http.ControllerHttp, bind *fiber.Map) string {
 		request := new(model_http.CookieUserToken)
 		ctl.BindAll(request)
-		user := request.User(ctl)
+		user, _ := request.User(ctl)
 		if user == nil {
 			return "/"
 		}
