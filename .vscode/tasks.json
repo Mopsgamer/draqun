@@ -38,7 +38,7 @@
             "args": [
                 "task",
                 "compile:client",
-                "--watch"
+                "watch"
             ],
             "detail": "Watch and rebuild on ./client changes.",
             "icon": {
