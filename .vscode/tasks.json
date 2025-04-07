@@ -17,12 +17,12 @@
             "problemMatcher": []
         },
         {
-            "label": "Build",
+            "label": "Compile Client",
             "type": "shell",
             "command": "deno",
             "args": [
                 "task",
-                "build"
+                "compile:client"
             ],
             "detail": "Build the ./client folder.",
             "icon": {
@@ -32,12 +32,12 @@
             "problemMatcher": []
         },
         {
-            "label": "Build & Watch",
+            "label": "Compile Client & Watch",
             "type": "shell",
             "command": "deno",
             "args": [
                 "task",
-                "build",
+                "compile:client",
                 "--watch"
             ],
             "detail": "Watch and rebuild on ./client changes.",
@@ -89,6 +89,21 @@
             "detail": "Fresh start.",
             "icon": {
                 "id": "refresh",
+                "color": "terminal.ansiCyan"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Compile Server",
+            "type": "shell",
+            "command": "deno",
+            "args": [
+                "task",
+                "compile:server"
+            ],
+            "detail": "Compile the server code.",
+            "icon": {
+                "id": "tools",
                 "color": "terminal.ansiCyan"
             },
             "problemMatcher": []
