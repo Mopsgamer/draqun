@@ -26,6 +26,6 @@ func IsValidGroupDescription(str string) bool {
 	return IsValidString(str, RegexpGroupDescription, 500)
 }
 
-func IsValidGroupMode(val int) bool {
-	return IsValidEnum(val, []GroupMode{GroupModeDm, GroupModePrivate, GroupModePublic})
+func IsValidGroupMode(val string) bool {
+	return IsValidEnumString(val, []GroupMode{GroupModeDm, GroupModePrivate, GroupModePublic})
 }

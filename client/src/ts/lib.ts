@@ -39,7 +39,7 @@ export function findLastMessageVisibleDate(): Element | undefined {
 }
 
 export function getFormPropData(form: HTMLFormElement, capital = false) {
-    const data: Record<string, string> = {};
+    const data: Record<string, string | number | boolean> = {};
     for (
         const slElement of getFormControls(
             form,
@@ -56,7 +56,9 @@ export function getFormPropData(form: HTMLFormElement, capital = false) {
         if (capital) {
             name = name[0].toUpperCase() + name.substring(1);
         }
-        data[name as string] = value;
+
+        const convert = slElement.getAttribute("data-convert")
+        data[name as string] = convert == "number" ? Number(value) : convert == "boolean" ? Boolean(value) : value;
     }
 
     return data;
