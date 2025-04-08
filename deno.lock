@@ -25,6 +25,7 @@
     "npm:htmx-ext-debug@^2.0.1": "2.0.1",
     "npm:htmx-ext-ws@^2.0.3": "2.0.3",
     "npm:htmx.org@^1.9.12": "1.9.12",
+    "npm:htmx.org@^2.0.4": "2.0.4",
     "npm:mysql2@^3.14.0": "3.14.0",
     "npm:postcss@^8.5.3": "8.5.3",
     "npm:tailwindcss@^4.0.12": "4.0.12",

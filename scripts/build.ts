@@ -76,13 +76,7 @@ async function build(
 
     async function rebuild() {
         try {
-            const result = await ctx.rebuild();
-            for (const warn of result.warnings) {
-                logBuild.warn(warn);
-            }
-            for (const error of result.errors) {
-                logBuild.error(error);
-            }
+            await ctx.rebuild();
         } catch (error) {
             logBuild.fatal(error);
         }
@@ -226,7 +220,6 @@ if (existingGroupsUsed) {
             ([, , groups]) => {
                 return groups.some((g) => {
                     const includes = Deno.args.includes(g);
-                    logBuild.start(includes, g, groups);
                     return includes;
                 });
             },
