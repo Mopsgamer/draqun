@@ -2,7 +2,13 @@ import dotenv from "dotenv";
 // @deno-types="npm:@types/mysql"
 import mysql from "mysql2";
 import { existsSync } from "@std/fs";
-import { decoder, encoder, envKeys, logInitDb, logInitFiles } from "./tool.ts";
+import {
+    decoder,
+    encoder,
+    envKeys,
+    logInitDb,
+    logInitFiles,
+} from "./tool/index.ts";
 import { promisify } from "node:util";
 import { parse } from "@std/path/parse";
 
@@ -124,14 +130,14 @@ function initEnvFile(): void {
 try {
     initEnvFile();
 } catch (error) {
-    logInitFiles.fatal(error);
+    logInitFiles.error(error);
     Deno.exit(1);
 }
 
 try {
     await initMysqlTables();
 } catch (error) {
-    logInitDb.fatal(error);
+    logInitDb.error(error);
     logInitDb.warn(
         "If the initialization fails because of references,\n" +
             "we are supposed to CHANGE THE ORDER: './scripts/init.ts'.",

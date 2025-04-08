@@ -4,12 +4,12 @@ import (
 	"time"
 )
 
-type GroupMode int
+type GroupMode string
 
 const (
-	GroupModeDm GroupMode = iota
-	GroupModePrivate
-	GroupModePublic
+	GroupModeDm      GroupMode = "dm"
+	GroupModePrivate GroupMode = "private"
+	GroupModePublic  GroupMode = "public"
 )
 
 type Group struct {

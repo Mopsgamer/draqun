@@ -1,4 +1,5 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source "../../templates/";
 @import "./theme.css";
 @import "./shoelace-ext.css";
 

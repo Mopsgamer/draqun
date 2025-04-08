@@ -1,14 +1,11 @@
-import consola from "consola";
 import dotenv from "dotenv";
+import { Logger } from "./logger.ts";
 
 dotenv.config();
 
-consola.options.formatOptions.columns = 3;
-
-export const logBuild = consola.withTag("build");
-export const logCleanup = consola.withTag("cleanup");
-export const logInitDb = consola.withTag("init-database");
-export const logInitFiles = consola.withTag("init-files");
+export const logClientComp = new Logger("client-compilation");
+export const logInitDb = new Logger("init-database");
+export const logInitFiles = new Logger("init-files");
 
 export const encoder = new TextEncoder();
 export const decoder = new TextDecoder("utf-8");

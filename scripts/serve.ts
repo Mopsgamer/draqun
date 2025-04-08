@@ -1,14 +1,15 @@
-import { environment, logBuild } from "./tool.ts";
+import { logClientComp } from "./tool/index.ts";
+import kill from "tree-kill";
 
 const paths = ["server", "main.go"];
 
 const serverCommand = new Deno.Command("go", {
     args: ["run", "."],
 });
-let serverProcess: Deno.ChildProcess | undefined = undefined;
+let goRunProcess: Deno.ChildProcess | undefined = undefined;
 
 function start() {
-    serverProcess = serverCommand.spawn();
+    goRunProcess = serverCommand.spawn();
 }
 
 async function watchAndRestart() {
@@ -23,24 +24,22 @@ async function watchAndRestart() {
         ) continue;
 
         tryToKill();
-        logBuild.info("File change detected: %s. Restarting...", event.kind);
+        logClientComp.info(
+            "File change detected: %s. Restarting...",
+            event.kind,
+        );
         start();
     }
 }
 
 function tryToKill() {
-    if (serverProcess == undefined) {
+    if (goRunProcess == undefined) {
         return;
     }
     try {
-        serverProcess.kill("SIGTERM");
+        kill(goRunProcess.pid, "SIGTERM");
     } catch { /* empty */ }
-    serverProcess = undefined;
+    goRunProcess = undefined;
 }
 
-if (environment < 2) {
-    logBuild.info("Watching for server code changes...");
-    watchAndRestart();
-} else {
-    start();
-}
+watchAndRestart();

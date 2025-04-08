@@ -13,7 +13,7 @@ type GroupChange struct {
 	Name        string  `form:"name"`
 	Nick        string  `form:"nick"`
 	Password    *string `form:"password"`
-	Mode        int     `form:"mode"`
+	Mode        string  `form:"mode"`
 	Description string  `form:"description"`
 	Avatar      string  `form:"avatar"`
 }

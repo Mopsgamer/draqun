@@ -2,12 +2,12 @@ import * as esbuild from "esbuild";
 import { copy as copyPlugin } from "esbuild-plugin-copy";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { existsSync } from "@std/fs";
-import { logBuild } from "./tool.ts";
+import { logClientComp } from "./tool/index.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { dirname } from "@std/path/dirname";
 
 const folder = "client";
-const isWatch = Deno.args.includes("wait");
+const isWatch = Deno.args.includes("watch");
 
 type BuildOptions = esbuild.BuildOptions & {
     whenChange?: string[];
@@ -40,7 +40,16 @@ async function build(
     buildCalls++;
 
     const directory = outdir || dirname(outfile!);
-    logBuild.info(`${directory} ${buildCalls}/${calls.length}`);
+    if (calls.length == 1) {
+        logClientComp.start("Bundling: %s", directory);
+    } else {
+        logClientComp.start(
+            "Bundling %d/%d: %s",
+            buildCalls,
+            calls.length,
+            directory,
+        );
+    }
 
     const entryPointsNormalized = Array.isArray(entryPoints)
         ? entryPoints
@@ -56,17 +65,19 @@ async function build(
     });
 
     if (badEntryPoints.length > 0) {
-        logBuild.fatal(`File expected to exist: ${badEntryPoints.join(", ")}`);
+        logClientComp.error(
+            `File expected to exist: ${badEntryPoints.join(", ")}`,
+        );
         return;
     }
 
     if (!outfile && !outdir) {
-        logBuild.fatal(`Provide outdir or outfile.`);
+        logClientComp.error(`Provide outdir or outfile.`);
         return;
     }
 
     if (outfile && outdir) {
-        logBuild.fatal(`Can not use outdir and outfile at the same time.`);
+        logClientComp.error(`Can not use outdir and outfile at the same time.`);
         return;
     }
 
@@ -76,39 +87,39 @@ async function build(
 
     async function rebuild() {
         try {
-            const result = await ctx.rebuild();
-            for (const warn of result.warnings) {
-                logBuild.warn(warn);
-            }
-            for (const error of result.errors) {
-                logBuild.error(error);
-            }
+            await ctx.rebuild();
         } catch (error) {
-            logBuild.fatal(error);
+            logClientComp.error(error);
         }
     }
 
     await rebuild();
+    logClientComp.end(true);
+
     if (!isWatch) {
-        await ctx!.dispose();
+        await ctx.dispose();
         return;
     }
 
     try {
         await ctx.watch();
     } catch (error) {
-        logBuild.fatal(error);
+        logClientComp.error(error);
         return;
     }
 
-    if (whenChange.length === 0) return;
+    if (whenChange.length === 0) {
+        logClientComp.error("Nothing to watch: " + whenChange.join(", ") + ".");
+        await ctx.dispose();
+        return;
+    }
 
     let watcher: Deno.FsWatcher;
     try {
         watcher = Deno.watchFs(whenChange, { recursive: true });
     } catch (error) {
-        logBuild.error(error);
-        logBuild.fatal(
+        logClientComp.error(error);
+        logClientComp.error(
             "Bad paths, can not add watcher: " + whenChange.join(", ") + ".",
         );
         return;
@@ -134,10 +145,11 @@ function copy(from: string, to: string): Promise<void> {
         ...options,
         outdir: to,
         entryPoints: [],
+        whenChange: [to],
         plugins: [copyPlugin({
             once: isWatch,
             resolveFrom: "cwd",
-            assets: { to, from },
+            assets: { to: to + "/**/*", from },
             copyOnStart: true,
         })],
     });
@@ -154,12 +166,12 @@ const slAlias = ["shoelace", "shoe", "sl"];
 
 const calls: (Call<typeof copy> | Call<typeof build>)[] = [
     [copy, [
-        "./node_modules/@shoelace-style/shoelace/dist/assets/**/*",
+        "./node_modules/@shoelace-style/shoelace/dist/assets",
         `./${folder}/static/shoelace/assets`,
     ], [...slAlias]],
 
     [copy, [
-        `./${folder}/src/assets/**/*`,
+        `./${folder}/src/assets`,
         `./${folder}/static/assets`,
     ], ["assets"]],
 
@@ -167,6 +179,9 @@ const calls: (Call<typeof copy> | Call<typeof build>)[] = [
         ...options,
         outdir: `./${folder}/static/js`,
         entryPoints: [`./${folder}/src/ts/**/*`],
+        whenChange: [
+            `./${folder}/static/js`,
+        ],
         plugins: [...denoPlugins()],
     }], ["js", ...slAlias]],
 
@@ -190,11 +205,11 @@ const extraGroups = ["min", "watch", "all", "help"];
 const availableGroups = [...extraGroups, ...existingGroups];
 
 if (Deno.args.includes("help")) {
-    logBuild.info(
+    logClientComp.info(
         "Available options: %s.",
         availableGroups.join(", "),
     );
-    logBuild.info(
+    logClientComp.info(
         "Usage example:\n\n\tdeno task compile:client js css min watch\n",
     );
     Deno.exit();
@@ -204,27 +219,32 @@ const unknownGroups = Deno.args.filter(
     (a) => !availableGroups.includes(a),
 );
 if (unknownGroups.length > 0) {
-    logBuild.warn(
+    logClientComp.warn(
         `Unknown groups: ${unknownGroups.join(", ")}\n` +
             "Available groups: %s.",
         availableGroups.join(", "),
     );
 }
 
-logBuild.info(
-    `Starting bundling ${folder}${isWatch ? " in watch mode" : ""}...`,
+logClientComp.info(
+    `Starting bundling "./${folder}" ${isWatch ? " in watch mode" : ""}...`,
 );
 
 const existingGroupsUsed = !Deno.args.includes("all") &&
     existingGroups.some((g) => Deno.args.includes(g));
 
 if (existingGroupsUsed) {
-    calls.length = 0;
-    calls.push(
-        ...calls.filter(([, a, groups]) => {
-            logBuild.start(a, groups);
-            return groups.some((g) => Deno.args.includes(g));
-        }),
+    calls.splice(
+        0,
+        calls.length,
+        ...calls.filter(
+            ([, , groups]) => {
+                return groups.some((g) => {
+                    const includes = Deno.args.includes(g);
+                    return includes;
+                });
+            },
+        ),
     );
 }
 
@@ -233,7 +253,7 @@ for (const [fn, args] of calls) {
     await fn(...args as any);
 }
 
-logBuild.success("Bundled successfully");
+logClientComp.success("Bundled successfully");
 if (isWatch) {
-    logBuild.success("Watching for file changes...");
+    logClientComp.success("Watching for file changes...");
 }
