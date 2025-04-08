@@ -1,4 +1,3 @@
-# .github/workflows/ci.yml
 name: Code format
 
 on: [push, pull_request, workflow_dispatch]
@@ -11,8 +10,15 @@ jobs:
       - uses: denoland/setup-deno@v1
         with:
           deno-version: v2.x
-      - run: deno fmt --check
       - run: deno lint
+      - run: deno fmt || true
+      - run: deno fmt --check
+      - name: Fix formatting
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add .
+          git diff --quiet || (git commit -m "Auto-fix Deno code formatting" && git push)
 
   go-lint:
     runs-on: ubuntu-latest
@@ -21,6 +27,18 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: '1.23.x'
+      - run: go vet ./...
+      - run: |
+          go install golang.org/x/lint/golint@latest
+          golint ./...
+      - name: Auto-fix Go code formatting
+        run: go fmt ./...
+      - name: Fix Go formatting
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add .
+          git diff --quiet || (git commit -m "Auto-fix Go code formatting" && git push)
       - run: go vet ./...
       - run: |
           go install golang.org/x/lint/golint@latest
