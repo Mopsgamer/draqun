@@ -57,8 +57,12 @@ export function getFormPropData(form: HTMLFormElement, capital = false) {
             name = name[0].toUpperCase() + name.substring(1);
         }
 
-        const convert = slElement.getAttribute("data-convert")
-        data[name as string] = convert == "number" ? Number(value) : convert == "boolean" ? Boolean(value) : value;
+        const convert = slElement.getAttribute("data-convert");
+        data[name as string] = convert == "number"
+            ? Number(value)
+            : convert == "boolean"
+            ? Boolean(value)
+            : value;
     }
 
     return data;

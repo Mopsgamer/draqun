@@ -219,12 +219,18 @@ const existingGroupsUsed = !Deno.args.includes("all") &&
     existingGroups.some((g) => Deno.args.includes(g));
 
 if (existingGroupsUsed) {
-    calls.length = 0;
-    calls.push(
-        ...calls.filter(([, a, groups]) => {
-            logBuild.start(a, groups);
-            return groups.some((g) => Deno.args.includes(g));
-        }),
+    calls.splice(
+        0,
+        calls.length,
+        ...calls.filter(
+            ([, , groups]) => {
+                return groups.some((g) => {
+                    const includes = Deno.args.includes(g);
+                    logBuild.start(includes, g, groups);
+                    return includes;
+                });
+            },
+        ),
     );
 }
 

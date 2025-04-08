@@ -1,4 +1,3 @@
 import type { Config } from "tailwindcss";
-const config: Config = {
-};
+const config: Config = {};
 export default config;
