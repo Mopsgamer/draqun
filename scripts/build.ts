@@ -2,7 +2,7 @@ import * as esbuild from "esbuild";
 import { copy as copyPlugin } from "esbuild-plugin-copy";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { existsSync } from "@std/fs";
-import { logBuild } from "./tool.ts";
+import { logClientComp } from "./tool/index.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { dirname } from "@std/path/dirname";
 
@@ -40,7 +40,10 @@ async function build(
     buildCalls++;
 
     const directory = outdir || dirname(outfile!);
-    logBuild.info(`${directory} ${buildCalls}/${calls.length}`);
+    logClientComp.info(
+        `${directory} %c${buildCalls}/${calls.length}`,
+        "color: red",
+    );
 
     const entryPointsNormalized = Array.isArray(entryPoints)
         ? entryPoints
@@ -56,17 +59,19 @@ async function build(
     });
 
     if (badEntryPoints.length > 0) {
-        logBuild.fatal(`File expected to exist: ${badEntryPoints.join(", ")}`);
+        logClientComp.error(
+            `File expected to exist: ${badEntryPoints.join(", ")}`,
+        );
         return;
     }
 
     if (!outfile && !outdir) {
-        logBuild.fatal(`Provide outdir or outfile.`);
+        logClientComp.error(`Provide outdir or outfile.`);
         return;
     }
 
     if (outfile && outdir) {
-        logBuild.fatal(`Can not use outdir and outfile at the same time.`);
+        logClientComp.error(`Can not use outdir and outfile at the same time.`);
         return;
     }
 
@@ -78,7 +83,7 @@ async function build(
         try {
             await ctx.rebuild();
         } catch (error) {
-            logBuild.fatal(error);
+            logClientComp.error(error);
         }
     }
 
@@ -91,7 +96,7 @@ async function build(
     try {
         await ctx.watch();
     } catch (error) {
-        logBuild.fatal(error);
+        logClientComp.error(error);
         return;
     }
 
@@ -101,8 +106,8 @@ async function build(
     try {
         watcher = Deno.watchFs(whenChange, { recursive: true });
     } catch (error) {
-        logBuild.error(error);
-        logBuild.fatal(
+        logClientComp.error(error);
+        logClientComp.error(
             "Bad paths, can not add watcher: " + whenChange.join(", ") + ".",
         );
         return;
@@ -184,11 +189,11 @@ const extraGroups = ["min", "watch", "all", "help"];
 const availableGroups = [...extraGroups, ...existingGroups];
 
 if (Deno.args.includes("help")) {
-    logBuild.info(
+    logClientComp.info(
         "Available options: %s.",
         availableGroups.join(", "),
     );
-    logBuild.info(
+    logClientComp.info(
         "Usage example:\n\n\tdeno task compile:client js css min watch\n",
     );
     Deno.exit();
@@ -198,14 +203,14 @@ const unknownGroups = Deno.args.filter(
     (a) => !availableGroups.includes(a),
 );
 if (unknownGroups.length > 0) {
-    logBuild.warn(
+    logClientComp.warn(
         `Unknown groups: ${unknownGroups.join(", ")}\n` +
             "Available groups: %s.",
         availableGroups.join(", "),
     );
 }
 
-logBuild.info(
+logClientComp.info(
     `Starting bundling ${folder}${isWatch ? " in watch mode" : ""}...`,
 );
 
@@ -232,7 +237,7 @@ for (const [fn, args] of calls) {
     await fn(...args as any);
 }
 
-logBuild.success("Bundled successfully");
+logClientComp.success("Bundled successfully");
 if (isWatch) {
-    logBuild.success("Watching for file changes...");
+    logClientComp.success("Watching for file changes...");
 }

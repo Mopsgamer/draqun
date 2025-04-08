@@ -4,6 +4,7 @@
     "jsr:@luca/esbuild-deno-loader@~0.11.1": "0.11.1",
     "jsr:@std/bytes@^1.0.2": "1.0.4",
     "jsr:@std/encoding@^1.0.5": "1.0.5",
+    "jsr:@std/fmt@^1.0.6": "1.0.6",
     "jsr:@std/fs@^1.0.15": "1.0.15",
     "jsr:@std/path@*": "1.0.8",
     "jsr:@std/path@^1.0.6": "1.0.8",
@@ -17,7 +18,6 @@
     "npm:@types/diff@*": "6.0.0",
     "npm:@types/mysql@*": "2.15.26",
     "npm:@types/node@*": "22.5.4",
-    "npm:consola@^3.4.2": "3.4.2",
     "npm:dotenv@^16.4.7": "16.4.7",
     "npm:esbuild-plugin-copy@^2.1.1": "2.1.1_esbuild@0.25.2",
     "npm:esbuild-plugin-tailwindcss@^2.0.1": "2.0.1_postcss@8.5.3",
@@ -46,6 +46,9 @@
     },
     "@std/encoding@1.0.5": {
       "integrity": "ecf363d4fc25bd85bd915ff6733a7e79b67e0e7806334af15f4645c569fefc04"
+    },
+    "@std/fmt@1.0.6": {
+      "integrity": "a2c56a69a2369876ddb3ad6a500bb6501b5bad47bb3ea16bfb0c18974d2661fc"
     },
     "@std/fs@1.0.15": {
       "integrity": "c083fb479889d6440d768e498195c3fc499d426fbf9a6592f98f53884d1d3f41",
@@ -554,9 +557,6 @@
       "dependencies": [
         "@floating-ui/utils"
       ]
-    },
-    "consola@3.4.2": {
-      "integrity": "sha512-5IKcdX0nnYavi6G7TtOhwkYzyjfJlatbjMjuLSfE2kYT5pMDOilZ4OvMhi637CcDICTmz3wARPoyhqyX1Y+XvA=="
     },
     "cssesc@3.0.0": {
       "integrity": "sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg=="
@@ -1196,11 +1196,11 @@
   "workspace": {
     "dependencies": [
       "jsr:@luca/esbuild-deno-loader@~0.11.1",
+      "jsr:@std/fmt@^1.0.6",
       "jsr:@std/fs@^1.0.15",
       "jsr:@std/path@^1.0.8",
       "npm:@shoelace-style/shoelace@^2.20.1",
       "npm:@tailwindcss/postcss@^4.1.3",
-      "npm:consola@^3.4.2",
       "npm:dotenv@^16.4.7",
       "npm:esbuild-plugin-copy@^2.1.1",
       "npm:esbuild-plugin-tailwindcss@^2.0.1",

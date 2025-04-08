@@ -1,4 +1,4 @@
-import { logBuild } from "./tool.ts";
+import { logClientComp } from "./tool/index.ts";
 import kill from "tree-kill";
 
 const paths = ["server", "main.go"];
@@ -24,7 +24,10 @@ async function watchAndRestart() {
         ) continue;
 
         tryToKill();
-        logBuild.info("File change detected: %s. Restarting...", event.kind);
+        logClientComp.info(
+            "File change detected: %s. Restarting...",
+            event.kind,
+        );
         start();
     }
 }
