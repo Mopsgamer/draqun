@@ -40,9 +40,11 @@ async function build(
     buildCalls++;
 
     const directory = outdir || dirname(outfile!);
-    logClientComp.info(
-        `${directory} %c${buildCalls}/${calls.length}`,
-        "color: red",
+    logClientComp.start(
+        "Bundling %d/%d: %s",
+        buildCalls,
+        calls.length,
+        directory,
     );
 
     const entryPointsNormalized = Array.isArray(entryPoints)
@@ -88,6 +90,8 @@ async function build(
     }
 
     await rebuild();
+    logClientComp.end(true);
+
     if (!isWatch) {
         await ctx!.dispose();
         return;

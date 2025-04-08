@@ -1,10 +1,9 @@
 import dotenv from "dotenv";
 import { Logger } from "./logger.ts";
-import { blue } from "@std/fmt/colors";
 
 dotenv.config();
 
-export const logClientComp = new Logger(blue("client-compilation"));
+export const logClientComp = new Logger("client-compilation");
 export const logInitDb = new Logger("init-database");
 export const logInitFiles = new Logger("init-files");
 

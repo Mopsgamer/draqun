@@ -1,8 +1,10 @@
 import { sprintf } from "@std/fmt/printf";
-import { blue, green, red, yellow } from "@std/fmt/colors";
+import { blue, green, magenta, red, yellow } from "@std/fmt/colors";
 
 export class Logger {
     private prefix: string;
+    private started: boolean = false;
+    private startedArgs: unknown[] = [];
 
     constructor(prefix: string = "") {
         this.prefix = prefix ? `[${prefix}]` : "";
@@ -18,26 +20,50 @@ export class Logger {
     }
 
     private print(message: string) {
-        Deno.stdout.write(new TextEncoder().encode(message));
+        if (this.started) {
+            this.end(true)
+        }
+
+        Deno.stdout.write(
+            new TextEncoder().encode(message),
+        );
     }
 
     info(...args: unknown[]) {
-        this.print(`${blue("ⓘ")} ${this.prefix} ${this.format(...args)}\n`);
+        this.print(`${blue("ⓘ")} ${blue(this.prefix)} ${this.format(...args)}\n`);
     }
 
     error(...args: unknown[]) {
-        this.print(`${red("✖")} ${this.prefix} ${this.format(...args)}\n`);
+        if (this.started) {
+            this.end(false)
+        }
+
+        this.print(`${red("✖")} ${red(this.prefix)} ${this.format(...args)}\n`);
     }
 
     warn(...args: unknown[]) {
-        this.print(`${yellow("⚠")} ${this.prefix} ${this.format(...args)}\n`);
+        this.print(`${yellow("⚠")} ${yellow(this.prefix)} ${this.format(...args)}\n`);
     }
 
     success(...args: unknown[]) {
-        this.print(`${green("✔")} ${this.prefix} ${this.format(...args)}\n`);
+        this.print(`${green("✔")} ${green(this.prefix)} ${this.format(...args)}\n`);
+    }
+
+    start(...args: unknown[]) {
+        this.startedArgs = args;
+        this.print(`${magenta("-")} ${magenta(this.prefix)} ${this.format(...args)}...`);
+        this.started = true;
+    }
+
+    end(success: boolean) {
+        this.started = false;
+        const color = success ? green : red
+        const message = success ? "done" : "fail"
+        this.inline(`\r${color("-")} ${color(this.prefix)} ${this.format(...this.startedArgs)}...${color(message)}\n`);
     }
 
     inline(...args: unknown[]) {
-        this.print(this.format(...args));
+        const message = this.format(...args);
+        Deno.stdout.write(new TextEncoder().encode(message));
     }
 }
