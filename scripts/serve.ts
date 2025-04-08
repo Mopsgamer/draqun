@@ -1,14 +1,15 @@
 import { logBuild } from "./tool.ts";
+import kill from "tree-kill";
 
 const paths = ["server", "main.go"];
 
 const serverCommand = new Deno.Command("go", {
     args: ["run", "."],
 });
-let serverProcess: Deno.ChildProcess | undefined = undefined;
+let goRunProcess: Deno.ChildProcess | undefined = undefined;
 
 function start() {
-    serverProcess = serverCommand.spawn();
+    goRunProcess = serverCommand.spawn();
 }
 
 async function watchAndRestart() {
@@ -29,13 +30,13 @@ async function watchAndRestart() {
 }
 
 function tryToKill() {
-    if (serverProcess == undefined) {
+    if (goRunProcess == undefined) {
         return;
     }
     try {
-        serverProcess.kill("SIGTERM");
+        kill(goRunProcess.pid, "SIGTERM");
     } catch { /* empty */ }
-    serverProcess = undefined;
+    goRunProcess = undefined;
 }
 
 watchAndRestart();
