@@ -7,7 +7,7 @@ import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { dirname } from "@std/path/dirname";
 
 const folder = "client";
-const isWatch = Deno.args.includes("wait");
+const isWatch = Deno.args.includes("watch");
 
 type BuildOptions = esbuild.BuildOptions & {
     whenChange?: string[];
@@ -40,12 +40,16 @@ async function build(
     buildCalls++;
 
     const directory = outdir || dirname(outfile!);
-    logClientComp.start(
-        "Bundling %d/%d: %s",
-        buildCalls,
-        calls.length,
-        directory,
-    );
+    if (calls.length == 1) {
+        logClientComp.start("Bundling: %s", directory);
+    } else {
+        logClientComp.start(
+            "Bundling %d/%d: %s",
+            buildCalls,
+            calls.length,
+            directory,
+        );
+    }
 
     const entryPointsNormalized = Array.isArray(entryPoints)
         ? entryPoints
@@ -93,7 +97,7 @@ async function build(
     logClientComp.end(true);
 
     if (!isWatch) {
-        await ctx!.dispose();
+        await ctx.dispose();
         return;
     }
 
@@ -104,7 +108,11 @@ async function build(
         return;
     }
 
-    if (whenChange.length === 0) return;
+    if (whenChange.length === 0) {
+        logClientComp.error("Nothing to watch: " + whenChange.join(", ") + ".");
+        await ctx.dispose();
+        return;
+    }
 
     let watcher: Deno.FsWatcher;
     try {
@@ -137,10 +145,11 @@ function copy(from: string, to: string): Promise<void> {
         ...options,
         outdir: to,
         entryPoints: [],
+        whenChange: [to],
         plugins: [copyPlugin({
             once: isWatch,
             resolveFrom: "cwd",
-            assets: { to, from },
+            assets: { to: to + "/**/*", from },
             copyOnStart: true,
         })],
     });
@@ -157,12 +166,12 @@ const slAlias = ["shoelace", "shoe", "sl"];
 
 const calls: (Call<typeof copy> | Call<typeof build>)[] = [
     [copy, [
-        "./node_modules/@shoelace-style/shoelace/dist/assets/**/*",
+        "./node_modules/@shoelace-style/shoelace/dist/assets",
         `./${folder}/static/shoelace/assets`,
     ], [...slAlias]],
 
     [copy, [
-        `./${folder}/src/assets/**/*`,
+        `./${folder}/src/assets`,
         `./${folder}/static/assets`,
     ], ["assets"]],
 
@@ -170,6 +179,9 @@ const calls: (Call<typeof copy> | Call<typeof build>)[] = [
         ...options,
         outdir: `./${folder}/static/js`,
         entryPoints: [`./${folder}/src/ts/**/*`],
+        whenChange: [
+            `./${folder}/static/js`,
+        ],
         plugins: [...denoPlugins()],
     }], ["js", ...slAlias]],
 
@@ -215,7 +227,7 @@ if (unknownGroups.length > 0) {
 }
 
 logClientComp.info(
-    `Starting bundling ${folder}${isWatch ? " in watch mode" : ""}...`,
+    `Starting bundling "./${folder}" ${isWatch ? " in watch mode" : ""}...`,
 );
 
 const existingGroupsUsed = !Deno.args.includes("all") &&
