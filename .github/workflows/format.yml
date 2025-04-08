@@ -1,5 +1,5 @@
 # .github/workflows/ci.yml
-name: CI
+name: Code format
 
 on: [push, pull_request, workflow_dispatch]
 
@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1
         with:
-          deno-version: v1.x
+          deno-version: v2.x
       - run: deno fmt --check
       - run: deno lint
 
@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.x'
+          go-version: '1.23.x'
       - run: go vet ./...
       - run: |
           go install golang.org/x/lint/golint@latest
