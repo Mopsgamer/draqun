@@ -3,8 +3,8 @@
     "version": "0.0.0-alpha",
     "nodeModulesDir": "auto",
     "tasks": {
-        "init": "deno run -A scripts/init.ts",
-        "init:build": "deno task init && deno task build",
+        "init": "deno run -A scripts/init.ts && deno install",
+        "init:build": "deno task init && deno task compile:client",
         "serve": "deno run -A scripts/serve.ts",
         "compile:client": "deno run -A scripts/build.ts",
         "compile:server": "go build -o ./dist/server main.go",
