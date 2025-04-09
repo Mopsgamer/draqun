@@ -24,7 +24,8 @@ jobs:
                   deno fmt
                   deno fmt --check
                   deno check .
-                  deno task init nodb
+                  deno run -A scripts/init.ts nodb
+                  deno install --allow-scripts
                   deno task compile:client
             - name: Checking Go
               run: |
