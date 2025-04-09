@@ -57,10 +57,15 @@ async function build(
 
     const badEntryPoints = entryPointsNormalized.filter((entry) => {
         const pth = typeof entry === "string" ? entry : entry.in;
+
+        if (pth.includes("*")) {
+            return false
+        }
+
         try {
             return !existsSync(pth);
         } catch {
-            return false;
+            return true;
         }
     });
 
@@ -253,7 +258,17 @@ for (const [fn, args] of calls) {
     await fn(...args as any);
 }
 
-logClientComp.success("Bundled successfully");
+if (logClientComp.someFailed) {
+    logClientComp.error("Bundled");
+} else {
+    logClientComp.success("Bundled successfully");
+}
 if (isWatch) {
-    logClientComp.success("Watching for file changes...");
+    if (logClientComp.someFailed) {
+        logClientComp.error("Watching for file changes...");
+    } else {
+        logClientComp.success("Watching for file changes...");
+    }
+} else if (logClientComp.someFailed) {
+    Deno.exit(1)
 }

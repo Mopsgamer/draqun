@@ -3,6 +3,7 @@ import { blue, green, magenta, red, yellow } from "@std/fmt/colors";
 
 export class Logger {
     private prefix: string;
+    public someFailed: boolean = false;
     private started: boolean = false;
     private startedArgs: unknown[] = [];
 
@@ -66,6 +67,7 @@ export class Logger {
     }
 
     end(success: boolean) {
+        this.someFailed ||= !success
         this.started = false;
         const color = success ? green : red;
         const message = success ? "done" : "fail";
