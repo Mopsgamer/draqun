@@ -59,7 +59,7 @@ async function build(
         const pth = typeof entry === "string" ? entry : entry.in;
 
         if (pth.includes("*")) {
-            return false
+            return false;
         }
 
         try {
@@ -270,5 +270,5 @@ if (isWatch) {
         logClientComp.success("Watching for file changes...");
     }
 } else if (logClientComp.someFailed) {
-    Deno.exit(1)
+    Deno.exit(1);
 }

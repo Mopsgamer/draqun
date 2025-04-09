@@ -67,7 +67,7 @@ export class Logger {
     }
 
     end(success: boolean) {
-        this.someFailed ||= !success
+        this.someFailed ||= !success;
         this.started = false;
         const color = success ? green : red;
         const message = success ? "done" : "fail";
