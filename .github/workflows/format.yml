@@ -1,9 +1,6 @@
 name: Code format
 
 on:
-    push:
-        branches-ignore:
-            - main
     pull_request:
     workflow_dispatch:
 
@@ -24,7 +21,9 @@ jobs:
                   deno fmt
                   deno fmt --check
                   deno check .
-                  deno task init:build
+                  deno run -A scripts/init.ts nodb
+                  deno install --allow-scripts
+                  deno task compile:client
             - name: Checking Go
               run: |
                   go vet ./...
