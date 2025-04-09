@@ -11,6 +11,7 @@ import {
 } from "./tool/index.ts";
 import { promisify } from "node:util";
 import { parse } from "@std/path/parse";
+import { blue } from "@std/fmt/colors";
 
 async function initMysqlTables(): Promise<void> {
     const sqlFileList = [
@@ -22,8 +23,8 @@ async function initMysqlTables(): Promise<void> {
         "./scripts/queries/create_group_messages.sql",
     ];
     logInitDb.info(
-        "We want to create tables:\n%s",
-        sqlFileList.map((p) => parse(p).base).join("\n -> "),
+        `We want to create tables:\n${blue(" - ")}%s`,
+        sqlFileList.map((p) => parse(p).base).join("\n" + blue(" - ")),
     );
     const connection = mysql.createConnection({
         password: Deno.env.get(envKeys.DB_PASSWORD),
@@ -38,24 +39,28 @@ async function initMysqlTables(): Promise<void> {
     const execQuery = promisify(connection.query.bind(connection));
     const disconnect = promisify(connection.end.bind(connection));
 
+    logInitDb.start("Connecting to the database using .env confifuration")
     await connect();
-    logInitDb.success("Connected to the database using .env confifuration.");
+    logInitDb.end(true)
     logInitDb.warn(
-        "If you are trying to reinitialize the database, this will not change existing tables. Delete or change them manually.",
+        "If you are trying to reinitialize the database, this have not changeed existing tables. Delete or change them manually.",
     );
     for (const sqlFile of sqlFileList) {
-        logInitDb.info(`Executing '${sqlFile}'...`);
+        logInitDb.start(`Executing '${sqlFile}'`);
         const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
         await execQuery(sqlString);
+        logInitDb.end(true)
     }
 
-    await disconnect();
     logInitDb.success(
-        "Success. All queries executed. Disconnected from the database.",
+        "All queries have been executed.",
     );
+    logInitDb.start("Disconnecting from the database")
+    await disconnect();
+    logInitDb.end(true)
 }
 
-function initEnvFile(): void {
+function initEnvFile(path: string): void {
     type EnvKeyEntry = {
         value?: string | number | boolean;
         comment?: string;
@@ -97,7 +102,6 @@ function initEnvFile(): void {
         comment: "database port",
     });
 
-    const path = ".env";
     const env = existsSync(path)
         ? dotenv.parse(decoder.decode(Deno.readFileSync(path)))
         : {};
@@ -123,12 +127,13 @@ function initEnvFile(): void {
             ).join(""),
         ),
     );
-
-    logInitFiles.success("Writed " + path);
 }
 
 try {
-    initEnvFile();
+    const path = ".env"
+    logInitFiles.start(`Initializing '${path}'`);
+    initEnvFile(path);
+    logInitFiles.end(true)
 } catch (error) {
     logInitFiles.error(error);
     Deno.exit(1);
