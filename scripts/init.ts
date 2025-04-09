@@ -139,13 +139,15 @@ try {
     Deno.exit(1);
 }
 
-try {
-    await initMysqlTables();
-} catch (error) {
-    logInitDb.error(error);
-    logInitDb.warn(
-        "If the initialization fails because of references,\n" +
-            "we are supposed to CHANGE THE ORDER: './scripts/init.ts'.",
-    );
-    Deno.exit(1);
+if (!Deno.args.includes("nodb")) {
+    try {
+        await initMysqlTables();
+    } catch (error) {
+        logInitDb.error(error);
+        logInitDb.warn(
+            "If the initialization fails because of references,\n" +
+                "we are supposed to CHANGE THE ORDER: './scripts/init.ts'.",
+        );
+        Deno.exit(1);
+    }
 }

@@ -24,7 +24,8 @@ jobs:
                   deno fmt
                   deno fmt --check
                   deno check .
-                  deno task init:build
+                  deno task init nodb
+                  deno task compile:client
             - name: Checking Go
               run: |
                   go vet ./...
