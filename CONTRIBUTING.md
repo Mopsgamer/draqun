@@ -11,6 +11,8 @@
      - Recommended user: `admin`.
    - Go@^1.23 ([Installation](https://go.dev/doc/install))
    - Deno@^2.0 ([Installation](https://deno.com/))
+   - Go@^1.23 ([Installation](https://go.dev/doc/install))
+   - Deno@^2.0 ([Installation](https://deno.com/))
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
    and
    [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
@@ -22,10 +24,8 @@
    [VSC terminal](https://code.visualstudio.com/docs/terminal/getting-started).
 5. Run `deno task init:build` to create required files.
 6. Change the `.env` file.
-
-- Set up server connection with MySQL.
-- Set up JWT secret.
-
+   - Set up server connection with MySQL.
+   - Set up JWT secret.
 7. Run `deno task serve` to start the server.
 
 ## Changing the code base
@@ -33,34 +33,42 @@
 Client code base (./client) is not tied with the server code base (./server).
 The best way is to use 2 terminals (3-rd for other tasks):
 
-```bash
-deno task serve
-```
+> [!NOTE]
+> You can use Visual Studio Code's task commands: `Tasks: Run Task`.
+>
+> - Compile Client & Watch
+> - Serve
 
 ```bash
 deno task compile:client watch
 ```
 
-> [!NOTE]
-> You can use Visual Studio Code's task commands: `Tasks: Run Task`.
->
-> - Serve
-> - Compile Client & Watch
+```bash
+deno task serve
+```
+
+> [!WARNING]
+> The `serve` script can ignore new files, so it should be started after
+> `compile:client` script generates all files. If you are using `watch`, wait
+> for "watching..." message.
 
 ## How to write commit messages
 
-We use [Conventional Commit messages](https://www.conventionalcommits.org/) to automate version management.
+We use [Conventional Commit messages](https://www.conventionalcommits.org/) to
+automate version management.
 
 Most common commit message prefixes are:
 
-* `fix:` which represents bug fixes, and generate a patch release.
-* `feat:` which represents a new feature, and generate a minor release.
-* `chore:` which represents a development environment change, and generate a patch release.
-* `docs:` which represents documentation change, and generate a patch release.
-* `style:` which represents a code style change, and generate a patch release.
-* `test:` which represents a test change, and generate a patch release.
-* `BREAKING CHANGE:` which represents a breaking change, and generate a major release. Or
-  `!` at the end of the prefix. For example `feat!: new feature` or `fix!: bug fix`.
+- `fix:` which represents bug fixes, and generate a patch release.
+- `feat:` which represents a new feature, and generate a minor release.
+- `chore:` which represents a development environment change, and generate a
+  patch release.
+- `docs:` which represents documentation change, and generate a patch release.
+- `style:` which represents a code style change, and generate a patch release.
+- `test:` which represents a test change, and generate a patch release.
+- `BREAKING CHANGE:` which represents a breaking change, and generate a major
+  release. Or `!` at the end of the prefix. For example `feat!: new feature` or
+  `fix!: bug fix`.
 
 ## Compilation
 
@@ -124,6 +132,6 @@ Files in the [./client/templates](./client/templates) can be rendered through
 Go's template language: <https://pkg.go.dev/html/template>.
 
 That means, you can use specific syntax and replacements, but the variables
-should be declared by the server. You can find more it in the server code base
-(./server). Specific functions are declared in the engine file
-(./server/engine.go).
+should be declared by the server. You can find more it in the
+[./server](./server). Specific functions are declared in the
+[./server/engine.go](./server/engine.go). .

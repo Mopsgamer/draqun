@@ -24,12 +24,15 @@ jobs:
                   deno fmt
                   deno fmt --check
                   deno check .
-                  deno task compile:client
+                  deno task init:build
             - name: Checking Go
               run: |
                   go vet ./...
                   go fmt ./...
-                  go build ./...
+                  deno task compile:server
+                  deno task compile:server:lite
+                  deno task compile:server:prod
+                  deno task compile:server:test
             - name: Push formatting changes (if any)
               run: |
                   git config --global user.name "github-actions"
