@@ -35,4 +35,4 @@ jobs:
                   git config --global user.name "github-actions"
                   git config --global user.email "github-actions@github.com"
                   git add .
-                  git diff --quiet || (git commit -m "chore: code formatting" && git push)
+                  git diff --quiet || (git commit -m "style: code formatting" && git push)
