@@ -1,9 +1,6 @@
 name: Code format
 
 on:
-    push:
-        branches-ignore:
-            - main
     pull_request:
     workflow_dispatch:
 
