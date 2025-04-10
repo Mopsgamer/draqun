@@ -59,16 +59,16 @@ automate version management.
 
 Most common commit message prefixes are:
 
-- `fix:` which represents bug fixes, and generate a patch release.
-- `feat:` which represents a new feature, and generate a minor release.
-- `chore:` which represents a development environment change, and generate a
+- `fix:` which represents bug fixes and generate a patch release.
+- `feat:` which represents a new feature and generate a minor release.
+- `chore:` which represents a development environment change and generate a
   patch release.
-- `docs:` which represents documentation change, and generate a patch release.
-- `style:` which represents a code style change, and generate a patch release.
-- `test:` which represents a test change, and generate a patch release.
-- `BREAKING CHANGE:` which represents a breaking change, and generate a major
-  release. Or `!` at the end of the prefix. For example `feat!: new feature` or
-  `fix!: bug fix`.
+- `docs:` which represents documentation change and generate a patch release.
+- `style:` which represents a code style change and generate a patch release.
+- `test:` which represents a test change and generate a patch release.
+- `BREAKING CHANGE:` which represents a breaking change and generate a major
+  release. Or you are able to use `!` at the end of the prefix. For example
+  `feat!: new feature` or `fix!: bug fix`.
 
 ## Compilation
 
