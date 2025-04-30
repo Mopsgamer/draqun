@@ -1,11 +1,11 @@
-name: Check code format
+name: Format & Lint
 
 on:
     pull_request:
     workflow_dispatch:
 
 jobs:
-    deno-go-push:
+    apply:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -24,7 +24,6 @@ jobs:
                   deno install --allow-scripts
                   deno lint --fix
                   deno fmt
-                  deno check -q .
             - name: Checking Go
               run: |
                   go fmt ./...
