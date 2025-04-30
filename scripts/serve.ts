@@ -1,4 +1,4 @@
-import { logClientComp } from "./tool/index.ts";
+import { logClientComp } from "./tool/constants.ts";
 import kill from "tree-kill";
 
 const paths = ["server", "main.go"];

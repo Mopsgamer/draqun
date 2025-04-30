@@ -1,8 +1,11 @@
-**/node_modules
-**/dist
-**/out
-.env
-**/*.exe
-client/assets
+# deno
+node_modules
+coverage
+
+# out
+dist
+out
+
+# project
 client/static
-.air.toml
+.env

@@ -2,6 +2,7 @@
   "version": "4",
   "specifiers": {
     "jsr:@luca/esbuild-deno-loader@~0.11.1": "0.11.1",
+    "jsr:@m234/logger@1": "1.0.0",
     "jsr:@std/bytes@^1.0.2": "1.0.4",
     "jsr:@std/encoding@^1.0.5": "1.0.5",
     "jsr:@std/fmt@^1.0.6": "1.0.6",
@@ -39,6 +40,12 @@
         "jsr:@std/bytes",
         "jsr:@std/encoding",
         "jsr:@std/path@^1.0.6"
+      ]
+    },
+    "@m234/logger@1.0.0": {
+      "integrity": "6cb3345612149a1c8ac96bb17a93086148898bcb172f7fecc7beaa1c7f3d7a8d",
+      "dependencies": [
+        "jsr:@std/fmt"
       ]
     },
     "@std/bytes@1.0.4": {
@@ -417,9 +424,9 @@
         "jiti",
         "mri",
         "picocolors",
-        "postcss@8.4.47",
         "postcss-import",
         "postcss-selector-parser",
+        "postcss@8.4.47",
         "prettier",
         "tailwindcss@4.0.0",
         "tree-sitter",
@@ -438,9 +445,9 @@
         "jiti",
         "mri",
         "picocolors",
-        "postcss@8.4.47",
         "postcss-import",
         "postcss-selector-parser",
+        "postcss@8.4.47",
         "prettier",
         "tailwindcss@4.0.1",
         "tree-sitter",
@@ -495,8 +502,8 @@
         "fraction.js",
         "normalize-range",
         "picocolors",
-        "postcss@8.5.3",
-        "postcss-value-parser"
+        "postcss-value-parser",
+        "postcss@8.5.3"
       ]
     },
     "aws-ssl-profiles@1.1.2": {
@@ -614,8 +621,8 @@
       "dependencies": [
         "@tailwindcss/postcss@4.0.12",
         "autoprefixer",
-        "postcss@8.5.3",
-        "postcss-modules"
+        "postcss-modules",
+        "postcss@8.5.3"
       ]
     },
     "esbuild@0.25.2": {
@@ -970,8 +977,8 @@
     "postcss-import@16.1.0_postcss@8.4.47": {
       "integrity": "sha512-7hsAZ4xGXl4MW+OKEWCnF6T5jqBw80/EE9aXg1r2yyn1RsVEU8EtKXbijEODa+rg7iih4bKf7vlvTGYR4CnPNg==",
       "dependencies": [
-        "postcss@8.4.47",
         "postcss-value-parser",
+        "postcss@8.4.47",
         "read-cache",
         "resolve"
       ]
@@ -986,16 +993,16 @@
       "integrity": "sha512-5kcJm/zk+GJDSfw+V/42fJ5fhjL5YbFDl8nVdXkJPLLW+Vf9mTD5Xe0wqIaDnLuL2U6cDNpTr+UQ+v2HWIBhzw==",
       "dependencies": [
         "icss-utils",
-        "postcss@8.5.3",
         "postcss-selector-parser",
-        "postcss-value-parser"
+        "postcss-value-parser",
+        "postcss@8.5.3"
       ]
     },
     "postcss-modules-scope@3.2.1_postcss@8.5.3": {
       "integrity": "sha512-m9jZstCVaqGjTAuny8MdgE88scJnCiQSlSrOWcTQgM2t32UBe+MUmFSO5t7VMSfAf/FJKImAxBav8ooCHJXCJA==",
       "dependencies": [
-        "postcss@8.5.3",
-        "postcss-selector-parser"
+        "postcss-selector-parser",
+        "postcss@8.5.3"
       ]
     },
     "postcss-modules-values@4.0.0_postcss@8.5.3": {
@@ -1011,11 +1018,11 @@
         "generic-names",
         "icss-utils",
         "lodash.camelcase",
-        "postcss@8.5.3",
         "postcss-modules-extract-imports",
         "postcss-modules-local-by-default",
         "postcss-modules-scope",
         "postcss-modules-values",
+        "postcss@8.5.3",
         "string-hash"
       ]
     },
@@ -1193,6 +1200,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@luca/esbuild-deno-loader@~0.11.1",
+      "jsr:@m234/logger@1",
       "jsr:@std/fmt@^1.0.6",
       "jsr:@std/fs@^1.0.15",
       "jsr:@std/path@^1.0.8",
