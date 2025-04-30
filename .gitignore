@@ -1,6 +1,11 @@
-**/node_modules
-**/dist
-**/coverage
-**/out
-.env
+# deno
+node_modules
+coverage
+
+# out
+dist
+out
+
+# project
 client/static
+.env
