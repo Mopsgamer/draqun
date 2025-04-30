@@ -30,7 +30,7 @@ jobs:
             - name: Push formatting changes (if any)
               run: |
                   git diff --quiet || (
-                    git config --global user.name "Mopsgamer"
+                    git config --global user.name "github-actions"
                     git config --global user.email "github-actions@github.com"
                     git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }} &&
                     git commit -a -m "style: code formatting" &&
