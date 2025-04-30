@@ -12,21 +12,13 @@ jobs:
             - uses: denoland/setup-deno@v2
               with:
                   deno-version: v2.x
+            - uses: actions/setup-go@v5
+              with:
+                  go-version: "1.23.x"
             - name: Check client compilation
               run: |
                   deno install --allow-scripts
                   deno task compile:client
-    compile-server:
-        runs-on: ubuntu-latest
-        needs: [compile-client]
-        steps:
-            - uses: actions/checkout@v4
-            - uses: denoland/setup-deno@v2
-              with:
-                  deno-version: v2.x
-            - uses: actions/setup-go@v5
-              with:
-                  go-version: "1.23.x"
             - name: Check server compilation
               run: |
                   deno install --allow-scripts
