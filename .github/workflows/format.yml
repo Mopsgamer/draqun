@@ -10,6 +10,7 @@ jobs:
         steps:
             - uses: actions/checkout@v4
               with:
+                  ref: ${{ github.head_ref }}
                   token: ${{ secrets.PAT }}
                   repository: Mopsgamer/draqun
             - uses: denoland/setup-deno@v2
@@ -32,6 +33,6 @@ jobs:
                 git diff --quiet || (
                   git config --global user.name "Mopsgamer"
                   git config --global user.email "github-actions@github.com"
-                  git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} &&
+                  git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }} &&
                   git commit -a -m "style: code formatting" &&
                   git push)
