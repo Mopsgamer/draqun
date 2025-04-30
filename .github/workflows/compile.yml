@@ -5,7 +5,7 @@ on:
     workflow_dispatch:
 
 jobs:
-    compile-client:
+    check-client-and-server:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
