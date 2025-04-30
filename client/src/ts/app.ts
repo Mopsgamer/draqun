@@ -17,7 +17,7 @@ function closeAllBut(element: HTMLElement, secondaryViewList: HTMLElement[]) {
 }
 
 domLoaded.then(() => {
-            const membersToggler = document.getElementById("members-toggler")!;
+    const membersToggler = document.getElementById("members-toggler")!;
     const secondaryViewList = Array.from(
         document.getElementsByClassName("secondary-view"),
     ) as HTMLElement[];
