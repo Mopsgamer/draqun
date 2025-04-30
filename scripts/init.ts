@@ -8,7 +8,7 @@ import {
     envKeys,
     logInitDb,
     logInitFiles,
-} from "./tool/index.ts";
+} from "./tool/constants.ts";
 import { promisify } from "node:util";
 import { parse } from "@std/path/parse";
 import { blue } from "@std/fmt/colors";
@@ -41,7 +41,7 @@ async function initMysqlTables(): Promise<void> {
 
     logInitDb.start("Connecting to the database using .env confifuration");
     await connect();
-    logInitDb.end(true);
+    logInitDb.end("completed");
     logInitDb.warn(
         "If you are trying to reinitialize the database, this have not changeed existing tables. Delete or change them manually.",
     );
@@ -49,7 +49,7 @@ async function initMysqlTables(): Promise<void> {
         logInitDb.start(`Executing '${sqlFile}'`);
         const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
         await execQuery(sqlString);
-        logInitDb.end(true);
+        logInitDb.end("completed");
     }
 
     logInitDb.success(
@@ -57,7 +57,7 @@ async function initMysqlTables(): Promise<void> {
     );
     logInitDb.start("Disconnecting from the database");
     await disconnect();
-    logInitDb.end(true);
+    logInitDb.end("completed");
 }
 
 function initEnvFile(path: string): void {
@@ -133,7 +133,7 @@ try {
     const path = ".env";
     logInitFiles.start(`Initializing '${path}'`);
     initEnvFile(path);
-    logInitFiles.end(true);
+    logInitFiles.end("completed");
 } catch (error) {
     logInitFiles.error(error);
     Deno.exit(1);

@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { Logger } from "./logger.ts";
+import { Logger } from "@m234/logger";
 
 dotenv.config();
 

@@ -2,7 +2,7 @@ import * as esbuild from "esbuild";
 import { copy as copyPlugin } from "esbuild-plugin-copy";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { existsSync } from "@std/fs";
-import { logClientComp } from "./tool/index.ts";
+import { logClientComp } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { dirname } from "@std/path/dirname";
 
@@ -99,7 +99,7 @@ async function build(
     }
 
     await rebuild();
-    logClientComp.end(true);
+    logClientComp.end("completed");
 
     if (!isWatch) {
         await ctx.dispose();
@@ -258,17 +258,17 @@ for (const [fn, args] of calls) {
     await fn(...args as any);
 }
 
-if (logClientComp.someFailed) {
+if (logClientComp.state === "failed") {
     logClientComp.error("Bundled");
 } else {
     logClientComp.success("Bundled successfully");
 }
 if (isWatch) {
-    if (logClientComp.someFailed) {
+    if (logClientComp.state === "failed") {
         logClientComp.error("Watching for file changes...");
     } else {
         logClientComp.success("Watching for file changes...");
     }
-} else if (logClientComp.someFailed) {
+} else if (logClientComp.state === "failed") {
     Deno.exit(1);
 }
