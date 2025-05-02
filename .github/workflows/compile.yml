@@ -1,58 +1,15 @@
-name: Compile full-stack
+name: Compile
 
 on:
     pull_request:
     workflow_dispatch:
 
 jobs:
-    ubuntu_latest:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: denoland/setup-deno@v2
-              with:
-                  deno-version: v2.x
-            - uses: actions/setup-go@v5
-              with:
-                  go-version: "1.23.x"
-            - name: Check client compilation
-              run: |
-                  deno install --allow-scripts
-                  deno check -q .
-                  deno task compile:client
-            - name: Check server compilation
-              run: |
-                  deno install --allow-scripts
-                  deno run -A scripts/init.ts nodb
-                  deno task compile:server
-                  deno task compile:server:lite
-                  deno task compile:server:prod
-                  deno task compile:server:test
-    windows_latest:
-        runs-on: windows-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: denoland/setup-deno@v2
-              with:
-                  deno-version: v2.x
-            - uses: actions/setup-go@v5
-              with:
-                  go-version: "1.23.x"
-            - name: Check client compilation
-              run: |
-                  deno install --allow-scripts
-                  deno check -q .
-                  deno task compile:client
-            - name: Check server compilation
-              run: |
-                  deno install --allow-scripts
-                  deno run -A scripts/init.ts nodb
-                  deno task compile:server
-                  deno task compile:server:lite
-                  deno task compile:server:prod
-                  deno task compile:server:test
-    macos_latest:
-        runs-on: macos-latest
+    full-stack:
+        strategy:
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+        runs-on: ${{ matrix.os }}
         steps:
             - uses: actions/checkout@v4
             - uses: denoland/setup-deno@v2
