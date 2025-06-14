@@ -1,11 +1,11 @@
 package internal
-
 import (
 	_ "embed"
 	"fmt"
 	"io/fs"
 	"reflect"
 	"time"
+	"errors"
 
 	"github.com/Mopsgamer/draqun/server/controller"
 	"github.com/Mopsgamer/draqun/server/controller/controller_http"
@@ -21,6 +21,22 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/static"
 )
+
+func CheckUser(ctx fiber.Handler) error {
+	// ...
+	return errors.New("Not implemented")
+}
+
+func Chain(handlers ...fiber.Handler) fiber.Handler {
+	return func (ctx fiber.Ctx) error {
+		for _, handler := range handlers {
+			if err := handler(ctx); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
 
 // Initialize gofiber application, including DB and view engine.
 func NewApp(embedFS fs.FS) (*fiber.App, error) {
