@@ -35,13 +35,13 @@ func CheckGroup(groupId uint64) Handler {
 
 type RightsChecker func(role model_database.Role) bool
 
-func CheckBindForm(request any) Handler {
+func CheckBindForm[T any](request T) Handler {
 	return func(ctl Controller) error {
 		if err := ctl.Ctx.Bind().Form(request); err != nil {
 			return err
 		}
 
-		ctl.Ctx.Locals("form", request)
+		ctl.Ctx.Locals(LocalForm, request)
 		return nil
 	}
 }
