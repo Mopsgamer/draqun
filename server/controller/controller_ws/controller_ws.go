@@ -3,8 +3,6 @@ package controller_ws
 import (
 	"encoding/json"
 
-	"github.com/Mopsgamer/draqun/server/controller"
-	"github.com/Mopsgamer/draqun/server/controller/database"
 	"github.com/Mopsgamer/draqun/websocket"
 
 	"github.com/gofiber/fiber/v3"
@@ -12,7 +10,6 @@ import (
 
 type ControllerWs struct {
 	Conn *websocket.Conn
-	DB   database.Database
 	App  *fiber.App
 	IP   string
 
@@ -23,17 +20,10 @@ type ControllerWs struct {
 	Subs        []Subscription
 }
 
-type Handler func(ctl ControllerWs) error
-
-type Response interface {
-	HandleHtmx(ctl *ControllerWs) error
-}
-
-func New(ctlHttp controller.Controller) *ControllerWs {
+func New(ctx fiber.Ctx) *ControllerWs {
 	ws := ControllerWs{
-		DB:  ctlHttp.DB,
-		App: ctlHttp.Ctx.App(),
-		IP:  ctlHttp.Ctx.IP(),
+		App: ctx.App(),
+		IP:  ctx.IP(),
 	}
 
 	return &ws

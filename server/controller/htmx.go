@@ -3,35 +3,37 @@ package controller
 import (
 	"regexp"
 	"strings"
+
+	"github.com/gofiber/fiber/v3"
 )
 
-func (r *Controller) IsHTMX() bool {
-	return r.Ctx.Get("HX-Request") == "true"
+func IsHTMX(ctx fiber.Ctx) bool {
+	return ctx.Get("HX-Request") == "true"
 }
 
 // Call it instead of Redirect().To().
-func (r *Controller) HTMXRedirect(to string) {
-	r.Ctx.Set("HX-Redirect", to)
+func HTMXRedirect(ctx fiber.Ctx, to string) {
+	ctx.Set("HX-Redirect", to)
 }
 
 // Refresh the page.
-func (r *Controller) HTMXRefresh() {
-	r.Ctx.Set("HX-Refresh", "true")
+func HTMXRefresh(ctx fiber.Ctx) {
+	ctx.Set("HX-Refresh", "true")
 }
 
 // Get /path/to#element?key=val
-func (r *Controller) HTMXCurrentURL() string {
-	return r.Ctx.Get("HX-Current-URL")
+func HTMXCurrentURL(ctx fiber.Ctx) string {
+	return ctx.Get("HX-Current-URL")
 }
 
 // Get #element
 // from /path/to#element?key=val
-func (r *Controller) HTMXCurrentURLHash() string {
-	return regexp.MustCompile(`((#[a-zA-Z0-9_-]+)|(\?[a-zA-Z_]))+`).FindString(r.HTMXCurrentURL())
+func HTMXCurrentURLHash(ctx fiber.Ctx) string {
+	return regexp.MustCompile(`((#[a-zA-Z0-9_-]+)|(\?[a-zA-Z_]))+`).FindString(HTMXCurrentURL(ctx))
 }
 
 // Get /path/to?key=val
 // from /path/to#element?key=val
-func (r *Controller) HTMXCurrentPath() string {
-	return strings.Replace(r.HTMXCurrentURL(), r.HTMXCurrentURLHash(), "", -1)
+func HTMXCurrentPath(ctx fiber.Ctx) string {
+	return strings.Replace(HTMXCurrentURL(ctx), HTMXCurrentURLHash(ctx), "", -1)
 }

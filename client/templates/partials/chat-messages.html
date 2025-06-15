@@ -7,7 +7,7 @@
 {{- if eq $i 0}}
 {{- if (eq (len $this.MessageList) $this.MessagesPagination)}}
 <div class="load-scroll" hx-trigger="intersect once" hx-swap="outerHTML"
-    hx-get="/groups/{{$this.GroupId}}/messages/page/{{$this.MessagesPageNext}}"></div>
+    hx-get="/groups/{{$this.Group.Id}}/messages/page/{{$this.MessagesPageNext}}"></div>
 {{- end}}
 {{- end}}
 {{- end -}}
