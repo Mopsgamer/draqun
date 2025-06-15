@@ -25,7 +25,7 @@ func CheckGroup(groupId uint64) Handler {
 	return func(ctl Controller) error {
 		group := ctl.DB.GroupById(groupId)
 		if group == nil {
-			return ErrGroupNotFound
+			return environment.ErrGroupNotFound
 		}
 
 		ctl.Ctx.Locals(LocalGroup, group)
@@ -101,7 +101,7 @@ func CheckAuth() Handler {
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-				return user, errors.Join(ErrToken, err)
+				return user, errors.Join(environment.ErrToken, err)
 			}
 
 			tokenBytes := []byte(environment.JWTKey)
@@ -109,23 +109,23 @@ func CheckAuth() Handler {
 		})
 
 		if err != nil {
-			return errors.Join(ErrToken, err)
+			return errors.Join(environment.ErrToken, err)
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
 		email, ok := claims["Email"].(string)
 		if !ok {
-			return errors.Join(ErrToken, errors.New("expected any email"))
+			return errors.Join(environment.ErrToken, errors.New("expected any email"))
 		}
 
 		pass, ok := claims["Password"].(string)
 		if !ok {
-			return errors.Join(ErrToken, errors.New("expected any password"))
+			return errors.Join(environment.ErrToken, errors.New("expected any password"))
 		}
 
 		user = ctl.DB.UserByEmail(email)
 		if pass != user.Password {
-			return errors.Join(ErrToken, errors.New("incorrect password"))
+			return errors.Join(environment.ErrToken, errors.New("incorrect password"))
 		}
 
 		ctl.Ctx.Locals("user", user)

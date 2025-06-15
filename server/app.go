@@ -21,10 +21,9 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/static"
 )
 
-var db, errDBLoad = database.InitDB()
-
 // Initialize gofiber application, including DB and view engine.
 func NewApp(embedFS fs.FS) (*fiber.App, error) {
+	var db, errDBLoad = database.InitDB()
 	if errDBLoad != nil {
 		log.Error(errDBLoad)
 		return nil, errDBLoad
@@ -174,11 +173,11 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			}
 
 			if ctl.DB.UserByUsername(request.Username) != nil {
-				return controller.ErrUserExsistsNickname
+				return environment.ErrUserExsistsNickname
 			}
 
 			if ctl.DB.UserByEmail(request.Email) != nil {
-				return controller.ErrUserExsistsEmail
+				return environment.ErrUserExsistsEmail
 			}
 
 			if err := model_database.IsValidUserPhone(request.Phone); err != nil {
@@ -188,7 +187,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			// TODO: validate user avatar
 
 			if request.ConfirmPassword != request.Password {
-				return controller.ErrUserPasswordConfirm
+				return environment.ErrUserPasswordConfirm
 			}
 
 			hash, err := model_database.HashPassword(request.Password)
@@ -244,7 +243,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			}
 
 			if !user.CheckPassword(request.Password) {
-				return controller.ErrUserPassword
+				return environment.ErrUserPassword
 			}
 
 			token, err := user.GenerateToken()
@@ -274,7 +273,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 		func(ctl controller.Controller) error {
 			request := fiber.Locals[*GroupCreate](ctl.Ctx, controller.LocalForm)
 			if ctl.DB.GroupByName(request.Name) != nil {
-				return controller.ErrGroupNotFound
+				return environment.ErrGroupNotFound
 			}
 
 			if err := model_database.IsValidGroupName(request.Name); err != nil {
@@ -377,7 +376,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				}
 
 				if !model_database.IsValidMessageContent(message.Content) {
-					return controller.ErrChatMessageContent
+					return environment.ErrChatMessageContent
 				}
 
 				messageId := ctl.DB.MessageCreate(*message)
@@ -426,7 +425,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			user := fiber.Locals[*model_database.User](ctl.Ctx, controller.LocalAuth)
 
 			if request.NewNickname == user.Nick && request.NewName == user.Name {
-				return controller.ErrUseless
+				return environment.ErrUseless
 			}
 
 			if err := model_database.IsValidUserNick(request.NewNickname); err != nil {
@@ -438,7 +437,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			}
 
 			if ctl.DB.UserByUsername(request.NewName) != nil && request.NewNickname == user.Nick {
-				return controller.ErrUserExsistsName
+				return environment.ErrUserExsistsName
 			}
 
 			user.Nick = request.NewNickname
@@ -464,7 +463,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			user := fiber.Locals[*model_database.User](ctl.Ctx, controller.LocalAuth)
 
 			if request.NewEmail == user.Email {
-				return controller.ErrUseless
+				return environment.ErrUseless
 			}
 
 			if err := model_database.IsValidUserEmail(request.NewEmail); err != nil {
@@ -472,7 +471,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			}
 
 			if ctl.DB.UserByEmail(request.NewEmail) != nil {
-				return controller.ErrUserExsistsEmail
+				return environment.ErrUserExsistsEmail
 			}
 
 			if err := model_database.IsValidUserPassword(request.CurrentPassword); err != nil {
@@ -480,7 +479,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			}
 
 			if !user.CheckPassword(request.CurrentPassword) {
-				return controller.ErrUserPassword
+				return environment.ErrUserPassword
 			}
 
 			user.Email = request.NewEmail
@@ -505,7 +504,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			user := fiber.Locals[*model_database.User](ctl.Ctx, controller.LocalAuth)
 
 			if request.NewPhone == user.Phone {
-				return controller.ErrUseless
+				return environment.ErrUseless
 			}
 
 			if err := model_database.IsValidUserPhone(request.NewPhone); err != nil {
@@ -513,7 +512,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			}
 
 			if !user.CheckPassword(request.CurrentPassword) {
-				return controller.ErrUserPassword
+				return environment.ErrUserPassword
 			}
 
 			user.Phone = request.NewPhone
@@ -539,7 +538,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			user := fiber.Locals[*model_database.User](ctl.Ctx, controller.LocalAuth)
 
 			if request.NewPassword == user.Password {
-				return controller.ErrUseless
+				return environment.ErrUseless
 			}
 
 			if err := model_database.IsValidUserPassword(request.CurrentPassword); err != nil {
@@ -547,11 +546,11 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			}
 
 			if request.ConfirmPassword != request.NewPassword {
-				return controller.ErrUserPasswordConfirm
+				return environment.ErrUserPasswordConfirm
 			}
 
 			if !user.CheckPassword(request.CurrentPassword) {
-				return controller.ErrUserPassword
+				return environment.ErrUserPassword
 			}
 
 			user.Password = request.NewPassword
@@ -588,7 +587,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				user := fiber.Locals[*model_database.User](ctl.Ctx, controller.LocalAuth)
 				member := fiber.Locals[*model_database.Member](ctl.Ctx, controller.LocalMember)
 				if member != nil {
-					return controller.ErrUseless
+					return environment.ErrUseless
 				}
 
 				member = &model_database.Member{
@@ -653,7 +652,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 					group.Password != request.Password
 
 				if !hasChanges {
-					return controller.ErrUseless
+					return environment.ErrUseless
 				}
 
 				if err := model_database.IsValidGroupName(request.Name); err != nil {
@@ -741,16 +740,16 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			user := fiber.Locals[*model_database.User](ctl.Ctx, controller.LocalAuth)
 
 			if user.Nick != request.ConfirmUsername {
-				return controller.ErrUserNameConfirm
+				return environment.ErrUserNameConfirm
 			}
 
 			if !user.CheckPassword(request.CurrentPassword) {
-				return controller.ErrUserPassword
+				return environment.ErrUserPassword
 			}
 
 			userOwnGroups := ctl.DB.UserOwnGroupList(user.Id)
 			if len(userOwnGroups) > 0 {
-				return controller.ErrUserDeleteOwnerAccount
+				return environment.ErrUserDeleteOwnerAccount
 			}
 
 			if !ctl.DB.UserDelete(user.Id) {
