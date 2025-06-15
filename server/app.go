@@ -1,20 +1,24 @@
 package internal
+
 import (
 	_ "embed"
+	"errors"
 	"fmt"
 	"io/fs"
 	"reflect"
 	"time"
-	"errors"
 
 	"github.com/Mopsgamer/draqun/server/controller"
 	"github.com/Mopsgamer/draqun/server/controller/controller_http"
 	"github.com/Mopsgamer/draqun/server/controller/controller_ws"
 	"github.com/Mopsgamer/draqun/server/controller/database"
+	"github.com/Mopsgamer/draqun/server/controller/model_database"
 	"github.com/Mopsgamer/draqun/server/controller/model_http"
 	"github.com/Mopsgamer/draqun/server/controller/model_ws"
 	"github.com/Mopsgamer/draqun/server/docsgen"
+	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/websocket"
+	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
@@ -22,15 +26,63 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/static"
 )
 
-func CheckUser(ctx fiber.Handler) error {
-	// ...
-	return errors.New("Not implemented")
+var ErrInvalidToken = errors.New("invalid token")
+
+func CheckUser(ctl controller_http.ControllerHttp) error {
+	var user model_database.User
+	authCookie := ctl.Ctx.Cookies("Authorization")
+	if authCookie == "" {
+		return fiber.ErrUnauthorized
+	}
+
+	if len(authCookie) < 8 || authCookie[:7] != "Bearer " {
+		return fiber.ErrBadRequest
+	}
+
+	tokenString := authCookie[7:]
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			err := errors.Join(ErrInvalidToken, fmt.Errorf("unexpected signing method: %v", token.Header["alg"]))
+			return user, err
+		}
+
+		tokenBytes := []byte(environment.JWTKey)
+		return tokenBytes, nil
+	})
+
+	if err != nil {
+		return errors.Join(ErrInvalidToken, err)
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	email, ok := claims["Email"].(string)
+	if !ok {
+		return errors.Join(ErrInvalidToken, errors.New("expected any email"))
+	}
+
+	pass, ok := claims["Password"].(string)
+	if !ok {
+		return errors.Join(ErrInvalidToken, errors.New("expected any password"))
+	}
+
+	user = *ctl.DB.UserByEmail(email)
+	if pass != user.Password {
+		return errors.Join(ErrInvalidToken, errors.New("incorrect password"))
+	}
+
+	ctl.Ctx.Locals("user", user)
+	return nil
 }
 
-func Chain(handlers ...fiber.Handler) fiber.Handler {
-	return func (ctx fiber.Ctx) error {
+func Chain(handlers ...func(ctl controller_http.ControllerHttp) error) fiber.Handler {
+	return func(ctx fiber.Ctx) error {
+		ctl := controller_http.ControllerHttp{
+			Ctx: ctx,
+			DB:  *db,
+		}
 		for _, handler := range handlers {
-			if err := handler(ctx); err != nil {
+			if err := handler(ctl); err != nil {
 				return err
 			}
 		}
@@ -38,9 +90,10 @@ func Chain(handlers ...fiber.Handler) fiber.Handler {
 	}
 }
 
+var db, errDBLoad = database.InitDB()
+
 // Initialize gofiber application, including DB and view engine.
 func NewApp(embedFS fs.FS) (*fiber.App, error) {
-	db, errDBLoad := database.InitDB()
 	if errDBLoad != nil {
 		log.Error(errDBLoad)
 		return nil, errDBLoad
