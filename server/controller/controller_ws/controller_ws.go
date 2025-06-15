@@ -3,9 +3,8 @@ package controller_ws
 import (
 	"encoding/json"
 
-	"github.com/Mopsgamer/draqun/server/controller/controller_http"
+	"github.com/Mopsgamer/draqun/server/controller"
 	"github.com/Mopsgamer/draqun/server/controller/database"
-	"github.com/Mopsgamer/draqun/server/controller/model_database"
 	"github.com/Mopsgamer/draqun/websocket"
 
 	"github.com/gofiber/fiber/v3"
@@ -17,11 +16,6 @@ type ControllerWs struct {
 	App  *fiber.App
 	IP   string
 
-	User   *model_database.User
-	Group  *model_database.Group
-	Member *model_database.Member
-	Rights *model_database.Role
-
 	MessageType int
 	Message     []byte
 	dataToFlush string
@@ -29,20 +23,17 @@ type ControllerWs struct {
 	Subs        []Subscription
 }
 
+type Handler func(ctl ControllerWs) error
+
 type Response interface {
 	HandleHtmx(ctl *ControllerWs) error
 }
 
-func New(ctlHttp controller_http.ControllerHttp) *ControllerWs {
+func New(ctlHttp controller.Controller) *ControllerWs {
 	ws := ControllerWs{
 		DB:  ctlHttp.DB,
 		App: ctlHttp.Ctx.App(),
 		IP:  ctlHttp.Ctx.IP(),
-
-		User:   ctlHttp.User,
-		Group:  ctlHttp.Group,
-		Member: ctlHttp.Member,
-		Rights: ctlHttp.Rights,
 	}
 
 	return &ws

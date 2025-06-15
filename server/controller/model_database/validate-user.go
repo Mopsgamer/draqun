@@ -1,7 +1,16 @@
 package model_database
 
 import (
+	"errors"
 	"regexp"
+)
+
+var (
+	ErrFormatUserPassword = errors.New("format: user: invalid password")
+	ErrFormatUserEmail    = errors.New("format: user: invalid email")
+	ErrFormatUserNickname = errors.New("format: user: invalid nickname")
+	ErrFormatUserName     = errors.New("format: user: invalid name")
+	ErrFormatUserPhone    = errors.New("format: user: invalid phone")
 )
 
 const (
@@ -13,26 +22,41 @@ const (
 	RegexpUserPhone string = `^\+?[1-9]\d{1,14}$`
 )
 
-func IsValidUserPassword(str string) bool {
-	return IsValidString(str, RegexpUserPassword, 255)
+func IsValidUserPassword(str string) error {
+	if !IsValidString(str, RegexpUserPassword, 255) {
+		return ErrFormatUserPassword
+	}
+	return nil
 }
 
-func IsValidUserNick(str string) bool {
-	return IsValidString(str, RegexpUserNick, 255)
+func IsValidUserNick(str string) error {
+	if !IsValidString(str, RegexpUserNick, 255) {
+		return ErrFormatUserNickname
+	}
+	return nil
 }
 
-func IsValidUserName(str string) bool {
-	return IsValidString(str, RegexpUserName, 255)
+func IsValidUserName(str string) error {
+	if !IsValidString(str, RegexpUserName, 255) {
+		return ErrFormatUserName
+	}
+	return nil
 }
 
-func IsValidUserEmail(str string) bool {
-	return IsValidString(str, RegexpUserEmail, 255)
+func IsValidUserEmail(str string) error {
+	if !IsValidString(str, RegexpUserEmail, 255) {
+		return ErrFormatUserEmail
+	}
+	return nil
 }
 
-func IsValidUserPhone(str *string) bool {
+func IsValidUserPhone(str *string) error {
 	if str == nil {
-		return true // allow no phone
+		return nil // allow no phone
 	}
 	newstr := regexp.MustCompile(`\s`).ReplaceAllString(*str, "")
-	return IsValidString(newstr, RegexpUserPhone, 255)
+	if !IsValidString(newstr, RegexpUserPhone, 255) {
+		return ErrFormatUserPhone
+	}
+	return nil
 }

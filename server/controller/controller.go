@@ -4,9 +4,17 @@ import (
 	"bytes"
 	"html/template"
 
+	"github.com/Mopsgamer/draqun/server/controller/database"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 )
+
+type Controller struct {
+	Ctx fiber.Ctx
+	DB  database.Database
+}
+
+type Handler func(ctl Controller) error
 
 // Converts the pointer to a value
 func MapMerge(maps ...*fiber.Map) fiber.Map {
