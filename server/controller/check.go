@@ -26,6 +26,7 @@ type RightsChecker func(role model_database.Role) bool
 
 func PopulatePage(db *database.Database) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
+		_ = CheckAuth(db)(ctx)
 		groupId := fiber.Params[uint64](ctx, "group_id")
 		groupName := fiber.Params[string](ctx, "group_name")
 		var group *model_database.Group
