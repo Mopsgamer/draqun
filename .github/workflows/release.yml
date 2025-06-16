@@ -1,0 +1,70 @@
+name: Release
+
+on:
+    workflow_dispatch:
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        env:
+            # tag-prefix if you want "v1.2.3" vs "1.2.3"
+            TAG_PREFIX: "v"
+
+            # define all target OSes and ARCHes here
+            OS_LIST: "windows linux darwin"
+            ARCH_LIST: "amd64 arm64"
+
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # so we have all history for conventional-commits
+            - uses: denoland/setup-deno@v2
+              with:
+                  deno-version: v2.x
+            - uses: actions/setup-go@v5
+              with:
+                  go-version: "1.23.x"
+            - name: Check client compilation
+              run: |
+                  deno install --allow-scripts
+                  deno task compile:client
+            - name: Check server compilation
+              run: |
+                  deno install --allow-scripts
+            - name: Build binaries
+              run: |
+                  VERSION=${{ steps.bump.outputs.new_tag }}
+                  mkdir -p release/$VERSION
+                  for OS in $OS_LIST; do
+                    for ARCH in $ARCH_LIST; do
+                      BIN_NAME="server-${OS}-${ARCH}"
+                      # Windows executables need .exe
+                      [ "$OS" = "windows" ] && BIN_NAME+=".exe"
+                      echo "Building $BIN_NAME..."
+                      GOOS=$OS GOARCH=$ARCH go build -tags prod -o release/$VERSION/$BIN_NAME .
+                    done
+                  done
+            - name: Determine next version bump
+              id: bump
+              uses: phips28/gh-action-bump-version@master
+              with:
+                  files: deno.json go.mod
+                  tag-prefix: ${{ env.TAG_PREFIX }}
+                  commit-message: "chore: bump version to ${TAG}"
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Push bumped files & tag
+              run: |
+                  # bump-action already committed & tagged for us, so just push
+                  git push --follow-tags
+
+            - name: Create GitHub Release & upload assets
+              uses: ncipollo/release-action@v1
+              with:
+                  tag: ${{ steps.bump.outputs.new_tag }}
+                  name: Release ${{ steps.bump.outputs.new_tag }}
+                  files: |
+                      release/${{ steps.bump.outputs.new_tag }}/*
+                  draft: false
+                  prerelease: false
+                  token: ${{ secrets.GITHUB_TOKEN }}
