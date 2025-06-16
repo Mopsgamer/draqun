@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"github.com/Mopsgamer/draqun/server/controller/model_database"
 	"github.com/Mopsgamer/draqun/server/environment"
+	"github.com/Mopsgamer/draqun/server/model_database"
 
 	"github.com/gofiber/fiber/v3"
 )

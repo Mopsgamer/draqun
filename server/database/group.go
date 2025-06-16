@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/Mopsgamer/draqun/server/controller/model_database"
+	"github.com/Mopsgamer/draqun/server/model_database"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 )

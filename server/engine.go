@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/controller"
-	"github.com/Mopsgamer/draqun/server/controller/database"
-	"github.com/Mopsgamer/draqun/server/controller/model_database"
+	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
+	"github.com/Mopsgamer/draqun/server/model_database"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/template/html/v2"
