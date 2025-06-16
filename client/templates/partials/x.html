@@ -1,10 +1,8 @@
 <div class="text-3xl font-bold aligned">
-    {{- if isString .}}
-    Under construction <sl-icon name="hammer"></sl-icon> - {{.}}
-    {{- else}}
+    {{- if isString .}} Under construction <sl-icon name="hammer"></sl-icon> -
+    {{.}} {{- else}}
     <sl-icon name="exclamation-triangle"></sl-icon>
-    {{.StatusCode}} - {{.StatusMessage}}
-    {{- end}}
+    {{.StatusCode}} - {{.StatusMessage}} {{- end}}
 </div>
 <div>
     <sl-button variant="text" href="/">

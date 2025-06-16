@@ -1,11 +1,11 @@
-{{$variant := "neutral"}}
-{{- if eq .Method "get"}}{{$variant = "primary"}}{{end}}
-{{- if eq .Method "post"}}{{$variant = "success"}}{{end}}
-{{- if eq .Method "put"}}{{$variant = "warning"}}{{end}}
-{{- if eq .Method "delete"}}{{$variant = "danger"}}{{end}}
+{{$variant := "neutral"}} {{- if eq .Method "get"}}{{$variant =
+"primary"}}{{end}} {{- if eq .Method "post"}}{{$variant = "success"}}{{end}} {{-
+if eq .Method "put"}}{{$variant = "warning"}}{{end}} {{- if eq .Method
+"delete"}}{{$variant = "danger"}}{{end}}
 <div class="http-method">
     <div class="aligned">
-        <sl-tag size="medium" variant="{{$variant}}" class="method uppercase">{{.Method}}</sl-tag>
+        <sl-tag size="medium" variant="{{$variant}}" class="method uppercase"
+        >{{.Method}}</sl-tag>
         <code class="w-full overflow-y-auto path">{{.Path}}</code>
     </div>
     <div class="description">
@@ -13,7 +13,7 @@
     </div>
     <h5>Request</h5>
     <div class="request">
-    {{- template "partials/docs-fields" .Request}}
+        {{- template "partials/docs-fields" .Request}}
     </div>
     <h5>Response</h5>
     <div class="response">{{.Response}}</div>

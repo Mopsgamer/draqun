@@ -1,13 +1,30 @@
 <div class="chat-input">
-    <form id="send-message-form" hx-trigger="submit, keydown[key=='Enter'&&ctrlKey] from:#new-message-input"
-        hx-target="#send-message-error" hx-swap="innerHTML" hx-post="/groups/{{.Group.Id}}/messages/create">
+    <form
+        id="send-message-form"
+        hx-trigger="submit, keydown[key=='Enter'&&ctrlKey] from:#new-message-input"
+        hx-target="#send-message-error"
+        hx-swap="innerHTML"
+        hx-post="/groups/{{.Group.Id}}/messages/create"
+    >
         <div class="box">
             <div id="send-message-error" class="w-full"></div>
-            <sl-textarea id="new-message-input" form="send-message-form" filled placeholder="Write to {{.Group.Nick}}"
-                name="content" rows="1" resize="auto"></sl-textarea>
+            <sl-textarea
+                id="new-message-input"
+                form="send-message-form"
+                filled
+                placeholder="Write to {{.Group.Nick}}"
+                name="content"
+                rows="1"
+                resize="auto"
+            ></sl-textarea>
         </div>
         <div class="right">
-            <sl-button title="Send" variant="text" form="send-message-form" type="submit">
+            <sl-button
+                title="Send"
+                variant="text"
+                form="send-message-form"
+                type="submit"
+            >
                 <sl-icon name="send"></sl-icon>
             </sl-button>
         </div>

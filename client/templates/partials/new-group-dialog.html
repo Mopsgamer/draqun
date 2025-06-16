@@ -4,15 +4,49 @@
         <sl-icon name="people"></sl-icon>
         Create new group
     </span>
-    <form id="new-group-form" name="new-group-form" hx-post="/groups/create" hx-swap="outerHTML"
-        hx-target="#new-group-error">
-        <sl-input autofocus label="Nick" type="text" id="new-group-nick" name="nick" required></sl-input>
-        <sl-input label="Name" type="text" autocomplete="username" id="new-group-name" name="name"
-            required></sl-input>
-        <sl-input label="Password" password-toggle type="password" autocomplete="new-password" id="new-group-password"
-            name="password"></sl-input>
-        <sl-textarea label="Description" id="new-group-description" name="description"></sl-textarea>
-        <sl-select label="Mode" id="new-group-mode" name="mode" value="public" required>
+    <form
+        id="new-group-form"
+        name="new-group-form"
+        hx-post="/groups/create"
+        hx-swap="outerHTML"
+        hx-target="#new-group-error"
+    >
+        <sl-input
+            autofocus
+            label="Nick"
+            type="text"
+            id="new-group-nick"
+            name="nick"
+            required
+        ></sl-input>
+        <sl-input
+            label="Name"
+            type="text"
+            autocomplete="username"
+            id="new-group-name"
+            name="name"
+            required
+        ></sl-input>
+        <sl-input
+            label="Password"
+            password-toggle
+            type="password"
+            autocomplete="new-password"
+            id="new-group-password"
+            name="password"
+        ></sl-input>
+        <sl-textarea
+            label="Description"
+            id="new-group-description"
+            name="description"
+        ></sl-textarea>
+        <sl-select
+            label="Mode"
+            id="new-group-mode"
+            name="mode"
+            value="public"
+            required
+        >
             <sl-option value="private">Private</sl-option>
             <sl-option value="public">Public</sl-option>
         </sl-select>
@@ -20,7 +54,8 @@
     </form>
     <div slot="footer" class="dialog-footer">
         <div>
-            <sl-button form="new-group-form" variant="primary" type="submit">Create</sl-button>
+            <sl-button form="new-group-form" variant="primary" type="submit"
+            >Create</sl-button>
         </div>
     </div>
 </sl-dialog>

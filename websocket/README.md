@@ -10,7 +10,12 @@ id: websocket
 ![Security](https://github.com/gofiber/contrib/workflows/Security/badge.svg)
 ![Linter](https://github.com/gofiber/contrib/workflows/Linter/badge.svg)
 
-Based on [Fasthttp WebSocket](https://github.com/fasthttp/websocket) for [Fiber](https://github.com/gofiber/fiber) with available `fiber.Ctx` methods like [Locals](http://docs.gofiber.io/ctx#locals), [Params](http://docs.gofiber.io/ctx#params), [Query](http://docs.gofiber.io/ctx#query) and [Cookies](http://docs.gofiber.io/ctx#cookies).
+Based on [Fasthttp WebSocket](https://github.com/fasthttp/websocket) for
+[Fiber](https://github.com/gofiber/fiber) with available `fiber.Ctx` methods
+like [Locals](http://docs.gofiber.io/ctx#locals),
+[Params](http://docs.gofiber.io/ctx#params),
+[Query](http://docs.gofiber.io/ctx#query) and
+[Cookies](http://docs.gofiber.io/ctx#cookies).
 
 **Note: Requires Go 1.22 and above**
 
@@ -22,24 +27,24 @@ go get -u github.com/gofiber/contrib/websocket
 ```
 
 ## Signatures
+
 ```go
 func New(handler func(*websocket.Conn), config ...websocket.Config) fiber.Handler {
 ```
 
 ## Config
 
-| Property            | Type                         | Description                                                                                                                   | Default                |
-|:--------------------|:-----------------------------|:------------------------------------------------------------------------------------------------------------------------------|:-----------------------|
-| Filter              | `func(fiber.Ctx) bool`       | Defines a function to skip middleware.                                                                                        | `nil`                  |
-| HandshakeTimeout    | `time.Duration`              | HandshakeTimeout specifies the duration for the handshake to complete.                                                       | `0` (No timeout)       |
-| Subprotocols        | `[]string`                   | Subprotocols specifies the client's requested subprotocols.                                                                   | `nil`                  |
-| Origins             | `[]string`                   | Allowed Origins based on the Origin header. If empty, everything is allowed.                                                  | `nil`                  |
-| ReadBufferSize      | `int`                        | ReadBufferSize specifies the I/O buffer size in bytes for incoming messages.                                                  | `0` (Use default size) |
-| WriteBufferSize     | `int`                        | WriteBufferSize specifies the I/O buffer size in bytes for outgoing messages.                                                 | `0` (Use default size) |
-| WriteBufferPool     | `websocket.BufferPool`       | WriteBufferPool is a pool of buffers for write operations.                                                                     | `nil`                  |
-| EnableCompression   | `bool`                       | EnableCompression specifies if the client should attempt to negotiate per message compression (RFC 7692).                     | `false`                |
-| RecoverHandler      | `func(*websocket.Conn) void` | RecoverHandler is a panic handler function that recovers from panics.                                                         | `defaultRecover`       |
-
+| Property          | Type                         | Description                                                                                               | Default                |
+| :---------------- | :--------------------------- | :-------------------------------------------------------------------------------------------------------- | :--------------------- |
+| Filter            | `func(fiber.Ctx) bool`       | Defines a function to skip middleware.                                                                    | `nil`                  |
+| HandshakeTimeout  | `time.Duration`              | HandshakeTimeout specifies the duration for the handshake to complete.                                    | `0` (No timeout)       |
+| Subprotocols      | `[]string`                   | Subprotocols specifies the client's requested subprotocols.                                               | `nil`                  |
+| Origins           | `[]string`                   | Allowed Origins based on the Origin header. If empty, everything is allowed.                              | `nil`                  |
+| ReadBufferSize    | `int`                        | ReadBufferSize specifies the I/O buffer size in bytes for incoming messages.                              | `0` (Use default size) |
+| WriteBufferSize   | `int`                        | WriteBufferSize specifies the I/O buffer size in bytes for outgoing messages.                             | `0` (Use default size) |
+| WriteBufferPool   | `websocket.BufferPool`       | WriteBufferPool is a pool of buffers for write operations.                                                | `nil`                  |
+| EnableCompression | `bool`                       | EnableCompression specifies if the client should attempt to negotiate per message compression (RFC 7692). | `false`                |
+| RecoverHandler    | `func(*websocket.Conn) void` | RecoverHandler is a panic handler function that recovers from panics.                                     | `defaultRecover`       |
 
 ## Example
 
@@ -98,12 +103,13 @@ func main() {
 	// Access the websocket server: ws://localhost:3000/ws/123?v=1.0
 	// https://www.websocket.org/echo.html
 }
-
 ```
 
 ## Note with cache middleware
 
-If you get the error `websocket: bad handshake` when using the [cache middleware](https://github.com/gofiber/fiber/tree/master/middleware/cache), please use `config.Next` to skip websocket path.
+If you get the error `websocket: bad handshake` when using the
+[cache middleware](https://github.com/gofiber/fiber/tree/master/middleware/cache),
+please use `config.Next` to skip websocket path.
 
 ```go
 app := fiber.New()
@@ -118,9 +124,11 @@ app.Get("/ws/:id", websocket.New(func(c *websocket.Conn) {}))
 
 ## Note with recover middleware
 
-For internal implementation reasons, currently recover middleware is not work with websocket middleware, please use `config.RecoverHandler` to add recover handler to websocket endpoints.
-By default, config `RecoverHandler` is recovers from panic and writes stack trace to stderr, also returns a response that contains panic message in **error** field.
-
+For internal implementation reasons, currently recover middleware is not work
+with websocket middleware, please use `config.RecoverHandler` to add recover
+handler to websocket endpoints. By default, config `RecoverHandler` is recovers
+from panic and writes stack trace to stderr, also returns a response that
+contains panic message in **error** field.
 
 ```go
 app := fiber.New()
@@ -140,6 +148,4 @@ cfg := Config{
 }
 
 app.Get("/ws/:id", websocket.New(func(c *websocket.Conn) {}, cfg))
-
-
 ```

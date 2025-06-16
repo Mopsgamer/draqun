@@ -1,11 +1,15 @@
 <sl-dropdown placement="bottom-end">
     <sl-button id="avatar-button" variant="text" slot="trigger">
-        <span class="nickname aligned h-full" {{with .User}}title="{{.Nick}}"{{end}}>{{with .User}}{{.Nick}}{{else}}Guest{{end}}</span>
+        <span
+            class="nickname aligned h-full"
+            {{with
+            .User}}title="{{.Nick}}"
+            {{end}}
+        >{{with .User}}{{.Nick}}{{else}}Guest{{end}}</span>
         <sl-avatar class="-mr-2 ml-4" slot="suffix"></sl-avatar>
     </sl-button>
     <sl-menu>
-        {{- if ne .User nil}}
-        {{- if .IsChatPage }}
+        {{- if ne .User nil}} {{- if .IsChatPage }}
         <a href="#settings-dialog">
             <sl-menu-item>
                 <sl-icon slot="prefix" name="gear"></sl-icon>
@@ -19,8 +23,7 @@
                 Settings
             </sl-menu-item>
         </a>
-        {{- end}}
-        {{- end}}
+        {{- end}} {{- end}}
 
         <sl-menu-item class="theme-menu">
             <sl-icon slot="prefix" name="stars"></sl-icon>
@@ -50,9 +53,7 @@
                 Home
             </sl-menu-item>
         </a>
-        {{- end}}
-
-        {{- if ne .User nil}}
+        {{- end}} {{- if ne .User nil}}
         <sl-menu-item hx-put="/account/logout" hx-swap="innerHTML">
             <sl-icon slot="prefix" name="box-arrow-right"></sl-icon>
             Log Out

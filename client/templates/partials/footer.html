@@ -23,17 +23,24 @@
     {{/*<section class="nav-block">
         <h1>Community</h1>
         <nav>
-            <a href="https://discord.com/invite/example" target="_blank" rel="noopener">
+            <a
+                href="https://discord.com/invite/example"
+                target="_blank"
+                rel="noopener"
+            >
                 <sl-icon name="discord"></sl-icon>
                 Join Discord
             </a>
-            <a href="https://twitter.com/yourproject" target="_blank" rel="noopener">
+            <a
+                href="https://twitter.com/yourproject"
+                target="_blank"
+                rel="noopener"
+            >
                 <sl-icon name="twitter"></sl-icon>
                 Follow on Twitter
             </a>
         </nav>
-    </section>*/}}
-    {{/*<section class="nav-block">
+    </section>*/}} {{/*<section class="nav-block">
         <h1>Security</h1>
         <nav>
             <a href="mailto:kisillev020304@gmail.com">
@@ -52,8 +59,8 @@
     </section>*/}}
     <div class="absolute right-0 bottom-0 text-neutral-500 p-2 font-[monospace]">
         version: {{.DenoJson.Version}}{{if ne .GitHash ""}} (<a
-        class="text-cyan-500 underline"
-        href="{{.GitHubRepo}}/commit/{{.GitHashLong}}"
+            class="text-cyan-500 underline"
+            href="{{.GitHubRepo}}/commit/{{.GitHashLong}}"
         >{{.GitHash}}</a>){{end -}}
     </div>
 </footer>

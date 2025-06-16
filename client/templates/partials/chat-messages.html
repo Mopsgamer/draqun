@@ -1,21 +1,38 @@
-{{$this := .}}
-{{- range $i, $messageCache := $this.MessageList -}}
-{{$message := $messageCache.Message}}
-{{$author := $messageCache.Author}}
-
-{{- if and (eq $i 0) (eq (len $this.MessageList) $this.MessagesPagination) -}}
-<div class="load-scroll" hx-trigger="intersect once" hx-swap="outerHTML"
-    hx-get="/groups/{{$this.Group.Id}}/messages/page/{{add 1 $this.MessagesPage}}"></div>
+{{$this := .}} {{- range $i, $messageCache := $this.MessageList -}} {{$message
+:= $messageCache.Message}} {{$author := $messageCache.Author}} {{- if and (eq $i
+0) (eq (len $this.MessageList) $this.MessagesPagination) -}}
+<div
+    class="load-scroll"
+    hx-trigger="intersect once"
+    hx-swap="outerHTML"
+    hx-get="/groups/{{$this.Group.Id}}/messages/page/{{add 1 $this.MessagesPage}}"
+>
+</div>
 {{- end -}}
 
-<div id="message-{{$message.Id}}" class="message" data-message="{{$message.Id}}" data-is-self="{{eq $author.Id $this.User.Id}}" data-author="{{$author.Id}}" data-created-at="{{- jsonTime $message.CreatedAt}}">
+<div
+    id="message-{{$message.Id}}"
+    class="message"
+    data-message="{{$message.Id}}"
+    data-is-self="{{eq $author.Id $this.User.Id}}"
+    data-author="{{$author.Id}}"
+    data-created-at="{{- jsonTime $message.CreatedAt}}"
+>
     <div class="header">
         <div class="prefix">
             <sl-avatar class="avatar" style="--size: 2rem"></sl-avatar>
             <span class="nickname">{{$author.Nick}}</span>
         </div>
         <div class="suffix">
-            <sl-format-date class="date" hour="numeric" minute="numeric" year="numeric" month="long" day="numeric" date="{{$message.CreatedAt}}"></sl-format-date>
+            <sl-format-date
+                class="date"
+                hour="numeric"
+                minute="numeric"
+                year="numeric"
+                month="long"
+                day="numeric"
+                date="{{$message.CreatedAt}}"
+            ></sl-format-date>
         </div>
     </div>
     <div class="text">{{$message.Content}}</div>

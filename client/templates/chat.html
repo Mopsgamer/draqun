@@ -1,5 +1,2 @@
-{{- if ne .User nil}}
-{{- template "partials/app" .}}
-{{- else}}
-{{- template "partials/app-login" .}}
-{{- end}}
+{{- if ne .User nil}} {{- template "partials/app" .}} {{- else}} {{- template
+"partials/app-login" .}} {{- end}}

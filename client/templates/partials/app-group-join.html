@@ -5,7 +5,11 @@
         </sl-avatar>
         Join to {{.Group.Nick}} group?
         <div class="aligned">
-            <sl-button variant="success" outline hx-put="/groups/{{.Group.Id}}/join">
+            <sl-button
+                variant="success"
+                outline
+                hx-put="/groups/{{.Group.Id}}/join"
+            >
                 <sl-icon name="plus" slot="prefix"></sl-icon>
                 Join
             </sl-button>
@@ -14,13 +18,9 @@
                 Stay
             </sl-button>
         </div>
-        {{- if eq .Group.Mode "private"}}
-        {{- template "partials/info" newMap
-        "Id" "private-groups-not-implemented"
-        "Message" (concatString
-            "This group is private and you are not supposed to be here."
-            "Private group functionality is not implemented. Yet..."
-        )}}
-        {{- end}}
+        {{- if eq .Group.Mode "private"}} {{- template "partials/info" newMap
+        "Id" "private-groups-not-implemented" "Message" (concatString "This
+        group is private and you are not supposed to be here." "Private group
+        functionality is not implemented. Yet..." )}} {{- end}}
     </div>
 </main>

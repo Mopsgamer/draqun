@@ -4,12 +4,33 @@
         <sl-icon name="box-arrow-in-right"></sl-icon>
         Log In
     </span>
-    <form id="login-form" name="login-form" hx-post="/account/login" hx-swap="outerHTML"
-        hx-target="#login-error">
-        <sl-input autofocus label="Email" type="email" autocomplete="email" id="login-email" name="email" required>
+    <form
+        id="login-form"
+        name="login-form"
+        hx-post="/account/login"
+        hx-swap="outerHTML"
+        hx-target="#login-error"
+    >
+        <sl-input
+            autofocus
+            label="Email"
+            type="email"
+            autocomplete="email"
+            id="login-email"
+            name="email"
+            required
+        >
         </sl-input>
 
-        <sl-input label="Password" type="password" autocomplete="current-password" name="password" id="login-password" required password-toggle>
+        <sl-input
+            label="Password"
+            type="password"
+            autocomplete="current-password"
+            name="password"
+            id="login-password"
+            required
+            password-toggle
+        >
         </sl-input>
         <sl-alert id="login-error" variant="warning"></sl-alert>
     </form>
@@ -19,7 +40,8 @@
             <sl-button href="#signup-dialog">Sign Up</sl-button>
         </div>
         <div>
-            <sl-button form="login-form" variant="primary" type="submit">Log In</sl-button>
+            <sl-button form="login-form" variant="primary" type="submit"
+            >Log In</sl-button>
         </div>
     </div>
 </sl-dialog>
