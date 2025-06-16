@@ -24,30 +24,19 @@ const AuthCookieKey = "Authorization"
 
 type RightsChecker func(role model_database.Role) bool
 
-func PopulateGroup(db *database.Database, groupId uint64) fiber.Handler {
+func PopulatePage(db *database.Database) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		CheckGroup(db, groupId)(ctx)
-		return nil
-	}
-}
-
-func PopulateMember(db *database.Database, groupId, userId uint64, rights RightsChecker) fiber.Handler {
-	return func(ctx fiber.Ctx) error {
-		CheckMember(db, groupId, userId, rights)(ctx)
-		return nil
-	}
-}
-
-func PopulateAuthMember(db *database.Database, groupId uint64, rights RightsChecker) fiber.Handler {
-	return func(ctx fiber.Ctx) error {
-		CheckAuthMember(db, groupId, rights)(ctx)
-		return nil
-	}
-}
-
-func PopulateAuth(db *database.Database) fiber.Handler {
-	return func(ctx fiber.Ctx) error {
-		CheckAuth(db)(ctx)
+		groupId := fiber.Params[uint64](ctx, "group_id")
+		groupName := fiber.Params[string](ctx, "group_name")
+		var group *model_database.Group
+		if groupName != "" {
+			group = db.GroupByName(groupName)
+		} else {
+			group = db.GroupById(groupId)
+		}
+		if group != nil {
+			_ = CheckAuthMember(db, group.Id, nil)(ctx)
+		}
 		return nil
 	}
 }
@@ -79,7 +68,7 @@ func CheckMember(db *database.Database, groupId, userId uint64, rights RightsChe
 		ctx.Locals(LocalMember, member)
 
 		role := db.MemberRights(groupId, userId)
-		if !rights(role) {
+		if rights != nil && !rights(role) {
 			return fiber.ErrForbidden
 		}
 		return nil

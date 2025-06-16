@@ -3,13 +3,9 @@
 {{$message := $messageCache.Message}}
 {{$author := $messageCache.Author}}
 
-{{- if ne $this.MessagesPagination nil}}
-{{- if eq $i 0}}
-{{- if (eq (len $this.MessageList) $this.MessagesPagination)}}
+{{- if and (eq $i 0) (eq (len $this.MessageList) $this.MessagesPagination) -}}
 <div class="load-scroll" hx-trigger="intersect once" hx-swap="outerHTML"
-    hx-get="/groups/{{$this.Group.Id}}/messages/page/{{$this.MessagesPageNext}}"></div>
-{{- end}}
-{{- end}}
+    hx-get="/groups/{{$this.Group.Id}}/messages/page/{{add 1 $this.MessagesPage}}"></div>
 {{- end -}}
 
 <div id="message-{{$message.Id}}" class="message" data-message="{{$message.Id}}" data-is-self="{{eq $author.Id $this.User.Id}}" data-author="{{$author.Id}}" data-created-at="{{- jsonTime $message.CreatedAt}}">

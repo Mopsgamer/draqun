@@ -1,14 +1,19 @@
 <div id="app-content" class="group">
     <div id="chat-view">
-        <main id="chat" hx-trigger="load" hx-get="/groups/{{.Group.Id}}/messages/page/1" hx-swap="beforeend">
+        <main id="chat">
+            <div class="load-scroll" hx-trigger="intersect once" hx-swap="outerHTML"
+    hx-get="/groups/{{.Group.Id}}/messages/page/1"></div>
         </main>
         {{- template "partials/chat-input" .}}
     </div>
-    <div id="members-view" hx-trigger="load" hx-get="/groups/{{.Group.Id}}/members/page/1" hx-target="#members" hx-swap="beforeend">
+    <div id="members-view">
         <div class="aligned" slot="label">
             Members - {{len (groupMembers .Group.Id)}}
         </div>
-        <div id="members"></div>
+        <div id="members">
+            <div class="load-scroll" hx-trigger="intersect once" hx-swap="outerHTML"
+    hx-get="/groups/{{.Group.Id}}/members/page/1"></div>
+        </div>
     </div>
     <div id="ws-chat" class="collapse" hx-ext="ws" ws-connect="/groups/{{.Group.Id}}" hx-trigger="every 1.6s" ws-send=""></div>
 </div>

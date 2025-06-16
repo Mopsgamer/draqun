@@ -30,6 +30,13 @@ func NewAppHtmlEngine(db *database.Database, embedFS fs.FS, directory string) *h
 	}
 
 	engine.AddFuncMap(map[string]interface{}{
+		"add": func(v ...int) int {
+			result := 0
+			for _, num := range v {
+				result += num
+			}
+			return result
+		},
 		"concatString": func(v ...string) string {
 			result := ""
 			for _, str := range v {
