@@ -69,10 +69,9 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 		return ctx.Render("acknowledgements", controller.MapPage(ctx, &fiber.Map{"Title": "Acknowledgements"}), "partials/main")
 	}))
 	app.Get("/settings", chain(
-		controller.CheckAuth(db),
 		controller.PopulatePage(db),
 		func(ctx fiber.Ctx) error {
-			user := ctx.Locals(controller.LocalAuth).(*model_database.User)
+			user := fiber.Locals[*model_database.User](ctx, controller.LocalAuth)
 			if user == nil {
 				return ctx.Redirect().To("/")
 			}
@@ -867,7 +866,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				},
 			)
 		}
-		if ctx.Method() == "get" {
+		if ctx.Method() == "GET" {
 			return ctx.Render(
 				"partials/x",
 				fiber.Map{
@@ -880,7 +879,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			)
 		}
 
-		return ctx.SendStatus(fiber.StatusNoContent)
+		return ctx.SendStatus(fiber.StatusNotFound)
 	})
 
 	return app, nil

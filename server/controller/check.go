@@ -82,7 +82,7 @@ func CheckAuthMember(db *database.Database, groupId uint64, rights RightsChecker
 			return err
 		}
 
-		user := ctx.Locals(LocalAuth).(*model_database.User)
+		user := fiber.Locals[*model_database.User](ctx, LocalAuth)
 		userId := user.Id
 		return CheckMember(db, groupId, userId, rights)(ctx)
 	}

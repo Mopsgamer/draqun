@@ -18,9 +18,12 @@
                 Stay
             </sl-button>
         </div>
-        {{- if eq .Group.Mode "private"}} {{- template "partials/info" newMap
-        "Id" "private-groups-not-implemented" "Message" (concatString "This
-        group is private and you are not supposed to be here." "Private group
-        functionality is not implemented. Yet..." )}} {{- end}}
+        {{- if eq .Group.Mode "private" -}}
+        <sl-alert open id="private-groups-not-implemented" variant="primary">
+            <sl-icon slot="icon" name="info"></sl-icon>
+            This group is private and you are not supposed to be here. Private group
+            functionality is not implemented. Yet...
+        </sl-alert>
+        {{- end -}}
     </div>
 </main>
