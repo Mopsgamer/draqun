@@ -126,14 +126,18 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			func(ctx fiber.Ctx) error {
 				const MessagesPagination uint64 = 5
 				messageList := db.MessageListPage(groupId, page, MessagesPagination)
-				bind := fiber.Map{
-					"MessageList":        db.CachedMessageList(messageList),
-					"MessagesPage":       page,
-					"MessagesPagination": MessagesPagination,
+
+				if controller.IsHTMX(ctx) {
+					bind := fiber.Map{
+						"MessageList":        db.CachedMessageList(messageList),
+						"MessagesPage":       page,
+						"MessagesPagination": MessagesPagination,
+					}
+
+					return ctx.Render("partials/chat-messages", bind)
 				}
 
-				str, _ := controller.RenderString(app, "partials/chat-messages", bind)
-				return ctx.SendString(str)
+				return ctx.JSON(messageList)
 			},
 		)(ctx)
 	})
@@ -149,18 +153,19 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				group := fiber.Locals[*model_database.Group](ctx, controller.LocalGroup)
 				const MembersPagination = 5
 				memberList := db.MemberListPage(groupId, page, MembersPagination)
-				bind := fiber.Map{
-					"Group":             group,
-					"MemberList":        memberList,
-					"MembersPage":       page,
-					"MembersPagination": MembersPagination,
-				}
-				str, err := controller.RenderString(app, "partials/chat-members", bind)
-				if err != nil {
-					return err
+
+				if controller.IsHTMX(ctx) {
+					bind := fiber.Map{
+						"Group":             group,
+						"MemberList":        memberList,
+						"MembersPage":       page,
+						"MembersPagination": MembersPagination,
+					}
+
+					return ctx.Render("partials/chat-members", bind)
 				}
 
-				return ctx.SendString(str)
+				return ctx.JSON(memberList)
 			},
 		)(ctx)
 	})
@@ -586,7 +591,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			return nil
 		},
 	))
-	app.Put("/account/logout",
+	app.Put("/account/logout", chain(
 		func(ctx fiber.Ctx) error {
 			ctx.Cookie(&fiber.Cookie{
 				Name:    controller.AuthCookieKey,
@@ -594,10 +599,14 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				Expires: time.Now(),
 			})
 
-			controller.HTMXRedirect(ctx, controller.HTMXCurrentPath(ctx))
-			return ctx.Render("partials/redirecting", fiber.Map{})
+			if controller.IsHTMX(ctx) {
+				controller.HTMXRedirect(ctx, controller.HTMXCurrentPath(ctx))
+				return ctx.Render("partials/redirecting", fiber.Map{})
+			}
+
+			return ctx.SendStatus(fiber.StatusOK)
 		},
-	)
+	))
 	app.Put("/groups/:group_id/join", chain(
 		controller.PopulatePage(db),
 		func(ctx fiber.Ctx) error {
