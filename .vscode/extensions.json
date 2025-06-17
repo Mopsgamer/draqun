@@ -2,7 +2,6 @@
     "recommendations": [
         "golang.go",
         "denoland.vscode-deno",
-        "otovo-oss.htmx-tags",
         "bradlc.vscode-tailwindcss",
         "cweijan.vscode-mysql-client2"
     ]

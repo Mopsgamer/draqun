@@ -10,7 +10,6 @@
         hx-post="/account/login"
         hx-swap="innerHTML"
         hx-target="#login-error"
-        hx-target-error="#login-error"
     >
         <sl-input
             autofocus
@@ -33,7 +32,7 @@
             password-toggle
         >
         </sl-input>
-        <sl-alert id="login-error" variant="warning" open></sl-alert>
+        <div id="login-error"></div>
     </form>
     <div slot="footer" class="dialog-footer">
         <div>

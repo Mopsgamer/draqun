@@ -3,6 +3,7 @@
         id="send-message-form"
         hx-trigger="submit, keydown[key=='Enter'&&ctrlKey] from:#new-message-input"
         hx-target="#send-message-error"
+        hx-headers="{"HX-Shoelace"}"
         hx-swap="innerHTML"
         hx-post="/groups/{{.Group.Id}}/messages/create"
     >

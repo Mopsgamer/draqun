@@ -35,13 +35,6 @@ func RenderBuffer(app *fiber.App, templateName string, bind any) (bytes.Buffer, 
 	return *buf, err
 }
 
-func RenderString(app *fiber.App, template string, bind any) (string, error) {
-	buf, err := RenderBuffer(app, template, bind)
-
-	str := buf.String()
-	return str, err
-}
-
 func WrapOob(swap string, message *string) string {
 	msg := ""
 	if message != nil {

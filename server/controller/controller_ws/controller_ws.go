@@ -15,7 +15,7 @@ type ControllerWs struct {
 
 	MessageType int
 	Message     []byte
-	dataToFlush string
+	dataToFlush []byte
 	Closed      bool
 	Subs        []Subscription
 }

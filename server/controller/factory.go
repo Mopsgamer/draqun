@@ -10,11 +10,26 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/static"
 )
 
-func NewChainFactory() func(handlers ...fiber.Handler) fiber.Handler {
+type ChainHandler func(ctx fiber.Ctx) environment.HTMXAlert
+
+func NewChainFactory(app *fiber.App) func(handlers ...fiber.Handler) fiber.Handler {
 	return func(handlers ...fiber.Handler) fiber.Handler {
 		return func(ctx fiber.Ctx) error {
 			for _, handler := range handlers {
 				if err := handler(ctx); err != nil {
+					if IsHTMX(ctx) {
+						level, message := environment.Danger, err.Error()
+						if responseErr, ok := err.(environment.HTMXAlert); ok {
+							level = responseErr.Level()
+							message = responseErr.Local()
+						}
+						buf, _ := RenderBuffer(app, "partials/alert", fiber.Map{
+							"Variant": level.String(),
+							"Message": message,
+						})
+
+						return ctx.Send(buf.Bytes())
+					}
 					return err
 				}
 			}

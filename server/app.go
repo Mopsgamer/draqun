@@ -35,7 +35,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 
 	app.Use(logger.New())
 
-	chain := controller.NewChainFactory()
+	chain := controller.NewChainFactory(app)
 	static := controller.NewStaticFactory(embedFS)
 
 	// static
@@ -193,8 +193,13 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				Value:   token,
 				Expires: time.Now().Add(environment.UserAuthTokenExpiration),
 			})
-			controller.HTMXRedirect(ctx, controller.HTMXCurrentPath(ctx))
-			return nil
+
+			if controller.IsHTMX(ctx) {
+				controller.HTMXRedirect(ctx, controller.HTMXCurrentPath(ctx))
+
+				return ctx.SendStatus(fiber.StatusOK)
+			}
+			return ctx.SendStatus(fiber.StatusOK)
 		},
 	))
 	type UserSignUp struct {
@@ -237,7 +242,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 
 			hash, err := model_database.HashPassword(request.Password)
 			if err != nil {
-				return nil
+				return err
 			}
 
 			user := &model_database.User{
@@ -265,8 +270,12 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				Expires: time.Now().Add(environment.UserAuthTokenExpiration),
 			})
 
-			controller.HTMXRedirect(ctx, controller.HTMXCurrentPath(ctx))
-			return nil
+			if controller.IsHTMX(ctx) {
+				controller.HTMXRedirect(ctx, controller.HTMXCurrentPath(ctx))
+				return ctx.SendStatus(fiber.StatusOK)
+			}
+
+			return ctx.SendStatus(fiber.StatusOK)
 		},
 	))
 	type GroupCreate struct {
@@ -356,12 +365,12 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				return fiber.ErrInternalServerError
 			}
 
-			return nil
-		},
-		func(ctx fiber.Ctx) error {
-			group := fiber.Locals[*model_database.Group](ctx, controller.LocalGroup)
-			controller.HTMXRedirect(ctx, controller.PathRedirectGroup(group.Id))
-			return nil
+			if controller.IsHTMX(ctx) {
+				controller.HTMXRedirect(ctx, controller.PathRedirectGroup(group.Id))
+				return ctx.SendStatus(fiber.StatusOK)
+			}
+
+			return ctx.SendStatus(fiber.StatusOK)
 		},
 	))
 	type MessageCreate struct {
@@ -398,31 +407,40 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				}
 
 				message.Id = *messageId
-				str, _ := controller.RenderString(app, "partials/chat-messages", &fiber.Map{
-					"MessageList": db.CachedMessageList([]model_database.Message{*message}),
-					"Group":       group,
-					"User":        user,
-				})
 
-				controller_ws.UserSessionMap.Push(
-					func(userId uint64) bool {
-						member := db.MemberById(group.Id, userId)
-						if member == nil {
-							return false
-						}
+				if controller.IsHTMX(ctx) {
+					buf, err := controller.RenderBuffer(app, "partials/chat-messages", &fiber.Map{
+						"MessageList": db.CachedMessageList([]model_database.Message{*message}),
+						"Group":       group,
+						"User":        user,
+					})
+					if err != nil {
+						return err
+					}
+					str := buf.String()
 
-						if member.IsOwner {
-							return true
-						}
+					controller_ws.UserSessionMap.Push(
+						func(userId uint64) bool {
+							member := db.MemberById(group.Id, userId)
+							if member == nil {
+								return false
+							}
 
-						role := db.MemberRights(group.Id, userId)
-						return bool(member.IsOwner || (role.ChatRead && !member.IsBanned))
-					},
-					controller.WrapOob("beforeend:#chat", &str),
-					controller_ws.SubForMessages,
-				)
+							if member.IsOwner {
+								return true
+							}
 
-				return ctx.SendString("")
+							role := db.MemberRights(group.Id, userId)
+							return bool(member.IsOwner || (role.ChatRead && !member.IsBanned))
+						},
+						controller.WrapOob("beforeend:#chat", &str),
+						controller_ws.SubForMessages,
+					)
+
+					return ctx.SendStatus(fiber.StatusOK)
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
 			},
 		)(ctx)
 	})
@@ -462,8 +480,12 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				return fiber.ErrInternalServerError
 			}
 
-			controller.HTMXRefresh(ctx)
-			return nil
+			if controller.IsHTMX(ctx) {
+				controller.HTMXRefresh(ctx)
+				return ctx.SendStatus(fiber.StatusOK)
+			}
+
+			return ctx.SendStatus(fiber.StatusOK)
 		},
 	))
 	type UserChangeEmail struct {
@@ -503,8 +525,12 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				return fiber.ErrInternalServerError
 			}
 
-			controller.HTMXRefresh(ctx)
-			return nil
+			if controller.IsHTMX(ctx) {
+				controller.HTMXRefresh(ctx)
+				return ctx.SendStatus(fiber.StatusOK)
+			}
+
+			return ctx.SendStatus(fiber.StatusOK)
 		},
 	))
 	type UserChangePhone struct {
@@ -536,8 +562,12 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				return fiber.ErrInternalServerError
 			}
 
-			controller.HTMXRefresh(ctx)
-			return nil
+			if controller.IsHTMX(ctx) {
+				controller.HTMXRefresh(ctx)
+				return ctx.SendStatus(fiber.StatusOK)
+			}
+
+			return ctx.SendStatus(fiber.StatusOK)
 		},
 	))
 	type UserChangePassword struct {
@@ -574,8 +604,12 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				return fiber.ErrInternalServerError
 			}
 
-			controller.HTMXRefresh(ctx)
-			return nil
+			if controller.IsHTMX(ctx) {
+				controller.HTMXRefresh(ctx)
+				return ctx.SendStatus(fiber.StatusOK)
+			}
+
+			return ctx.SendStatus(fiber.StatusOK)
 		},
 	))
 	app.Put("/account/logout", chain(
@@ -636,8 +670,12 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				}
 			}
 
-			controller.HTMXRedirect(ctx, controller.PathRedirectGroup(groupId))
-			return nil
+			if controller.IsHTMX(ctx) {
+				controller.HTMXRedirect(ctx, controller.PathRedirectGroup(groupId))
+				return ctx.SendStatus(fiber.StatusOK)
+			}
+
+			return ctx.SendStatus(fiber.StatusOK)
 		},
 	))
 	type GroupChange struct {
@@ -701,8 +739,12 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				return fiber.ErrInternalServerError
 			}
 
-			controller.HTMXRefresh(ctx)
-			return nil
+			if controller.IsHTMX(ctx) {
+				controller.HTMXRefresh(ctx)
+				return ctx.SendStatus(fiber.StatusOK)
+			}
+
+			return ctx.SendStatus(fiber.StatusOK)
 		},
 	))
 
@@ -723,8 +765,12 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 
 			// TODO: delete group on leave if no other members.
 
-			controller.HTMXRedirect(ctx, "/chat")
-			return nil
+			if controller.IsHTMX(ctx) {
+				controller.HTMXRedirect(ctx, "/chat")
+				return ctx.SendStatus(fiber.StatusOK)
+			}
+
+			return ctx.SendStatus(fiber.StatusOK)
 		},
 	))
 	app.Delete("/groups/:group_id", func(ctx fiber.Ctx) error {
@@ -740,8 +786,12 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 					return fiber.ErrInternalServerError
 				}
 
-				controller.HTMXRefresh(ctx)
-				return nil
+				if controller.IsHTMX(ctx) {
+					controller.HTMXRefresh(ctx)
+					return ctx.SendStatus(fiber.StatusOK)
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
 			},
 		)(ctx)
 	})
@@ -779,8 +829,12 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 				Expires: time.Now(),
 			})
 
-			controller.HTMXRedirect(ctx, controller.HTMXCurrentPath(ctx))
-			return nil
+			if controller.IsHTMX(ctx) {
+				controller.HTMXRedirect(ctx, controller.HTMXCurrentPath(ctx))
+				return ctx.SendStatus(fiber.StatusOK)
+			}
+
+			return ctx.SendStatus(fiber.StatusOK)
 		},
 	))
 
@@ -806,58 +860,55 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 	}
 
 	// websoket
-	app.Get("/groups/:group_id", chain(
-		func(ctx fiber.Ctx) error {
-			groupId := fiber.Params[uint64](ctx, "group_id")
-			return controller.CheckAuthMember(db, groupId,
-				func(role model_database.Role) bool {
-					member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
-					return bool(member.IsOwner || role.ChatRead)
-				},
-			)(ctx)
-		},
-		func(ctx fiber.Ctx) error {
-			if !websocket.IsWebSocketUpgrade(ctx) {
-				return ctx.Next()
-			}
-
-			ctxWs := controller_ws.New(ctx)
-			user := fiber.Locals[*model_database.User](ctx, controller.LocalAuth)
-
-			websocket.New(func(conn *websocket.Conn) {
-				ctxWs.Conn = conn
-				controller_ws.UserSessionMap.Connect(user.Id, ctxWs)
-				defer controller_ws.UserSessionMap.Close(user.Id, ctxWs)
-				for !ctxWs.Closed {
-					messageType, message, err := ctxWs.Conn.ReadMessage()
-					if err != nil {
-						break
-					}
-
-					start := time.Now()
-					ctxWs.MessageType = messageType
-					ctxWs.Message = message
-					err = ctxWs.Flush()
-
-					logWS(start, err, ctxWs)
-
-					if err != nil {
-						break
-					}
+	app.Get("/groups/:group_id", func(ctx fiber.Ctx) error {
+		groupId := fiber.Params[uint64](ctx, "group_id")
+		return chain(
+			controller.CheckAuthMember(db, groupId, func(role model_database.Role) bool {
+				member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
+				return bool(member.IsOwner || role.ChatRead)
+			}),
+			func(ctx fiber.Ctx) error {
+				if !websocket.IsWebSocketUpgrade(ctx) {
+					return ctx.Next()
 				}
-				ctxWs.Closed = true
-				ctxWs.Conn.Close()
-			})(ctx)
 
-			return nil
-		},
-	))
+				ctxWs := controller_ws.New(ctx)
+				user := fiber.Locals[*model_database.User](ctx, controller.LocalAuth)
+
+				return websocket.New(func(conn *websocket.Conn) {
+					ctxWs.Conn = conn
+					controller_ws.UserSessionMap.Connect(user.Id, ctxWs)
+					defer controller_ws.UserSessionMap.Close(user.Id, ctxWs)
+					for !ctxWs.Closed {
+						messageType, message, err := ctxWs.Conn.ReadMessage()
+						if err != nil {
+							break
+						}
+
+						start := time.Now()
+						ctxWs.MessageType = messageType
+						ctxWs.Message = message
+						err = ctxWs.Flush()
+
+						logWS(start, err, ctxWs)
+
+						if err != nil {
+							break
+						}
+					}
+					ctxWs.Closed = true
+					ctxWs.Conn.Close()
+				})(ctx)
+			},
+		)(ctx)
+	})
 
 	app.Use(func(ctx fiber.Ctx) error {
 		if controller.IsHTMX(ctx) {
 			return ctx.Render(
-				"partials/danger",
+				"partials/alert",
 				fiber.Map{
+					"Variant": "primary",
 					"Message": "404",
 				},
 			)

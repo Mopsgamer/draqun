@@ -7,7 +7,7 @@
         {{- template "partials/scripts" .}}
     </head>
 
-    <body hx-ext="shoelace,debug,response-targets">
+    <body hx-ext="shoelace,debug">
         {{- template "partials/settings-dialog" .}} {{- template
         "partials/new-group-dialog" .}} {{$this := .}} {{- if ne $this.Group
         nil}} {{- template "partials/group-settings-dialog" $this}} {{- else}}

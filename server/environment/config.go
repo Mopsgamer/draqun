@@ -14,6 +14,7 @@ import (
 
 const AppName string = "Draqun"
 const GitHubRepo string = "https://github.com/Mopsgamer/draqun"
+const TemplateExt = ".tmpl"
 
 type BuildMode int
 
