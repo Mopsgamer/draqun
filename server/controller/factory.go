@@ -12,23 +12,13 @@ import (
 
 type ChainHandler func(ctx fiber.Ctx) environment.HTMXAlert
 
-func NewChainFactory(app *fiber.App) func(handlers ...fiber.Handler) fiber.Handler {
+func NewChainFactory() func(handlers ...fiber.Handler) fiber.Handler {
 	return func(handlers ...fiber.Handler) fiber.Handler {
 		return func(ctx fiber.Ctx) error {
 			for _, handler := range handlers {
 				if err := handler(ctx); err != nil {
 					if IsHTMX(ctx) {
-						level, message := environment.Danger, err.Error()
-						if responseErr, ok := err.(environment.HTMXAlert); ok {
-							level = responseErr.Level()
-							message = responseErr.Local()
-						}
-						buf, _ := RenderBuffer(app, "partials/alert", fiber.Map{
-							"Variant": level.String(),
-							"Message": message,
-						})
-
-						return ctx.Send(buf.Bytes())
+						return handleHtmxError(ctx, err)
 					}
 					return err
 				}
@@ -36,6 +26,26 @@ func NewChainFactory(app *fiber.App) func(handlers ...fiber.Handler) fiber.Handl
 			return nil
 		}
 	}
+}
+
+func handleHtmxError(ctx fiber.Ctx, err error) error {
+	level, message := environment.Danger, err.Error()
+	if responseErr, ok := err.(environment.HTMXAlert); ok {
+		level = responseErr.Level()
+		message = responseErr.Local()
+	}
+
+	if ctx.Get("HX-Error-Wrap") == "false" {
+		return ctx.SendString(message)
+	}
+
+	bind := fiber.Map{
+		"Variant": level.String(),
+		"Message": message,
+	}
+	buf, _ := RenderBuffer(ctx.App(), "partials/alert", bind)
+
+	return ctx.Send(buf.Bytes())
 }
 
 func NewStaticFactory(embedFS fs.FS) func(dir string) fiber.Handler {

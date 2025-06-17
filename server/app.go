@@ -35,7 +35,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 
 	app.Use(logger.New())
 
-	chain := controller.NewChainFactory(app)
+	chain := controller.NewChainFactory()
 	static := controller.NewStaticFactory(embedFS)
 
 	// static
