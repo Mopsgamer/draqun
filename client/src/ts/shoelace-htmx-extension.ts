@@ -54,4 +54,6 @@ const onEvent: HTMX.HtmxExtension["onEvent"] = function (name, event) {
     return true;
 };
 
-(htmx as unknown as typeof HTMX.default).defineExtension("shoelace", { onEvent });
+(htmx as unknown as typeof HTMX.default).defineExtension("shoelace", {
+    onEvent,
+});

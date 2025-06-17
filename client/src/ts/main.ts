@@ -12,7 +12,7 @@ import { domLoaded, initAnchorHeadersFor } from "./lib.ts";
 // }
 // globalThis.htmx = HTMX;
 
-globalThis.htmx = (htmx as unknown as typeof HTMX.default)
+globalThis.htmx = htmx as unknown as typeof HTMX.default;
 
 import("htmx-ext-debug");
 import("htmx-ext-response-targets");
