@@ -7,7 +7,7 @@
         {{- template "partials/scripts" .}}
     </head>
 
-    <body hx-ext="shoelace">
+    <body hx-ext="shoelace,debug,response-targets">
         {{- template "partials/settings-dialog" .}} {{- template
         "partials/new-group-dialog" .}} {{$this := .}} {{- if ne $this.Group
         nil}} {{- template "partials/group-settings-dialog" $this}} {{- else}}
@@ -17,7 +17,7 @@
         {{- if or $member.IsOwner $rights.ChangeGroup}} {{- template
         "partials/group-settings-dialog" (newMap "Group" $group)}} {{- end}} {{-
         end}} {{- end}}
-        <div hx-ext="debug" id="real-body">
+        <div id="real-body">
             {{- template "partials/app-header" .}} {{- if ne .Group nil}}
             {{/**/}}{{- if eq .Member nil}} {{/**/}}{{- template
             "partials/app-group-join" .}} {{/**/}}{{- else}} {{/**/}}{{-

@@ -7,10 +7,10 @@
         {{- template "partials/scripts" .}}
     </head>
 
-    <body hx-ext="shoelace">
+    <body hx-ext="shoelace,debug,response-targets">
         {{- template "partials/login-dialog" .}} {{- template
         "partials/signup-dialog" .}}
-        <div hx-ext="debug" id="real-body">
+        <div id="real-body">
             <main id="main" class="center-content">
                 <div class="text-3xl font-bold">
                     You're not logged in.

@@ -40,6 +40,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 
 	// static
 	app.Get("/static", static("client/static"))
+	app.Get("/static/*", static("client/static"))
 
 	// pages
 	app.Get("/", chain(controller.PopulatePage(db), func(ctx fiber.Ctx) error {
