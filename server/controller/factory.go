@@ -25,9 +25,9 @@ func NewChainFactory() func(handlers ...fiber.Handler) fiber.Handler {
 
 func NewStaticFactory(embedFS fs.FS) func(dir string) fiber.Handler {
 	return func(dir string) fiber.Handler {
-		cacheDuration := time.Duration(0)
+		cacheDuration := time.Duration(-1)
 		if environment.BuildModeValue == environment.BuildModeProduction {
-			cacheDuration = -1
+			cacheDuration = time.Minute
 		}
 		if embedFS == nil {
 			return static.New(dir, static.Config{Browse: true, CacheDuration: cacheDuration})
