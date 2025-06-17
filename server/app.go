@@ -17,7 +17,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/gofiber/fiber/v3/middleware/logger"
-	"github.com/gofiber/fiber/v3/middleware/static"
 )
 
 // Initialize gofiber application, including DB and view engine.
@@ -37,26 +36,10 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 	app.Use(logger.New())
 
 	chain := controller.NewChainFactory()
-
-	UseStatic := func(dir string) fiber.Handler {
-		cacheDuration := time.Duration(0)
-		if environment.BuildModeValue == environment.BuildModeProduction {
-			cacheDuration = -1
-		}
-		if embedFS == nil {
-			return static.New(dir, static.Config{Browse: true, CacheDuration: cacheDuration})
-		}
-
-		Fs, err := fs.Sub(embedFS, dir)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		return static.New("", static.Config{Browse: true, FS: Fs, CacheDuration: cacheDuration})
-	}
+	static := controller.NewStaticFactory(embedFS)
 
 	// static
-	app.Get("/static", chain(UseStatic("client/static")))
+	app.Get("/static", static("client/static"))
 
 	// pages
 	app.Get("/", chain(controller.PopulatePage(db), func(ctx fiber.Ctx) error {
@@ -874,7 +857,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			return ctx.Render(
 				"partials/danger",
 				fiber.Map{
-					"Message": fmt.Sprintf("%d", fiber.StatusNotFound),
+					"Message": "404",
 				},
 			)
 		}
@@ -882,7 +865,7 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			return ctx.Render(
 				"partials/x",
 				fiber.Map{
-					"Title":         fmt.Sprintf("%d", fiber.StatusNotFound),
+					"Title":         "404",
 					"StatusCode":    fiber.StatusNotFound,
 					"StatusMessage": fiber.ErrNotFound.Message,
 					"CenterContent": true,

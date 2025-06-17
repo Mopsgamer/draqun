@@ -63,14 +63,14 @@ func CheckMember(db *database.Database, groupId, userId uint64, rights RightsChe
 		member := db.MemberById(groupId, userId)
 
 		if member == nil {
-			return fmt.Errorf("group id = %d, member id = %d: not found", groupId, userId)
+			return environment.ErrGroupMemberNotFound
 		}
 
 		ctx.Locals(LocalMember, member)
 
 		role := db.MemberRights(groupId, userId)
 		if rights != nil && !rights(role) {
-			return fiber.ErrForbidden
+			return environment.ErrGroupMemberNotAllowed
 		}
 		return nil
 	}
