@@ -39,8 +39,12 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 	chain := controller.NewChainFactory()
 
 	UseStatic := func(dir string) fiber.Handler {
+		cacheDuration := time.Duration(0)
+		if environment.BuildModeValue == environment.BuildModeProduction {
+			cacheDuration = -1
+		}
 		if embedFS == nil {
-			return static.New(dir, static.Config{Browse: true})
+			return static.New(dir, static.Config{Browse: true, CacheDuration: cacheDuration})
 		}
 
 		Fs, err := fs.Sub(embedFS, dir)
@@ -48,12 +52,11 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			log.Fatal(err)
 		}
 
-		return static.New("", static.Config{Browse: true, FS: Fs})
+		return static.New("", static.Config{Browse: true, FS: Fs, CacheDuration: cacheDuration})
 	}
 
 	// static
-	app.Get("/static*", chain(UseStatic("client/static")))
-	app.Get("/partials*", chain(UseStatic("client/templates/partials")))
+	app.Get("/static", chain(UseStatic("client/static")))
 
 	// pages
 	app.Get("/", chain(controller.PopulatePage(db), func(ctx fiber.Ctx) error {
