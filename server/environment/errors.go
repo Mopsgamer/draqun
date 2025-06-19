@@ -28,3 +28,17 @@ var (
 
 	ErrChatMessageContent = NewHTMXAlert(errors.Join(fiber.ErrUnprocessableEntity, errors.New("chat message: invalid content")), "Invalid chat message content.", Danger)
 )
+
+var (
+	ErrFormatUserPassword = errors.New("format: user: invalid password")
+	ErrFormatUserEmail    = errors.New("format: user: invalid email")
+	ErrFormatUserNickname = errors.New("format: user: invalid nickname")
+	ErrFormatUserName     = errors.New("format: user: invalid name")
+	ErrFormatUserPhone    = errors.New("format: user: invalid phone")
+
+	ErrFormatGroupName        = errors.New("format: invalid group name")
+	ErrFormatGroupNick        = errors.New("format: invalid group nickname")
+	ErrFormatGroupPassword    = errors.New("format: invalid group password")
+	ErrFormatGroupDescription = errors.New("format: invalid group description")
+	ErrFormatGroupMode        = errors.New("format: invalid group mode")
+)

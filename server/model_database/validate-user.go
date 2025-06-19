@@ -1,17 +1,12 @@
 package model_database
 
 import (
-	"errors"
 	"regexp"
+
+	"github.com/Mopsgamer/draqun/server/environment"
 )
 
-var (
-	ErrFormatUserPassword = errors.New("format: user: invalid password")
-	ErrFormatUserEmail    = errors.New("format: user: invalid email")
-	ErrFormatUserNickname = errors.New("format: user: invalid nickname")
-	ErrFormatUserName     = errors.New("format: user: invalid name")
-	ErrFormatUserPhone    = errors.New("format: user: invalid phone")
-)
+var ()
 
 const (
 	RegexpUserPassword string = "^[a-zA-Z0-9, .~\\-+%$^&*_!?()[\\]{}`]{8,255}$"
@@ -24,28 +19,28 @@ const (
 
 func IsValidUserPassword(str string) error {
 	if !IsValidString(str, RegexpUserPassword, 255) {
-		return ErrFormatUserPassword
+		return environment.ErrFormatUserPassword
 	}
 	return nil
 }
 
 func IsValidUserNick(str string) error {
 	if !IsValidString(str, RegexpUserNick, 255) {
-		return ErrFormatUserNickname
+		return environment.ErrFormatUserNickname
 	}
 	return nil
 }
 
 func IsValidUserName(str string) error {
 	if !IsValidString(str, RegexpUserName, 255) {
-		return ErrFormatUserName
+		return environment.ErrFormatUserName
 	}
 	return nil
 }
 
 func IsValidUserEmail(str string) error {
 	if !IsValidString(str, RegexpUserEmail, 255) {
-		return ErrFormatUserEmail
+		return environment.ErrFormatUserEmail
 	}
 	return nil
 }
@@ -56,7 +51,7 @@ func IsValidUserPhone(str *string) error {
 	}
 	newstr := regexp.MustCompile(`\s`).ReplaceAllString(*str, "")
 	if !IsValidString(newstr, RegexpUserPhone, 255) {
-		return ErrFormatUserPhone
+		return environment.ErrFormatUserPhone
 	}
 	return nil
 }

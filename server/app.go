@@ -397,8 +397,8 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 					CreatedAt: time.Now(),
 				}
 
-				if !model_database.IsValidMessageContent(message.Content) {
-					return environment.ErrChatMessageContent
+				if err := model_database.IsValidMessageContent(message.Content); err != nil {
+					return err
 				}
 
 				messageId := db.MessageCreate(*message)
