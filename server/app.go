@@ -408,6 +408,20 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 
 				message.Id = *messageId
 
+				filter := func(userId uint64) bool {
+					member := db.MemberById(group.Id, userId)
+					if member == nil {
+						return false
+					}
+
+					if member.IsOwner {
+						return true
+					}
+
+					role := db.MemberRights(group.Id, userId)
+					return bool(role.ChatRead && !member.IsBanned)
+				}
+
 				if controller.IsHTMX(ctx) {
 					buf, err := controller.RenderBuffer(app, "partials/chat-messages", &fiber.Map{
 						"MessageList": db.CachedMessageList([]model_database.Message{*message}),
@@ -420,25 +434,19 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 					str := buf.String()
 
 					controller_ws.UserSessionMap.Push(
-						func(userId uint64) bool {
-							member := db.MemberById(group.Id, userId)
-							if member == nil {
-								return false
-							}
-
-							if member.IsOwner {
-								return true
-							}
-
-							role := db.MemberRights(group.Id, userId)
-							return bool(member.IsOwner || (role.ChatRead && !member.IsBanned))
-						},
+						filter,
 						controller.WrapOob("beforeend:#chat", &str),
 						controller_ws.SubForMessages,
 					)
 
 					return ctx.SendStatus(fiber.StatusOK)
 				}
+
+				// controller_ws.UserSessionMap.Push(
+				// 		filter,
+				// 		...,
+				// 		controller_ws.SubForMessages,
+				// 	)
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
@@ -671,6 +679,12 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 			}
 
 			if controller.IsHTMX(ctx) {
+				// controller_ws.UserSessionMap.Push(
+				// 	filter,
+				// 	controller.WrapOob("beforeend:#chat", &str),
+				// 	controller_ws.SubForMessages,
+				// )
+
 				controller.HTMXRedirect(ctx, controller.PathRedirectGroup(groupId))
 				return ctx.SendStatus(fiber.StatusOK)
 			}

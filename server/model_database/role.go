@@ -3,7 +3,7 @@ package model_database
 import "github.com/jmoiron/sqlx/types"
 
 // TODO: make roles simple.
-// 1. ChatRead, ChatWrite -> ChatAccess: no | read | write
+// 1. ChatRead, ChatWrite -> ChatAccess: disabled | read | read and write
 // 2. ChangeGroup -> ChangeGroupName, +ChangeGroupDescription, +ChangeGroupAvatar, +ChangeGroupMode, +ChangeGroupName, +ChangeGroupNick, +ChangeGroupPassword
 // 3. MemberChange, Kick, Ban -> MemberChangeNick, +MemberMessageDelete, MemberKick, MemberBan
 type Role struct {
