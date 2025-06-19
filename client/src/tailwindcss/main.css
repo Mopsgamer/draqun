@@ -83,6 +83,10 @@
     @apply p-3 md:w-56 text-2xl md:text-base bg-neutral-50 snap-y;
 }
 
+#members {
+    @apply flex flex-col gap-1;
+}
+
 #chat {
     @apply relative bg-neutral-100 snap-y flex flex-col size-full p-3 pb-6 overflow-y-auto overflow-x-hidden;
 }

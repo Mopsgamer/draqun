@@ -1,10 +1,10 @@
 import { logClientComp } from "./tool/constants.ts";
 import kill from "tree-kill";
 
-const paths = ["server", "main.go"];
+const paths = ["server", "lite.go"];
 
 const serverCommand = new Deno.Command("go", {
-    args: ["run", "."],
+    args: ["run", "-tags", "lite", "."],
 });
 let goRunProcess: Deno.ChildProcess | undefined = undefined;
 

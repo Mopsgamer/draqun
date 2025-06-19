@@ -1,0 +1,52 @@
+<div class="chat-input">
+    <form
+        id="send-message-form"
+        hx-trigger="submit, keydown[key=='Enter'&&ctrlKey] from:#new-message-input"
+        hx-target="#send-message-error"
+        hx-headers="{"HX-Error-Wrap": false}"
+        hx-swap="innerHTML"
+        hx-post="/groups/{{.Group.Id}}/messages/create"
+    >
+        <div class="box">
+            <div id="send-message-error" class="w-full"></div>
+            <sl-textarea
+                id="new-message-input"
+                form="send-message-form"
+                filled
+                placeholder="Write to {{.Group.Nick}}"
+                name="content"
+                rows="1"
+                resize="auto"
+            ></sl-textarea>
+        </div>
+        <div class="right">
+            <sl-button
+                title="Send"
+                variant="text"
+                form="send-message-form"
+                type="submit"
+            >
+                <sl-icon name="send"></sl-icon>
+            </sl-button>
+        </div>
+    </form>
+    <div class="bottom">
+        <sl-breadcrumb class="ml-3">
+            <sl-breadcrumb-item href="/chat">
+                <sl-icon name="house" slot="prefix"></sl-icon>
+                {{.AppName}}
+            </sl-breadcrumb-item>
+            {{- if ne .Group nil}}
+            <sl-breadcrumb-item href="/chat/groups/{{.Group.Id}}">
+                <sl-icon name="people" slot="prefix"></sl-icon>
+                <div class="groupname">{{- .Group.Nick -}}</div>
+                {{- if or .Member.IsOwner .Rights.ChangeGroup}}
+                <div class="group-actions" slot="suffix">
+                    {{template "partials/group-actions" .Group}}
+                </div>
+                {{- end}}
+            </sl-breadcrumb-item>
+            {{- end}}
+        </sl-breadcrumb>
+    </div>
+</div>

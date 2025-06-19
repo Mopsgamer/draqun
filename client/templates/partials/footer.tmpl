@@ -1,0 +1,66 @@
+<footer id="footer" role="navigation">
+    <section class="nav-block">
+        <h1>Project</h1>
+        <nav>
+            <a href="{{.GitHubRepo}}" target="_blank" rel="noopener">
+                <sl-icon name="github"></sl-icon>
+                Repository
+            </a>
+            <a href="{{.GitHubRepo}}/issues" target="_blank" rel="noopener">
+                <sl-icon name="mailbox-flag"></sl-icon>
+                Feedback
+            </a>
+            <a href="/docs">
+                <sl-icon name="file-text"></sl-icon>
+                Documentation
+            </a>
+            <a href="/acknowledgements">
+                <sl-icon name="hearts"></sl-icon>
+                Acknowledgements
+            </a>
+        </nav>
+    </section>
+    {{/*<section class="nav-block">
+        <h1>Community</h1>
+        <nav>
+            <a
+                href="https://discord.com/invite/example"
+                target="_blank"
+                rel="noopener"
+            >
+                <sl-icon name="discord"></sl-icon>
+                Join Discord
+            </a>
+            <a
+                href="https://twitter.com/yourproject"
+                target="_blank"
+                rel="noopener"
+            >
+                <sl-icon name="twitter"></sl-icon>
+                Follow on Twitter
+            </a>
+        </nav>
+    </section>*/}} {{/*<section class="nav-block">
+        <h1>Security</h1>
+        <nav>
+            <a href="mailto:kisillev020304@gmail.com">
+                <sl-icon name="ticket-perforated"></sl-icon>
+                Support
+            </a>
+            <a href="/terms">
+                <sl-icon name="shield"></sl-icon>
+                Terms of Service
+            </a>
+            <a href="/privacy">
+                <sl-icon name="lock"></sl-icon>
+                Privacy Policy
+            </a>
+        </nav>
+    </section>*/}}
+    <div class="absolute right-0 bottom-0 text-neutral-500 p-2 font-[monospace]">
+        version: {{.DenoJson.Version}}{{if ne .GitHash ""}} (<a
+            class="text-cyan-500 underline"
+            href="{{.GitHubRepo}}/commit/{{.GitHashLong}}"
+        >{{.GitHash}}</a>){{end -}}
+    </div>
+</footer>

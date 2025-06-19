@@ -1,0 +1,41 @@
+<sl-dialog label="Dialog" id="change-email-dialog">
+    <span slot="label" class="aligned">
+        <sl-icon name="mailbox"></sl-icon>
+        Change email
+    </span>
+    <form
+        id="change-email-form"
+        name="change-email-form"
+        hx-put="/account/change/email"
+        hx-swap="outerHTML"
+        hx-target="#change-email-error"
+    >
+        <sl-input
+            autofocus
+            label="Current password"
+            type="password"
+            autocomplete="current-password"
+            id="change-email-current-password"
+            name="current-password"
+            required
+            password-toggle
+        >
+        </sl-input>
+
+        <sl-input
+            label="New email"
+            type="text"
+            id="new-email"
+            name="new-email"
+            required
+        >
+        </sl-input>
+        <div id="change-email-error"></div>
+    </form>
+    <div slot="footer" class="dialog-footer">
+        <div>
+            <sl-button form="change-email-form" variant="primary" type="submit"
+            >Change email</sl-button>
+        </div>
+    </div>
+</sl-dialog>

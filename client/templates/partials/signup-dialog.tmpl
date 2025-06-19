@@ -1,0 +1,69 @@
+{{- if eq .User nil}}
+<sl-dialog label="Dialog" id="signup-dialog">
+    <span slot="label" class="aligned">
+        <sl-icon name="box-arrow-in-right"></sl-icon>
+        Sign Up
+    </span>
+    <form
+        id="signup-form"
+        name="signup-form"
+        hx-post="/account/create"
+        hx-swap="outerHTML"
+        hx-target="#signup-error"
+    >
+        <sl-input
+            autofocus
+            label="Nick"
+            type="text"
+            id="signup-nickname"
+            name="nickname"
+            required
+        ></sl-input>
+        <sl-input
+            label="Name"
+            type="text"
+            autocomplete="username"
+            id="signup-username"
+            name="username"
+            required
+        ></sl-input>
+        <sl-input
+            label="Email"
+            type="email"
+            autocomplete="email"
+            id="signup-email"
+            name="email"
+            required
+        ></sl-input>
+        <sl-input
+            label="Password"
+            password-toggle
+            type="password"
+            autocomplete="new-password"
+            id="signup-password"
+            name="password"
+            required
+        ></sl-input>
+        <sl-input
+            label="Confirm password"
+            password-toggle
+            type="password"
+            id="signup-confirm-password"
+            autocomplete="off"
+            name="confirm-password"
+            required
+        ></sl-input>
+        <div id="signup-error"></div>
+    </form>
+    <div slot="footer" class="dialog-footer">
+        <div>
+            Already a member?
+            <sl-button variant="text" href="#login-dialog">Log In</sl-button>
+        </div>
+        <div>
+            <sl-button form="signup-form" variant="primary" type="submit"
+            >Sign Up</sl-button>
+        </div>
+    </div>
+</sl-dialog>
+{{- end}}

@@ -1,0 +1,34 @@
+<sl-dialog label="Dialog" id="change-phone-dialog">
+    <span slot="label" class="aligned">
+        <sl-icon name="telephone"></sl-icon>
+        Change phone
+    </span>
+    <form
+        id="change-phone-form"
+        name="change-phone-form"
+        hx-put="/account/change/phone"
+        hx-swap="outerHTML"
+        hx-target="#change-phone-error"
+    >
+        <sl-input
+            autofocus
+            label="Current password"
+            type="password"
+            id="change-phone-current-password"
+            name="current-password"
+            required
+            password-toggle
+        >
+        </sl-input>
+
+        <sl-input label="New phone" type="tel" id="new-phone" name="new-phone">
+        </sl-input>
+        <div id="change-phone-error"></div>
+    </form>
+    <div slot="footer" class="dialog-footer">
+        <div>
+            <sl-button form="change-phone-form" variant="primary" type="submit"
+            >Change phone</sl-button>
+        </div>
+    </div>
+</sl-dialog>

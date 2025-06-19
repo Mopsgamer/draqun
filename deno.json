@@ -26,14 +26,24 @@
         "esbuild-plugin-tailwindcss": "npm:esbuild-plugin-tailwindcss@^2.0.1",
         "htmx-ext-debug": "npm:htmx-ext-debug@^2.0.1",
         "htmx-ext-ws": "npm:htmx-ext-ws@2.0.2",
-        "htmx.org": "npm:htmx.org@^1.9.12",
+        "htmx.org": "npm:htmx.org@^2.0.4",
         "mysql2": "npm:mysql2@^3.14.0",
         "tailwindcss": "npm:tailwindcss@^4.1.3",
         "tree-kill": "npm:tree-kill@^1.2.2"
     },
     "exports": {},
     "fmt": {
-        "indentWidth": 4
+        "indentWidth": 4,
+        "exclude": [
+            "client/src/*tailwind*",
+            "client/static"
+        ]
+    },
+    "lint": {
+        "exclude": [
+            "client/src/*tailwind*",
+            "client/static"
+        ]
     },
     "compilerOptions": {
         "lib": [
@@ -42,12 +52,5 @@
             "dom.asynciterable",
             "deno.ns"
         ]
-    },
-    "exclude": [
-        "websocket/**/*",
-        "client/assets/**/*",
-        "client/templates/**/*",
-        "client/**/*.css",
-        "client/static/**/*"
-    ]
+    }
 }

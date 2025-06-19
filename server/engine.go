@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/controller"
-	"github.com/Mopsgamer/draqun/server/controller/database"
-	"github.com/Mopsgamer/draqun/server/controller/model_database"
+	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
+	"github.com/Mopsgamer/draqun/server/model_database"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/template/html/v2"
@@ -19,21 +19,21 @@ import (
 func NewAppHtmlEngine(db *database.Database, embedFS fs.FS, directory string) *html.Engine {
 	var engine *html.Engine
 	if embedFS == nil {
-		engine = html.New(directory, ".html")
+		engine = html.New(directory, environment.TemplateExt)
 	} else {
 		embedTemplates, _ := fs.Sub(embedFS, directory)
-		engine = html.NewFileSystem(http.FS(embedTemplates), ".html")
+		engine = html.NewFileSystem(http.FS(embedTemplates), environment.TemplateExt)
 	}
 
 	if environment.BuildModeValue == environment.BuildModeDevelopment {
 		engine.Reload(true)
 	}
 
-	engine.AddFuncMap(map[string]interface{}{
-		"concatString": func(v ...string) string {
-			result := ""
-			for _, str := range v {
-				result += str
+	engine.AddFuncMap(map[string]any{
+		"add": func(v ...int) int {
+			result := 0
+			for _, num := range v {
+				result += num
 			}
 			return result
 		},
@@ -67,7 +67,6 @@ func NewAppHtmlEngine(db *database.Database, embedFS fs.FS, directory string) *h
 			return strings.Repeat("*", len(text))
 		},
 		"isString": satisfies[string],
-		"isMap":    satisfies[fiber.Map],
 		"newMap": func(args ...any) fiber.Map {
 			result := fiber.Map{}
 			for i := 0; i < len(args)-1; i = i + 2 {
@@ -76,9 +75,6 @@ func NewAppHtmlEngine(db *database.Database, embedFS fs.FS, directory string) *h
 				result[k] = v
 			}
 			return result
-		},
-		"newArr": func(args ...any) []any {
-			return args
 		},
 
 		"groupLink": func(group model_database.Group) string {

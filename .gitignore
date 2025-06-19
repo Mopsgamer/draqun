@@ -3,6 +3,7 @@ node_modules
 coverage
 
 # out
+*debug*
 dist
 out
 

@@ -1,0 +1,38 @@
+<header id="header">
+    <nav>
+        <sl-dropdown class="aligned" id="page-nav">
+            <sl-icon-button name="list" slot="trigger"></sl-icon-button>
+            <sl-menu>
+                {{if not .IsHomePage}}
+                <a href="/">
+                    <sl-menu-item>
+                        <sl-icon name="house-heart" slot="prefix"></sl-icon>
+                        Home
+                    </sl-menu-item>
+                </a>
+                {{end}}
+                <a href="/chat">
+                    <sl-menu-item>
+                        <sl-icon name="house" slot="prefix"></sl-icon>
+                        Open {{.AppName}}
+                    </sl-menu-item>
+                </a>
+                <a href="/docs">
+                    <sl-menu-item>
+                        <sl-icon name="code" slot="prefix"></sl-icon>
+                        Documentation
+                    </sl-menu-item>
+                </a>
+                <a href="#footer">
+                    <sl-menu-item>
+                        <sl-icon name="three-dots" slot="prefix"></sl-icon>
+                        More
+                    </sl-menu-item>
+                </a>
+            </sl-menu>
+        </sl-dropdown>
+    </nav>
+    <nav>
+        {{- template "partials/avatar-context-menu" .}}
+    </nav>
+</header>

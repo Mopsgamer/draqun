@@ -1,0 +1,12 @@
+<table>
+    <tr class="header">
+        <th>Name</th>
+        <th>Type</th>
+    </tr>
+    {{- range $i, $field := .}}
+    <tr>
+        <td class="name">{{$i}}</td>
+        <td class="type">{{$field.Type.Name}}</td>
+    </tr>
+    {{- end}}
+</table>

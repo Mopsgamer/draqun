@@ -1,0 +1,40 @@
+<sl-dialog label="Dialog" id="account-delete-dialog">
+    <span slot="label" class="aligned">
+        <sl-icon name="exclamation-triangle"></sl-icon>
+        Delete account
+    </span>
+    <form
+        id="account-delete-form"
+        name="account-delete-form"
+        hx-delete="/account/delete"
+        hx-swap="outerHTML"
+        hx-target="#account-delete-error"
+    >
+        <sl-input
+            autofocus
+            label="Current password"
+            type="password"
+            id="account-delete-current-password"
+            name="current-password"
+            required
+            password-toggle
+        >
+        </sl-input>
+
+        <sl-input
+            label="Confirm username"
+            type="tel"
+            id="account-delete-current-username"
+            name="confirm-username"
+            required
+        >
+        </sl-input>
+        <div id="account-delete-error"></div>
+    </form>
+    <div slot="footer" class="dialog-footer">
+        <div>
+            <sl-button form="account-delete-form" variant="danger" type="submit"
+            >Delete account permanently</sl-button>
+        </div>
+    </div>
+</sl-dialog>

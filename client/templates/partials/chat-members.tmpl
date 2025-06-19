@@ -1,0 +1,28 @@
+{{$this := .}} {{- range $i, $member := $this.MemberList}}
+
+<div id="member-{{$member.Id}}" class="member">
+    <div class="prefix">
+        <sl-avatar style="--size: 2rem"></sl-avatar>
+    </div>
+    <div class="text">
+        <div
+            class="nickname w-full"
+            {{with
+            $member.Nick}}title="{{$member.Nick}}"
+            {{end}}
+        >
+            {{$member.Nick}}
+        </div>
+    </div>
+</div>
+
+{{- if and (eq $i $this.MembersPagination) (eq (len $this.MemberList)
+$this.MembersPagination) -}}
+<div
+    class="load-scroll"
+    hx-trigger="intersect once"
+    hx-swap="outerHTML"
+    hx-get="/groups/{{$this.Group.Id}}/members/page/{{add 1 $this.MembersPage}}"
+>
+</div>
+{{- end -}} {{- end}}

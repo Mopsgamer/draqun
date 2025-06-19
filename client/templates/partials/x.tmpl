@@ -1,0 +1,16 @@
+<div class="text-3xl font-bold aligned">
+    {{- if isString .}} Under construction <sl-icon name="hammer"></sl-icon> -
+    {{.}} {{- else}}
+    <sl-icon name="exclamation-triangle"></sl-icon>
+    {{.StatusCode}} - {{.StatusMessage}} {{- end}}
+</div>
+<div>
+    <sl-button variant="text" href="/">
+        <sl-icon name="house-heart" slot="prefix"></sl-icon>
+        Home
+    </sl-button>
+    <sl-button variant="text" href="/chat">
+        <sl-icon name="house" slot="prefix"></sl-icon>
+        Open {{.AppName}}
+    </sl-button>
+</div>
