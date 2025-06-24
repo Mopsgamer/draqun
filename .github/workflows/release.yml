@@ -16,13 +16,12 @@ jobs:
             - uses: actions/setup-go@v5
               with:
                   go-version: "1.23.x"
-            - name: Check client compilation
+            - name: Install deno dependencies
               run: |
                   deno install --allow-scripts
+            - name: Compile client
+              run: |
                   deno task compile:client
-            - name: Check server compilation
-              run: |
-                  deno install --allow-scripts
 
             - name: Determine next version bump
               id: bump
