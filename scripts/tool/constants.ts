@@ -3,6 +3,7 @@ import { Logger } from "@m234/logger";
 
 dotenv.config();
 
+export const logRelease = new Logger("release");
 export const logServerComp = new Logger("server-compilation");
 export const logClientComp = new Logger("client-compilation");
 export const logInitDb = new Logger("init-database");

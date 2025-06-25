@@ -5,6 +5,10 @@ on:
 
 jobs:
     release:
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        permissions:
+            contents: write
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -16,38 +20,19 @@ jobs:
             - uses: actions/setup-go@v5
               with:
                   go-version: "1.23.x"
+
             - name: Install deno dependencies
               run: |
                   deno install --allow-scripts
+
             - name: Compile client
               run: |
                   deno task compile:client
-
-            - name: Determine next version bump
-              id: bump
-              uses: phips28/gh-action-bump-version@master
-              with:
-                  files: deno.json go.mod
-                  tag-prefix: "v"
-                  commit-message: "chore: bump version to ${TAG}"
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Build binaries
               run: |
                   deno task compile:server:cross
 
-            - name: Push bumped files & tag
+            - name: Release
               run: |
-                  # bump-action already committed & tagged for us, so just push
-                  git push --follow-tags
-
-            - name: Create GitHub Release & upload assets
-              uses: ncipollo/release-action@v1
-              with:
-                  tag: ${{ steps.bump.outputs.new_tag }}
-                  name: Release ${{ steps.bump.outputs.new_tag }}
-                  files: |
-                      dist/${{ steps.bump.outputs.new_tag }}/*
-                  draft: false
-                  prerelease: false
-                  token: ${{ secrets.GITHUB_TOKEN }}
+                  deno task release

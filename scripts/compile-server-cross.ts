@@ -57,7 +57,7 @@ if (isParallel) {
     logServerComp.info(
         "You can use --queue flag to avoid parallel compilations.",
     );
-    logServerComp.start(`Compiling for ${total} targets `);
+    logServerComp.start(`Compiling for ${total} targets`);
 }
 
 const routineList: Promise<void>[] = [];

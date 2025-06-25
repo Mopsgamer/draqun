@@ -41,10 +41,10 @@ async function build(
 
     const directory = outdir || dirname(outfile!);
     if (calls.length == 1) {
-        logClientComp.start("Bundling: %s", directory);
+        logClientComp.start("Bundling %s", directory);
     } else {
         logClientComp.start(
-            "Bundling %d/%d: %s",
+            "Bundling %d/%d %s",
             buildCalls,
             calls.length,
             directory,
