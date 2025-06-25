@@ -2,12 +2,20 @@ import { format, increment, parse, type ReleaseType } from "@std/semver";
 import { Octokit } from "@octokit/rest";
 import denojson from "../deno.json" with { type: "json" };
 import { logRelease } from "./tool/constants.ts";
-import { expandGlob } from "@std/fs";
+import { existsSync, expandGlob } from "@std/fs";
 
 const isDryRun = Deno.args.includes("--dry-run");
 
 if (!Deno.env.has("GITHUB_TOKEN")) {
-    logRelease.error("Evironemnt variable missing: GITHUB_TOKEN");
+    logRelease.error("Evironemnt variable GITHUB_TOKEN is not set.");
+    Deno.exit(1);
+}
+
+const manifestPath = "deno.json"
+const manifestExists = existsSync(manifestPath);
+
+if (!manifestExists) {
+    logRelease.error("Manifest file %s not found.", manifestPath);
     Deno.exit(1);
 }
 
@@ -21,6 +29,16 @@ logRelease.info("Old last tag: %s", getLastTag() ?? "undefined");
 if (!isDryRun) {
     logRelease.info("New tag:\n%o", createTag(newVersion, newChangelog));
     logRelease.info("New last tag: %s", getLastTag() ?? "undefined");
+}
+const manifestOldContent = await Deno.readTextFile(manifestPath);
+const manifestNewContent = manifestOldContent.replace(
+  /("version"\s*:\s*")([^"]+)(")/,
+  `$1${newVersion}$3`
+);
+if (!isDryRun) {
+    logRelease.start("Writing new version to %s", manifestPath);
+    await Deno.writeTextFile(manifestPath, manifestNewContent);
+    logRelease.end()
 }
 if (!isDryRun) {
     const repoInfo = getRepoInfo();
