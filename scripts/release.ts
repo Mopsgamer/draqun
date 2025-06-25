@@ -227,6 +227,7 @@ function getCommitMessages(from?: string): string {
     return output;
 }
 
+// deno-lint-ignore no-unused-vars
 function getCommitLog(from?: string): Commit[] {
     const LOG_COMMIT_DELIMITER = "===LOG_COMMIT_DELIMITER===";
     const LOG_FIELD_SEPARATOR = "===LOG_FIELD_SEPARATOR===";
