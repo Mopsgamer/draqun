@@ -141,7 +141,7 @@ function createTag(name: string, changelog: string): void {
 
 function getNewChangelog(from?: string): string {
     if (!getLastTag()) {
-        return "Initial release."
+        return "Initial release.";
     }
     const gitLogFormat = "- %s (@%aN)%n";
     const { stdout } = new Deno.Command(`git`, {
