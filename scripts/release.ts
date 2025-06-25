@@ -6,6 +6,7 @@ import { expandGlob } from "@std/fs";
 
 if (!Deno.env.has("GITHUB_TOKEN")) {
     logRelease.error("Evironemnt variable missing: GITHUB_TOKEN");
+    Deno.exit(1);
 }
 
 const newVersion = getNewVersion();
