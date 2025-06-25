@@ -4,6 +4,8 @@ import denojson from "../deno.json" with { type: "json" };
 import { logRelease } from "./tool/constants.ts";
 import { expandGlob } from "@std/fs";
 
+const isDryRun = Deno.args.includes("--dry-run");
+
 if (!Deno.env.has("GITHUB_TOKEN")) {
     logRelease.error("Evironemnt variable missing: GITHUB_TOKEN");
     Deno.exit(1);
@@ -11,13 +13,19 @@ if (!Deno.env.has("GITHUB_TOKEN")) {
 
 const newVersion = getNewVersion();
 const newChangelog = getNewChangelog();
-logRelease.info("old last tag: %s", getLastTag() ?? "undefined");
-logRelease.info("new tag:\n%o", createTag(newVersion, newChangelog));
-logRelease.info("new last tag: %s", getLastTag() ?? "undefined");
-logRelease.warn("%s -> %s", denojson.version, newVersion);
+logRelease.info("Increment: %s -> %s", denojson.version, newVersion);
+logRelease.info("Old last tag: %s", getLastTag() ?? "undefined");
+if (!isDryRun) {
+    logRelease.info("New tag:\n%o", createTag(newVersion, newChangelog));
+    logRelease.info("New last tag: %s", getLastTag() ?? "undefined");
+}
 const repoInfo = getRepoInfo();
-logRelease.info("repo: %s/%s", repoInfo.owner, repoInfo.repoName);
-await createRelease(newVersion, newVersion, newChangelog, repoInfo);
+if (!isDryRun) {
+    logRelease.start("Creating GitHub release");
+    await createRelease(newVersion, newVersion, newChangelog, repoInfo);
+    logRelease.end();
+}
+logRelease.success("Released successfully.")
 
 async function createRelease(
     name: string,
@@ -36,7 +44,9 @@ async function createRelease(
         body: changelog,
     });
 
-    for await (const entry of expandGlob("dist/*", { exclude: ["dist/cache"] })) {
+    for await (
+        const entry of expandGlob("dist/*", { exclude: ["dist/cache"] })
+    ) {
         if (!entry.isFile) continue;
 
         const content = await Deno.readFile(entry.path);
@@ -56,7 +66,7 @@ async function createRelease(
         repo: repoName,
         draft: false,
         make_latest: "true",
-    })
+    });
 }
 
 type RepoInfo = { owner: string; repoName: string };
