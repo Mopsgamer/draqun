@@ -7,11 +7,22 @@ jobs:
     release:
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        permissions:
+            contents: write
+            packages: write
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
               with:
-                  fetch-depth: 0 # so we have all history for conventional-commits
+                  fetch-depth: 0
+                  ref: ${{ github.head_ref }}
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  repository: ${{ github.repository }}
+            - name: Set Git origin
+              run: |
+                git config --global user.name "github-actions"
+                git config --global user.email "github-actions@github.com"
+                git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
             - uses: denoland/setup-deno@v2
               with:
                   deno-version: v2.x
