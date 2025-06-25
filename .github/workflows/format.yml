@@ -7,8 +7,8 @@ on:
 jobs:
     apply:
         permissions:
-          contents: write
-          actions: write
+            contents: write
+            actions: write
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -18,9 +18,9 @@ jobs:
                   repository: ${{ github.repository }}
             - name: Set Git origin
               run: |
-                git config --global user.name "github-actions"
-                git config --global user.email "github-actions@github.com"
-                git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+                  git config --global user.name "github-actions"
+                  git config --global user.email "github-actions@github.com"
+                  git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
             - uses: denoland/setup-deno@v2
               with:
                   deno-version: v2.x
