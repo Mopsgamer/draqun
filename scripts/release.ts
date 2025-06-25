@@ -14,13 +14,16 @@ if (!Deno.env.has("GITHUB_TOKEN")) {
 const newVersion = getNewVersion();
 const newChangelog = getNewChangelog();
 logRelease.info("Increment: %s -> %s", denojson.version, newVersion);
+if (isDryRun) {
+    logRelease.info("Changelog:\n%s", newChangelog);
+}
 logRelease.info("Old last tag: %s", getLastTag() ?? "undefined");
 if (!isDryRun) {
     logRelease.info("New tag:\n%o", createTag(newVersion, newChangelog));
     logRelease.info("New last tag: %s", getLastTag() ?? "undefined");
 }
-const repoInfo = getRepoInfo();
 if (!isDryRun) {
+    const repoInfo = getRepoInfo();
     logRelease.start("Creating GitHub release");
     await createRelease(newVersion, newVersion, newChangelog, repoInfo);
     logRelease.end();
@@ -108,7 +111,7 @@ function createTag(name: string, changelog: string): void {
 }
 
 function getNewChangelog(from?: string): string {
-    const gitLogFormat = "- %s%n";
+    const gitLogFormat = "- %s (@%aN)%n";
     const { stdout } = new Deno.Command(`git`, {
         args: [
             "log",
@@ -119,7 +122,14 @@ function getNewChangelog(from?: string): string {
     }).outputSync();
 
     const output = new TextDecoder().decode(stdout);
-    return output;
+    const ignoreUsers: string[] = [] // ["dependabot[bot]", "github-actions"]
+    return output.split("\n").filter(line => {
+        if (ignoreUsers.some(user => line.endsWith(` (@${user})`))) {
+            return false;
+        }
+        const r = /^- [a-zA-Z\d]+(\([a-zA-Z\d]+\))?!?: /g
+        return r.test(line)
+    }).join("\n");
 }
 
 function getReleaseType(): ReleaseType {
