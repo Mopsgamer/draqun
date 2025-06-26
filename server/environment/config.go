@@ -2,6 +2,7 @@ package environment
 
 import (
 	"encoding/json"
+	"io"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -69,8 +70,8 @@ InitEnv:
 
 	Port = getenvString("PORT", "3000")
 
-	DenoJson = getJson[DenoConfig]("deno.json")
-	GoMod = getGoMod()
+	DenoJson = getJson[DenoConfig](embedFS, "deno.json")
+	GoMod = getGoMod(embedFS)
 	GitHash, _ = commandOutput("git", "log", "-n1", `--format="%h"`)
 	GitHashLong, _ = commandOutput("git", "log", "-n1", `--format="%H"`)
 
@@ -118,8 +119,13 @@ func getenvInt(key string, or int64) int64 {
 // 	return val == "1" || val == "true" || val == "y" || val == "yes"
 // }
 
-func getJson[T any](file string) T {
-	buf, err := os.ReadFile(file)
+func getJson[T any](embedFS fs.FS, file string) T {
+	fsFile, err := embedFS.Open(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	buf, err := io.ReadAll(fsFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -133,13 +139,19 @@ func getJson[T any](file string) T {
 	return *val
 }
 
-func getGoMod() modfile.File {
-	buf, err := os.ReadFile("go.mod")
+func getGoMod(embedFS fs.FS) modfile.File {
+	file := "go.mod"
+	fsFile, err := embedFS.Open(file)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	gomod, err := modfile.Parse("go.mod", buf, nil)
+	buf, err := io.ReadAll(fsFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gomod, err := modfile.Parse(file, buf, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

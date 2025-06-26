@@ -7,7 +7,11 @@
         "**/tailwind*/**/*.css": "tailwindcss"
     },
     "gopls": {
-        "ui.semanticTokens": true
+        "ui.semanticTokens": true,
+        "build.standaloneTags": [
+            "lite",
+            "prod"
+        ]
     },
     "[go]": {
         "editor.semanticHighlighting.enabled": true
