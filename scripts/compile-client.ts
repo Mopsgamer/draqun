@@ -2,11 +2,10 @@ import * as esbuild from "esbuild";
 import { copy as copyPlugin } from "esbuild-plugin-copy";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 import { existsSync } from "@std/fs";
-import { logClientComp } from "./tool/constants.ts";
+import { distFolder, logClientComp } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { dirname } from "@std/path/dirname";
 
-const folder = "client";
 const isWatch = Deno.args.includes("watch");
 
 type BuildOptions = esbuild.BuildOptions & {
@@ -172,31 +171,31 @@ const slAlias = ["shoelace", "shoe", "sl"];
 const calls: (Call<typeof copy> | Call<typeof build>)[] = [
     [copy, [
         "./node_modules/@shoelace-style/shoelace/dist/assets",
-        `./${folder}/static/shoelace/assets`,
+        `./${distFolder}/static/shoelace/assets`,
     ], [...slAlias]],
 
     [copy, [
-        `./${folder}/src/assets`,
-        `./${folder}/static/assets`,
+        `./client/src/assets`,
+        `./${distFolder}/static/assets`,
     ], ["assets"]],
 
     [build, [{
         ...options,
-        outdir: `./${folder}/static/js`,
-        entryPoints: [`./${folder}/src/ts/**/*`],
+        outdir: `./${distFolder}/static/js`,
+        entryPoints: [`./client/src/ts/**/*`],
         whenChange: [
-            `./${folder}/static/js`,
+            `./${distFolder}/static/js`,
         ],
         plugins: [...denoPlugins()],
     }], ["js", ...slAlias]],
 
     [build, [{
         ...options,
-        outdir: `./${folder}/static/css`,
-        entryPoints: [`./${folder}/src/tailwindcss/**/*.css`],
+        outdir: `./${distFolder}/static/css`,
+        entryPoints: [`./client/src/tailwindcss/**/*.css`],
         whenChange: [
-            `./${folder}/templates`,
-            `./${folder}/src/tailwindcss`,
+            `./${distFolder}/templates`,
+            `./client/src/tailwindcss`,
         ],
         external: ["/static/assets/*"],
         plugins: [
@@ -232,7 +231,7 @@ if (unknownGroups.length > 0) {
 }
 
 logClientComp.info(
-    `Starting bundling "./${folder}" ${isWatch ? " in watch mode" : ""}...`,
+    `Starting bundling "./${distFolder}" ${isWatch ? " in watch mode" : ""}...`,
 );
 
 const existingGroupsUsed = !Deno.args.includes("all") &&

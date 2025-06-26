@@ -8,7 +8,7 @@ import (
 	server "github.com/Mopsgamer/draqun/server"
 )
 
-//go:embed client/static/** client/templates/**
+//go:embed dist/static/** client/templates/**
 var embedFS embed.FS
 
 func main() {

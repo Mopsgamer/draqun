@@ -39,8 +39,8 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 	static := controller.NewStaticFactory(embedFS)
 
 	// static
-	app.Get("/static", static("client/static"))
-	app.Get("/static/*", static("client/static"))
+	app.Get("/static", static(environment.StaticFolder))
+	app.Get("/static/*", static(environment.StaticFolder))
 
 	// pages
 	app.Get("/", chain(controller.PopulatePage(db), func(ctx fiber.Ctx) error {

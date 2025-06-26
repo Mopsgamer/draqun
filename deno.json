@@ -7,10 +7,7 @@
         "init:build": "deno task init && deno task compile:client",
         "serve": "deno run -A scripts/serve.ts",
         "compile:client": "deno run -A scripts/compile-client.ts",
-        "compile:server": "go build -o ./dist/server main.go",
-        "compile:server:lite": "go build -tags lite -o ./dist/server lite.go",
-        "compile:server:prod": "go build -tags prod -o ./dist/server lite.go",
-        "compile:server:test": "go build -tags lite,test -o ./dist/server lite.go",
+        "compile:server": "deno run -A scripts/compile-server.ts",
         "compile:server:cross": "deno run -A scripts/compile-server-cross.ts",
         "release": "deno run -A scripts/release.ts"
     },
@@ -40,13 +37,13 @@
         "indentWidth": 4,
         "exclude": [
             "client/src/*tailwind*",
-            "client/static"
+            "dist/static"
         ]
     },
     "lint": {
         "exclude": [
             "client/src/*tailwind*",
-            "client/static"
+            "dist/static"
         ]
     },
     "compilerOptions": {

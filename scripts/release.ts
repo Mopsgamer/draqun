@@ -70,7 +70,7 @@ async function createRelease(
     });
 
     for await (
-        const entry of expandGlob("dist/*", { exclude: ["dist/cache"] })
+        const entry of expandGlob("dist/server-*")
     ) {
         if (!entry.isFile) continue;
 

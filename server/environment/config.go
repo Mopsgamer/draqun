@@ -15,12 +15,13 @@ import (
 const AppName string = "Draqun"
 const GitHubRepo string = "https://github.com/Mopsgamer/draqun"
 const TemplateExt = ".tmpl"
+const DistFolder = "dist" // Consider using same value for go:embed comments
+const StaticFolder = DistFolder + "/static"
 
 type BuildMode int
 
 const (
-	BuildModeTest BuildMode = iota
-	BuildModeDevelopment
+	BuildModeDevelopment BuildMode = iota
 	BuildModeProduction
 )
 

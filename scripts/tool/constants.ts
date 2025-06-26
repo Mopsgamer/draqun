@@ -1,7 +1,14 @@
 import dotenv from "dotenv";
 import { Logger } from "@m234/logger";
+import { ensureDir } from "@std/fs/ensure-dir";
 
 dotenv.config();
+
+/**
+ * Consider using same value in the environment/config.go and deno.json.
+ */
+export const distFolder = "dist";
+await ensureDir(distFolder);
 
 export const logRelease = new Logger("release");
 export const logServerComp = new Logger("server-compilation");
