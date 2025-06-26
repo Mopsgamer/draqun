@@ -18,7 +18,7 @@ func Serve(embedFS fs.FS) {
 		clientEmbedVersion = "client not embedded"
 	}
 
-	environment.Load()
+	environment.Load(embedFS)
 
 	log.Infof("Server version: %s, %s, %s", environment.DenoJson.Version, clientEmbedVersion, environment.BuildModeName)
 

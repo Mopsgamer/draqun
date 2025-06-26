@@ -2,6 +2,7 @@ package environment
 
 import (
 	"encoding/json"
+	"io/fs"
 	"os"
 	"os/exec"
 	"strconv"
@@ -53,27 +54,31 @@ type DenoConfig struct {
 }
 
 // Load environemnt variables from the '.env' file. Exits if any errors.
-func Load() {
+func Load(embedFS fs.FS) {
 	if err := godotenv.Load(); err != nil {
-		log.Fatal(err)
+		if os.IsNotExist(err) {
+			goto InitEnv
+		}
+		log.Error(err)
 	}
 
-	JWTKey = os.Getenv("JWT_KEY")
-	UserAuthTokenExpiration = time.Duration(getenvInt("USER_AUTH_TOKEN_EXPIRATION")) * time.Minute
-	ChatMessageMaxLength = int(getenvInt("CHAT_MESSAGE_MAX_LENGTH"))
+InitEnv:
+	JWTKey = getenvString("JWT_KEY", "")
+	UserAuthTokenExpiration = time.Duration(getenvInt("USER_AUTH_TOKEN_EXPIRATION", 180)) * time.Minute
+	ChatMessageMaxLength = int(getenvInt("CHAT_MESSAGE_MAX_LENGTH", 8000))
 
-	Port = os.Getenv("PORT")
+	Port = getenvString("PORT", "3000")
 
 	DenoJson = getJson[DenoConfig]("deno.json")
 	GoMod = getGoMod()
 	GitHash, _ = commandOutput("git", "log", "-n1", `--format="%h"`)
 	GitHashLong, _ = commandOutput("git", "log", "-n1", `--format="%H"`)
 
-	DBHost = os.Getenv("DB_HOST")
-	DBName = os.Getenv("DB_NAME")
-	DBPassword = os.Getenv("DB_PASSWORD")
-	DBPort = os.Getenv("DB_PORT")
-	DBUser = os.Getenv("DB_USER")
+	DBHost = getenvString("DB_HOST", "localhost")
+	DBName = getenvString("DB_NAME", "mysql")
+	DBPassword = getenvString("DB_PASSWORD", "")
+	DBPort = getenvString("DB_PORT", "3306")
+	DBUser = getenvString("DB_USER", "admin")
 }
 
 func commandOutput(name string, arg ...string) (string, error) {
@@ -86,11 +91,23 @@ func commandOutput(name string, arg ...string) (string, error) {
 	return string(bytes)[1 : len(bytes)-2], nil
 }
 
-func getenvInt(key string) int64 {
+func getenvString(key string, or string) string {
 	val := os.Getenv(key)
+	if val == "" {
+		return or
+	}
+	return val
+}
+
+func getenvInt(key string, or int64) int64 {
+	val := os.Getenv(key)
+	if val == "" {
+		return or
+	}
 	result, err := strconv.ParseInt(val, 0, 64)
 	if err != nil {
-		log.Fatalf(key+" can not be '%v'. Should be an integer.", os.Getenv(key))
+		log.Errorf(key+" can not be '%v'. Should be an integer.", os.Getenv(key))
+		return or
 	}
 
 	return result
