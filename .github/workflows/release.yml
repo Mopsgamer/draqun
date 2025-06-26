@@ -2,6 +2,36 @@ name: Release
 
 on:
     workflow_dispatch:
+        inputs:
+            release_type:
+                description: |
+                    Select the release type.
+
+                    Options:
+                      - keep: do not increment;
+                      - from-commits: determine from commit messages.
+                      - patch: 1.2.0 → 1.2.1 → 1.2.2;
+                      - minor: 1.2.0 → 1.3.0 →  1.4.0;
+                      - major: 1.2.0 → 2.0.0 → 3.0.0;
+                      - prepatch: 1.2.0 → 1.2.1-0 → 1.2.2-1;
+                      - preminor: 1.2.0 → 1.3.1-0 → 1.4.0-1;
+                      - premajor: 1.2.0 → 2.0.0-0 → 3.0.0-1;
+                      - pre: 1.2.0 → 1.2.0-0 → 1.2.0-1;
+                      - prerelease: 1.2.0 → 1.2.1-0 → 1.2.1-1;
+                required: true
+                default: "from-commits"
+                type: choice
+                options:
+                    - keep
+                    - from-commits
+                    - patch
+                    - minor
+                    - major
+                    - prepatch
+                    - preminor
+                    - premajor
+                    - pre
+                    - prerelease
 
 jobs:
     release:
@@ -34,7 +64,7 @@ jobs:
                   deno task compile:client
             - name: Dry run
               run: |
-                  deno task release --dry-run
+                  deno task release --dry-run ${{ github.event.inputs.release_type }}
             - uses: actions/setup-go@v5
               with:
                   go-version: "1.23.x"
@@ -43,4 +73,4 @@ jobs:
                   deno task compile:server:cross
             - name: Increment and release
               run: |
-                  deno task release
+                  deno task release ${{ github.event.inputs.release_type }}

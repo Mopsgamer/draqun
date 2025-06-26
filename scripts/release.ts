@@ -34,23 +34,25 @@ if (!isDryRun) {
     logRelease.end();
     logRelease.info("New latest tag: %s", getLastTag() ?? "undefined");
 }
-const manifestOldContent = await Deno.readTextFile(manifestPath);
-const manifestNewContent = manifestOldContent.replace(
-    /("version"\s*:\s*")([^"]+)(")/,
-    `$1${newVersion}$3`,
-);
-if (!isDryRun) {
-    logRelease.start("Writing new version to %s", manifestPath);
-    await Deno.writeTextFile(manifestPath, manifestNewContent);
-    logRelease.end();
+if (newVersion !== denojson.version) {
+    const manifestOldContent = await Deno.readTextFile(manifestPath);
+    const manifestNewContent = manifestOldContent.replace(
+        /("version"\s*:\s*")([^"]+)(")/,
+        `$1${newVersion}$3`,
+    );
+    if (!isDryRun) {
+        logRelease.start("Writing new version to %s", manifestPath);
+        await Deno.writeTextFile(manifestPath, manifestNewContent);
+        logRelease.end();
+    }
 }
 if (!isDryRun) {
     const repoInfo = getRepoInfo();
     logRelease.start("Creating GitHub release");
     await createRelease(releaseName, tagName, newChangelog, repoInfo);
     logRelease.end();
+    logRelease.success("Released successfully.");
 }
-logRelease.success("Released successfully.");
 
 async function createRelease(
     name: string,
@@ -64,6 +66,7 @@ async function createRelease(
         repo: repoName,
         tag_name: tagName,
         draft: true,
+        prerelease: tagName.includes("-"),
 
         name,
         body: changelog,
@@ -117,7 +120,12 @@ function getRepoInfo(): RepoInfo {
 }
 
 function getNewVersion(): string {
-    return format(increment(parse(denojson.version), getReleaseType()));
+    const releaseType = getReleaseType();
+    if (releaseType === "none") {
+        return denojson.version;
+    }
+
+    return format(increment(parse(denojson.version), releaseType));
 }
 
 function createTag(name: string, changelog: string): void {
@@ -164,7 +172,28 @@ function getNewChangelog(from?: string): string {
     }).join("\n");
 }
 
-function getReleaseType(): ReleaseType {
+function getReleaseType(): ReleaseType | "none" {
+    for (
+        const releaseType of [
+            "major",
+            "minor",
+            "patch",
+            "pre",
+            "premajor",
+            "preminor",
+            "prepatch",
+            "prerelease",
+        ] as ReleaseType[]
+    ) {
+        if (Deno.args.includes(releaseType)) {
+            return releaseType;
+        }
+    }
+    for (const releaseType of ["keep", "none", "current"]) {
+        if (Deno.args.includes(releaseType)) {
+            return "none";
+        }
+    }
     const minor = ["feat"];
     const major = ["BREAKING CHANGE"];
     const messageList = getCommitMessages().split("\n");
