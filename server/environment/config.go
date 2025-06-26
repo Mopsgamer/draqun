@@ -2,6 +2,8 @@ package environment
 
 import (
 	"encoding/json"
+	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 	"strconv"
@@ -15,12 +17,13 @@ import (
 const AppName string = "Draqun"
 const GitHubRepo string = "https://github.com/Mopsgamer/draqun"
 const TemplateExt = ".tmpl"
+const DistFolder = "dist" // Consider using same value for go:embed comments and scripts/tool/contants.ts
+const StaticFolder = DistFolder + "/static"
 
 type BuildMode int
 
 const (
-	BuildModeTest BuildMode = iota
-	BuildModeDevelopment
+	BuildModeDevelopment BuildMode = iota
 	BuildModeProduction
 )
 
@@ -52,27 +55,31 @@ type DenoConfig struct {
 }
 
 // Load environemnt variables from the '.env' file. Exits if any errors.
-func Load() {
+func Load(embedFS fs.FS) {
 	if err := godotenv.Load(); err != nil {
-		log.Fatal(err)
+		if os.IsNotExist(err) {
+			goto InitEnv
+		}
+		log.Error(err)
 	}
 
-	JWTKey = os.Getenv("JWT_KEY")
-	UserAuthTokenExpiration = time.Duration(getenvInt("USER_AUTH_TOKEN_EXPIRATION")) * time.Minute
-	ChatMessageMaxLength = int(getenvInt("CHAT_MESSAGE_MAX_LENGTH"))
+InitEnv:
+	JWTKey = getenvString("JWT_KEY", "")
+	UserAuthTokenExpiration = time.Duration(getenvInt("USER_AUTH_TOKEN_EXPIRATION", 180)) * time.Minute
+	ChatMessageMaxLength = int(getenvInt("CHAT_MESSAGE_MAX_LENGTH", 8000))
 
-	Port = os.Getenv("PORT")
+	Port = getenvString("PORT", "3000")
 
-	DenoJson = getJson[DenoConfig]("deno.json")
-	GoMod = getGoMod()
+	DenoJson = getJson[DenoConfig](embedFS, "deno.json")
+	GoMod = getGoMod(embedFS)
 	GitHash, _ = commandOutput("git", "log", "-n1", `--format="%h"`)
 	GitHashLong, _ = commandOutput("git", "log", "-n1", `--format="%H"`)
 
-	DBHost = os.Getenv("DB_HOST")
-	DBName = os.Getenv("DB_NAME")
-	DBPassword = os.Getenv("DB_PASSWORD")
-	DBPort = os.Getenv("DB_PORT")
-	DBUser = os.Getenv("DB_USER")
+	DBHost = getenvString("DB_HOST", "localhost")
+	DBName = getenvString("DB_NAME", "mysql")
+	DBPassword = getenvString("DB_PASSWORD", "")
+	DBPort = getenvString("DB_PORT", "3306")
+	DBUser = getenvString("DB_USER", "admin")
 }
 
 func commandOutput(name string, arg ...string) (string, error) {
@@ -85,11 +92,23 @@ func commandOutput(name string, arg ...string) (string, error) {
 	return string(bytes)[1 : len(bytes)-2], nil
 }
 
-func getenvInt(key string) int64 {
+func getenvString(key string, or string) string {
 	val := os.Getenv(key)
+	if val == "" {
+		return or
+	}
+	return val
+}
+
+func getenvInt(key string, or int64) int64 {
+	val := os.Getenv(key)
+	if val == "" {
+		return or
+	}
 	result, err := strconv.ParseInt(val, 0, 64)
 	if err != nil {
-		log.Fatalf(key+" can not be '%v'. Should be an integer.", os.Getenv(key))
+		log.Errorf(key+" can not be '%v'. Should be an integer.", os.Getenv(key))
+		return or
 	}
 
 	return result
@@ -100,8 +119,13 @@ func getenvInt(key string) int64 {
 // 	return val == "1" || val == "true" || val == "y" || val == "yes"
 // }
 
-func getJson[T any](file string) T {
-	buf, err := os.ReadFile(file)
+func getJson[T any](embedFS fs.FS, file string) T {
+	fsFile, err := embedFS.Open(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	buf, err := io.ReadAll(fsFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -115,13 +139,19 @@ func getJson[T any](file string) T {
 	return *val
 }
 
-func getGoMod() modfile.File {
-	buf, err := os.ReadFile("go.mod")
+func getGoMod(embedFS fs.FS) modfile.File {
+	file := "go.mod"
+	fsFile, err := embedFS.Open(file)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	gomod, err := modfile.Parse("go.mod", buf, nil)
+	buf, err := io.ReadAll(fsFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gomod, err := modfile.Parse(file, buf, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

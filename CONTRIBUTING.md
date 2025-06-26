@@ -80,31 +80,43 @@ go build tags for setting things for your needs.
 
 Available go build tags:
 
-- Environment: `test`, `prod`. If not provided, `dev`.
-  - `test` exists, but we don't have test at this moment.
-  - `dev` enables client files watching.
+- Environment:
+  - `[none]` enables client files watching.
   - `prod` normal mode.
-- Client embedding: `lite`. If not provided, `normal`.
-  - `normal` enables client files embedding. The server binary will become
+- Client embedding:
+  - `[none]` enables client files embedding. The server binary will become
     standalone.
   - `lite` disables files embedding. The server binary will use closest
     ./client/static and ./client/templates directories. This option makes the
     server binary more flexible and reduces its size.
 
-Available deno tasks for server compilation:
+Example: `go -o dist/server.exe -tags lite,prod .`
+
+Available deno tasks:
 
 ```bash
-deno task compile:server
-# go build -o ./dist/server main.go
+deno task compile:server # prod
+deno task compile:server dev # lite
+deno task compile:server:cross # prod
+deno task compile:server:cross dev #lite
+```
 
-deno task compile:server:lite
-# go build -tags lite -o ./dist/server lite.go
+## Releasing
 
-deno task compile:server:prod
-# go build -tags prod -o ./dist/server lite.go
+You can create new releases and git tag automatically based on commits, using
+GitHub workflow manual execution (dispatch).
 
-deno task compile:server:test
-# go build -tags lite test -o ./dist/server lite.go
+You can also use deno task to create a release from your machine (it is not
+recommended):
+
+```bash
+deno task release
+```
+
+You can get next version and changelog output without creating a release:
+
+```bash
+deno task release --dry-run
 ```
 
 ## About DOM (HTMX, Shoelace) and Session

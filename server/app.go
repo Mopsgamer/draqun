@@ -20,14 +20,15 @@ import (
 )
 
 // Initialize gofiber application, including DB and view engine.
-func NewApp(embedFS fs.FS) (*fiber.App, error) {
+func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	var db, errDBLoad = database.InitDB()
 	if errDBLoad != nil {
 		log.Error(errDBLoad)
+		fmt.Println("Your database connection should be configured by DB_* variables: " + environment.GitHubRepo + "/blob/main/scripts/init.ts")
 		return nil, errDBLoad
 	}
 
-	engine := NewAppHtmlEngine(db, embedFS, "client/templates")
+	engine := NewAppHtmlEngine(db, embedFS, clientEmbedded, "client/templates")
 	app := fiber.New(fiber.Config{
 		Views:             engine,
 		PassLocalsToViews: true,
@@ -36,11 +37,11 @@ func NewApp(embedFS fs.FS) (*fiber.App, error) {
 	app.Use(logger.New())
 
 	chain := controller.NewChainFactory()
-	static := controller.NewStaticFactory(embedFS)
+	static := controller.NewStaticFactory(embedFS, clientEmbedded)
 
 	// static
-	app.Get("/static", static("client/static"))
-	app.Get("/static/*", static("client/static"))
+	app.Get("/static", static(environment.StaticFolder))
+	app.Get("/static/*", static(environment.StaticFolder))
 
 	// pages
 	app.Get("/", chain(controller.PopulatePage(db), func(ctx fiber.Ctx) error {

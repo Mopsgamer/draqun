@@ -1,4 +1,4 @@
-//go:build !prod && !test
+//go:build !prod
 
 package environment
 

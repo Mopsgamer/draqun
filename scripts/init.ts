@@ -26,6 +26,8 @@ async function initMysqlTables(): Promise<void> {
         `We want to create tables:\n${blue(" - ")}%s`,
         sqlFileList.map((p) => parse(p).base).join("\n" + blue(" - ")),
     );
+    logInitDb.info("You can pass 'nodb' to ignore DB initialization step.");
+
     const connection = mysql.createConnection({
         password: Deno.env.get(envKeys.DB_PASSWORD),
         database: Deno.env.get(envKeys.DB_NAME),

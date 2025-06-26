@@ -12,15 +12,15 @@ import (
 	"github.com/gofiber/fiber/v3/log"
 )
 
-func Serve(embedFS fs.FS) {
-	clientEmbedVersion := "client embedded"
-	if embedFS == nil {
-		clientEmbedVersion = "client not embedded"
+func Serve(embedFS fs.FS, clientEmbedded bool) {
+	clientEmbeddedStatus := "client not embedded"
+	if clientEmbedded {
+		clientEmbeddedStatus = "client embedded"
 	}
 
-	environment.Load()
+	environment.Load(embedFS)
 
-	log.Infof("Server version: %s, %s, %s", environment.DenoJson.Version, clientEmbedVersion, environment.BuildModeName)
+	log.Infof("Server version: %s, %s, %s", environment.DenoJson.Version, clientEmbeddedStatus, environment.BuildModeName)
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
@@ -31,7 +31,7 @@ func Serve(embedFS fs.FS) {
 		os.Exit(0)
 	}()
 
-	if app, err := NewApp(embedFS); err == nil {
+	if app, err := NewApp(embedFS, clientEmbedded); err == nil {
 		err = app.Listen(":" + environment.Port) // normal
 
 		if err == nil {

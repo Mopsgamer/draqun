@@ -8,9 +8,9 @@ import (
 	server "github.com/Mopsgamer/draqun/server"
 )
 
-//go:embed client/static/** client/templates/**
+//go:embed go.mod deno.json dist/static/** client/templates/**
 var embedFS embed.FS
 
 func main() {
-	server.Serve(embedFS)
+	server.Serve(embedFS, true)
 }

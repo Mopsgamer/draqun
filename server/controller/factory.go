@@ -48,13 +48,13 @@ func handleHtmxError(ctx fiber.Ctx, err error) error {
 	return ctx.Send(buf.Bytes())
 }
 
-func NewStaticFactory(embedFS fs.FS) func(dir string) fiber.Handler {
+func NewStaticFactory(embedFS fs.FS, clientEmbedded bool) func(dir string) fiber.Handler {
 	return func(dir string) fiber.Handler {
 		cacheDuration := time.Duration(-1)
 		if environment.BuildModeValue == environment.BuildModeProduction {
 			cacheDuration = time.Minute
 		}
-		if embedFS == nil {
+		if clientEmbedded {
 			return static.New(dir, static.Config{Browse: true, CacheDuration: cacheDuration})
 		}
 
