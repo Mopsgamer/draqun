@@ -18,9 +18,6 @@ jobs:
             - name: Compile client
               run: |
                   deno task compile:client
-            - name: Dry run
-              run: |
-                  deno task release --dry-run
             - uses: actions/setup-go@v5
               with:
                   go-version: "1.23.x"
