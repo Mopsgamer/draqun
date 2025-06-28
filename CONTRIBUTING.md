@@ -5,12 +5,10 @@
 1. Install required tools.
    - MySQL@^8.0
      - [Windows installation](https://winstall.app/apps/Oracle.MySQL),
-       [Ubuntu installation](https://documentation.ubuntu.com/server/how-to/databases/install-mysql/index.html)
+       [Ubuntu installation](https://documentation.ubuntu.com/server/how-to/databases/install-mysql/index.html),
        [Mac installation](https://dev.mysql.com/doc/refman/8.4/en/macos-installation-pkg.html)
      - Recommended db name: `mysql`.
      - Recommended user: `admin`.
-   - Go@^1.23 ([Installation](https://go.dev/doc/install))
-   - Deno@^2.0 ([Installation](https://deno.com/))
    - Go@^1.23 ([Installation](https://go.dev/doc/install))
    - Deno@^2.0 ([Installation](https://deno.com/))
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
@@ -52,7 +50,7 @@ deno task serve
 > `compile:client` script generates all files. If you are using `watch`, wait
 > for "watching..." message.
 
-## How to write commit messages
+## How to write commit messages and PR names.
 
 We use [Conventional Commit messages](https://www.conventionalcommits.org/) to
 automate version management.
@@ -61,6 +59,7 @@ Most common commit message prefixes are:
 
 - `fix:` which represents bug fixes and generate a patch release.
 - `feat:` which represents a new feature and generate a minor release.
+- `impr:` which represents an improvement and generate a minor release.
 - `chore:` which represents a development environment change and generate a
   patch release.
 - `docs:` which represents documentation change and generate a patch release.
@@ -69,14 +68,14 @@ Most common commit message prefixes are:
 - `BREAKING CHANGE:` which represents a breaking change and generate a major
   release. Or you are able to use `!` at the end of the prefix. For example
   `feat!: new feature` or `fix!: bug fix`.
+- Use `prefix(module):` or `prefix(module)!:` to specify a module. For example,
+  `feat(auth): new login page` or `fix(auth)!: login page on mobile devices`.
 
 ## Compilation
 
-Go allows us to compile server code, and we are using this feature very well,
-providing even additional feature: client embedding.
-
-Embedded client files are stored inside server's binary optionally. You can use
-go build tags for setting things for your needs.
+Compilation is used to create a standalone server binary. It is useful for
+deploying the server to production or for distributing it as a standalone
+application.
 
 Available go build tags:
 
@@ -103,11 +102,14 @@ deno task compile:server:cross dev #lite
 
 ## Releasing
 
-You can create new releases and git tag automatically based on commits, using
-GitHub workflow manual execution (dispatch).
+> [!NOTE]
+> You should be a repository owner or have write access to create a release.
 
-You can also use deno task to create a release from your machine (it is not
-recommended):
+You can create new releases and git tag automatically based on commits or custom
+release type, using GitHub workflow manual execution (dispatch).
+
+You can also use deno task to create a release from your machine, but it is not
+recommended:
 
 ```bash
 deno task release
