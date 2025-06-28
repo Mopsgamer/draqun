@@ -106,7 +106,19 @@ Most common commit message prefixes are:
 > You should be a repository owner or have write access to create a release.
 
 You can create new releases and git tag automatically based on commits or custom
-release type, using GitHub workflow manual execution (dispatch).
+release type, using GitHub workflow manual execution (dispatch). Available
+options:
+
+- `keep`: do not increment;
+- `from-commits`: determine from commit messages;
+- `patch`: 1.2.0 → 1.2.1 → 1.2.2;
+- `minor`: 1.2.0 → 1.3.0 → 1.4.0;
+- `major`: 1.2.0 → 2.0.0 → 3.0.0;
+- `prepatch`: 1.2.0 → 1.2.1-0 → 1.2.2-1;
+- `preminor`: 1.2.0 → 1.3.1-0 → 1.4.0-1;
+- `premajor`: 1.2.0 → 2.0.0-0 → 3.0.0-1;
+- `pre`: 1.2.0 → 1.2.0-0 → 1.2.0-1;
+- `prerelease`: 1.2.0 → 1.2.1-0 → 1.2.1-1;
 
 You can also use deno task to create a release from your machine, but it is not
 recommended:
