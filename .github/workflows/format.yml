@@ -2,10 +2,10 @@ name: Format & Lint
 
 on:
     pull_request:
-      types:
-        - opened
-        - synchronize
-        - ready_for_review
+        types:
+            - opened
+            - synchronize
+            - ready_for_review
     workflow_dispatch:
 
 jobs:
