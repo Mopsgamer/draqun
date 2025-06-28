@@ -2,16 +2,22 @@ name: Cross-compilation
 
 on:
     pull_request:
+        types:
+            - opened
+            - synchronize
+            - ready_for_review
     workflow_dispatch:
 
 jobs:
     cross-compile:
+        if: github.event.pull_request.draft == false
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
             - uses: denoland/setup-deno@v2
               with:
                   deno-version: v2.x
+                  cache: true
             - name: Install deno dependencies
               run: |
                   deno install --allow-scripts
