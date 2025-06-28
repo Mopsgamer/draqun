@@ -100,8 +100,8 @@ Most common commit message prefixes are:
 - Use `prefix(module):` or `prefix(module)!:` to specify a module. For example,
   `feat(auth): new login page` or `fix(auth)!: login page on mobile devices`.
 
-Messages itself should be lowercase, without punctuation at the end and
-should be short, but descriptive.
+Messages itself should be lowercase, without punctuation at the end and should
+be short, but descriptive.
 
 ## Releasing
 
