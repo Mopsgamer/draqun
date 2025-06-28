@@ -26,6 +26,35 @@
    - Set up JWT secret.
 7. Run `deno task serve` to start the server.
 
+## Compilation
+
+Compilation is used to create a standalone server binary. It is useful for
+deploying the server to production or for distributing it as a standalone
+application.
+
+Available go build tags:
+
+- Environment:
+  - `[none]` enables client files watching.
+  - `prod` normal mode.
+- Client embedding:
+  - `[none]` enables client files embedding. The server binary will become
+    standalone.
+  - `lite` disables files embedding. The server binary will use closest
+    ./client/static and ./client/templates directories. This option makes the
+    server binary more flexible and reduces its size.
+
+Example: `go -o dist/server.exe -tags lite,prod .`
+
+Available deno tasks:
+
+```bash
+deno task compile:server # prod
+deno task compile:server dev # lite
+deno task compile:server:cross # prod
+deno task compile:server:cross dev #lite
+```
+
 ## Changing the code base
 
 Client code base (./client) is not tied with the server code base (./server).
@@ -70,35 +99,6 @@ Most common commit message prefixes are:
   `feat!: new feature` or `fix!: bug fix`.
 - Use `prefix(module):` or `prefix(module)!:` to specify a module. For example,
   `feat(auth): new login page` or `fix(auth)!: login page on mobile devices`.
-
-## Compilation
-
-Compilation is used to create a standalone server binary. It is useful for
-deploying the server to production or for distributing it as a standalone
-application.
-
-Available go build tags:
-
-- Environment:
-  - `[none]` enables client files watching.
-  - `prod` normal mode.
-- Client embedding:
-  - `[none]` enables client files embedding. The server binary will become
-    standalone.
-  - `lite` disables files embedding. The server binary will use closest
-    ./client/static and ./client/templates directories. This option makes the
-    server binary more flexible and reduces its size.
-
-Example: `go -o dist/server.exe -tags lite,prod .`
-
-Available deno tasks:
-
-```bash
-deno task compile:server # prod
-deno task compile:server dev # lite
-deno task compile:server:cross # prod
-deno task compile:server:cross dev #lite
-```
 
 ## Releasing
 

@@ -5,19 +5,9 @@
 
 Definitely a cool chat application.
 
-## Building from source
+## Contributing and building
 
-Requirements:
+Check out the [contributing guide](CONTRIBUTING.md).
 
-- MySQL@^8.0
-- Go@^1.23
-- Deno@^2.0
-
-> [!TIP]
-> First setup:
->
-> 1. Run `deno task init:build`.
-> 2. Change the `.env` file.
-> 3. Run `deno task serve`.
-
-Read more about contributing [here](./CONTRIBUTING.md).
+You can install Draqun server by downloading the latest release from the
+[releases page](https://github.com/Mopsgamer/draqun/releases/latest).
