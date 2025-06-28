@@ -2,6 +2,10 @@ name: Cross-compilation
 
 on:
     pull_request:
+      types:
+        - opened
+        - synchronize
+        - ready_for_review
     workflow_dispatch:
 
 jobs:
