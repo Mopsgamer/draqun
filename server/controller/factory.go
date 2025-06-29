@@ -54,7 +54,7 @@ func NewStaticFactory(embedFS fs.FS, clientEmbedded bool) func(dir string) fiber
 		if environment.BuildModeValue == environment.BuildModeProduction {
 			cacheDuration = time.Minute
 		}
-		if clientEmbedded {
+		if !clientEmbedded {
 			return static.New(dir, static.Config{Browse: true, CacheDuration: cacheDuration})
 		}
 

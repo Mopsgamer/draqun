@@ -24,6 +24,7 @@ jobs:
             - name: Compile client
               run: |
                   deno task compile:client
+                  deno task compile:client dev
             - uses: actions/setup-go@v5
               with:
                   go-version: "1.23.x"
