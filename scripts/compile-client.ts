@@ -194,7 +194,7 @@ const calls: (Call<typeof copy> | Call<typeof build>)[] = [
         outdir: `./${distFolder}/static/css`,
         entryPoints: [`./client/src/tailwindcss/**/*.css`],
         whenChange: [
-            `./${distFolder}/templates`,
+            `./client/templates`,
             `./client/src/tailwindcss`,
         ],
         external: ["/static/assets/*"],

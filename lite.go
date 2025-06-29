@@ -12,5 +12,5 @@ import (
 var embedFS embed.FS
 
 func main() {
-	server.Serve(embedFS)
+	server.Serve(embedFS, false)
 }
