@@ -2,10 +2,9 @@
   "version": "5",
   "specifiers": {
     "jsr:@luca/esbuild-deno-loader@~0.11.1": "0.11.1",
-    "jsr:@m234/logger@^1.1.0": "1.1.0",
+    "jsr:@m234/logger@^1.2.0": "1.2.0",
     "jsr:@std/bytes@^1.0.2": "1.0.4",
     "jsr:@std/encoding@^1.0.5": "1.0.5",
-    "jsr:@std/fmt@^1.0.6": "1.0.8",
     "jsr:@std/fmt@^1.0.8": "1.0.8",
     "jsr:@std/fs@^1.0.18": "1.0.18",
     "jsr:@std/path@*": "1.0.8",
@@ -47,10 +46,10 @@
         "jsr:@std/path@^1.0.6"
       ]
     },
-    "@m234/logger@1.1.0": {
-      "integrity": "e4bfc7307181aa777f7b1cfd1468096d18a477f1a7a6752e1abcc2b4168e2b5e",
+    "@m234/logger@1.2.0": {
+      "integrity": "d87b29de43b5d5b1cad2aa62ad243c17880fb0cb9d93f62a41f3ff6b35321f94",
       "dependencies": [
-        "jsr:@std/fmt@^1.0.6"
+        "jsr:@std/fmt"
       ]
     },
     "@std/bytes@1.0.4": {
@@ -2021,7 +2020,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@luca/esbuild-deno-loader@~0.11.1",
-      "jsr:@m234/logger@^1.1.0",
+      "jsr:@m234/logger@^1.2.0",
       "jsr:@std/fmt@^1.0.8",
       "jsr:@std/fs@^1.0.18",
       "jsr:@std/path@^1.1.0",
