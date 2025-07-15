@@ -78,20 +78,5 @@
             },
             "problemMatcher": []
         },
-        {
-            "label": "Init & Build",
-            "type": "shell",
-            "command": "deno",
-            "args": [
-                "task",
-                "init:build"
-            ],
-            "detail": "Fresh start.",
-            "icon": {
-                "id": "refresh",
-                "color": "terminal.ansiCyan"
-            },
-            "problemMatcher": []
-        }
     ]
 }

@@ -3,8 +3,7 @@
     "version": "0.0.0",
     "nodeModulesDir": "auto",
     "tasks": {
-        "init": "deno run -A scripts/init.ts && deno install --allow-scripts",
-        "init:build": "deno task init && deno task compile:client",
+        "init": "deno run -A scripts/init.ts",
         "serve": "deno run -A scripts/serve.ts",
         "compile:client": "deno run -A scripts/compile-client.ts",
         "compile:server": "deno run -A scripts/compile-server.ts",

@@ -20,11 +20,13 @@
    [in-browser GitHub editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor).
 4. Open terminal. You can use built-in
    [VSC terminal](https://code.visualstudio.com/docs/terminal/getting-started).
-5. Run `deno task init:build` to create required files.
-6. Change the `.env` file.
+5. Run `deno install --allow-scripts` to install required client dependencies.
+6. Run `deno task init` to create `.env` file and initialize DB (use `deno task init nodb` to skip db initialization).
+7. Run `deno task compile:client` to create client files.
+8. Change the `.env` file.
    - Set up server connection with MySQL.
    - Set up JWT secret.
-7. Run `deno task serve` to start the server.
+9. Run `deno task serve` to start the server.
 
 ## Compilation
 
