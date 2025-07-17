@@ -44,20 +44,27 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	app.Get("/static/*", static(environment.StaticFolder))
 
 	// pages
-	app.Get("/", controller.PopulatePage(db), func(ctx fiber.Ctx) error {
-		return ctx.Render("homepage", controller.MapPage(ctx, &fiber.Map{"Title": "Homepage", "IsHomePage": true}), "partials/main")
-	})
-	app.Get("/terms", controller.PopulatePage(db), func(ctx fiber.Ctx) error {
-		return ctx.Render("terms", controller.MapPage(ctx, &fiber.Map{"Title": "Terms", "CenterContent": true}), "partials/main")
-	})
-	app.Get("/privacy", controller.PopulatePage(db), func(ctx fiber.Ctx) error {
-		return ctx.Render("privacy", controller.MapPage(ctx, &fiber.Map{"Title": "Privacy", "CenterContent": true}), "partials/main")
-	})
-	app.Get("/acknowledgements", controller.PopulatePage(db), func(ctx fiber.Ctx) error {
-		return ctx.Render("acknowledgements", controller.MapPage(ctx, &fiber.Map{"Title": "Acknowledgements"}), "partials/main")
-	})
+	app.Get("/",
+		func(ctx fiber.Ctx) error {
+			return ctx.Render("homepage", controller.MapPage(ctx, &fiber.Map{"Title": "Homepage", "IsHomePage": true}), "partials/main")
+		},
+		controller.PopulatePage(db))
+	app.Get("/terms",
+		func(ctx fiber.Ctx) error {
+			return ctx.Render("terms", controller.MapPage(ctx, &fiber.Map{"Title": "Terms", "CenterContent": true}), "partials/main")
+		},
+		controller.PopulatePage(db))
+	app.Get("/privacy",
+		func(ctx fiber.Ctx) error {
+			return ctx.Render("privacy", controller.MapPage(ctx, &fiber.Map{"Title": "Privacy", "CenterContent": true}), "partials/main")
+		},
+		controller.PopulatePage(db))
+	app.Get("/acknowledgements",
+		func(ctx fiber.Ctx) error {
+			return ctx.Render("acknowledgements", controller.MapPage(ctx, &fiber.Map{"Title": "Acknowledgements"}), "partials/main")
+		},
+		controller.PopulatePage(db))
 	app.Get("/settings",
-		controller.PopulatePage(db),
 		func(ctx fiber.Ctx) error {
 			user := fiber.Locals[*model_database.User](ctx, controller.LocalAuth)
 			if user == nil {
@@ -66,15 +73,13 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.Render("settings", controller.MapPage(ctx, &fiber.Map{"Title": "Settings"}), "partials/main")
 		},
-	)
+		controller.PopulatePage(db))
 	app.Get("/chat",
-		controller.PopulatePage(db),
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": "Home", "IsChatPage": true}))
 		},
-	)
+		controller.PopulatePage(db))
 	app.Get("/chat/groups/:group_id",
-		controller.PopulatePage(db),
 		func(ctx fiber.Ctx) error {
 			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
 			if member == nil {
@@ -84,9 +89,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			group := fiber.Locals[*model_database.Group](ctx, controller.LocalGroup)
 			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": group.Nick, "IsChatPage": true}))
 		},
-	)
+		controller.PopulatePage(db))
 	app.Get("/chat/groups/join/:group_name",
-		controller.PopulatePage(db),
 		func(ctx fiber.Ctx) error {
 			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
 			group := fiber.Locals[*model_database.Group](ctx, controller.LocalGroup)
@@ -100,13 +104,10 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": "Join " + group.Nick, "IsChatPage": true}))
 		},
-	)
+		controller.PopulatePage(db))
 
 	// get
 	app.Get("/groups/:group_id/messages/page/:messages_page",
-		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
-			return bool(role.ChatRead)
-		}),
 		func(ctx fiber.Ctx) error {
 			groupId := fiber.Params[uint64](ctx, "group_id")
 			page := fiber.Params[uint64](ctx, "messages_page")
@@ -125,11 +126,11 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.JSON(messageList)
 		},
-	)
-	app.Get("/groups/:group_id/members/page/:members_page",
 		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
 			return bool(role.ChatRead)
 		}),
+	)
+	app.Get("/groups/:group_id/members/page/:members_page",
 		func(ctx fiber.Ctx) error {
 			groupId := fiber.Params[uint64](ctx, "group_id")
 			page := fiber.Params[uint64](ctx, "members_page")
@@ -150,6 +151,9 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.JSON(memberList)
 		},
+		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
+			return bool(role.ChatRead)
+		}),
 	)
 
 	// post
@@ -158,7 +162,6 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		Password string `form:"password"`
 	}
 	app.Post("/account/login",
-		controller.CheckBindForm(&UserLogin{}),
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*UserLogin](ctx, controller.LocalForm)
 			if err := model_database.IsValidUserPassword(request.Password); err != nil {
@@ -196,6 +199,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			}
 			return ctx.SendStatus(fiber.StatusOK)
 		},
+		controller.CheckBindForm(&UserLogin{}),
 	)
 	type UserSignUp struct {
 		*UserLogin
@@ -205,7 +209,6 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		ConfirmPassword string  `form:"confirm-password"`
 	}
 	app.Post("/account/create",
-		controller.CheckBindForm(&UserSignUp{}),
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*UserSignUp](ctx, controller.LocalForm)
 
@@ -272,6 +275,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
+		controller.CheckBindForm(&UserSignUp{}),
 	)
 	type GroupCreate struct {
 		Name        string  `form:"name"`
@@ -282,8 +286,6 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		Avatar      string  `form:"avatar"`
 	}
 	app.Post("/groups/create",
-		controller.CheckAuth(db),
-		controller.CheckBindForm(&GroupCreate{}),
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*GroupCreate](ctx, controller.LocalForm)
 			if db.GroupByName(request.Name) != nil {
@@ -367,16 +369,13 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
+		controller.CheckBindForm(&GroupCreate{}),
+		controller.CheckAuth(db),
 	)
 	type MessageCreate struct {
 		Content string `form:"content"`
 	}
 	app.Post("/groups/:group_id/messages/create",
-		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
-			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
-			return bool(member.IsOwner || (role.ChatRead && role.ChatWrite && !member.IsBanned))
-		}),
-		controller.CheckBindForm(&MessageCreate{}),
 		func(ctx fiber.Ctx) error {
 			groupId := fiber.Params[uint64](ctx, "group_id")
 			request := fiber.Locals[*MessageCreate](ctx, controller.LocalForm)
@@ -443,6 +442,11 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
+		controller.CheckBindForm(&MessageCreate{}),
+		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
+			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
+			return bool(member.IsOwner || (role.ChatRead && role.ChatWrite && !member.IsBanned))
+		}),
 	)
 
 	// put
@@ -451,8 +455,6 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		NewName     string `form:"new-username"`
 	}
 	app.Put("/account/change/name",
-		controller.CheckAuth(db),
-		controller.CheckBindForm(&UserChangeName{}),
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*UserChangeName](ctx, controller.LocalForm)
 			user := fiber.Locals[*model_database.User](ctx, controller.LocalAuth)
@@ -487,14 +489,14 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
+		controller.CheckBindForm(&UserChangeName{}),
+		controller.CheckAuth(db),
 	)
 	type UserChangeEmail struct {
 		CurrentPassword string `form:"current-password"`
 		NewEmail        string `form:"new-email"`
 	}
 	app.Put("/account/change/email",
-		controller.CheckAuth(db),
-		controller.CheckBindForm(&UserChangeEmail{}),
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*UserChangeEmail](ctx, controller.LocalForm)
 			user := fiber.Locals[*model_database.User](ctx, controller.LocalAuth)
@@ -532,14 +534,14 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
+		controller.CheckBindForm(&UserChangeEmail{}),
+		controller.CheckAuth(db),
 	)
 	type UserChangePhone struct {
 		CurrentPassword string  `form:"current-password"`
 		NewPhone        *string `form:"new-phone"`
 	}
 	app.Put("/account/change/phone",
-		controller.CheckAuth(db),
-		controller.CheckBindForm(&UserChangePhone{}),
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*UserChangePhone](ctx, controller.LocalForm)
 			user := fiber.Locals[*model_database.User](ctx, controller.LocalAuth)
@@ -569,6 +571,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
+		controller.CheckBindForm(&UserChangePhone{}),
+		controller.CheckAuth(db),
 	)
 	type UserChangePassword struct {
 		CurrentPassword string `form:"current-password"`
@@ -576,8 +580,6 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		ConfirmPassword string `form:"confirm-password"`
 	}
 	app.Put("/account/change/password",
-		controller.CheckAuth(db),
-		controller.CheckBindForm(&UserChangePassword{}),
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*UserChangePassword](ctx, controller.LocalForm)
 			user := fiber.Locals[*model_database.User](ctx, controller.LocalAuth)
@@ -611,6 +613,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
+		controller.CheckBindForm(&UserChangePassword{}),
+		controller.CheckAuth(db),
 	)
 	app.Put("/account/logout",
 		func(ctx fiber.Ctx) error {
@@ -629,7 +633,6 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		},
 	)
 	app.Put("/groups/:group_id/join",
-		controller.PopulatePage(db),
 		func(ctx fiber.Ctx) error {
 			groupId := fiber.Params[uint64](ctx, "group_id")
 
@@ -683,6 +686,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
+		controller.PopulatePage(db),
 	)
 	type GroupChange struct {
 		Name        string  `form:"name"`
@@ -693,11 +697,6 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		Avatar      string  `form:"avatar"`
 	}
 	app.Put("/groups/:group_id/change",
-		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
-			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
-			return bool(member.IsOwner || role.GroupChange)
-		}),
-		controller.CheckBindForm(&GroupChange{}),
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*GroupChange](ctx, controller.LocalForm)
 			group := fiber.Locals[*model_database.Group](ctx, controller.LocalGroup)
@@ -747,14 +746,15 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
+		controller.CheckBindForm(&GroupChange{}),
+		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
+			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
+			return bool(member.IsOwner || role.GroupChange)
+		}),
 	)
 
 	// delete
 	app.Delete("/groups/:group_id/leave",
-		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
-			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
-			return bool(!member.IsOwner)
-		}),
 		func(ctx fiber.Ctx) error {
 			// TODO: do not leave if last owner and there are other non-owner members.
 			// Ask for assigning new owner before leave.
@@ -768,12 +768,12 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-	)
-	app.Delete("/groups/:group_id",
 		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
 			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
-			return bool(member.IsOwner || role.GroupChange)
+			return bool(!member.IsOwner)
 		}),
+	)
+	app.Delete("/groups/:group_id",
 		func(ctx fiber.Ctx) error {
 			groupId := fiber.Params[uint64](ctx, "group_id")
 			if !db.GroupDelete(groupId) {
@@ -787,14 +787,16 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
+		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
+			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
+			return bool(member.IsOwner || role.GroupChange)
+		}),
 	)
 	type UserDelete struct {
 		CurrentPassword string `form:"current-password"`
 		ConfirmUsername string `form:"confirm-username"`
 	}
 	app.Delete("/account/delete",
-		controller.CheckAuth(db),
-		controller.CheckBindForm(&UserDelete{}),
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*UserDelete](ctx, controller.LocalForm)
 			user := fiber.Locals[*model_database.User](ctx, controller.LocalAuth)
@@ -829,6 +831,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
+		controller.CheckBindForm(&UserDelete{}),
+		controller.CheckAuth(db),
 	)
 
 	logWS := func(start time.Time, err error, ws *controller_ws.ControllerWs) {
@@ -854,10 +858,6 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 	// websoket
 	app.Get("/groups/:group_id",
-		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
-			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
-			return bool(member.IsOwner || role.ChatRead)
-		}),
 		func(ctx fiber.Ctx) error {
 			if !websocket.IsWebSocketUpgrade(ctx) {
 				return ctx.Next()
@@ -891,6 +891,10 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				ctxWs.Conn.Close()
 			})(ctx)
 		},
+		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
+			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
+			return bool(member.IsOwner || role.ChatRead)
+		}),
 	)
 
 	app.Use(func(ctx fiber.Ctx) error {
