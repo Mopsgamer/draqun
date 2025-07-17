@@ -22,13 +22,15 @@ const (
 
 const AuthCookieKey = "Authorization"
 
-type RightsChecker func(role model_database.Role) bool
+type RightsChecker func(ctx fiber.Ctx, role model_database.Role) bool
 
 func PopulatePage(db *database.Database) fiber.Handler {
+	groupIdUri := "group_id"
+	groupNameUri := "group_name"
 	return func(ctx fiber.Ctx) error {
 		_ = CheckAuth(db)(ctx)
-		groupId := fiber.Params[uint64](ctx, "group_id")
-		groupName := fiber.Params[string](ctx, "group_name")
+		groupId := fiber.Params[uint64](ctx, groupIdUri)
+		groupName := fiber.Params[string](ctx, groupNameUri)
 		var group *model_database.Group
 		if groupName != "" {
 			group = db.GroupByName(groupName)
@@ -36,31 +38,38 @@ func PopulatePage(db *database.Database) fiber.Handler {
 			group = db.GroupById(groupId)
 		}
 		if group != nil {
-			_ = CheckAuthMember(db, group.Id, nil)(ctx)
+			_ = CheckAuthMember(db, groupIdUri, nil)(ctx)
 		}
-		return nil
+		return ctx.Next()
 	}
 }
 
-func CheckGroup(db *database.Database, groupId uint64) fiber.Handler {
+func CheckGroup(db *database.Database, groupIdUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
+		groupId := fiber.Params[uint64](ctx, groupIdUri)
 		group := db.GroupById(groupId)
 		if group == nil {
 			return environment.ErrGroupNotFound
 		}
 
 		ctx.Locals(LocalGroup, group)
-		return nil
+		return ctx.Next()
 	}
 }
 
-func CheckMember(db *database.Database, groupId, userId uint64, rights RightsChecker) fiber.Handler {
+func CheckAuthMember(db *database.Database, groupIdUri string, rights RightsChecker) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		if err := CheckGroup(db, groupId)(ctx); err != nil {
+		if err := CheckAuth(db)(ctx); err != nil {
 			return err
 		}
 
-		member := db.MemberById(groupId, userId)
+		user := fiber.Locals[*model_database.User](ctx, LocalAuth)
+		groupId := fiber.Params[uint64](ctx, groupIdUri)
+		if err := CheckGroup(db, groupIdUri)(ctx); err != nil {
+			return err
+		}
+
+		member := db.MemberById(groupId, user.Id)
 
 		if member == nil {
 			return environment.ErrGroupMemberNotFound
@@ -68,23 +77,11 @@ func CheckMember(db *database.Database, groupId, userId uint64, rights RightsChe
 
 		ctx.Locals(LocalMember, member)
 
-		role := db.MemberRights(groupId, userId)
-		if rights != nil && !rights(role) {
+		role := db.MemberRights(groupId, user.Id)
+		if rights != nil && !rights(ctx, role) {
 			return environment.ErrGroupMemberNotAllowed
 		}
-		return nil
-	}
-}
-
-func CheckAuthMember(db *database.Database, groupId uint64, rights RightsChecker) fiber.Handler {
-	return func(ctx fiber.Ctx) error {
-		if err := CheckAuth(db)(ctx); err != nil {
-			return err
-		}
-
-		user := fiber.Locals[*model_database.User](ctx, LocalAuth)
-		userId := user.Id
-		return CheckMember(db, groupId, userId, rights)(ctx)
+		return ctx.Next()
 	}
 }
 
@@ -95,7 +92,7 @@ func CheckBindForm[T any](request T) fiber.Handler {
 		}
 
 		ctx.Locals(LocalForm, request)
-		return nil
+		return ctx.Next()
 	}
 }
 
@@ -142,6 +139,6 @@ func CheckAuth(db *database.Database) fiber.Handler {
 		}
 
 		ctx.Locals(LocalAuth, user)
-		return nil
+		return ctx.Next()
 	}
 }

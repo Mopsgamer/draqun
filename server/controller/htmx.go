@@ -1,39 +1,26 @@
 package controller
 
 import (
-	"regexp"
-	"strings"
-
+	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/gofiber/fiber/v3"
 )
 
-func IsHTMX(ctx fiber.Ctx) bool {
-	return ctx.Get("HX-Request") == "true"
-}
+func HandleHTMXError(ctx fiber.Ctx, err error) error {
+	level, message := htmx.Danger, err.Error()
+	if responseErr, ok := err.(htmx.HTMXAlert); ok {
+		level = responseErr.Level()
+		message = responseErr.Local()
+	}
 
-// Call it instead of Redirect().To().
-func HTMXRedirect(ctx fiber.Ctx, to string) {
-	ctx.Set("HX-Redirect", to)
-}
+	if ctx.Get("HX-Error-Wrap") == "false" {
+		return ctx.SendString(message)
+	}
 
-// Refresh the page.
-func HTMXRefresh(ctx fiber.Ctx) {
-	ctx.Set("HX-Refresh", "true")
-}
+	bind := fiber.Map{
+		"Variant": level.String(),
+		"Message": message,
+	}
+	buf, _ := RenderBuffer(ctx.App(), "partials/alert", bind)
 
-// Get /path/to#element?key=val
-func HTMXCurrentURL(ctx fiber.Ctx) string {
-	return ctx.Get("HX-Current-URL")
-}
-
-// Get #element
-// from /path/to#element?key=val
-func HTMXCurrentURLHash(ctx fiber.Ctx) string {
-	return regexp.MustCompile(`((#[a-zA-Z0-9_-]+)|(\?[a-zA-Z_]))+`).FindString(HTMXCurrentURL(ctx))
-}
-
-// Get /path/to?key=val
-// from /path/to#element?key=val
-func HTMXCurrentPath(ctx fiber.Ctx) string {
-	return strings.Replace(HTMXCurrentURL(ctx), HTMXCurrentURLHash(ctx), "", -1)
+	return ctx.Send(buf.Bytes())
 }
