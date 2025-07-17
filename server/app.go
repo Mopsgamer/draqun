@@ -54,22 +54,26 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("homepage", controller.MapPage(ctx, &fiber.Map{"Title": "Homepage", "IsHomePage": true}), "partials/main")
 		},
-		controller.PopulatePage(db))
+		controller.PopulatePage(db),
+	)
 	app.Get("/terms",
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("terms", controller.MapPage(ctx, &fiber.Map{"Title": "Terms", "CenterContent": true}), "partials/main")
 		},
-		controller.PopulatePage(db))
+		controller.PopulatePage(db),
+	)
 	app.Get("/privacy",
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("privacy", controller.MapPage(ctx, &fiber.Map{"Title": "Privacy", "CenterContent": true}), "partials/main")
 		},
-		controller.PopulatePage(db))
+		controller.PopulatePage(db),
+	)
 	app.Get("/acknowledgements",
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("acknowledgements", controller.MapPage(ctx, &fiber.Map{"Title": "Acknowledgements"}), "partials/main")
 		},
-		controller.PopulatePage(db))
+		controller.PopulatePage(db),
+	)
 	app.Get("/settings",
 		func(ctx fiber.Ctx) error {
 			user := fiber.Locals[*model_database.User](ctx, controller.LocalAuth)
@@ -79,12 +83,14 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.Render("settings", controller.MapPage(ctx, &fiber.Map{"Title": "Settings"}), "partials/main")
 		},
-		controller.PopulatePage(db))
+		controller.PopulatePage(db),
+	)
 	app.Get("/chat",
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": "Home", "IsChatPage": true}))
 		},
-		controller.PopulatePage(db))
+		controller.PopulatePage(db),
+	)
 	app.Get("/chat/groups/:group_id",
 		func(ctx fiber.Ctx) error {
 			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
@@ -95,7 +101,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			group := fiber.Locals[*model_database.Group](ctx, controller.LocalGroup)
 			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": group.Nick, "IsChatPage": true}))
 		},
-		controller.PopulatePage(db))
+		controller.PopulatePage(db),
+	)
 	app.Get("/chat/groups/join/:group_name",
 		func(ctx fiber.Ctx) error {
 			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
@@ -110,7 +117,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": "Join " + group.Nick, "IsChatPage": true}))
 		},
-		controller.PopulatePage(db))
+		controller.PopulatePage(db),
+	)
 
 	// get
 	app.Get("/groups/:group_id/messages/page/:messages_page",
