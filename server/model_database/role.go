@@ -11,9 +11,8 @@ type Role struct {
 	Name  string  `db:"name"`
 	Color *uint32 `db:"color"`
 
-	ChatRead  types.BitBool `db:"perm_chat_read"`
-	ChatWrite types.BitBool `db:"perm_chat_write"`
-	// Delete own messages.
+	ChatRead   types.BitBool `db:"perm_chat_read"`
+	ChatWrite  types.BitBool `db:"perm_chat_write"`
 	ChatDelete types.BitBool `db:"perm_chat_delete"`
 
 	Kick         types.BitBool `db:"perm_kick"`

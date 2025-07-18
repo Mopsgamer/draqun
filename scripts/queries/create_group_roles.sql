@@ -1,13 +1,13 @@
 CREATE TABLE IF NOT EXISTS app_group_roles (
-    id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Role id',
+    id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    moniker VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
-    color INT UNSIGNED DEFAULT NULL,
-    perm_chat_read BIT NOT NULL,
-    perm_chat_write BIT NOT NULL,
-    perm_chat_delete BIT NOT NULL,
-    perm_kick BIT NOT NULL,
-    perm_ban BIT NOT NULL,
-    perm_change_group BIT NOT NULL,
-    perm_change_member BIT NOT NULL,
+    color INT UNSIGNED NOT NULL,
+    perm_msg ENUM('locked', 'read', 'write', 'delete') NOT NULL,
+    perm_memb_kick BIT NOT NULL,
+    perm_memb_ban BIT NOT NULL,
+    perm_memb_change BIT NOT NULL,
+    perm_group_cosmetic BIT NOT NULL,
+    perm_admin BIT NOT NULL,
     PRIMARY KEY (id)
-) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Draqun all groups roles';
+) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;

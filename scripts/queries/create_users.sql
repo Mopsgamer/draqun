@@ -1,15 +1,15 @@
 CREATE TABLE IF NOT EXISTS app_users (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'User id',
-    nickname VARCHAR(255) NOT NULL COMMENT 'Customizable name',
-    username VARCHAR(255) NOT NULL COMMENT 'Search-friendly changable identificator',
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    moniker VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
-    phone VARCHAR(255) DEFAULT NULL,
+    phone VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    avatar VARCHAR(255) DEFAULT NULL,
-    created_at DATETIME NOT NULL COMMENT 'Account create time',
-    last_seen DATETIME NOT NULL COMMENT 'Last seen time',
+    avatar VARCHAR(255) NOT NULL,
+    created_at DATETIME NOT NULL,
+    last_seen_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE (username),
+    UNIQUE (name),
     UNIQUE (email),
     UNIQUE (phone)
-) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Draqun users';
+) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
