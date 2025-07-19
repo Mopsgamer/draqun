@@ -25,11 +25,11 @@ func IsValidGroupName(str string) error {
 	return nil
 }
 
-func IsValidGroupPassword(str *string) error {
-	if str == nil {
+func IsValidGroupPassword(str string) error {
+	if str == "" {
 		return nil // allow no group password
 	}
-	if !IsValidString(*str, RegexpGroupPassword, 255) {
+	if !IsValidString(str, RegexpGroupPassword, 255) {
 		return environment.ErrFormatGroupPassword
 	}
 	return nil

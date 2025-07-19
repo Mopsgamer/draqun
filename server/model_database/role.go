@@ -1,47 +1,103 @@
 package model_database
 
-import "github.com/jmoiron/sqlx/types"
+import "strings"
 
-// TODO: make roles simple.
-// 1. ChatRead, ChatWrite -> ChatAccess: disabled | read | read and write
-// 2. ChangeGroup -> ChangeGroupName, +ChangeGroupDescription, +ChangeGroupAvatar, +ChangeGroupMode, +ChangeGroupName, +ChangeGroupNick, +ChangeGroupPassword
-// 3. MemberChange, Kick, Ban -> MemberChangeNick, +MemberMessageDelete, MemberKick, MemberBan
+type PermSwitch string
+
+const (
+	PermSwitchNone     PermSwitch = ""
+	PermSwitchDisallow PermSwitch = "disallow"
+	PermSwitchAllow    PermSwitch = "allow"
+)
+
+func (perm PermSwitch) Has() bool {
+	return perm == PermSwitchAllow
+}
+
+type PermMessages string
+
+const (
+	PermMessagesNone   PermMessages = ""
+	PermMessagesHidden PermMessages = "hidden" // Can not see any messages. Channel info can be available.
+	PermMessagesRead   PermMessages = "read"   // Can read chat messages.
+	PermMessagesWrite  PermMessages = "write"  // Can read, write and delete own messages.
+	PermMessagesDelete PermMessages = "delete" // Can read, write and delete own messages. Can delete other people's messages.
+)
+
+type PermMembers string
+
+const (
+	PermMembersNone   PermMembers = ""
+	PermMembersRead   PermMembers = "read"   // Can see all information about all users.
+	PermMembersInvite PermMembers = "invite" // Can invite new users.
+	PermMembersWrite  PermMembers = "write"  // Can invite new users and change other people's nicknames.
+	PermMembersDelete PermMembers = "delete" // Can invite, change nicknames, kick and ban people.
+)
+
 type Role struct {
-	Id    uint32  `db:"id"`
-	Name  string  `db:"name"`
-	Color *uint32 `db:"color"`
+	Id      uint32 `db:"id"`
+	Name    string `db:"name"`
+	Moniker string `db:"moniker"`
+	Color   uint32 `db:"color"`
 
-	ChatRead   types.BitBool `db:"perm_chat_read"`
-	ChatWrite  types.BitBool `db:"perm_chat_write"`
-	ChatDelete types.BitBool `db:"perm_chat_delete"`
+	PermMessages    PermMessages `db:"perm_messages"`
+	PermRoles       PermSwitch   `db:"perm_roles"`
+	PermMembers     PermMembers  `db:"perm_members"`
+	PermGroupChange PermSwitch   `db:"perm_group_change"`
+	PermAdmin       PermSwitch   `db:"perm_admin"`
+}
 
-	Kick         types.BitBool `db:"perm_kick"`
-	Ban          types.BitBool `db:"perm_ban"`
-	GroupChange  types.BitBool `db:"perm_change_group"`
-	MemberChange types.BitBool `db:"perm_change_member"`
+func (role Role) CanReadMessages() bool {
+	return role.PermMessages == PermMessagesRead ||
+		role.PermMessages == PermMessagesWrite ||
+		role.PermMessages == PermMessagesDelete
+}
+
+func (role Role) CanWriteMessages() bool {
+	return role.PermMessages == PermMessagesWrite ||
+		role.PermMessages == PermMessagesDelete
+}
+
+func (role Role) CanDeleteMessages() bool {
+	return role.PermMessages == PermMessagesDelete
 }
 
 var RoleDefault = Role{
-	Name:       "everyone",
-	Color:      nil,
-	ChatRead:   true,
-	ChatWrite:  true,
-	ChatDelete: true,
+	Name:    "everyone",
+	Moniker: "@everyone",
+	Color:   0,
+
+	PermMessages: PermMessagesWrite,
 }
 
-func mergeProp(prop types.BitBool, prop2 types.BitBool) types.BitBool {
-	return prop || prop2
-}
+// permissions
+// NOTE: Keep 'none' at the end and 'disallow' at the first places.
+var (
+	permSwitch   = []PermSwitch{PermSwitchDisallow, PermSwitchAllow, PermSwitchNone}
+	permMembers  = []PermMembers{PermMembersRead, PermMembersInvite, PermMembersDelete, PermMembersNone}
+	permMessages = []PermMessages{PermMessagesHidden, PermMessagesRead, PermMessagesWrite, PermMessagesDelete, PermMessagesNone}
+)
 
 // Enabled rights have priority over disabled rights.
 func (r *Role) Merge(roleList ...Role) {
 	for _, role := range roleList {
-		r.ChatRead = mergeProp(r.ChatRead, role.ChatRead)
-		r.ChatWrite = mergeProp(r.ChatWrite, role.ChatWrite)
-		r.ChatDelete = mergeProp(r.ChatDelete, role.ChatDelete)
-		r.Kick = mergeProp(r.Kick, role.Kick)
-		r.Ban = mergeProp(r.Ban, role.Ban)
-		r.GroupChange = mergeProp(r.GroupChange, role.GroupChange)
-		r.MemberChange = mergeProp(r.MemberChange, role.MemberChange)
+		r.PermMessages = mergePerm(permMessages, r.PermMessages, role.PermMessages)
+		r.PermRoles = mergePerm(permSwitch, r.PermRoles, role.PermRoles)
+		r.PermMembers = mergePerm(permMembers, r.PermMembers, role.PermMembers)
+		r.PermGroupChange = mergePerm(permSwitch, r.PermGroupChange, role.PermGroupChange)
+		r.PermAdmin = mergePerm(permSwitch, r.PermAdmin, role.PermAdmin)
 	}
+}
+
+func mergePerm[T PermSwitch | PermMessages | PermMembers](list []T, perm1, perm2 T) T {
+	for _, perm := range list {
+		if perm1 == perm || perm2 == perm {
+			return perm
+		}
+	}
+	listStr := make([]string, len(list))
+	for i, v := range list {
+		listStr[i] = string(v)
+	}
+	panic("unexpected perm msg value: " + string(perm1) + " or " + string(perm2) + ". available values: " + strings.Join(listStr, ",") + ".")
 }

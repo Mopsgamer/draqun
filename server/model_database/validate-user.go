@@ -45,11 +45,11 @@ func IsValidUserEmail(str string) error {
 	return nil
 }
 
-func IsValidUserPhone(str *string) error {
-	if str == nil {
+func IsValidUserPhone(str string) error {
+	if str == "" {
 		return nil // allow no phone
 	}
-	newstr := regexp.MustCompile(`\s`).ReplaceAllString(*str, "")
+	newstr := regexp.MustCompile(`\s`).ReplaceAllString(str, "")
 	if !IsValidString(newstr, RegexpUserPhone, 255) {
 		return environment.ErrFormatUserPhone
 	}

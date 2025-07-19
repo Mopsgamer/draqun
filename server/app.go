@@ -197,7 +197,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			return ctx.JSON(messageList)
 		},
 		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
-			return bool(role.ChatRead)
+			return role.CanReadMessages()
 		}),
 	)
 	app.Get("/groups/:group_id/members/page/:members_page",
@@ -222,7 +222,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			return ctx.JSON(memberList)
 		},
 		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
-			return bool(role.ChatRead)
+			return role.CanDeleteMessages()
 		}),
 	)
 
@@ -273,10 +273,10 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	)
 	type UserSignUp struct {
 		*UserLogin
-		Nickname        string  `form:"nickname"`
-		Username        string  `form:"username"`
-		Phone           *string `form:"phone"`
-		ConfirmPassword string  `form:"confirm-password"`
+		Nickname        string `form:"nickname"`
+		Username        string `form:"username"`
+		Phone           string `form:"phone"`
+		ConfirmPassword string `form:"confirm-password"`
 	}
 	app.Post("/account/create",
 		func(ctx fiber.Ctx) error {
@@ -314,13 +314,13 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			}
 
 			user := &model_database.User{
-				Nick:      request.Nickname,
-				Name:      request.Username,
-				Email:     request.Email,
-				Phone:     request.Phone,
-				Password:  hash,
-				CreatedAt: time.Now(),
-				LastSeen:  time.Now(),
+				Moniker:    request.Nickname,
+				Name:       request.Username,
+				Email:      request.Email,
+				Phone:      request.Phone,
+				Password:   hash,
+				CreatedAt:  time.Now(),
+				LastSeenAt: time.Now(),
 			}
 
 			if db.UserCreate(*user) == nil {
@@ -348,12 +348,12 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		controller.CheckBindForm(&UserSignUp{}),
 	)
 	type GroupCreate struct {
-		Name        string  `form:"name"`
-		Nick        string  `form:"nick"`
-		Password    *string `form:"password"`
-		Mode        string  `form:"mode"`
-		Description string  `form:"description"`
-		Avatar      string  `form:"avatar"`
+		Name        string `form:"name"`
+		Nick        string `form:"nick"`
+		Password    string `form:"password"`
+		Mode        string `form:"mode"`
+		Description string `form:"description"`
+		Avatar      string `form:"avatar"`
 	}
 	app.Post("/groups/create",
 		func(ctx fiber.Ctx) error {
@@ -471,17 +471,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			message.Id = *messageId
 
 			filter := func(userId uint64) bool {
-				member := db.MemberById(group.Id, userId)
-				if member == nil {
-					return false
-				}
-
-				if member.IsOwner {
-					return true
-				}
-
 				role := db.MemberRights(group.Id, userId)
-				return bool(role.ChatRead && !member.IsBanned)
+				return role.CanWriteMessages()
 			}
 
 			if htmx.IsHtmx(ctx) {
@@ -513,8 +504,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			return ctx.SendStatus(fiber.StatusOK)
 		},
 		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
-			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
-			return bool(member.IsOwner || (role.ChatRead && role.ChatWrite && !member.IsBanned))
+			return role.CanWriteMessages()
 		}),
 		controller.CheckBindForm(&MessageCreate{}),
 	)
@@ -529,7 +519,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			request := fiber.Locals[*UserChangeName](ctx, controller.LocalForm)
 			user := fiber.Locals[*model_database.User](ctx, controller.LocalAuth)
 
-			if request.NewNickname == user.Nick && request.NewName == user.Name {
+			if request.NewNickname == user.Moniker && request.NewName == user.Name {
 				return environment.ErrUseless
 			}
 
@@ -541,11 +531,11 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return err
 			}
 
-			if db.UserByUsername(request.NewName) != nil && request.NewNickname == user.Nick {
+			if db.UserByUsername(request.NewName) != nil && request.NewNickname == user.Moniker {
 				return environment.ErrUserExsistsName
 			}
 
-			user.Nick = request.NewNickname
+			user.Moniker = request.NewNickname
 			user.Name = request.NewName
 
 			if !db.UserUpdate(*user) {
@@ -608,8 +598,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		controller.CheckBindForm(&UserChangeEmail{}),
 	)
 	type UserChangePhone struct {
-		CurrentPassword string  `form:"current-password"`
-		NewPhone        *string `form:"new-phone"`
+		CurrentPassword string `form:"current-password"`
+		NewPhone        string `form:"new-phone"`
 	}
 	app.Put("/account/change/phone",
 		func(ctx fiber.Ctx) error {
@@ -703,12 +693,12 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		},
 	)
 	type GroupChange struct {
-		Name        string  `form:"name"`
-		Nick        string  `form:"nick"`
-		Password    *string `form:"password"`
-		Mode        string  `form:"mode"`
-		Description string  `form:"description"`
-		Avatar      string  `form:"avatar"`
+		Name        string `form:"name"`
+		Nick        string `form:"nick"`
+		Password    string `form:"password"`
+		Mode        string `form:"mode"`
+		Description string `form:"description"`
+		Avatar      string `form:"avatar"`
 	}
 	app.Put("/groups/:group_id/change",
 		func(ctx fiber.Ctx) error {
@@ -761,8 +751,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			return ctx.SendStatus(fiber.StatusOK)
 		},
 		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
-			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
-			return bool(member.IsOwner || role.GroupChange)
+			return role.PermGroupChange.Has()
 		}),
 		controller.CheckBindForm(&GroupChange{}),
 	)
@@ -802,8 +791,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			return ctx.SendStatus(fiber.StatusOK)
 		},
 		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
-			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
-			return bool(member.IsOwner || role.GroupChange)
+			return role.PermGroupChange.Has()
 		}),
 	)
 	type UserDelete struct {
@@ -815,7 +803,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			request := fiber.Locals[*UserDelete](ctx, controller.LocalForm)
 			user := fiber.Locals[*model_database.User](ctx, controller.LocalAuth)
 
-			if user.Nick != request.ConfirmUsername {
+			if user.Moniker != request.ConfirmUsername {
 				return environment.ErrUserNameConfirm
 			}
 
@@ -906,8 +894,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			})(ctx)
 		},
 		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
-			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
-			return bool(member.IsOwner || role.ChatRead)
+			return role.CanReadMessages()
 		}),
 	)
 

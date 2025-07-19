@@ -70,17 +70,24 @@ func CheckAuthMember(db *database.Database, groupIdUri string, rights RightsChec
 		}
 
 		member := db.MemberById(groupId, user.Id)
-
-		if member == nil {
+		if member == nil { // never been a member
 			return environment.ErrGroupMemberNotFound
 		}
 
 		ctx.Locals(LocalMember, member)
 
 		role := db.MemberRights(groupId, user.Id)
-		if rights != nil && !rights(ctx, role) {
+		if role.PermAdmin.Has() {
+			return ctx.Next()
+		}
+
+		// TODO: implement ban and kick
+		// should read action list for both from db
+		isBannedOrKicked := false
+		if !isBannedOrKicked && !rights(ctx, role) {
 			return environment.ErrGroupMemberNotAllowed
 		}
+
 		return ctx.Next()
 	}
 }
