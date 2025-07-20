@@ -290,7 +290,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return err
 			}
 
-			if db.UserByUsername(request.Username) != nil {
+			if db.UserByName(request.Username) != nil {
 				return environment.ErrUserExsistsNickname
 			}
 
@@ -531,7 +531,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return err
 			}
 
-			if db.UserByUsername(request.NewName) != nil && request.NewNickname == user.Moniker {
+			if db.UserByName(request.NewName) != nil && request.NewNickname == user.Moniker {
 				return environment.ErrUserExsistsName
 			}
 

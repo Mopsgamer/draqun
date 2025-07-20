@@ -10,23 +10,23 @@ import (
 )
 
 func (db Database) MemberById(groupId, userId uint64) *model_database.Member {
-	return First[model_database.Member](db, "app_group_members", goqu.Ex{"group_id": groupId, "user_id": userId})
+	return First[model_database.Member](db, TableMembers, goqu.Ex{"group_id": groupId, "user_id": userId})
 }
 
 func (db Database) MemberCreate(member model_database.Member) bool {
-	return Insert(db, "app_group_members", member) != nil
+	return Insert(db, TableMembers, member) != nil
 }
 
 func (db Database) MemberDelete(userId, groupId uint64) bool {
-	return Delete(db, "app_group_members", exp.Ex{"group_id": groupId, "user_id": userId})
+	return Delete(db, TableMembers, exp.Ex{"group_id": groupId, "user_id": userId})
 }
 
 func (db Database) MemberList(groupId uint64) []model_database.User {
-	memberList := &[]model_database.User{}
-	query := `SELECT app_users.*
-	FROM app_group_members
-	LEFT JOIN app_users ON app_users.id = app_group_members.user_id
-	WHERE app_group_members.group_id = ?`
+	memberList := new([]model_database.User)
+	query := `SELECT ` + TableUsers + `.*
+	FROM ` + TableMembers + `
+	LEFT JOIN ` + TableUsers + ` ON ` + TableUsers + `.id = ` + TableMembers + `.user_id
+	WHERE ` + TableMembers + `.group_id = ?`
 	err := db.Sqlx.Select(memberList, query, groupId)
 
 	if err != nil {
@@ -40,11 +40,11 @@ func (db Database) MemberList(groupId uint64) []model_database.User {
 }
 
 func (db Database) MemberListPage(groupId uint64, page uint64, perPage uint64) []model_database.User {
-	memberList := &[]model_database.User{}
-	query := `SELECT app_users.* FROM app_group_members
-	LEFT JOIN app_users ON app_users.id = app_group_members.user_id
-	WHERE app_group_members.group_id = ?
-	ORDER BY app_group_members.user_id ASC LIMIT ?, ?`
+	memberList := new([]model_database.User)
+	query := `SELECT ` + TableUsers + `.* FROM ` + TableMembers + `
+	LEFT JOIN ` + TableUsers + ` ON ` + TableUsers + `.id = ` + TableMembers + `.user_id
+	WHERE ` + TableMembers + `.group_id = ?
+	ORDER BY ` + TableMembers + `.user_id ASC LIMIT ?, ?`
 	from := (page - 1) * perPage
 	to := page * perPage
 	err := db.Sqlx.Select(memberList, query, groupId, from, to)

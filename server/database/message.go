@@ -27,75 +27,67 @@ func (db Database) CachedMessageList(messageList []model_database.Message) []fib
 }
 
 func (db Database) MessageById(messageId uint64) *model_database.Message {
-	return First[model_database.Message](db, "app_group_messages", goqu.Ex{"id": messageId})
+	return First[model_database.Message](db, TableMessages, goqu.Ex{"id": messageId})
 }
 
 func (db Database) MessageCreate(message model_database.Message) *uint64 {
-	return Insert(db, "app_group_messages", message)
+	return Insert(db, TableMessages, message)
 }
 
 func (db Database) MessageList(groupId uint64) []model_database.Message {
-	messageList := &[]model_database.Message{}
-	query := `SELECT * FROM app_group_messages WHERE group_id = ?`
-	err := db.Sqlx.Select(messageList, query, groupId)
+	messageList := new([]model_database.Message)
+	err := db.Goqu.From(TableMessages).Where(goqu.C("group_id").Eq(groupId)).
+		ScanStructs(messageList)
 
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return *messageList
-		}
-		log.Error(err)
+	if err == sql.ErrNoRows {
 		return *messageList
 	}
+
+	if err != nil {
+		log.Error(err)
+	}
+
 	return *messageList
 }
 
 func (db *Database) MessageFirst(groupId uint64) *model_database.Message {
 	message := new(model_database.Message)
-	query := `SELECT * FROM app_group_messages
-		WHERE group_id = ?
-		ORDER BY id ASC LIMIT 1`
-	err := db.Sqlx.Get(message, query, groupId)
+	found, err := db.Goqu.From(TableMessages).Prepared(true).Where(goqu.C("group_id").Eq(groupId)).Order(goqu.C("id").Asc()).Limit(1).
+		ScanStruct(message)
 
-	if err != nil {
+	if !found {
 		log.Error(err)
-		return message
 	}
 	return message
 }
 
 func (db *Database) MessageLast(groupId uint64) *model_database.Message {
 	message := new(model_database.Message)
-	query := `SELECT * FROM app_group_messages
-		WHERE group_id = ?
-		ORDER BY id DESC LIMIT 1`
-	err := db.Sqlx.Get(message, query, groupId)
+	found, err := db.Goqu.From(TableMessages).Prepared(true).Where(goqu.C("group_id").Eq(groupId)).Order(goqu.C("id").Desc()).Limit(1).
+		ScanStruct(message)
 
-	if err != nil {
+	if !found {
 		log.Error(err)
-		return message
 	}
 	return message
 }
 
 func (db Database) MessageListPage(groupId uint64, page uint64, perPage uint64) []model_database.Message {
-	messageList := &[]model_database.Message{}
-	query := `SELECT * FROM (
-		SELECT * FROM app_group_messages
-		WHERE group_id = ?
-		ORDER BY id DESC
-		LIMIT ?, ?
-	) subquery
-	ORDER BY id ASC`
-	from := (page - 1) * perPage
-	to := page * perPage
-	err := db.Sqlx.Select(messageList, query, groupId, from, to)
+	messageList := new([]model_database.Message)
+	from := uint((page - 1) * perPage)
+	to := uint(page * perPage)
 
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return *messageList
-		}
-		log.Error(err)
+	subquery := db.Goqu.From(TableMessages).Where(goqu.Ex{"group_id": groupId}).Order(goqu.I("id").Desc()).Limit(from).Offset(to)
+	err := db.Goqu.From(subquery.As("subquery")).Order(goqu.I("id").Asc()).
+		Executor().ScanStructs(messageList)
+
+	if err == sql.ErrNoRows {
 		return *messageList
 	}
+
+	if err != nil {
+		log.Error(err)
+	}
+
 	return *messageList
 }

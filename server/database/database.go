@@ -10,6 +10,16 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// SQL table name.
+const (
+	TableGroups      = "app_groups"
+	TableMembers     = "app_group_members"
+	TableUsers       = "app_users"
+	TableMessages    = "app_group_messages"
+	TableRoles       = "app_group_roles"
+	TableRoleAssigns = "app_group_role_assigns"
+)
+
 // The SQL DB wrapper.
 type Database struct {
 	Sqlx *sqlx.DB
