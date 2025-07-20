@@ -12,8 +12,8 @@ require (
 	github.com/gofiber/template/html/v2 v2.1.3
 	github.com/gofiber/utils/v2 v2.0.0-beta.8
 	github.com/golang-jwt/jwt/v5 v5.2.2
-	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
+	github.com/stretchr/testify v1.10.0
 	github.com/valyala/fasthttp v1.60.0
 	golang.org/x/crypto v0.37.0
 	golang.org/x/mod v0.24.0
@@ -34,7 +34,6 @@ require (
 	github.com/philhofer/fwd v1.1.3-0.20240916144458-20a13a1f6b7c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/tinylib/msgp v1.2.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

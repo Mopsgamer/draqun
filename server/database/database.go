@@ -1,13 +1,13 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/doug-martin/goqu/v9"
 
 	"github.com/gofiber/fiber/v3/log"
-	"github.com/jmoiron/sqlx"
 )
 
 // SQL table name.
@@ -22,7 +22,6 @@ const (
 
 // The SQL DB wrapper.
 type Database struct {
-	Sqlx *sqlx.DB
 	Goqu *goqu.Database
 }
 
@@ -36,7 +35,7 @@ func InitDB() (*Database, error) {
 		environment.DBName,
 	)
 
-	connection, err := sqlx.Connect("mysql", connectionString)
+	connection, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		return nil, err
 	}
@@ -47,5 +46,5 @@ func InitDB() (*Database, error) {
 
 	goquConnection := goqu.New("mysql", connection)
 	log.Info("Database connected successfully. Hope she is set up manually or by 'deno task init'.")
-	return &Database{Sqlx: connection, Goqu: goquConnection}, nil
+	return &Database{Goqu: goquConnection}, nil
 }

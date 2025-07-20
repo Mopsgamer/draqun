@@ -9,9 +9,9 @@ import (
 func First[T any](db Database, table string, ex goqu.Ex) *T {
 	item := new(T)
 
-	ok, err := db.Goqu.From(table).Prepared(true).Select(item).Where(ex).ScanStruct(item)
+	found, err := db.Goqu.From(table).Prepared(true).Select(item).Where(ex).ScanStruct(item)
 
-	if !ok {
+	if !found {
 		log.Error(err)
 		return nil
 	}
@@ -38,20 +38,20 @@ func Insert[T any](db Database, table string, item T) *uint64 {
 
 func Update[T any](db Database, table string, item T, ex goqu.Ex) bool {
 	_, err := db.Goqu.Update(table).Prepared(true).Set(item).Where(ex).Executor().Exec()
-	if err != nil {
+	isErr := err != nil
+	if isErr {
 		log.Error(err)
-		return false
 	}
 
-	return true
+	return isErr
 }
 
 func Delete(db Database, table string, ex goqu.Ex) bool {
 	_, err := db.Goqu.From(table).Prepared(true).Delete().Where(ex).Executor().Exec()
-	if err != nil {
+	isErr := err != nil
+	if isErr {
 		log.Error(err)
-		return false
 	}
 
-	return true
+	return isErr
 }
