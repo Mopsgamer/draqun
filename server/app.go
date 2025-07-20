@@ -114,11 +114,10 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			}
 
 			member = &model_database.Member{
-				GroupId:  groupId,
-				UserId:   user.Id,
-				Moniker:  nil,
-				IsOwner:  false,
-				IsBanned: false,
+				GroupId:           groupId,
+				UserId:            user.Id,
+				Moniker:           "",
+				FirstTimeJoinedAt: time.Now(),
 			}
 
 			if !db.MemberCreate(*member) {
@@ -404,11 +403,10 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			ctx.Locals(controller.LocalGroup, group)
 
 			member := model_database.Member{
-				GroupId:  group.Id,
-				UserId:   user.Id,
-				Moniker:  nil,
-				IsOwner:  true,
-				IsBanned: false,
+				GroupId:           group.Id,
+				UserId:            user.Id,
+				Moniker:           "",
+				FirstTimeJoinedAt: time.Now(),
 			}
 
 			if !db.MemberCreate(member) {
@@ -772,8 +770,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			return ctx.SendStatus(fiber.StatusOK)
 		},
 		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role model_database.Role) bool {
-			member := fiber.Locals[*model_database.Member](ctx, controller.LocalMember)
-			return bool(!member.IsOwner)
+			return true
 		}),
 	)
 	app.Delete("/groups/:group_id",
