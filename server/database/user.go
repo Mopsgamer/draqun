@@ -39,6 +39,7 @@ func (db Database) UserByName(name string) *model_database.User {
 	return First[model_database.User](db, TableUsers, goqu.Ex{"name": name})
 }
 
+// Get the list of groups that user is a owner of.
 func (db Database) UserOwnGroupList(userId uint64) []model_database.Group {
 	groupList := new([]model_database.Group)
 	query := `
@@ -58,6 +59,7 @@ func (db Database) UserOwnGroupList(userId uint64) []model_database.Group {
 	return *groupList
 }
 
+// Get the list of groups user is a member of.
 func (db Database) UserGroupList(userId uint64) []model_database.Group {
 	groupList := new([]model_database.Group)
 	query := `
