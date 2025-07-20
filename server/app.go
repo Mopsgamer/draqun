@@ -185,7 +185,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			if htmx.IsHtmx(ctx) {
 				bind := fiber.Map{
-					"MessageList":        db.CachedMessageList(messageList),
+					"MessageList":        messageList,
 					"MessagesPage":       page,
 					"MessagesPagination": MessagesPagination,
 				}
@@ -475,7 +475,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			if htmx.IsHtmx(ctx) {
 				buf, err := controller.RenderBuffer(app, "partials/chat-messages", &fiber.Map{
-					"MessageList": db.CachedMessageList([]model_database.Message{*message}),
+					"MessageList": []database.AuthoredMessage{{Message: *message, Author: *user}},
 					"Group":       group,
 					"User":        user,
 				})
