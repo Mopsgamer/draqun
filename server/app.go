@@ -180,8 +180,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	app.Get("/groups/:group_id/messages/page/:messages_page",
 		func(ctx fiber.Ctx) error {
 			groupId := fiber.Params[uint64](ctx, "group_id")
-			page := fiber.Params[uint64](ctx, "messages_page")
-			const MessagesPagination uint64 = 5
+			page := fiber.Params[uint](ctx, "messages_page")
+			const MessagesPagination uint = 5
 			messageList := db.MessageListPage(groupId, page, MessagesPagination)
 
 			if htmx.IsHtmx(ctx) {
@@ -203,9 +203,9 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	app.Get("/groups/:group_id/members/page/:members_page",
 		func(ctx fiber.Ctx) error {
 			groupId := fiber.Params[uint64](ctx, "group_id")
-			page := fiber.Params[uint64](ctx, "members_page")
+			page := fiber.Params[uint](ctx, "members_page")
 			group := fiber.Locals[*model_database.Group](ctx, controller.LocalGroup)
-			const MembersPagination = 5
+			const MembersPagination uint = 5
 			memberList := db.MemberListPage(groupId, page, MembersPagination)
 
 			if htmx.IsHtmx(ctx) {
