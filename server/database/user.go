@@ -42,39 +42,39 @@ func (db Database) UserByName(name string) *model_database.User {
 // Get the list of groups that user is a owner of.
 func (db Database) UserOwnGroupList(userId uint64) []model_database.Group {
 	groupList := new([]model_database.Group)
-	query := `
-		SELECT ` + TableGroups + `.*
-		FROM ` + TableGroups + `
-		LEFT JOIN ` + TableMembers + ` ON ` + TableGroups + `.id = ` + TableMembers + `.group_id
-		WHERE (user_id = ? AND is_owner = 1)`
-	err := db.Sqlx.Select(groupList, query, userId)
 
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return *groupList
-		}
-		log.Error(err)
+	err := db.Goqu.Select(TableGroups+".*").From(TableGroups).
+		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
+		Where(goqu.Ex{TableMembers + ".user_id": userId, TableGroups + ".creator_id": TableMembers + ".user_id"}).
+		ScanStructs(groupList)
+
+	if err == sql.ErrNoRows {
 		return *groupList
 	}
+
+	if err != nil {
+		log.Error(err)
+	}
+
 	return *groupList
 }
 
 // Get the list of groups user is a member of.
 func (db Database) UserGroupList(userId uint64) []model_database.Group {
 	groupList := new([]model_database.Group)
-	query := `
-		SELECT ` + TableGroups + `.*
-		FROM ` + TableGroups + `
-		LEFT JOIN ` + TableMembers + ` ON ` + TableGroups + `.id = ` + TableMembers + `.group_id
-		WHERE user_id = ?`
-	err := db.Sqlx.Select(groupList, query, userId)
 
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return *groupList
-		}
-		log.Error(err)
+	err := db.Goqu.Select(TableGroups+".*").From(TableGroups).
+		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
+		Where(goqu.Ex{TableMembers + ".user_id": userId}).
+		ScanStructs(groupList)
+
+	if err == sql.ErrNoRows {
 		return *groupList
 	}
+
+	if err != nil {
+		log.Error(err)
+	}
+
 	return *groupList
 }
