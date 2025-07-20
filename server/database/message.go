@@ -13,6 +13,7 @@ import (
 func (db Database) CachedMessageList(messageList []model_database.Message) []fiber.Map {
 	result := []fiber.Map{}
 	users := map[uint64]model_database.User{}
+
 	for _, message := range messageList {
 		if _, ok := users[message.AuthorId]; !ok {
 			users[message.AuthorId] = *db.UserById(message.AuthorId)
@@ -23,6 +24,7 @@ func (db Database) CachedMessageList(messageList []model_database.Message) []fib
 			"Author":  author,
 		})
 	}
+
 	return result
 }
 
@@ -36,6 +38,7 @@ func (db Database) MessageCreate(message model_database.Message) *uint64 {
 
 func (db Database) MessageList(groupId uint64) []model_database.Message {
 	messageList := new([]model_database.Message)
+
 	err := db.Goqu.From(TableMessages).Where(goqu.C("group_id").Eq(groupId)).
 		ScanStructs(messageList)
 
@@ -52,32 +55,38 @@ func (db Database) MessageList(groupId uint64) []model_database.Message {
 
 func (db *Database) MessageFirst(groupId uint64) *model_database.Message {
 	message := new(model_database.Message)
+
 	found, err := db.Goqu.From(TableMessages).Prepared(true).Where(goqu.C("group_id").Eq(groupId)).Order(goqu.C("id").Asc()).Limit(1).
 		ScanStruct(message)
 
 	if !found {
 		log.Error(err)
 	}
+
 	return message
 }
 
 func (db *Database) MessageLast(groupId uint64) *model_database.Message {
 	message := new(model_database.Message)
+
 	found, err := db.Goqu.From(TableMessages).Prepared(true).Where(goqu.C("group_id").Eq(groupId)).Order(goqu.C("id").Desc()).Limit(1).
 		ScanStruct(message)
 
 	if !found {
 		log.Error(err)
 	}
+
 	return message
 }
 
-func (db Database) MessageListPage(groupId uint64, page uint64, perPage uint64) []model_database.Message {
+func (db Database) MessageListPage(groupId uint64, page, perPage uint) []model_database.Message {
 	messageList := new([]model_database.Message)
-	from := uint((page - 1) * perPage)
-	to := uint(page * perPage)
+	from := (page - 1) * perPage
 
-	subquery := db.Goqu.From(TableMessages).Where(goqu.Ex{"group_id": groupId}).Order(goqu.I("id").Desc()).Limit(from).Offset(to)
+	subquery := db.Goqu.From(TableMessages).
+		Where(goqu.Ex{"group_id": groupId}).
+		Order(goqu.I("id").Desc()).
+		Limit(perPage).Offset(from)
 	err := db.Goqu.From(subquery.As("subquery")).Order(goqu.I("id").Asc()).
 		Executor().ScanStructs(messageList)
 

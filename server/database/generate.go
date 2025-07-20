@@ -8,7 +8,9 @@ import (
 
 func First[T any](db Database, table string, ex goqu.Ex) *T {
 	item := new(T)
+
 	ok, err := db.Goqu.From(table).Prepared(true).Select(item).Where(ex).ScanStruct(item)
+
 	if !ok {
 		log.Error(err)
 		return nil

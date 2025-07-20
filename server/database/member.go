@@ -23,37 +23,40 @@ func (db Database) MemberDelete(userId, groupId uint64) bool {
 
 func (db Database) MemberList(groupId uint64) []model_database.User {
 	memberList := new([]model_database.User)
-	query := `SELECT ` + TableUsers + `.*
-	FROM ` + TableMembers + `
-	LEFT JOIN ` + TableUsers + ` ON ` + TableUsers + `.id = ` + TableMembers + `.user_id
-	WHERE ` + TableMembers + `.group_id = ?`
-	err := db.Sqlx.Select(memberList, query, groupId)
 
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return *memberList
-		}
-		log.Error(err)
+	err := db.Goqu.From(TableMembers).Select(TableUsers+".*").Prepared(true).
+		LeftJoin(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(goqu.I(TableMembers+".user_id")))).
+		ScanStructs(memberList)
+
+	if err == sql.ErrNoRows {
 		return *memberList
 	}
+
+	if err != nil {
+		log.Error(err)
+	}
+
 	return *memberList
 }
 
-func (db Database) MemberListPage(groupId uint64, page uint64, perPage uint64) []model_database.User {
+func (db Database) MemberListPage(groupId uint64, page, perPage uint) []model_database.User {
 	memberList := new([]model_database.User)
-	query := `SELECT ` + TableUsers + `.* FROM ` + TableMembers + `
-	LEFT JOIN ` + TableUsers + ` ON ` + TableUsers + `.id = ` + TableMembers + `.user_id
-	WHERE ` + TableMembers + `.group_id = ?
-	ORDER BY ` + TableMembers + `.user_id ASC LIMIT ?, ?`
 	from := (page - 1) * perPage
-	to := page * perPage
-	err := db.Sqlx.Select(memberList, query, groupId, from, to)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return *memberList
-		}
-		log.Error(err)
+
+	err := db.Goqu.Select(TableUsers+".*").From(TableMembers).
+		LeftJoin(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(goqu.I(TableMembers+".user_id")))).
+		Where(goqu.Ex{TableMembers + ".group_id": groupId}).
+		Order(goqu.I(TableMembers + ".user_id").Asc()).
+		Limit(perPage).Offset(from).
+		ScanStructs(memberList)
+
+	if err == sql.ErrNoRows {
 		return *memberList
 	}
+
+	if err != nil {
+		log.Error(err)
+	}
+
 	return *memberList
 }
