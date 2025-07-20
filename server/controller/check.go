@@ -6,7 +6,7 @@ import (
 
 	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
-	"github.com/Mopsgamer/draqun/server/model_database"
+	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -22,33 +22,34 @@ const (
 
 const AuthCookieKey = "Authorization"
 
-type RightsChecker func(ctx fiber.Ctx, role model_database.Role) bool
+type RightsChecker func(ctx fiber.Ctx, role database.Role) bool
 
-func PopulatePage(db *database.Database) fiber.Handler {
+func PopulatePage(db *goqu.Database) fiber.Handler {
 	groupIdUri := "group_id"
 	groupNameUri := "group_name"
 	return func(ctx fiber.Ctx) error {
 		_ = CheckAuth(db)(ctx)
 		groupId := fiber.Params[uint64](ctx, groupIdUri)
 		groupName := fiber.Params[string](ctx, groupNameUri)
-		var group *model_database.Group
+		group := database.Group{Db: db}
+		groupFound := false
 		if groupName != "" {
-			group = db.GroupByName(groupName)
+			groupFound = group.FromName(groupName)
 		} else {
-			group = db.GroupById(groupId)
+			groupFound = group.FromId(groupId)
 		}
-		if group != nil {
+		if groupFound {
 			_ = CheckAuthMember(db, groupIdUri, nil)(ctx)
 		}
 		return ctx.Next()
 	}
 }
 
-func CheckGroup(db *database.Database, groupIdUri string) fiber.Handler {
+func CheckGroup(db *goqu.Database, groupIdUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		groupId := fiber.Params[uint64](ctx, groupIdUri)
-		group := db.GroupById(groupId)
-		if group == nil {
+		group := database.Group{Db: db}
+		if !group.FromId(groupId) {
 			return environment.ErrGroupNotFound
 		}
 
@@ -57,26 +58,26 @@ func CheckGroup(db *database.Database, groupIdUri string) fiber.Handler {
 	}
 }
 
-func CheckAuthMember(db *database.Database, groupIdUri string, rights RightsChecker) fiber.Handler {
+func CheckAuthMember(db *goqu.Database, groupIdUri string, rights RightsChecker) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		if err := CheckAuth(db)(ctx); err != nil {
 			return err
 		}
 
-		user := fiber.Locals[*model_database.User](ctx, LocalAuth)
+		user := fiber.Locals[database.User](ctx, LocalAuth)
 		groupId := fiber.Params[uint64](ctx, groupIdUri)
 		if err := CheckGroup(db, groupIdUri)(ctx); err != nil {
 			return err
 		}
 
-		member := db.MemberById(groupId, user.Id)
-		if member == nil { // never been a member
+		member := database.Member{Db: db}
+		if !member.FromId(groupId, user.Id) { // never been a member
 			return environment.ErrGroupMemberNotFound
 		}
 
 		ctx.Locals(LocalMember, member)
 
-		role := db.MemberRights(groupId, user.Id)
+		role := member.Role()
 		if role.PermAdmin.Has() {
 			return ctx.Next()
 		}
@@ -103,9 +104,9 @@ func CheckBindForm[T any](request T) fiber.Handler {
 	}
 }
 
-func CheckAuth(db *database.Database) fiber.Handler {
+func CheckAuth(db *goqu.Database) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		var user *model_database.User
+		user := database.User{Db: db}
 		authCookie := ctx.Cookies(AuthCookieKey)
 		if authCookie == "" {
 			return fiber.ErrUnauthorized
@@ -140,7 +141,10 @@ func CheckAuth(db *database.Database) fiber.Handler {
 			return errors.Join(environment.ErrToken, errors.New("expected any password"))
 		}
 
-		user = db.UserByEmail(email)
+		if !user.FromEmail(email) {
+			return environment.ErrUserNotFound
+		}
+
 		if pass != user.Password {
 			return errors.Join(environment.ErrToken, errors.New("incorrect password"))
 		}

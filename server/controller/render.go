@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/model_database"
 
@@ -16,7 +17,7 @@ func MapPage(ctx fiber.Ctx, bind *fiber.Map) fiber.Map {
 		"GitHash":     environment.GitHash,
 		"GitHashLong": environment.GitHashLong,
 
-		"User":   fiber.Locals[*model_database.User](ctx, LocalAuth),
+		"User":   fiber.Locals[database.User](ctx, LocalAuth),
 		"Group":  fiber.Locals[*model_database.Group](ctx, LocalGroup),
 		"Member": fiber.Locals[*model_database.Member](ctx, LocalMember),
 		"Rights": fiber.Locals[model_database.Role](ctx, LocalRights),

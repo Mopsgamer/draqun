@@ -20,13 +20,8 @@ const (
 	TableRoleAssigns = "app_group_role_assigns"
 )
 
-// The SQL DB wrapper.
-type Database struct {
-	Goqu *goqu.Database
-}
-
 // Initialize the DB wrapper.
-func InitDB() (*Database, error) {
+func InitDB() (*goqu.Database, error) {
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		environment.DBUser,
 		environment.DBPassword,
@@ -46,5 +41,5 @@ func InitDB() (*Database, error) {
 
 	goquConnection := goqu.New("mysql", connection)
 	log.Info("Database connected successfully. Hope she is set up manually or by 'deno task init'.")
-	return &Database{Goqu: goquConnection}, nil
+	return goquConnection, nil
 }
