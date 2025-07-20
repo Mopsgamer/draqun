@@ -99,7 +99,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			}
 
 			group := fiber.Locals[*model_database.Group](ctx, controller.LocalGroup)
-			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": group.Nick, "IsChatPage": true}))
+			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": group.Moniker, "IsChatPage": true}))
 		},
 		controller.PopulatePage(db),
 	)
@@ -116,7 +116,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			member = &model_database.Member{
 				GroupId:  groupId,
 				UserId:   user.Id,
-				Nick:     nil,
+				Moniker:  nil,
 				IsOwner:  false,
 				IsBanned: false,
 			}
@@ -171,7 +171,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return ctx.Redirect().To(controller.PathRedirectGroup(group.Id))
 			}
 
-			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": "Join " + group.Nick, "IsChatPage": true}))
+			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": "Join " + group.Moniker, "IsChatPage": true}))
 		},
 		controller.PopulatePage(db),
 	)
@@ -387,7 +387,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			user := fiber.Locals[*model_database.User](ctx, controller.LocalAuth)
 			group := &model_database.Group{
 				CreatorId:   user.Id,
-				Nick:        request.Nick,
+				Moniker:     request.Nick,
 				Name:        request.Name,
 				Mode:        model_database.GroupMode(request.Mode),
 				Description: request.Description,
@@ -406,7 +406,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			member := model_database.Member{
 				GroupId:  group.Id,
 				UserId:   user.Id,
-				Nick:     nil,
+				Moniker:  nil,
 				IsOwner:  true,
 				IsBanned: false,
 			}
@@ -704,7 +704,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*GroupChange](ctx, controller.LocalForm)
 			group := fiber.Locals[*model_database.Group](ctx, controller.LocalGroup)
-			hasChanges := request.Nick != group.Nick ||
+			hasChanges := request.Nick != group.Moniker ||
 				group.Name != request.Name ||
 				group.Description != request.Description ||
 				group.Mode != model_database.GroupMode(request.Mode) ||
@@ -734,7 +734,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return err
 			}
 
-			group.Nick = request.Nick
+			group.Moniker = request.Nick
 			group.Name = request.Name
 			group.Description = request.Description
 			group.Mode = model_database.GroupMode(request.Mode)
