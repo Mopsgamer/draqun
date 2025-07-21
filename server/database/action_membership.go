@@ -27,7 +27,7 @@ func (action ActionMembership) Update() bool {
 }
 
 func (action *ActionMembership) FromId(userId, groupId uint64) bool {
-	First(action.Db, TableMemberships, goqu.Ex{"user_id": userId, "group_id": groupId}, action)
+	Last(action.Db, TableMemberships, goqu.Ex{"user_id": userId, "group_id": groupId}, goqu.I(TableMemberships+".user_id"), action)
 	return action.IsEmpty()
 }
 

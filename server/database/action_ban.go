@@ -27,11 +27,11 @@ func (action *ActionBan) Insert() bool {
 }
 
 func (action ActionBan) Update() bool {
-	return Update(action.Db, TableBans, action, goqu.Ex{"target_id": action.TargetId, "group_id": action.GroupId, "creator_id": action.CreatorId})
+	return Update(action.Db, TableBans, action, goqu.Ex{"target_id": action.TargetId, "group_id": action.GroupId})
 }
 
-func (action *ActionBan) FromId(targetId, creatorId, groupId uint64) bool {
-	First(action.Db, TableBans, goqu.Ex{"target_id": targetId, "creator_id": creatorId, "group_id": groupId}, action)
+func (action *ActionBan) FromId(targetId, groupId uint64) bool {
+	Last(action.Db, TableBans, goqu.Ex{"target_id": targetId, "group_id": groupId}, goqu.I(TableBans+".target_id"), action)
 	return action.IsEmpty()
 }
 

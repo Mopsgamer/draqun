@@ -29,7 +29,7 @@ func (action ActionKick) Update() bool {
 }
 
 func (action *ActionKick) FromId(targetId, creatorId, groupId uint64) bool {
-	First(action.Db, TableKicks, goqu.Ex{"target_id": targetId, "group_id": groupId, "creator_id": creatorId}, action)
+	Last(action.Db, TableKicks, goqu.Ex{"target_id": targetId, "group_id": groupId, "creator_id": creatorId}, goqu.I(TableKicks+".target_id"), action)
 	return action.IsEmpty()
 }
 

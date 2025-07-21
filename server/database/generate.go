@@ -3,12 +3,23 @@ package database
 import (
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/gofiber/fiber/v3/log"
 )
 
 func First[T any](db *goqu.Database, table string, ex goqu.Ex, item *T) {
 	found, err := db.From(table).Select(item).Where(ex).ScanStruct(item)
 	if !found {
+		log.Error(err)
+	}
+}
+
+func Last[T any](db *goqu.Database, table string, ex goqu.Ex, key exp.IdentifierExpression, item *T) {
+	found, err := db.From(table).Select(item).Where(ex).Order(key.Desc()).Limit(1).ScanStruct(item)
+	if !found {
+		log.Error(err)
+	}
+	if err != nil {
 		log.Error(err)
 	}
 }
