@@ -7,14 +7,14 @@ import (
 )
 
 func First[T any](db *goqu.Database, table string, ex goqu.Ex, item *T) {
-	found, err := db.From(table).Prepared(true).Select(item).Where(ex).ScanStruct(item)
+	found, err := db.From(table).Select(item).Where(ex).ScanStruct(item)
 	if !found {
 		log.Error(err)
 	}
 }
 
 func Insert[T any](db *goqu.Database, table string, item *T) *uint64 {
-	result, err := db.Insert(table).Prepared(true).Rows(item).Executor().Exec()
+	result, err := db.Insert(table).Rows(item).Executor().Exec()
 	if err != nil {
 		log.Error(err)
 		return nil
@@ -31,7 +31,7 @@ func Insert[T any](db *goqu.Database, table string, item *T) *uint64 {
 }
 
 func Update[T any](db *goqu.Database, table string, item T, ex goqu.Ex) bool {
-	_, err := db.Update(table).Prepared(true).Set(item).Where(ex).Executor().Exec()
+	_, err := db.Update(table).Set(item).Where(ex).Executor().Exec()
 	isErr := err != nil
 	if isErr {
 		log.Error(err)
@@ -40,8 +40,8 @@ func Update[T any](db *goqu.Database, table string, item T, ex goqu.Ex) bool {
 	return isErr
 }
 
-func Delete(db *goqu.Database, table string, ex goqu.Ex) bool {
-	_, err := db.From(table).Prepared(true).Delete().Where(ex).Executor().Exec()
+func Delete[T string | []any](db *goqu.Database, table T, ex goqu.Ex) bool {
+	_, err := db.From(table).Delete().Where(ex).Executor().Exec()
 	isErr := err != nil
 	if isErr {
 		log.Error(err)

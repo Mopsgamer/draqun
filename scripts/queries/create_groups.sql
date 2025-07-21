@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS app_groups (
     description VARCHAR(510) NOT NULL,
     avatar VARCHAR(255) NOT NULL,
     created_at DATETIME NOT NULL,
+    is_deleted BIT NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (creator_id) REFERENCES app_users (id),
     UNIQUE (name)

@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"io/fs"
-	"strings"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/controller"
@@ -207,7 +206,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return err
 			}
 
-			user := database.NewUser(db)
+			user := database.User{Db: db}
 			if !user.FromEmail(request.Email) {
 				return environment.ErrUserNotFound
 			}
@@ -255,7 +254,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return err
 			}
 
-			user := database.NewUser(db)
+			user := database.User{Db: db}
 			if user.FromName(request.Username) {
 				return environment.ErrUserExsistsNickname
 			}
@@ -397,7 +396,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
 			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
 
-			message := database.NewMessageFilled(db, group.Id, user.Id, strings.TrimSpace(request.Content))
+			message := database.NewMessageFilled(db, group.Id, user.Id, request.Content)
 			if err := database.IsValidMessageContent(message.Content); err != nil {
 				return err
 			}
@@ -691,10 +690,22 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	// delete
 	app.Delete("/groups/:group_id/leave",
 		func(ctx fiber.Ctx) error {
-			// TODO: do not leave if last owner and there are other non-owner members.
-			// Ask for assigning new owner before leave.
+			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
+			isAlone := group.MembersCount() == 1
+			if group.AdminsCount() == 1 && !isAlone {
+				return environment.ErrGroupMemberIsOnlyAdmin
+			}
 
-			// TODO: delete group on leave if no other members.
+			if isAlone {
+				group.IsDeleted = true
+				group.Update()
+			}
+
+			member := fiber.Locals[database.Member](ctx, controller.LocalMember)
+			member.IsDeleted = true
+			if !member.Update() {
+				return fiber.ErrInternalServerError
+			}
 
 			if htmx.IsHtmx(ctx) {
 				htmx.Redirect(ctx, "/chat")
@@ -710,7 +721,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	app.Delete("/groups/:group_id",
 		func(ctx fiber.Ctx) error {
 			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
-			if !group.Delete() {
+			group.IsDeleted = true
+			if !group.Update() {
 				return fiber.ErrInternalServerError
 			}
 
@@ -747,7 +759,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return environment.ErrUserDeleteOwnerAccount
 			}
 
-			if !user.Delete() {
+			user.IsDeleted = true
+			if !user.Update() {
 				return fiber.ErrInternalServerError
 			}
 

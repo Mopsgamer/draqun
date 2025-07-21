@@ -1,6 +1,7 @@
 package database
 
 import (
+	"strings"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
@@ -15,12 +16,8 @@ type Message struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
-func NewMessage(db *goqu.Database) Message {
-	return Message{Db: db}
-}
-
 func NewMessageFilled(db *goqu.Database, groupId, userId uint64, content string) Message {
-	return Message{Db: db, GroupId: groupId, AuthorId: userId, Content: content, CreatedAt: time.Now()}
+	return Message{Db: db, GroupId: groupId, AuthorId: userId, Content: strings.TrimSpace(content), CreatedAt: time.Now()}
 }
 
 func (message *Message) IsEmpty() bool {
@@ -40,7 +37,7 @@ func (message *Message) Delete() bool {
 }
 
 func (message *Message) Author() User {
-	user := NewUser(message.Db)
+	user := User{Db: message.Db}
 	user.FromId(message.AuthorId)
 	return user
 }

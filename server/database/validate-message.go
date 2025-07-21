@@ -8,7 +8,7 @@ const (
 
 func IsValidMessageContent(text string) error {
 	if IsValidString(text, RegexpMessageContent, 8000) {
-		return environment.ErrChatMessageContent
+		return environment.ErrGroupChatInvalidContent
 	}
 
 	return nil

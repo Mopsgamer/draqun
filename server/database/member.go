@@ -5,24 +5,25 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/gofiber/fiber/v3/log"
+	"github.com/jmoiron/sqlx/types"
 )
 
 type Member struct {
 	Db *goqu.Database
 
-	GroupId           uint64    `db:"group_id"`
-	UserId            uint64    `db:"user_id"`
-	Moniker           string    `db:"moniker"`
-	FirstTimeJoinedAt time.Time `db:"first_time_joined_at"`
+	GroupId           uint64        `db:"group_id"`
+	UserId            uint64        `db:"user_id"`
+	Moniker           string        `db:"moniker"`
+	FirstTimeJoinedAt time.Time     `db:"first_time_joined_at"`
+	IsDeleted         types.BitBool `db:"is_deleted"`
 }
 
 func NewMemberEmpty(db *goqu.Database, groupId, userId uint64) Member {
 	return Member{Db: db, GroupId: groupId, UserId: userId, FirstTimeJoinedAt: time.Now()}
 }
 
-func (member *Member) IsEmpty() bool {
+func (member Member) IsEmpty() bool {
 	return member.GroupId != 0 && member.UserId != 0
 }
 
@@ -31,12 +32,8 @@ func (member *Member) Insert() bool {
 	return id != nil
 }
 
-func (member *Member) Update() bool {
-	return Update(member.Db, TableMembers, member, exp.Ex{"group_id": member.GroupId, "user_id": member.UserId})
-}
-
-func (member *Member) Delete(userId, groupId uint64) bool {
-	return Delete(member.Db, TableMembers, exp.Ex{"group_id": groupId, "user_id": userId})
+func (member Member) Update() bool {
+	return Update(member.Db, TableMembers, member, goqu.Ex{"group_id": member.GroupId, "user_id": member.UserId})
 }
 
 func (member *Member) FromId(groupId, userId uint64) bool {
@@ -45,22 +42,22 @@ func (member *Member) FromId(groupId, userId uint64) bool {
 }
 
 func (member *Member) User() User {
-	user := NewUser(member.Db)
+	user := User{Db: member.Db}
 	user.FromId(member.UserId)
 	return user
 }
 
-func (member *Member) Group() Group {
+func (member Member) Group() Group {
 	group := Group{Db: member.Db}
 	group.FromId(member.GroupId)
 	return group
 }
 
-func (member *Member) Roles() []Role {
+func (member Member) Roles() []Role {
 	roleList := new([]Role)
 	err := member.Db.From(TableRoles).Select(TableRoles+".*").
-		LeftJoin(goqu.T(TableRoleAssigns), goqu.On(goqu.I(TableRoleAssigns+".role_id").Eq(goqu.I(TableRoles+".id")))).
-		Where(goqu.Ex{TableRoleAssigns + ".group_id": member.GroupId, TableRoleAssigns + ".user_id": member.UserId}).
+		LeftJoin(goqu.T(TableRoleAssignees), goqu.On(goqu.I(TableRoleAssignees+".role_id").Eq(TableRoles+".id"))).
+		Where(goqu.Ex{TableRoles + ".group_id": member.GroupId, TableRoleAssignees + ".user_id": member.UserId}).
 		ScanStructs(roleList)
 
 	if err == sql.ErrNoRows {
@@ -74,7 +71,7 @@ func (member *Member) Roles() []Role {
 	return *roleList
 }
 
-func (member *Member) Role() Role {
+func (member Member) Role() Role {
 	roleList := member.Roles()
 	group := member.Group()
 	everyone := group.Everyone()

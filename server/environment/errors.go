@@ -24,10 +24,11 @@ var (
 
 	ErrGroupNotFound = htmx.NewHTMXAlert(errors.Join(fiber.ErrNotFound, errors.New("group: not found")), "Group not found.", htmx.Danger)
 
-	ErrGroupMemberNotFound   = htmx.NewHTMXAlert(errors.Join(fiber.ErrNotFound, errors.New("group: member: not found")), "Group member not found.", htmx.Danger)
-	ErrGroupMemberNotAllowed = htmx.NewHTMXAlert(errors.Join(fiber.ErrForbidden, errors.New("group: member: rights: not allowed")), "Group member rights not allowed.", htmx.Danger)
+	ErrGroupMemberNotFound    = htmx.NewHTMXAlert(errors.Join(fiber.ErrNotFound, errors.New("group: member: not found")), "Group member not found.", htmx.Danger)
+	ErrGroupMemberIsOnlyAdmin = htmx.NewHTMXAlert(errors.Join(fiber.ErrForbidden, errors.New("group: member: last admin")), "Group member is only admin.", htmx.Danger)
+	ErrGroupMemberNotAllowed  = htmx.NewHTMXAlert(errors.Join(fiber.ErrForbidden, errors.New("group: member: rights: not allowed")), "Group member rights not allowed.", htmx.Danger)
 
-	ErrChatMessageContent = htmx.NewHTMXAlert(errors.Join(fiber.ErrUnprocessableEntity, errors.New("chat message: invalid content")), "Invalid chat message content.", htmx.Danger)
+	ErrGroupChatInvalidContent = htmx.NewHTMXAlert(errors.Join(fiber.ErrUnprocessableEntity, errors.New("group: chat: invalid content")), "Invalid chat message content.", htmx.Danger)
 )
 
 var (

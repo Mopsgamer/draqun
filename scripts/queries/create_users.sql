@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS app_users (
     avatar VARCHAR(255) NOT NULL,
     created_at DATETIME NOT NULL,
     last_seen_at DATETIME NOT NULL,
+    is_deleted BIT NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (name),
     UNIQUE (email),
