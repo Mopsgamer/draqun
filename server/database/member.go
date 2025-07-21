@@ -19,8 +19,26 @@ type Member struct {
 	IsDeleted         types.BitBool `db:"is_deleted"`
 }
 
-func NewMemberEmpty(db *goqu.Database, groupId, userId uint64) Member {
-	return Member{Db: db, GroupId: groupId, UserId: userId, FirstTimeJoinedAt: time.Now()}
+func NewMember(
+	db *goqu.Database,
+	groupId, userId uint64,
+	moniker string,
+) Member {
+	return Member{
+		Db:                db,
+		GroupId:           groupId,
+		UserId:            userId,
+		Moniker:           moniker,
+		FirstTimeJoinedAt: time.Now(),
+	}
+}
+
+func NewMemberFromId(
+	db *goqu.Database,
+	groupId, userId uint64,
+) (bool, Member) {
+	member := Member{Db: db}
+	return member.FromId(groupId, userId), member
 }
 
 func (member Member) IsEmpty() bool {
@@ -106,4 +124,41 @@ func (member Member) Unban(revokerId uint64) bool {
 
 	ban.RevokerId = revokerId
 	return ban.Update()
+}
+
+func (member Member) Kick(creatorId uint64, description string) bool {
+	action := ActionKick{
+		Db:          member.Db,
+		GroupId:     member.GroupId,
+		TargetId:    member.UserId,
+		CreatorId:   creatorId,
+		Description: description,
+		ActedAt:     time.Now(),
+	}
+
+	return action.Insert()
+}
+
+func (member Member) LeaveActed() bool {
+	action := ActionMembership{
+		Db:      member.Db,
+		GroupId: member.GroupId,
+		UserId:  member.UserId,
+		IsJoin:  false,
+		ActedAt: time.Now(),
+	}
+
+	return action.Insert()
+}
+
+func (member Member) JoinActed() bool {
+	action := ActionMembership{
+		Db:      member.Db,
+		GroupId: member.GroupId,
+		UserId:  member.UserId,
+		IsJoin:  false,
+		ActedAt: time.Now(),
+	}
+
+	return action.Insert()
 }

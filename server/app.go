@@ -98,14 +98,25 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	app.Put("/groups/:group_id/join",
 		func(ctx fiber.Ctx) error {
 			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
-			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
 			member := fiber.Locals[database.Member](ctx, controller.LocalMember)
-			if !member.IsEmpty() {
+			if member.IsEmpty() {
+				// never been a member
+				member = database.NewMember(db, group.Id, member.UserId, "")
+				if !member.Insert() {
+					return fiber.ErrInternalServerError
+				}
+			} else if member.IsDeleted {
+				// been a member, now isn't
+				member.IsDeleted = false
+				if !member.Update() {
+					return fiber.ErrInternalServerError
+				}
+			} else {
+				// already a member
 				return environment.ErrUseless
 			}
 
-			member = database.NewMemberEmpty(db, group.Id, user.Id)
-			if !member.Insert() {
+			if !member.JoinActed() {
 				return fiber.ErrInternalServerError
 			}
 
@@ -206,8 +217,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return err
 			}
 
-			user := database.User{Db: db}
-			if !user.FromEmail(request.Email) {
+			userFound, user := database.NewUserFromEmail(db, request.Email)
+			if !userFound {
 				return environment.ErrUserNotFound
 			}
 
@@ -254,12 +265,13 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return err
 			}
 
-			user := database.User{Db: db}
-			if user.FromName(request.Username) {
+			userFound, _ := database.NewUserFromName(db, request.Username)
+			if userFound {
 				return environment.ErrUserExsistsNickname
 			}
 
-			if user.FromEmail(request.Email) {
+			userFound, _ = database.NewUserFromEmail(db, request.Email)
+			if userFound {
 				return environment.ErrUserExsistsEmail
 			}
 
@@ -278,18 +290,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return err
 			}
 
-			user = database.User{
-				Db: db,
-
-				Moniker:    request.Nickname,
-				Name:       request.Username,
-				Email:      request.Email,
-				Phone:      request.Phone,
-				Password:   hash,
-				CreatedAt:  time.Now(),
-				LastSeenAt: time.Now(),
-			}
-
+			user := database.NewUser(db, request.Nickname, request.Username, request.Email, request.Phone, hash, "")
 			if !user.Insert() {
 				return fiber.ErrInternalServerError
 			}
@@ -325,8 +326,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	app.Post("/groups/create",
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*GroupCreate](ctx, controller.LocalForm)
-			group := database.Group{Db: db}
-			if !group.FromName(request.Name) {
+			groupFound, _ := database.NewGroupFromName(db, request.Name)
+			if !groupFound {
 				return environment.ErrGroupNotFound
 			}
 
@@ -353,21 +354,14 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			// TODO: validate group avatar
 
 			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
-			group.CreatorId = user.Id
-			group.Moniker = request.Nick
-			group.Name = request.Name
-			group.Mode = database.GroupMode(request.Mode)
-			group.Description = request.Description
-			group.Password = request.Password
-			group.Avatar = request.Avatar
-			group.CreatedAt = time.Now()
+			group := database.NewGroup(db, user.Id, request.Nick, request.Name, database.GroupMode(request.Mode), request.Password, request.Description, request.Avatar)
 			if !group.Insert() {
 				return fiber.ErrInternalServerError
 			}
 
 			ctx.Locals(controller.LocalGroup, group)
 
-			member := database.NewMemberEmpty(db, group.Id, user.Id)
+			member := database.NewMember(db, group.Id, user.Id, "")
 			if !member.Insert() {
 				return fiber.ErrInternalServerError
 			}
@@ -460,8 +454,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return err
 			}
 
-			existingUser := database.User{Db: db}
-			if existingUser.FromName(request.NewName) {
+			foundUser, _ := database.NewUserFromName(db, request.NewName)
+			if foundUser {
 				return environment.ErrUserExsistsName
 			}
 
@@ -499,8 +493,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return err
 			}
 
-			existingUser := database.User{Db: db}
-			if existingUser.FromEmail(request.NewEmail) {
+			foundUser, _ := database.NewUserFromEmail(db, request.NewEmail)
+			if foundUser {
 				return environment.ErrUserExsistsEmail
 			}
 
@@ -704,6 +698,9 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			member := fiber.Locals[database.Member](ctx, controller.LocalMember)
 			member.IsDeleted = true
 			if !member.Update() {
+				return fiber.ErrInternalServerError
+			}
+			if !member.LeaveActed() {
 				return fiber.ErrInternalServerError
 			}
 

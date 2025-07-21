@@ -1,6 +1,8 @@
 package database
 
 import (
+	"time"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
 )
@@ -8,10 +10,10 @@ import (
 type ActionMembership struct {
 	Db *goqu.Database
 
-	UserId      uint64        `db:"user_id"`  // The user being acted upon.
-	GroupId     uint64        `db:"group_id"` // The group where the action was performed.
-	Description string        `db:"description"`
-	IsJoin      types.BitBool `db:"is_join"` // True if the action is a join, false if it's a leave.
+	UserId  uint64        `db:"user_id"`  // The user being acted upon.
+	GroupId uint64        `db:"group_id"` // The group where the action was performed.
+	ActedAt time.Time     `db:"acted_at"` // The time when the action was performed.
+	IsJoin  types.BitBool `db:"is_join"`  // True if the action is a join, false if it's a leave.
 }
 
 func (action ActionMembership) IsEmpty() bool {

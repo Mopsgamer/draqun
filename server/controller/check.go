@@ -27,8 +27,8 @@ type RightsChecker func(ctx fiber.Ctx, role database.Role) bool
 func CheckGroupById(db *goqu.Database, groupIdUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		groupId := fiber.Params[uint64](ctx, groupIdUri)
-		group := database.Group{Db: db}
-		if !group.FromId(groupId) {
+		groupFound, group := database.NewGroupFromId(db, groupId)
+		if !groupFound {
 			return environment.ErrGroupNotFound
 		}
 
@@ -40,8 +40,8 @@ func CheckGroupById(db *goqu.Database, groupIdUri string) fiber.Handler {
 func CheckGroupByName(db *goqu.Database, groupNameUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		groupName := fiber.Params[string](ctx, groupNameUri)
-		group := database.Group{Db: db}
-		if !group.FromName(groupName) {
+		groupFound, group := database.NewGroupFromName(db, groupName)
+		if !groupFound {
 			return environment.ErrGroupNotFound
 		}
 
@@ -62,8 +62,8 @@ func CheckAuthMember(db *goqu.Database, groupIdUri string, rights RightsChecker)
 			return err
 		}
 
-		member := database.Member{Db: db}
-		if !member.FromId(groupId, user.Id) { // never been a member
+		memberFound, member := database.NewMemberFromId(db, groupId, user.Id)
+		if !memberFound { // never been a member
 			return environment.ErrGroupMemberNotFound
 		}
 
@@ -98,7 +98,6 @@ func CheckBindForm[T any](request T) fiber.Handler {
 
 func CheckAuth(db *goqu.Database) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		user := database.User{Db: db}
 		authCookie := ctx.Cookies(AuthCookieKey)
 		if authCookie == "" {
 			return fiber.ErrUnauthorized
@@ -111,11 +110,10 @@ func CheckAuth(db *goqu.Database) fiber.Handler {
 		token, err := jwt.Parse(authCookie, func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-				return user, errors.Join(environment.ErrToken, err)
+				return []byte{}, errors.Join(environment.ErrToken, err)
 			}
 
-			tokenBytes := []byte(environment.JWTKey)
-			return tokenBytes, nil
+			return []byte(environment.JWTKey), nil
 		})
 
 		if err != nil {
@@ -133,7 +131,8 @@ func CheckAuth(db *goqu.Database) fiber.Handler {
 			return errors.Join(environment.ErrToken, errors.New("expected any password"))
 		}
 
-		if !user.FromEmail(email) {
+		foundUser, user := database.NewUserFromEmail(db, email)
+		if !foundUser {
 			return environment.ErrUserNotFound
 		}
 

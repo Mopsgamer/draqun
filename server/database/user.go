@@ -24,6 +24,38 @@ type User struct {
 	IsDeleted  types.BitBool `db:"is_deleted"`
 }
 
+func NewUser(
+	db *goqu.Database,
+	moniker, name, email, phone, password, avatar string,
+) User {
+	return User{
+		Db:         db,
+		Moniker:    moniker,
+		Name:       name,
+		Email:      email,
+		Phone:      phone,
+		Password:   password,
+		Avatar:     avatar,
+		CreatedAt:  time.Now(),
+		LastSeenAt: time.Now(),
+	}
+}
+
+func NewUserFromId(db *goqu.Database, userId uint64) (bool, User) {
+	user := User{Db: db}
+	return user.FromId(userId), user
+}
+
+func NewUserFromEmail(db *goqu.Database, email string) (bool, User) {
+	user := User{Db: db}
+	return user.FromEmail(email), user
+}
+
+func NewUserFromName(db *goqu.Database, name string) (bool, User) {
+	user := User{Db: db}
+	return user.FromName(name), user
+}
+
 func (user *User) IsEmpty() bool {
 	return user.Id != 0
 }

@@ -32,6 +32,37 @@ type Group struct {
 	IsDeleted   types.BitBool `db:"is_deleted"`
 }
 
+func NewGroup(
+	db *goqu.Database,
+	creatorId uint64,
+	moniker, name string,
+	mode GroupMode,
+	password, description, avatar string,
+) Group {
+	return Group{
+		Db:          db,
+		CreatorId:   creatorId,
+		Moniker:     moniker,
+		Name:        name,
+		Mode:        mode,
+		Password:    password,
+		Description: description,
+		Avatar:      avatar,
+		CreatedAt:   time.Now(),
+		IsDeleted:   types.BitBool(false),
+	}
+}
+
+func NewGroupFromId(db *goqu.Database, id uint64) (bool, Group) {
+	group := Group{Db: db}
+	return group.FromId(id), group
+}
+
+func NewGroupFromName(db *goqu.Database, name string) (bool, Group) {
+	group := Group{Db: db}
+	return group.FromName(name), group
+}
+
 func (group Group) IsEmpty() bool {
 	return group.Id != 0 && group.Name != ""
 }
