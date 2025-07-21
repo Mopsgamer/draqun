@@ -82,3 +82,28 @@ func (member Member) Role() Role {
 	everyone.Merge(roleList...)
 	return everyone
 }
+
+func (member Member) Ban(creatorId uint64, endsAt time.Time, description string) bool {
+	action := ActionBan{
+		Db:          member.Db,
+		GroupId:     member.GroupId,
+		TargetId:    member.UserId,
+		CreatorId:   creatorId,
+		Description: description,
+		ActedAt:     time.Now(),
+		EndsAt:      endsAt,
+	}
+
+	return action.Insert()
+}
+
+func (member Member) Unban(revokerId uint64) bool {
+	ban := ActionBan{Db: member.Db}
+	ban.FromId(member.UserId, member.GroupId)
+	if ban.IsEmpty() {
+		return false
+	}
+
+	ban.RevokerId = revokerId
+	return ban.Update()
+}
