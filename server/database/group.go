@@ -127,15 +127,15 @@ func (group Group) AdminsCount() uint64 {
 	return *count
 }
 
-func (group Group) UsersPage(page, perPage uint) []User {
+func (group Group) UsersPage(page, limit uint) []User {
 	memberList := new([]User)
-	from := (page - 1) * perPage
+	from := (page - 1) * limit
 
 	err := group.Db.Select(TableUsers+".*").From(TableMembers).
 		LeftJoin(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(TableMembers+".user_id"))).
 		Where(goqu.Ex{TableMembers + ".group_id": group.Id}).
 		Order(goqu.I(TableMembers + ".user_id").Asc()).
-		Limit(perPage).Offset(from).
+		Limit(limit).Offset(from).
 		ScanStructs(memberList)
 
 	if err == sql.ErrNoRows {
@@ -175,14 +175,14 @@ func (group Group) MessageLast() *Message {
 	return message
 }
 
-func (group Group) MessagesPage(page, perPage uint) []Message {
+func (group Group) MessagesPage(page, limit uint) []Message {
 	messageList := new([]Message)
-	from := (page - 1) * perPage
+	from := (page - 1) * limit
 
 	subquery := group.Db.From(TableMessages).
 		Where(goqu.Ex{"group_id": group.Id}).
 		Order(goqu.I("id").Desc()).
-		Limit(perPage).Offset(from)
+		Limit(limit).Offset(from)
 	err := group.Db.From(subquery.As("subquery")).Order(goqu.I("id").Asc()).
 		Executor().ScanStructs(messageList)
 
@@ -195,4 +195,28 @@ func (group Group) MessagesPage(page, perPage uint) []Message {
 	}
 
 	return *messageList
+}
+
+func (group Group) ActionListPage(page uint, limit uint) ([]Action, bool) {
+	actions := new([]Action)
+	from := (page - 1) * limit
+	filter := goqu.Ex{"group_id": group.Id}
+	err := group.Db.From(TableBans).UnionAll(
+		group.Db.From(TableKicks).UnionAll(
+			group.Db.From(TableMemberships).Where(filter),
+		).Where(filter),
+	).Where(filter).
+		Limit(limit).Offset(from).
+		ScanStructs(actions)
+
+	if err == sql.ErrNoRows {
+		return *actions, true
+	}
+
+	if err != nil {
+		log.Error(err)
+		return nil, false
+	}
+
+	return *actions, true
 }

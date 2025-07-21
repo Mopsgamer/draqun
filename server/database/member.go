@@ -19,11 +19,7 @@ type Member struct {
 	IsDeleted         types.BitBool `db:"is_deleted"`
 }
 
-func NewMember(
-	db *goqu.Database,
-	groupId, userId uint64,
-	moniker string,
-) Member {
+func NewMember(db *goqu.Database, groupId, userId uint64, moniker string) Member {
 	return Member{
 		Db:                db,
 		GroupId:           groupId,
@@ -33,35 +29,32 @@ func NewMember(
 	}
 }
 
-func NewMemberFromId(
-	db *goqu.Database,
-	groupId, userId uint64,
-) (bool, Member) {
+func NewMemberFromId(db *goqu.Database, groupId, userId uint64) (bool, Member) {
 	member := Member{Db: db}
 	return member.FromId(groupId, userId), member
 }
 
-func (member Member) IsEmpty() bool {
-	return member.GroupId != 0 && member.UserId != 0
+func (group Member) IsEmpty() bool {
+	return group.GroupId != 0 && group.UserId != 0
 }
 
-func (member *Member) Insert() bool {
-	id := Insert(member.Db, TableMembers, member)
+func (group *Member) Insert() bool {
+	id := Insert(group.Db, TableMembers, group)
 	return id != nil
 }
 
-func (member Member) Update() bool {
-	return Update(member.Db, TableMembers, member, goqu.Ex{"group_id": member.GroupId, "user_id": member.UserId})
+func (group Member) Update() bool {
+	return Update(group.Db, TableMembers, group, goqu.Ex{"group_id": group.GroupId, "user_id": group.UserId})
 }
 
-func (member *Member) FromId(groupId, userId uint64) bool {
-	First(member.Db, TableMembers, goqu.Ex{"group_id": groupId, "user_id": userId}, member)
-	return member.IsEmpty()
+func (group *Member) FromId(groupId, userId uint64) bool {
+	First(group.Db, TableMembers, goqu.Ex{"group_id": groupId, "user_id": userId}, group)
+	return group.IsEmpty()
 }
 
-func (member *Member) User() User {
-	user := User{Db: member.Db}
-	user.FromId(member.UserId)
+func (group *Member) User() User {
+	user := User{Db: group.Db}
+	user.FromId(group.UserId)
 	return user
 }
 
@@ -71,11 +64,11 @@ func (member Member) Group() Group {
 	return group
 }
 
-func (member Member) Roles() []Role {
+func (group Member) Roles() []Role {
 	roleList := new([]Role)
-	err := member.Db.From(TableRoles).Select(TableRoles+".*").
+	err := group.Db.From(TableRoles).Select(TableRoles+".*").
 		LeftJoin(goqu.T(TableRoleAssignees), goqu.On(goqu.I(TableRoleAssignees+".role_id").Eq(TableRoles+".id"))).
-		Where(goqu.Ex{TableRoles + ".group_id": member.GroupId, TableRoleAssignees + ".user_id": member.UserId}).
+		Where(goqu.Ex{TableRoles + ".group_id": group.GroupId, TableRoleAssignees + ".user_id": group.UserId}).
 		ScanStructs(roleList)
 
 	if err == sql.ErrNoRows {
@@ -101,11 +94,11 @@ func (member Member) Role() Role {
 	return everyone
 }
 
-func (member Member) Ban(creatorId uint64, endsAt time.Time, description string) bool {
+func (group Member) Ban(creatorId uint64, endsAt time.Time, description string) bool {
 	action := ActionBan{
-		Db:          member.Db,
-		GroupId:     member.GroupId,
-		TargetId:    member.UserId,
+		Db:          group.Db,
+		GroupId:     group.GroupId,
+		TargetId:    group.UserId,
 		CreatorId:   creatorId,
 		Description: description,
 		ActedAt:     time.Now(),
@@ -115,9 +108,9 @@ func (member Member) Ban(creatorId uint64, endsAt time.Time, description string)
 	return action.Insert()
 }
 
-func (member Member) Unban(revokerId uint64) bool {
-	ban := ActionBan{Db: member.Db}
-	ban.FromId(member.UserId, member.GroupId)
+func (group Member) Unban(revokerId uint64) bool {
+	ban := ActionBan{Db: group.Db}
+	ban.FromId(group.UserId, group.GroupId)
 	if ban.IsEmpty() {
 		return false
 	}
@@ -126,11 +119,11 @@ func (member Member) Unban(revokerId uint64) bool {
 	return ban.Update()
 }
 
-func (member Member) Kick(creatorId uint64, description string) bool {
+func (group Member) Kick(creatorId uint64, description string) bool {
 	action := ActionKick{
-		Db:          member.Db,
-		GroupId:     member.GroupId,
-		TargetId:    member.UserId,
+		Db:          group.Db,
+		GroupId:     group.GroupId,
+		TargetId:    group.UserId,
 		CreatorId:   creatorId,
 		Description: description,
 		ActedAt:     time.Now(),
@@ -139,11 +132,11 @@ func (member Member) Kick(creatorId uint64, description string) bool {
 	return action.Insert()
 }
 
-func (member Member) LeaveActed() bool {
+func (group Member) LeaveActed() bool {
 	action := ActionMembership{
-		Db:      member.Db,
-		GroupId: member.GroupId,
-		UserId:  member.UserId,
+		Db:      group.Db,
+		GroupId: group.GroupId,
+		UserId:  group.UserId,
 		IsJoin:  false,
 		ActedAt: time.Now(),
 	}
@@ -151,14 +144,38 @@ func (member Member) LeaveActed() bool {
 	return action.Insert()
 }
 
-func (member Member) JoinActed() bool {
+func (group Member) JoinActed() bool {
 	action := ActionMembership{
-		Db:      member.Db,
-		GroupId: member.GroupId,
-		UserId:  member.UserId,
+		Db:      group.Db,
+		GroupId: group.GroupId,
+		UserId:  group.UserId,
 		IsJoin:  false,
 		ActedAt: time.Now(),
 	}
 
 	return action.Insert()
+}
+
+func (member Member) ActionListPage(page uint, limit uint) ([]Action, bool) {
+	actions := new([]Action)
+	from := (page - 1) * limit
+	filter := goqu.Ex{"group_id": member.GroupId, "user_id": member.UserId}
+	err := member.Db.From(TableBans).UnionAll(
+		member.Db.From(TableKicks).UnionAll(
+			member.Db.From(TableMemberships).Where(filter),
+		).Where(filter),
+	).Where(filter).
+		Limit(limit).Offset(from).
+		ScanStructs(actions)
+
+	if err == sql.ErrNoRows {
+		return *actions, true
+	}
+
+	if err != nil {
+		log.Error(err)
+		return nil, false
+	}
+
+	return *actions, true
 }

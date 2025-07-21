@@ -18,6 +18,10 @@ type ActionBan struct {
 	EndsAt      time.Time `db:"ends_at"`
 }
 
+func (action ActionBan) Kind() string {
+	return "ban"
+}
+
 func (action ActionBan) IsEmpty() bool {
 	return action.TargetId != 0 && action.CreatorId != 0 && action.GroupId != 0
 }

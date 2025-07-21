@@ -16,6 +16,10 @@ type ActionKick struct {
 	ActedAt     time.Time `db:"acted_at"`
 }
 
+func (action ActionKick) Kind() string {
+	return "kick"
+}
+
 func (action ActionKick) IsEmpty() bool {
 	return action.TargetId != 0 && action.CreatorId != 0 && action.GroupId != 0
 }
