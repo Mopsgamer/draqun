@@ -24,32 +24,24 @@ const AuthCookieKey = "Authorization"
 
 type RightsChecker func(ctx fiber.Ctx, role database.Role) bool
 
-func PopulatePage(db *goqu.Database) fiber.Handler {
-	groupIdUri := "group_id"
-	groupNameUri := "group_name"
-	return func(ctx fiber.Ctx) error {
-		_ = CheckAuth(db)(ctx)
-		groupId := fiber.Params[uint64](ctx, groupIdUri)
-		groupName := fiber.Params[string](ctx, groupNameUri)
-		group := database.Group{Db: db}
-		groupFound := false
-		if groupName != "" {
-			groupFound = group.FromName(groupName)
-		} else {
-			groupFound = group.FromId(groupId)
-		}
-		if groupFound {
-			_ = CheckAuthMember(db, groupIdUri, nil)(ctx)
-		}
-		return ctx.Next()
-	}
-}
-
-func CheckGroup(db *goqu.Database, groupIdUri string) fiber.Handler {
+func CheckGroupById(db *goqu.Database, groupIdUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		groupId := fiber.Params[uint64](ctx, groupIdUri)
 		group := database.Group{Db: db}
 		if !group.FromId(groupId) {
+			return environment.ErrGroupNotFound
+		}
+
+		ctx.Locals(LocalGroup, group)
+		return ctx.Next()
+	}
+}
+
+func CheckGroupByName(db *goqu.Database, groupNameUri string) fiber.Handler {
+	return func(ctx fiber.Ctx) error {
+		groupName := fiber.Params[string](ctx, groupNameUri)
+		group := database.Group{Db: db}
+		if !group.FromName(groupName) {
 			return environment.ErrGroupNotFound
 		}
 
@@ -66,7 +58,7 @@ func CheckAuthMember(db *goqu.Database, groupIdUri string, rights RightsChecker)
 
 		user := fiber.Locals[database.User](ctx, LocalAuth)
 		groupId := fiber.Params[uint64](ctx, groupIdUri)
-		if err := CheckGroup(db, groupIdUri)(ctx); err != nil {
+		if err := CheckGroupById(db, groupIdUri)(ctx); err != nil {
 			return err
 		}
 

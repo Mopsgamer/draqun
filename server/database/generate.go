@@ -6,20 +6,14 @@ import (
 	"github.com/gofiber/fiber/v3/log"
 )
 
-func First[T any](db *goqu.Database, table string, ex goqu.Ex) *T {
-	item := new(T)
-
+func First[T any](db *goqu.Database, table string, ex goqu.Ex, item *T) {
 	found, err := db.From(table).Prepared(true).Select(item).Where(ex).ScanStruct(item)
-
 	if !found {
 		log.Error(err)
-		return nil
 	}
-
-	return item
 }
 
-func Insert[T any](db *goqu.Database, table string, item T) *uint64 {
+func Insert[T any](db *goqu.Database, table string, item *T) *uint64 {
 	result, err := db.Insert(table).Prepared(true).Rows(item).Executor().Exec()
 	if err != nil {
 		log.Error(err)

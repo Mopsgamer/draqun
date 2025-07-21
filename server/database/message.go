@@ -1,17 +1,26 @@
 package database
 
 import (
-	"github.com/Mopsgamer/draqun/server/model_database"
+	"time"
+
 	"github.com/doug-martin/goqu/v9"
 )
 
 type Message struct {
-	Db *goqu.Database
-	*model_database.Message
+	Db        *goqu.Database
+	Id        uint64    `db:"id"`
+	GroupId   uint64    `db:"group_id"`
+	AuthorId  uint64    `db:"author_id"`
+	Content   string    `db:"content"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
 func NewMessage(db *goqu.Database) Message {
 	return Message{Db: db}
+}
+
+func NewMessageFilled(db *goqu.Database, groupId, userId uint64, content string) Message {
+	return Message{Db: db, GroupId: groupId, AuthorId: userId, Content: content, CreatedAt: time.Now()}
 }
 
 func (message *Message) IsEmpty() bool {

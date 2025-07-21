@@ -2,8 +2,8 @@ package database
 
 import (
 	"database/sql"
+	"time"
 
-	"github.com/Mopsgamer/draqun/server/model_database"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/gofiber/fiber/v3/log"
@@ -11,11 +11,15 @@ import (
 
 type Member struct {
 	Db *goqu.Database
-	*model_database.Member
+
+	GroupId           uint64    `db:"group_id"`
+	UserId            uint64    `db:"user_id"`
+	Moniker           string    `db:"moniker"`
+	FirstTimeJoinedAt time.Time `db:"first_time_joined_at"`
 }
 
-func NewMember(db *goqu.Database) Member {
-	return Member{Db: db}
+func NewMemberEmpty(db *goqu.Database, groupId, userId uint64) Member {
+	return Member{Db: db, GroupId: groupId, UserId: userId, FirstTimeJoinedAt: time.Now()}
 }
 
 func (member *Member) IsEmpty() bool {
@@ -36,12 +40,12 @@ func (member *Member) Delete(userId, groupId uint64) bool {
 }
 
 func (member *Member) FromId(groupId, userId uint64) bool {
-	member.Member = First[model_database.Member](member.Db, TableMembers, goqu.Ex{"group_id": groupId, "user_id": userId})
+	First(member.Db, TableMembers, goqu.Ex{"group_id": groupId, "user_id": userId}, member)
 	return member.IsEmpty()
 }
 
 func (member *Member) User() User {
-	user := User{Db: member.Db}
+	user := NewUser(member.Db)
 	user.FromId(member.UserId)
 	return user
 }
@@ -72,15 +76,12 @@ func (member *Member) Roles() []Role {
 
 func (member *Member) Role() Role {
 	roleList := member.Roles()
-	rights := Role{Db: member.Db, Role: &model_database.RoleDefault} // TODO: groups should use custom @everyone roles
+	group := member.Group()
+	everyone := group.Everyone()
 	if len(roleList) == 0 {
-		return rights
+		return everyone
 	}
 
-	roles := make([]model_database.Role, len(roleList))
-	for i, r := range roleList {
-		roles[i] = *r.Role
-	}
-	rights.Merge(roles...)
-	return rights
+	everyone.Merge(roleList...)
+	return everyone
 }

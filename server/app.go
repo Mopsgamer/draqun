@@ -12,7 +12,6 @@ import (
 	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
-	"github.com/Mopsgamer/draqun/server/model_database"
 	"github.com/Mopsgamer/draqun/websocket"
 
 	"github.com/gofiber/fiber/v3"
@@ -54,25 +53,21 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("homepage", controller.MapPage(ctx, &fiber.Map{"Title": "Homepage", "IsHomePage": true}), "partials/main")
 		},
-		controller.PopulatePage(db),
 	)
 	app.Get("/terms",
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("terms", controller.MapPage(ctx, &fiber.Map{"Title": "Terms", "CenterContent": true}), "partials/main")
 		},
-		controller.PopulatePage(db),
 	)
 	app.Get("/privacy",
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("privacy", controller.MapPage(ctx, &fiber.Map{"Title": "Privacy", "CenterContent": true}), "partials/main")
 		},
-		controller.PopulatePage(db),
 	)
 	app.Get("/acknowledgements",
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("acknowledgements", controller.MapPage(ctx, &fiber.Map{"Title": "Acknowledgements"}), "partials/main")
 		},
-		controller.PopulatePage(db),
 	)
 	app.Get("/settings",
 		func(ctx fiber.Ctx) error {
@@ -83,13 +78,11 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.Render("settings", controller.MapPage(ctx, &fiber.Map{"Title": "Settings"}), "partials/main")
 		},
-		controller.PopulatePage(db),
 	)
 	app.Get("/chat",
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": "Home", "IsChatPage": true}))
 		},
-		controller.PopulatePage(db),
 	)
 	app.Get("/chat/groups/:group_id",
 		func(ctx fiber.Ctx) error {
@@ -101,7 +94,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
 			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": group.Moniker, "IsChatPage": true}))
 		},
-		controller.PopulatePage(db),
+		controller.CheckGroupById(db, "group_id"),
 	)
 	app.Put("/groups/:group_id/join",
 		func(ctx fiber.Ctx) error {
@@ -112,36 +105,9 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return environment.ErrUseless
 			}
 
-			member = database.NewMember(db)
-			member.Member = &model_database.Member{
-				GroupId:           group.Id,
-				UserId:            user.Id,
-				Moniker:           "",
-				FirstTimeJoinedAt: time.Now(),
-			}
-
+			member = database.NewMemberEmpty(db, group.Id, user.Id)
 			if !member.Insert() {
 				return fiber.ErrInternalServerError
-			}
-
-			if len(member.Roles()) == 0 {
-				everyone := model_database.RoleDefault
-				role := database.NewRole(db)
-				role.Role = &everyone
-				if !role.Insert() {
-					return fiber.ErrInternalServerError
-				}
-
-				roleAssign := database.NewRoleAssign(db)
-				roleAssign.RoleAssign = &model_database.RoleAssign{
-					GroupId: group.Id,
-					UserId:  user.Id,
-					RoleId:  role.Id,
-				}
-
-				if !roleAssign.Insert() {
-					return fiber.ErrInternalServerError
-				}
 			}
 
 			if htmx.IsHtmx(ctx) {
@@ -157,7 +123,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.PopulatePage(db),
+		controller.CheckGroupById(db, "group_id"),
 	)
 	app.Get("/chat/groups/join/:group_name",
 		func(ctx fiber.Ctx) error {
@@ -173,7 +139,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": "Join " + group.Moniker, "IsChatPage": true}))
 		},
-		controller.PopulatePage(db),
+		controller.CheckGroupByName(db, "group_name"),
 	)
 
 	// get
@@ -233,11 +199,11 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	app.Post("/account/login",
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*UserLogin](ctx, controller.LocalForm)
-			if err := model_database.IsValidUserPassword(request.Password); err != nil {
+			if err := database.IsValidUserPassword(request.Password); err != nil {
 				return err
 			}
 
-			if err := model_database.IsValidUserEmail(request.Email); err != nil {
+			if err := database.IsValidUserEmail(request.Email); err != nil {
 				return err
 			}
 
@@ -281,11 +247,11 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*UserSignUp](ctx, controller.LocalForm)
 
-			if err := model_database.IsValidUserNick(request.Nickname); err != nil {
+			if err := database.IsValidUserNick(request.Nickname); err != nil {
 				return err
 			}
 
-			if err := model_database.IsValidUserName(request.Username); err != nil {
+			if err := database.IsValidUserName(request.Username); err != nil {
 				return err
 			}
 
@@ -298,7 +264,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return environment.ErrUserExsistsEmail
 			}
 
-			if err := model_database.IsValidUserPhone(request.Phone); err != nil {
+			if err := database.IsValidUserPhone(request.Phone); err != nil {
 				return err
 			}
 
@@ -308,12 +274,14 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return environment.ErrUserPasswordConfirm
 			}
 
-			hash, err := model_database.HashPassword(request.Password)
+			hash, err := database.HashPassword(request.Password)
 			if err != nil {
 				return err
 			}
 
-			user.User = &model_database.User{
+			user = database.User{
+				Db: db,
+
 				Moniker:    request.Nickname,
 				Name:       request.Username,
 				Email:      request.Email,
@@ -358,80 +326,55 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	app.Post("/groups/create",
 		func(ctx fiber.Ctx) error {
 			request := fiber.Locals[*GroupCreate](ctx, controller.LocalForm)
-			group := database.NewGroup(db)
+			group := database.Group{Db: db}
 			if !group.FromName(request.Name) {
 				return environment.ErrGroupNotFound
 			}
 
-			if err := model_database.IsValidGroupName(request.Name); err != nil {
+			if err := database.IsValidGroupName(request.Name); err != nil {
 				return err
 			}
 
-			if err := model_database.IsValidGroupNick(request.Nick); err != nil {
+			if err := database.IsValidGroupNick(request.Nick); err != nil {
 				return err
 			}
 
-			if err := model_database.IsValidGroupPassword(request.Password); err != nil {
+			if err := database.IsValidGroupPassword(request.Password); err != nil {
 				return err
 			}
 
-			if err := model_database.IsValidGroupDescription(request.Description); err != nil {
+			if err := database.IsValidGroupDescription(request.Description); err != nil {
 				return err
 			}
 
-			if err := model_database.IsValidGroupMode(request.Mode); err != nil {
+			if err := database.IsValidGroupMode(request.Mode); err != nil {
 				return err
 			}
 
 			// TODO: validate group avatar
 
 			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
-			group.Group = &model_database.Group{
-				CreatorId:   user.Id,
-				Moniker:     request.Nick,
-				Name:        request.Name,
-				Mode:        model_database.GroupMode(request.Mode),
-				Description: request.Description,
-				Password:    request.Password,
-				Avatar:      request.Avatar,
-				CreatedAt:   time.Now(),
-			}
+			group.CreatorId = user.Id
+			group.Moniker = request.Nick
+			group.Name = request.Name
+			group.Mode = database.GroupMode(request.Mode)
+			group.Description = request.Description
+			group.Password = request.Password
+			group.Avatar = request.Avatar
+			group.CreatedAt = time.Now()
 			if !group.Insert() {
 				return fiber.ErrInternalServerError
 			}
 
 			ctx.Locals(controller.LocalGroup, group)
 
-			member := database.NewMember(db)
-			member.Member = &model_database.Member{
-				GroupId:           group.Id,
-				UserId:            user.Id,
-				Moniker:           "",
-				FirstTimeJoinedAt: time.Now(),
-			}
-
+			member := database.NewMemberEmpty(db, group.Id, user.Id)
 			if !member.Insert() {
 				return fiber.ErrInternalServerError
 			}
 
-			everyone := model_database.RoleDefault
-			role := database.Role{
-				Db:   db,
-				Role: &everyone,
-			}
-
-			if !role.Insert() {
-				return fiber.ErrInternalServerError
-			}
-
-			roleAssign := database.NewRoleAssign(db)
-			roleAssign.RoleAssign = &model_database.RoleAssign{
-				GroupId: group.Id,
-				UserId:  user.Id,
-				RoleId:  everyone.Id,
-			}
-
-			if !roleAssign.Insert() {
+			everyone := database.NewRoleEveryone(db, group.Id)
+			if !everyone.Insert() {
 				return fiber.ErrInternalServerError
 			}
 
@@ -454,15 +397,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
 			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
 
-			message := database.NewMessage(db)
-			message.Message = &model_database.Message{
-				GroupId:   group.Id,
-				AuthorId:  user.Id,
-				Content:   strings.TrimSpace(request.Content),
-				CreatedAt: time.Now(),
-			}
-
-			if err := model_database.IsValidMessageContent(message.Content); err != nil {
+			message := database.NewMessageFilled(db, group.Id, user.Id, strings.TrimSpace(request.Content))
+			if err := database.IsValidMessageContent(message.Content); err != nil {
 				return err
 			}
 
@@ -517,11 +453,11 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return environment.ErrUseless
 			}
 
-			if err := model_database.IsValidUserNick(request.NewNickname); err != nil {
+			if err := database.IsValidUserNick(request.NewNickname); err != nil {
 				return err
 			}
 
-			if err := model_database.IsValidUserName(request.NewName); err != nil {
+			if err := database.IsValidUserName(request.NewName); err != nil {
 				return err
 			}
 
@@ -560,7 +496,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return environment.ErrUseless
 			}
 
-			if err := model_database.IsValidUserEmail(request.NewEmail); err != nil {
+			if err := database.IsValidUserEmail(request.NewEmail); err != nil {
 				return err
 			}
 
@@ -569,7 +505,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return environment.ErrUserExsistsEmail
 			}
 
-			if err := model_database.IsValidUserPassword(request.CurrentPassword); err != nil {
+			if err := database.IsValidUserPassword(request.CurrentPassword); err != nil {
 				return err
 			}
 
@@ -606,7 +542,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return environment.ErrUseless
 			}
 
-			if err := model_database.IsValidUserPhone(request.NewPhone); err != nil {
+			if err := database.IsValidUserPhone(request.NewPhone); err != nil {
 				return err
 			}
 
@@ -644,7 +580,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 				return environment.ErrUseless
 			}
 
-			if err := model_database.IsValidUserPassword(request.CurrentPassword); err != nil {
+			if err := database.IsValidUserPassword(request.CurrentPassword); err != nil {
 				return err
 			}
 
@@ -703,37 +639,37 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			hasChanges := request.Nick != group.Moniker ||
 				group.Name != request.Name ||
 				group.Description != request.Description ||
-				group.Mode != model_database.GroupMode(request.Mode) ||
+				group.Mode != database.GroupMode(request.Mode) ||
 				group.Password != request.Password
 
 			if !hasChanges {
 				return environment.ErrUseless
 			}
 
-			if err := model_database.IsValidGroupName(request.Name); err != nil {
+			if err := database.IsValidGroupName(request.Name); err != nil {
 				return err
 			}
 
-			if err := model_database.IsValidGroupNick(request.Nick); err != nil {
+			if err := database.IsValidGroupNick(request.Nick); err != nil {
 				return err
 			}
 
-			if err := model_database.IsValidGroupPassword(request.Password); err != nil {
+			if err := database.IsValidGroupPassword(request.Password); err != nil {
 				return err
 			}
 
-			if err := model_database.IsValidGroupDescription(request.Description); err != nil {
+			if err := database.IsValidGroupDescription(request.Description); err != nil {
 				return err
 			}
 
-			if err := model_database.IsValidGroupMode(request.Mode); err != nil {
+			if err := database.IsValidGroupMode(request.Mode); err != nil {
 				return err
 			}
 
 			group.Moniker = request.Nick
 			group.Name = request.Name
 			group.Description = request.Description
-			group.Mode = model_database.GroupMode(request.Mode)
+			group.Mode = database.GroupMode(request.Mode)
 			group.Password = request.Password
 			if !group.Update() {
 				return fiber.ErrInternalServerError

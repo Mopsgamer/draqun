@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/controller"
+	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
-	"github.com/Mopsgamer/draqun/server/model_database"
 	"github.com/doug-martin/goqu/v9"
 
 	"github.com/gofiber/fiber/v3"
@@ -77,7 +77,7 @@ func NewAppHtmlEngine(db *goqu.Database, embedFS fs.FS, clientEmbedded bool, dir
 			return result
 		},
 
-		"groupLink": func(group model_database.Group) string {
+		"groupLink": func(group database.Group) string {
 			return "localhost:3000" + controller.PathRedirectGroupJoin(group.Name)
 		},
 	})

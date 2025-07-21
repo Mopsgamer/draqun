@@ -2,20 +2,33 @@ package database
 
 import (
 	"database/sql"
+	"time"
 
-	"github.com/Mopsgamer/draqun/server/model_database"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/gofiber/fiber/v3/log"
 )
 
+type GroupMode string
+
+const (
+	GroupModeDm      GroupMode = "dm"
+	GroupModePrivate GroupMode = "private"
+	GroupModePublic  GroupMode = "public"
+)
+
 type Group struct {
 	Db *goqu.Database
-	*model_database.Group
-}
 
-func NewGroup(db *goqu.Database) Group {
-	return Group{Db: db}
+	Id          uint64    `db:"id"`
+	CreatorId   uint64    `db:"creator_id"`
+	Moniker     string    `db:"moniker"` // Nick is a customizable name.
+	Name        string    `db:"name"`    // Name is a simple identificator, which can be used to create invite-links.
+	Mode        GroupMode `db:"mode"`
+	Password    string    `db:"password"` // Optional hashed password string.
+	Description string    `db:"description"`
+	Avatar      string    `db:"avatar"`
+	CreatedAt   time.Time `db:"created_at"`
 }
 
 func (group *Group) IsEmpty() bool {
@@ -25,7 +38,7 @@ func (group *Group) IsEmpty() bool {
 // Create new DB record.
 func (group *Group) Insert() bool {
 	id := Insert(group.Db, TableGroups, group)
-	group.Group.Id = *id
+	group.Id = *id
 	return id != nil
 }
 
@@ -54,39 +67,27 @@ func (group *Group) Delete() bool {
 
 // Get the group by her identificator.
 func (group *Group) FromId(id uint64) bool {
-	group.Group = First[model_database.Group](group.Db, TableGroups, goqu.Ex{"id": id})
+	First(group.Db, TableGroups, goqu.Ex{"id": id}, group)
 	return group.IsEmpty()
 }
 
 // Get the group by her group name.
 func (group *Group) FromName(name string) bool {
-	group.Group = First[model_database.Group](group.Db, TableGroups, goqu.Ex{"name": name})
+	First(group.Db, TableGroups, goqu.Ex{"name": name}, group)
 	return group.IsEmpty()
 }
 
 // Get the original group creator.
 func (group *Group) Creator() User {
-	user := User{Db: group.Db}
+	user := NewUser(group.Db)
 	user.FromId(group.CreatorId)
 	return user
 }
 
-func (group *Group) Users() []User {
-	memberList := new([]User)
-
-	err := group.Db.From(TableMembers).Select(TableUsers+".*").Prepared(true).
-		LeftJoin(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(goqu.I(TableMembers+".user_id")))).
-		ScanStructs(memberList)
-
-	if err == sql.ErrNoRows {
-		return *memberList
-	}
-
-	if err != nil {
-		log.Error(err)
-	}
-
-	return *memberList
+func (group *Group) Everyone() Role {
+	role := NewRoleEveryone(group.Db, group.Id)
+	role.FromName(role.Name, role.GroupId)
+	return role
 }
 
 func (group *Group) UsersPage(page, perPage uint) []User {
