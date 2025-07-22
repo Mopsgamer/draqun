@@ -3,27 +3,41 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{{.Title}}</title>
-        {{- template "partials/scripts" .}}
+        <title>{{- .Title -}}</title>
+        {{- template "partials/scripts" . -}}
     </head>
 
     <body hx-ext="shoelace,debug">
-        {{- template "partials/settings-dialog" .}} {{- template
-        "partials/new-group-dialog" .}} {{$this := .}} {{- if ne $this.Group
-        nil}} {{- template "partials/group-settings-dialog" $this}} {{- else}}
-        {{- $groupList = $this.User.GroupList -}}
+        {{- template "partials/settings-dialog" . -}}
+        {{- template "partials/new-group-dialog" . -}}
+        {{- $this := . -}}
+        {{- if ne $this.Group nil -}}
+            {{- template "partials/group-settings-dialog" $this -}}
+        {{- else -}}
+            {{- $groupList = $this.User.GroupList -}}
             {{- $memberList = $this.User.MemberList -}}
             {{- range $i, $member := $memberList -}}
-            {{- $group := index $groupList $i -}} {{$rights := $member.Role}} {{- /*TODO: ChangeGroup should be simple */}}
-        {{- if or $member.IsOwner $rights.ChangeGroup}} {{- template
-        "partials/group-settings-dialog" (newMap "Group" $group)}} {{- end}} {{-
-        end}} {{- end}}
+                {{- $group := index $groupList $i -}}
+                {{- $rights := $member.Role -}}
+                {{- if or ($rights.PermAdmin.Has) (and
+                    (not $member.IsEmpty)
+                    $rights.PermGroupChange.Has
+                ) -}}
+                    {{- template "partials/group-settings-dialog" (newMap "Group" $group) -}}
+                {{- end -}}
+            {{- end -}}
+        {{- end -}}
         <div id="real-body">
-            {{- template "partials/app-header" .}} {{- if ne .Group nil}}
-            {{/**/}}{{- if eq .Member nil}} {{/**/}}{{- template
-            "partials/app-group-join" .}} {{/**/}}{{- else}} {{/**/}}{{-
-            template "partials/app-group" .}} {{- end}} {{- else}} {{- template
-            "partials/app-home" .}} {{- end}}
+            {{- template "partials/app-header" . -}}
+            {{- if ne .Group nil -}}
+                {{- if eq .Member nil -}}
+                    {{- template "partials/app-group-join" . -}}
+                {{- else -}}
+                    {{- template "partials/app-group" . -}}
+                {{- end -}}
+            {{- else -}}
+                {{- template "partials/app-home" . -}}
+            {{- end -}}
         </div>
     </body>
 </html>

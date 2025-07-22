@@ -27,7 +27,6 @@ const (
 	BuildModeProduction
 )
 
-// TODO: Should be configurable using database.
 // App settings.
 var (
 	JWTKey                  string

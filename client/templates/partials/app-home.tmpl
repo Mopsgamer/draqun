@@ -28,8 +28,7 @@
                             <div class="groupname" title="{{$group.Moniker}}">
                                 {{- $group.Moniker -}}
                             </div>
-                            {{- /*TODO: ChangeGroup should be simple */}} {{- if
-                            or $member.IsOwner $rights.ChangeGroup}}
+                            {{- if or ($rights.PermAdmin.Has) (and (not $member.IsEmpty) $rights.PermGroupChange.Has)}}
                             <div class="group-actions">
                                 {{template "partials/group-actions" $group}}
                             </div>
