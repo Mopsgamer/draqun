@@ -104,6 +104,25 @@ func (user *User) GroupListCreator() []Group {
 	return *groupList
 }
 
+func (user *User) GroupListOwner() []Group {
+	groupList := new([]Group)
+
+	err := user.Db.Select(TableGroups+".*").From(TableGroups).
+		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
+		Where(goqu.Ex{TableMembers + ".user_id": user.Id, TableGroups + ".owner_id": TableMembers + ".user_id"}).
+		ScanStructs(groupList)
+
+	if err == sql.ErrNoRows {
+		return *groupList
+	}
+
+	if err != nil {
+		log.Error(err)
+	}
+
+	return *groupList
+}
+
 func (user *User) GroupList() []Group {
 	groupList := new([]Group)
 

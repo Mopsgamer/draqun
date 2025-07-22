@@ -22,6 +22,7 @@ type Group struct {
 
 	Id          uint64        `db:"id"`
 	CreatorId   uint64        `db:"creator_id"`
+	OwnerId     uint64        `db:"owner_id"`
 	Moniker     string        `db:"moniker"` // Nick is a customizable name.
 	Name        string        `db:"name"`    // Name is a simple identificator, which can be used to create invite-links.
 	Mode        GroupMode     `db:"mode"`
@@ -93,6 +94,12 @@ func (group Group) Creator() User {
 	return user
 }
 
+func (group Group) Owner() User {
+	user := User{Db: group.Db}
+	user.FromId(group.OwnerId)
+	return user
+}
+
 func (group Group) Everyone() Role {
 	role := NewRoleEveryone(group.Db, group.Id)
 	role.FromName(role.Name, role.GroupId)
@@ -103,22 +110,6 @@ func (group Group) MembersCount() uint64 {
 	count := new(uint64)
 	ok, err := goqu.Select(goqu.COUNT("*")).From(TableMembers).
 		Where(goqu.Ex{TableMembers + ".group_id": group.Id, TableMembers + ".is_deleted": types.BitBool(false)}).
-		ScanVal(count)
-	if !ok {
-		log.Error(err)
-	}
-
-	return *count
-}
-
-func (group Group) AdminsCount() uint64 {
-	count := new(uint64)
-	ok, err := goqu.Select(goqu.COUNT("*")).From(TableRoleAssignees).
-		LeftJoin(goqu.I(TableRoles), goqu.On(
-			goqu.I(TableRoles+".id").Eq(TableRoleAssignees+".role_id"),
-			goqu.I(TableRoles+".group_id").Eq(group.Id),
-		)).
-		Where(goqu.Ex{TableMembers + ".is_deleted": types.BitBool(false)}).
 		ScanVal(count)
 	if !ok {
 		log.Error(err)

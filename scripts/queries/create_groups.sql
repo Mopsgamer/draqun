@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS app_groups (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     creator_id BIGINT UNSIGNED NOT NULL,
+    owner_id BIGINT UNSIGNED NOT NULL,
     moniker VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     mode ENUM('dm', 'private', 'public') NOT NULL,

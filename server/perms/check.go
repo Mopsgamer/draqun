@@ -71,18 +71,18 @@ func MemberByAuthAndGroupId(db *goqu.Database, groupIdUri string, rights RightsC
 		ctx.Locals(LocalMember, member)
 
 		role := member.Role()
+		ctx.Locals(LocalRights, role)
+
 		if role.PermAdmin.Has() {
 			return ctx.Next()
 		}
 
-		// TODO: implement ban and kick
-		// should read action list
-		isBannedOrKicked := false
-		if !isBannedOrKicked && !rights(ctx, role) {
-			return htmx.ErrGroupMemberNotAllowed
+		isMemberRightNow := !member.IsEmpty() && bool(!member.IsDeleted)
+		if isMemberRightNow && rights(ctx, role) {
+			return ctx.Next()
 		}
 
-		return ctx.Next()
+		return htmx.ErrGroupMemberNotAllowed
 	}
 }
 

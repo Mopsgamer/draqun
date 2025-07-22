@@ -81,9 +81,9 @@ var (
 		"Group member not found.",
 		Danger,
 	)
-	ErrGroupMemberIsOnlyAdmin = NewHTMXAlert(
-		errors.Join(fiber.ErrForbidden, errors.New("group: member: last admin")),
-		"Group member is only admin.",
+	ErrGroupMemberIsOnlyOwner = NewHTMXAlert(
+		errors.Join(fiber.ErrForbidden, errors.New("group: member: last owner")),
+		"Group member is only owner.",
 		Danger,
 	)
 	ErrGroupMemberNotAllowed = NewHTMXAlert(

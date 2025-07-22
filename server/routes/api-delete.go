@@ -14,9 +14,11 @@ func RegisterDeleteRoutes(app *fiber.App, db *goqu.Database) {
 	app.Delete("/groups/:group_id/leave",
 		func(ctx fiber.Ctx) error {
 			group := fiber.Locals[database.Group](ctx, perms.LocalGroup)
+			member := fiber.Locals[database.Member](ctx, perms.LocalMember)
+
 			isAlone := group.MembersCount() == 1
-			if group.AdminsCount() == 1 && !isAlone {
-				return htmx.ErrGroupMemberIsOnlyAdmin
+			if group.OwnerId == member.UserId && !isAlone {
+				return htmx.ErrGroupMemberIsOnlyOwner
 			}
 
 			if isAlone {
@@ -24,7 +26,6 @@ func RegisterDeleteRoutes(app *fiber.App, db *goqu.Database) {
 				group.Update()
 			}
 
-			member := fiber.Locals[database.Member](ctx, perms.LocalMember)
 			member.IsDeleted = true
 			if !member.Update() {
 				return htmx.ErrDatabase
@@ -80,8 +81,7 @@ func RegisterDeleteRoutes(app *fiber.App, db *goqu.Database) {
 				return htmx.ErrUserPassword
 			}
 
-			userOwnGroups := user.Groups()
-			if len(userOwnGroups) > 0 {
+			if len(user.GroupListOwner()) > 0 {
 				return htmx.ErrUserDeleteOwnerAccount
 			}
 
