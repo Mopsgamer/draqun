@@ -4,10 +4,12 @@ import (
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/controller"
-	"github.com/Mopsgamer/draqun/server/controller/controller_ws"
+	"github.com/Mopsgamer/draqun/server/controller_ws"
 	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/Mopsgamer/draqun/server/perms"
+	"github.com/Mopsgamer/draqun/server/render"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 )
@@ -19,22 +21,22 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 	}
 	app.Post("/account/login",
 		func(ctx fiber.Ctx) error {
-			request := fiber.Locals[*UserLogin](ctx, controller.LocalForm)
-			if err := database.IsValidUserPassword(request.Password); err != nil {
+			request := fiber.Locals[*UserLogin](ctx, perms.LocalForm)
+			if err := htmx.IsValidUserPassword(request.Password); err != nil {
 				return err
 			}
 
-			if err := database.IsValidUserEmail(request.Email); err != nil {
+			if err := htmx.IsValidUserEmail(request.Email); err != nil {
 				return err
 			}
 
 			userFound, user := database.NewUserFromEmail(db, request.Email)
 			if !userFound {
-				return environment.ErrUserNotFound
+				return htmx.ErrUserNotFound
 			}
 
 			if !user.CheckPassword(request.Password) {
-				return environment.ErrUserPassword
+				return htmx.ErrUserPassword
 			}
 
 			token, err := user.GenerateToken()
@@ -43,7 +45,7 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 			}
 
 			ctx.Cookie(&fiber.Cookie{
-				Name:    controller.AuthCookieKey,
+				Name:    perms.AuthCookieKey,
 				Value:   token,
 				Expires: time.Now().Add(environment.UserAuthTokenExpiration),
 			})
@@ -55,7 +57,7 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 			}
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.CheckBindForm(&UserLogin{}),
+		perms.CheckBindForm(&UserLogin{}),
 	)
 	type UserSignUp struct {
 		*UserLogin
@@ -66,34 +68,34 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 	}
 	app.Post("/account/create",
 		func(ctx fiber.Ctx) error {
-			request := fiber.Locals[*UserSignUp](ctx, controller.LocalForm)
+			request := fiber.Locals[*UserSignUp](ctx, perms.LocalForm)
 
-			if err := database.IsValidUserNick(request.Nickname); err != nil {
+			if err := htmx.IsValidUserNick(request.Nickname); err != nil {
 				return err
 			}
 
-			if err := database.IsValidUserName(request.Username); err != nil {
+			if err := htmx.IsValidUserName(request.Username); err != nil {
 				return err
 			}
 
 			userFound, _ := database.NewUserFromName(db, request.Username)
 			if userFound {
-				return environment.ErrUserExsistsNickname
+				return htmx.ErrUserExsistsNickname
 			}
 
 			userFound, _ = database.NewUserFromEmail(db, request.Email)
 			if userFound {
-				return environment.ErrUserExsistsEmail
+				return htmx.ErrUserExsistsEmail
 			}
 
-			if err := database.IsValidUserPhone(request.Phone); err != nil {
+			if err := htmx.IsValidUserPhone(request.Phone); err != nil {
 				return err
 			}
 
 			// TODO: validate user avatar
 
 			if request.ConfirmPassword != request.Password {
-				return environment.ErrUserPasswordConfirm
+				return htmx.ErrUserPasswordConfirm
 			}
 
 			hash, err := database.HashPassword(request.Password)
@@ -103,7 +105,7 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 
 			user := database.NewUser(db, request.Nickname, request.Username, request.Email, request.Phone, hash, "")
 			if !user.Insert() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
 			token, err := user.GenerateToken()
@@ -112,7 +114,7 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 			}
 
 			ctx.Cookie(&fiber.Cookie{
-				Name:    controller.AuthCookieKey,
+				Name:    perms.AuthCookieKey,
 				Value:   token,
 				Expires: time.Now().Add(environment.UserAuthTokenExpiration),
 			})
@@ -124,7 +126,7 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.CheckBindForm(&UserSignUp{}),
+		perms.CheckBindForm(&UserSignUp{}),
 	)
 	type GroupCreate struct {
 		Name        string `form:"name"`
@@ -136,50 +138,50 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 	}
 	app.Post("/groups/create",
 		func(ctx fiber.Ctx) error {
-			request := fiber.Locals[*GroupCreate](ctx, controller.LocalForm)
+			request := fiber.Locals[*GroupCreate](ctx, perms.LocalForm)
 			groupFound, _ := database.NewGroupFromName(db, request.Name)
 			if !groupFound {
-				return environment.ErrGroupNotFound
+				return htmx.ErrGroupNotFound
 			}
 
-			if err := database.IsValidGroupName(request.Name); err != nil {
+			if err := htmx.IsValidGroupName(request.Name); err != nil {
 				return err
 			}
 
-			if err := database.IsValidGroupNick(request.Nick); err != nil {
+			if err := htmx.IsValidGroupNick(request.Nick); err != nil {
 				return err
 			}
 
-			if err := database.IsValidGroupPassword(request.Password); err != nil {
+			if err := htmx.IsValidGroupPassword(request.Password); err != nil {
 				return err
 			}
 
-			if err := database.IsValidGroupDescription(request.Description); err != nil {
+			if err := htmx.IsValidGroupDescription(request.Description); err != nil {
 				return err
 			}
 
-			if err := database.IsValidGroupMode(request.Mode); err != nil {
+			if err := htmx.IsValidGroupMode(request.Mode); err != nil {
 				return err
 			}
 
 			// TODO: validate group avatar
 
-			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
+			user := fiber.Locals[database.User](ctx, perms.LocalAuth)
 			group := database.NewGroup(db, user.Id, request.Nick, request.Name, database.GroupMode(request.Mode), request.Password, request.Description, request.Avatar)
 			if !group.Insert() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
-			ctx.Locals(controller.LocalGroup, group)
+			ctx.Locals(perms.LocalGroup, group)
 
 			member := database.NewMember(db, group.Id, user.Id, "")
 			if !member.Insert() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
 			everyone := database.NewRoleEveryone(db, group.Id)
 			if !everyone.Insert() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
 			if htmx.IsHtmx(ctx) {
@@ -189,29 +191,29 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.CheckAuth(db),
-		controller.CheckBindForm(&GroupCreate{}),
+		perms.CheckAuth(db),
+		perms.CheckBindForm(&GroupCreate{}),
 	)
 	type MessageCreate struct {
 		Content string `form:"content"`
 	}
 	app.Post("/groups/:group_id/messages/create",
 		func(ctx fiber.Ctx) error {
-			request := fiber.Locals[*MessageCreate](ctx, controller.LocalForm)
-			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
-			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
+			request := fiber.Locals[*MessageCreate](ctx, perms.LocalForm)
+			user := fiber.Locals[database.User](ctx, perms.LocalAuth)
+			group := fiber.Locals[database.Group](ctx, perms.LocalGroup)
 
 			message := database.NewMessageFilled(db, group.Id, user.Id, request.Content)
-			if err := database.IsValidMessageContent(message.Content); err != nil {
+			if err := htmx.IsValidMessageContent(message.Content); err != nil {
 				return err
 			}
 
 			if !message.Insert() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
 			if htmx.IsHtmx(ctx) {
-				buf, err := controller.RenderBuffer(app, "partials/chat-messages", &fiber.Map{
+				buf, err := render.RenderBuffer(app, "partials/chat-messages", &fiber.Map{
 					"MessageList": []database.Message{message},
 					"Group":       group,
 					"User":        user,
@@ -222,7 +224,7 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 				str := buf.String()
 
 				controller_ws.UserSessionMap.Push(
-					controller.WrapOob("beforeend:#chat", &str),
+					render.WrapOob("beforeend:#chat", &str),
 					controller_ws.SubForMessages,
 				)
 
@@ -237,9 +239,9 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
-			return role.CanWriteMessages()
+		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+			return role.PermMessages.CanWriteMessages()
 		}),
-		controller.CheckBindForm(&MessageCreate{}),
+		perms.CheckBindForm(&MessageCreate{}),
 	)
 }

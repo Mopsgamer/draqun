@@ -28,6 +28,21 @@ const (
 	PermMessagesDelete PermMessages = "delete" // Can read, write and delete own messages. Can delete other people's messages.
 )
 
+func (perm PermMessages) CanReadMessages() bool {
+	return perm == PermMessagesRead ||
+		perm == PermMessagesWrite ||
+		perm == PermMessagesDelete
+}
+
+func (perm PermMessages) CanWriteMessages() bool {
+	return perm == PermMessagesWrite ||
+		perm == PermMessagesDelete
+}
+
+func (perm PermMessages) CanDeleteMessages() bool {
+	return perm == PermMessagesDelete
+}
+
 type PermMembers string
 
 const (
@@ -56,21 +71,6 @@ type Role struct {
 
 func (role Role) isEmpty() bool {
 	return role.Id == 0 && role.Name == ""
-}
-
-func (role Role) CanReadMessages() bool {
-	return role.PermMessages == PermMessagesRead ||
-		role.PermMessages == PermMessagesWrite ||
-		role.PermMessages == PermMessagesDelete
-}
-
-func (role Role) CanWriteMessages() bool {
-	return role.PermMessages == PermMessagesWrite ||
-		role.PermMessages == PermMessagesDelete
-}
-
-func (role Role) CanDeleteMessages() bool {
-	return role.PermMessages == PermMessagesDelete
 }
 
 // permissions

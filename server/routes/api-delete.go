@@ -3,10 +3,9 @@ package routes
 import (
 	"time"
 
-	"github.com/Mopsgamer/draqun/server/controller"
 	"github.com/Mopsgamer/draqun/server/database"
-	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 )
@@ -14,10 +13,10 @@ import (
 func RegisterDeleteRoutes(app *fiber.App, db *goqu.Database) {
 	app.Delete("/groups/:group_id/leave",
 		func(ctx fiber.Ctx) error {
-			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
+			group := fiber.Locals[database.Group](ctx, perms.LocalGroup)
 			isAlone := group.MembersCount() == 1
 			if group.AdminsCount() == 1 && !isAlone {
-				return environment.ErrGroupMemberIsOnlyAdmin
+				return htmx.ErrGroupMemberIsOnlyAdmin
 			}
 
 			if isAlone {
@@ -25,13 +24,13 @@ func RegisterDeleteRoutes(app *fiber.App, db *goqu.Database) {
 				group.Update()
 			}
 
-			member := fiber.Locals[database.Member](ctx, controller.LocalMember)
+			member := fiber.Locals[database.Member](ctx, perms.LocalMember)
 			member.IsDeleted = true
 			if !member.Update() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 			if !member.LeaveActed() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
 			if htmx.IsHtmx(ctx) {
@@ -41,16 +40,16 @@ func RegisterDeleteRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
 			return true
 		}),
 	)
 	app.Delete("/groups/:group_id",
 		func(ctx fiber.Ctx) error {
-			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
+			group := fiber.Locals[database.Group](ctx, perms.LocalGroup)
 			group.IsDeleted = true
 			if !group.Update() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
 			if htmx.IsHtmx(ctx) {
@@ -60,7 +59,7 @@ func RegisterDeleteRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
 			return role.PermGroupChange.Has()
 		}),
 	)
@@ -70,29 +69,29 @@ func RegisterDeleteRoutes(app *fiber.App, db *goqu.Database) {
 	}
 	app.Delete("/account/delete",
 		func(ctx fiber.Ctx) error {
-			request := fiber.Locals[*UserDelete](ctx, controller.LocalForm)
-			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
+			request := fiber.Locals[*UserDelete](ctx, perms.LocalForm)
+			user := fiber.Locals[database.User](ctx, perms.LocalAuth)
 
 			if user.Moniker != request.ConfirmUsername {
-				return environment.ErrUserNameConfirm
+				return htmx.ErrUserNameConfirm
 			}
 
 			if !user.CheckPassword(request.CurrentPassword) {
-				return environment.ErrUserPassword
+				return htmx.ErrUserPassword
 			}
 
 			userOwnGroups := user.Groups()
 			if len(userOwnGroups) > 0 {
-				return environment.ErrUserDeleteOwnerAccount
+				return htmx.ErrUserDeleteOwnerAccount
 			}
 
 			user.IsDeleted = true
 			if !user.Update() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
 			ctx.Cookie(&fiber.Cookie{
-				Name:    controller.AuthCookieKey,
+				Name:    perms.AuthCookieKey,
 				Value:   "",
 				Expires: time.Now(),
 			})
@@ -104,7 +103,7 @@ func RegisterDeleteRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.CheckAuth(db),
-		controller.CheckBindForm(&UserDelete{}),
+		perms.CheckAuth(db),
+		perms.CheckBindForm(&UserDelete{}),
 	)
 }

@@ -1,4 +1,4 @@
-package controller
+package perms
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
+	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
@@ -29,7 +30,7 @@ func CheckGroupById(db *goqu.Database, groupIdUri string) fiber.Handler {
 		groupId := fiber.Params[uint64](ctx, groupIdUri)
 		groupFound, group := database.NewGroupFromId(db, groupId)
 		if !groupFound {
-			return environment.ErrGroupNotFound
+			return htmx.ErrGroupNotFound
 		}
 
 		ctx.Locals(LocalGroup, group)
@@ -42,7 +43,7 @@ func CheckGroupByName(db *goqu.Database, groupNameUri string) fiber.Handler {
 		groupName := fiber.Params[string](ctx, groupNameUri)
 		groupFound, group := database.NewGroupFromName(db, groupName)
 		if !groupFound {
-			return environment.ErrGroupNotFound
+			return htmx.ErrGroupNotFound
 		}
 
 		ctx.Locals(LocalGroup, group)
@@ -64,7 +65,7 @@ func CheckAuthMember(db *goqu.Database, groupIdUri string, rights RightsChecker)
 
 		memberFound, member := database.NewMemberFromId(db, groupId, user.Id)
 		if !memberFound { // never been a member
-			return environment.ErrGroupMemberNotFound
+			return htmx.ErrGroupMemberNotFound
 		}
 
 		ctx.Locals(LocalMember, member)
@@ -78,7 +79,7 @@ func CheckAuthMember(db *goqu.Database, groupIdUri string, rights RightsChecker)
 		// should read action list for both from db
 		isBannedOrKicked := false
 		if !isBannedOrKicked && !rights(ctx, role) {
-			return environment.ErrGroupMemberNotAllowed
+			return htmx.ErrGroupMemberNotAllowed
 		}
 
 		return ctx.Next()
@@ -104,40 +105,40 @@ func CheckAuth(db *goqu.Database) fiber.Handler {
 		}
 
 		if len(authCookie) < 1 {
-			return environment.ErrToken
+			return htmx.ErrToken
 		}
 
 		token, err := jwt.Parse(authCookie, func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-				return []byte{}, errors.Join(environment.ErrToken, err)
+				return []byte{}, errors.Join(htmx.ErrToken, err)
 			}
 
 			return []byte(environment.JWTKey), nil
 		})
 
 		if err != nil {
-			return errors.Join(environment.ErrToken, err)
+			return errors.Join(htmx.ErrToken, err)
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
 		email, ok := claims["Email"].(string)
 		if !ok {
-			return errors.Join(environment.ErrToken, errors.New("expected any email"))
+			return errors.Join(htmx.ErrToken, errors.New("expected any email"))
 		}
 
 		pass, ok := claims["Password"].(string)
 		if !ok {
-			return errors.Join(environment.ErrToken, errors.New("expected any password"))
+			return errors.Join(htmx.ErrToken, errors.New("expected any password"))
 		}
 
 		foundUser, user := database.NewUserFromEmail(db, email)
 		if !foundUser {
-			return environment.ErrUserNotFound
+			return htmx.ErrUserNotFound
 		}
 
 		if pass != user.Password {
-			return errors.Join(environment.ErrToken, errors.New("incorrect password"))
+			return errors.Join(htmx.ErrToken, errors.New("incorrect password"))
 		}
 
 		ctx.Locals(LocalAuth, user)

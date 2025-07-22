@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"github.com/Mopsgamer/draqun/server/controller"
 	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 )
@@ -11,7 +11,7 @@ import (
 func RegisterGetRoutes(app *fiber.App, db *goqu.Database) {
 	app.Get("/groups/:group_id/messages/page/:messages_page",
 		func(ctx fiber.Ctx) error {
-			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
+			group := fiber.Locals[database.Group](ctx, perms.LocalGroup)
 			page := fiber.Params[uint](ctx, "messages_page")
 			const MessagesPagination uint = 5
 			messageList := group.MessagesPage(page, MessagesPagination)
@@ -28,13 +28,13 @@ func RegisterGetRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.JSON(messageList)
 		},
-		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
-			return role.CanReadMessages()
+		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+			return role.PermMessages.CanReadMessages()
 		}),
 	)
 	app.Get("/groups/:group_id/members/page/:members_page",
 		func(ctx fiber.Ctx) error {
-			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
+			group := fiber.Locals[database.Group](ctx, perms.LocalGroup)
 			page := fiber.Params[uint](ctx, "members_page")
 			const MembersPagination uint = 5
 			memberList := group.UsersPage(page, MembersPagination)
@@ -52,8 +52,8 @@ func RegisterGetRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.JSON(memberList)
 		},
-		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
-			return role.CanDeleteMessages()
+		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+			return role.PermMessages.CanDeleteMessages()
 		}),
 	)
 }

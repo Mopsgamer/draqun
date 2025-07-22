@@ -31,7 +31,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		PassLocalsToViews: true,
 		ErrorHandler: func(ctx fiber.Ctx, err error) error {
 			if htmx.IsHtmx(ctx) {
-				return controller.HandleHTMXError(ctx, err)
+				return htmx.HandleHTMXError(ctx, err)
 			}
 			return err
 		},

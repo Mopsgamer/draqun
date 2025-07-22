@@ -1,7 +1,7 @@
 package controller_ws
 
 import (
-	"github.com/Mopsgamer/draqun/server/controller"
+	"github.com/Mopsgamer/draqun/server/render"
 	"github.com/Mopsgamer/draqun/websocket"
 )
 
@@ -21,7 +21,7 @@ func (ws *ControllerWs) Flush() error {
 }
 
 func wrapSendNotice(ws *ControllerWs, message, id string) error {
-	return ws.Conn.WriteMessage(websocket.TextMessage, []byte(controller.WrapOob(
+	return ws.Conn.WriteMessage(websocket.TextMessage, []byte(render.WrapOob(
 		"innerHTML:#"+id,
 		&message,
 	)))

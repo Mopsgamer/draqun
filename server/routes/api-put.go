@@ -3,10 +3,9 @@ package routes
 import (
 	"time"
 
-	"github.com/Mopsgamer/draqun/server/controller"
 	"github.com/Mopsgamer/draqun/server/database"
-	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 )
@@ -18,31 +17,31 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 	}
 	app.Put("/account/change/name",
 		func(ctx fiber.Ctx) error {
-			request := fiber.Locals[*UserChangeName](ctx, controller.LocalForm)
-			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
+			request := fiber.Locals[*UserChangeName](ctx, perms.LocalForm)
+			user := fiber.Locals[database.User](ctx, perms.LocalAuth)
 
 			if request.NewNickname == user.Moniker && request.NewName == user.Name {
-				return environment.ErrUseless
+				return htmx.ErrUseless
 			}
 
-			if err := database.IsValidUserNick(request.NewNickname); err != nil {
+			if err := htmx.IsValidUserNick(request.NewNickname); err != nil {
 				return err
 			}
 
-			if err := database.IsValidUserName(request.NewName); err != nil {
+			if err := htmx.IsValidUserName(request.NewName); err != nil {
 				return err
 			}
 
 			foundUser, _ := database.NewUserFromName(db, request.NewName)
 			if foundUser {
-				return environment.ErrUserExsistsName
+				return htmx.ErrUserExsistsName
 			}
 
 			user.Moniker = request.NewNickname
 			user.Name = request.NewName
 
 			if !user.Update() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
 			if htmx.IsHtmx(ctx) {
@@ -52,8 +51,8 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.CheckAuth(db),
-		controller.CheckBindForm(&UserChangeName{}),
+		perms.CheckAuth(db),
+		perms.CheckBindForm(&UserChangeName{}),
 	)
 	type UserChangeEmail struct {
 		CurrentPassword string `form:"current-password"`
@@ -61,34 +60,34 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 	}
 	app.Put("/account/change/email",
 		func(ctx fiber.Ctx) error {
-			request := fiber.Locals[*UserChangeEmail](ctx, controller.LocalForm)
-			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
+			request := fiber.Locals[*UserChangeEmail](ctx, perms.LocalForm)
+			user := fiber.Locals[database.User](ctx, perms.LocalAuth)
 
 			if request.NewEmail == user.Email {
-				return environment.ErrUseless
+				return htmx.ErrUseless
 			}
 
-			if err := database.IsValidUserEmail(request.NewEmail); err != nil {
+			if err := htmx.IsValidUserEmail(request.NewEmail); err != nil {
 				return err
 			}
 
 			foundUser, _ := database.NewUserFromEmail(db, request.NewEmail)
 			if foundUser {
-				return environment.ErrUserExsistsEmail
+				return htmx.ErrUserExsistsEmail
 			}
 
-			if err := database.IsValidUserPassword(request.CurrentPassword); err != nil {
+			if err := htmx.IsValidUserPassword(request.CurrentPassword); err != nil {
 				return err
 			}
 
 			if !user.CheckPassword(request.CurrentPassword) {
-				return environment.ErrUserPassword
+				return htmx.ErrUserPassword
 			}
 
 			user.Email = request.NewEmail
 
 			if !user.Update() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
 			if htmx.IsHtmx(ctx) {
@@ -98,8 +97,8 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.CheckAuth(db),
-		controller.CheckBindForm(&UserChangeEmail{}),
+		perms.CheckAuth(db),
+		perms.CheckBindForm(&UserChangeEmail{}),
 	)
 	type UserChangePhone struct {
 		CurrentPassword string `form:"current-password"`
@@ -107,25 +106,25 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 	}
 	app.Put("/account/change/phone",
 		func(ctx fiber.Ctx) error {
-			request := fiber.Locals[*UserChangePhone](ctx, controller.LocalForm)
-			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
+			request := fiber.Locals[*UserChangePhone](ctx, perms.LocalForm)
+			user := fiber.Locals[database.User](ctx, perms.LocalAuth)
 
 			if request.NewPhone == user.Phone {
-				return environment.ErrUseless
+				return htmx.ErrUseless
 			}
 
-			if err := database.IsValidUserPhone(request.NewPhone); err != nil {
+			if err := htmx.IsValidUserPhone(request.NewPhone); err != nil {
 				return err
 			}
 
 			if !user.CheckPassword(request.CurrentPassword) {
-				return environment.ErrUserPassword
+				return htmx.ErrUserPassword
 			}
 
 			user.Phone = request.NewPhone
 
 			if !user.Update() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
 			if htmx.IsHtmx(ctx) {
@@ -135,8 +134,8 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.CheckAuth(db),
-		controller.CheckBindForm(&UserChangePhone{}),
+		perms.CheckAuth(db),
+		perms.CheckBindForm(&UserChangePhone{}),
 	)
 	type UserChangePassword struct {
 		CurrentPassword string `form:"current-password"`
@@ -145,29 +144,29 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 	}
 	app.Put("/account/change/password",
 		func(ctx fiber.Ctx) error {
-			request := fiber.Locals[*UserChangePassword](ctx, controller.LocalForm)
-			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
+			request := fiber.Locals[*UserChangePassword](ctx, perms.LocalForm)
+			user := fiber.Locals[database.User](ctx, perms.LocalAuth)
 
 			if request.NewPassword == user.Password {
-				return environment.ErrUseless
+				return htmx.ErrUseless
 			}
 
-			if err := database.IsValidUserPassword(request.CurrentPassword); err != nil {
+			if err := htmx.IsValidUserPassword(request.CurrentPassword); err != nil {
 				return err
 			}
 
 			if request.ConfirmPassword != request.NewPassword {
-				return environment.ErrUserPasswordConfirm
+				return htmx.ErrUserPasswordConfirm
 			}
 
 			if !user.CheckPassword(request.CurrentPassword) {
-				return environment.ErrUserPassword
+				return htmx.ErrUserPassword
 			}
 
 			user.Password = request.NewPassword
 
 			if !user.Update() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
 			if htmx.IsHtmx(ctx) {
@@ -177,13 +176,13 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.CheckAuth(db),
-		controller.CheckBindForm(&UserChangePassword{}),
+		perms.CheckAuth(db),
+		perms.CheckBindForm(&UserChangePassword{}),
 	)
 	app.Put("/account/logout",
 		func(ctx fiber.Ctx) error {
 			ctx.Cookie(&fiber.Cookie{
-				Name:    controller.AuthCookieKey,
+				Name:    perms.AuthCookieKey,
 				Value:   "",
 				Expires: time.Now(),
 			})
@@ -206,8 +205,8 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 	}
 	app.Put("/groups/:group_id/change",
 		func(ctx fiber.Ctx) error {
-			request := fiber.Locals[*GroupChange](ctx, controller.LocalForm)
-			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
+			request := fiber.Locals[*GroupChange](ctx, perms.LocalForm)
+			group := fiber.Locals[database.Group](ctx, perms.LocalGroup)
 			hasChanges := request.Nick != group.Moniker ||
 				group.Name != request.Name ||
 				group.Description != request.Description ||
@@ -215,26 +214,26 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 				group.Password != request.Password
 
 			if !hasChanges {
-				return environment.ErrUseless
+				return htmx.ErrUseless
 			}
 
-			if err := database.IsValidGroupName(request.Name); err != nil {
+			if err := htmx.IsValidGroupName(request.Name); err != nil {
 				return err
 			}
 
-			if err := database.IsValidGroupNick(request.Nick); err != nil {
+			if err := htmx.IsValidGroupNick(request.Nick); err != nil {
 				return err
 			}
 
-			if err := database.IsValidGroupPassword(request.Password); err != nil {
+			if err := htmx.IsValidGroupPassword(request.Password); err != nil {
 				return err
 			}
 
-			if err := database.IsValidGroupDescription(request.Description); err != nil {
+			if err := htmx.IsValidGroupDescription(request.Description); err != nil {
 				return err
 			}
 
-			if err := database.IsValidGroupMode(request.Mode); err != nil {
+			if err := htmx.IsValidGroupMode(request.Mode); err != nil {
 				return err
 			}
 
@@ -244,7 +243,7 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 			group.Mode = database.GroupMode(request.Mode)
 			group.Password = request.Password
 			if !group.Update() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
 			if htmx.IsHtmx(ctx) {
@@ -254,9 +253,9 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
 			return role.PermGroupChange.Has()
 		}),
-		controller.CheckBindForm(&GroupChange{}),
+		perms.CheckBindForm(&GroupChange{}),
 	)
 }

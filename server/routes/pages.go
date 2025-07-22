@@ -3,8 +3,8 @@ package routes
 import (
 	"github.com/Mopsgamer/draqun/server/controller"
 	"github.com/Mopsgamer/draqun/server/database"
-	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 )
@@ -32,7 +32,7 @@ func RegisterPagesRoutes(app *fiber.App, db *goqu.Database) {
 	)
 	app.Get("/settings",
 		func(ctx fiber.Ctx) error {
-			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
+			user := fiber.Locals[database.User](ctx, perms.LocalAuth)
 			if user.IsEmpty() {
 				return ctx.Redirect().To("/")
 			}
@@ -47,39 +47,39 @@ func RegisterPagesRoutes(app *fiber.App, db *goqu.Database) {
 	)
 	app.Get("/chat/groups/:group_id",
 		func(ctx fiber.Ctx) error {
-			member := fiber.Locals[database.Member](ctx, controller.LocalMember)
+			member := fiber.Locals[database.Member](ctx, perms.LocalMember)
 			if member.IsEmpty() {
 				return ctx.Redirect().To("/chat")
 			}
 
-			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
+			group := fiber.Locals[database.Group](ctx, perms.LocalGroup)
 			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": group.Moniker, "IsChatPage": true}))
 		},
-		controller.CheckGroupById(db, "group_id"),
+		perms.CheckGroupById(db, "group_id"),
 	)
 	app.Put("/groups/:group_id/join",
 		func(ctx fiber.Ctx) error {
-			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
-			member := fiber.Locals[database.Member](ctx, controller.LocalMember)
+			group := fiber.Locals[database.Group](ctx, perms.LocalGroup)
+			member := fiber.Locals[database.Member](ctx, perms.LocalMember)
 			if member.IsEmpty() {
 				// never been a member
 				member = database.NewMember(db, group.Id, member.UserId, "")
 				if !member.Insert() {
-					return fiber.ErrInternalServerError
+					return htmx.ErrDatabase
 				}
 			} else if member.IsDeleted {
 				// been a member, now isn't
 				member.IsDeleted = false
 				if !member.Update() {
-					return fiber.ErrInternalServerError
+					return htmx.ErrDatabase
 				}
 			} else {
 				// already a member
-				return environment.ErrUseless
+				return htmx.ErrUseless
 			}
 
 			if !member.JoinActed() {
-				return fiber.ErrInternalServerError
+				return htmx.ErrDatabase
 			}
 
 			if htmx.IsHtmx(ctx) {
@@ -95,12 +95,12 @@ func RegisterPagesRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		controller.CheckGroupById(db, "group_id"),
+		perms.CheckGroupById(db, "group_id"),
 	)
 	app.Get("/chat/groups/join/:group_name",
 		func(ctx fiber.Ctx) error {
-			member := fiber.Locals[database.Member](ctx, controller.LocalMember)
-			group := fiber.Locals[database.Group](ctx, controller.LocalGroup)
+			member := fiber.Locals[database.Member](ctx, perms.LocalMember)
+			group := fiber.Locals[database.Group](ctx, perms.LocalGroup)
 			if group.IsEmpty() {
 				return ctx.Redirect().To("/chat")
 			}
@@ -111,6 +111,6 @@ func RegisterPagesRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": "Join " + group.Moniker, "IsChatPage": true}))
 		},
-		controller.CheckGroupByName(db, "group_name"),
+		perms.CheckGroupByName(db, "group_name"),
 	)
 }

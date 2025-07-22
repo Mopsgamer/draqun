@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Mopsgamer/draqun/server/controller"
-	"github.com/Mopsgamer/draqun/server/controller/controller_ws"
+	"github.com/Mopsgamer/draqun/server/controller_ws"
 	"github.com/Mopsgamer/draqun/server/database"
+	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/Mopsgamer/draqun/websocket"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
@@ -42,7 +42,7 @@ func RegisterWebsocket(app *fiber.App, db *goqu.Database) {
 			}
 
 			ctxWs := controller_ws.New(ctx)
-			user := fiber.Locals[database.User](ctx, controller.LocalAuth)
+			user := fiber.Locals[database.User](ctx, perms.LocalAuth)
 
 			return websocket.New(func(conn *websocket.Conn) {
 				ctxWs.Conn = conn
@@ -69,8 +69,8 @@ func RegisterWebsocket(app *fiber.App, db *goqu.Database) {
 				ctxWs.Conn.Close()
 			})(ctx)
 		},
-		controller.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
-			return role.CanReadMessages()
+		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+			return role.PermMessages.CanReadMessages()
 		}),
 	)
 }
