@@ -8,7 +8,8 @@ import (
 )
 
 type Message struct {
-	Db        *goqu.Database
+	Db *goqu.Database `db:"-"`
+
 	Id        uint64    `db:"id"`
 	GroupId   uint64    `db:"group_id"`
 	AuthorId  uint64    `db:"author_id"`
@@ -25,7 +26,7 @@ func (message *Message) IsEmpty() bool {
 }
 
 func (message *Message) Insert() bool {
-	return Insert(message.Db, TableMessages, message) != nil
+	return Insert(message.Db, TableMessages, message) != 0
 }
 
 func (message *Message) Update() bool {

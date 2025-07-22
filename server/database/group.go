@@ -18,7 +18,7 @@ const (
 )
 
 type Group struct {
-	Db *goqu.Database
+	Db *goqu.Database `db:"-"`
 
 	Id          uint64        `db:"id"`
 	CreatorId   uint64        `db:"creator_id"`
@@ -50,7 +50,7 @@ func NewGroup(
 		Description: description,
 		Avatar:      avatar,
 		CreatedAt:   time.Now(),
-		IsDeleted:   types.BitBool(false),
+		IsDeleted:   false,
 	}
 }
 
@@ -70,8 +70,8 @@ func (group Group) IsEmpty() bool {
 
 func (group *Group) Insert() bool {
 	id := Insert(group.Db, TableGroups, group)
-	group.Id = *id
-	return id != nil
+	group.Id = id
+	return id != 0
 }
 
 func (group Group) Update() bool {

@@ -6,7 +6,7 @@ import (
 )
 
 type RoleAssignee struct {
-	Db *goqu.Database
+	Db *goqu.Database `db:"-"`
 
 	UserId uint64 `db:"user_id"`
 	RoleId uint32 `db:"role_id"`
@@ -17,7 +17,7 @@ func NewRoleAssign(db *goqu.Database) RoleAssignee {
 }
 
 func (roleAssign *RoleAssignee) Insert() bool {
-	return Insert(roleAssign.Db, TableRoleAssignees, roleAssign) != nil
+	return Insert(roleAssign.Db, TableRoleAssignees, roleAssign) != 0
 }
 
 func (roleAssign *RoleAssignee) Update() bool {

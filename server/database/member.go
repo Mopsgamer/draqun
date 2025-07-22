@@ -10,7 +10,7 @@ import (
 )
 
 type Member struct {
-	Db *goqu.Database
+	Db *goqu.Database `db:"-"`
 
 	GroupId           uint64        `db:"group_id"`
 	UserId            uint64        `db:"user_id"`
@@ -39,8 +39,7 @@ func (group Member) IsEmpty() bool {
 }
 
 func (group *Member) Insert() bool {
-	id := Insert(group.Db, TableMembers, group)
-	return id != nil
+	return Insert(group.Db, TableMembers, group) != 0
 }
 
 func (group Member) Update() bool {

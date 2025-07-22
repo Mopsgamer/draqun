@@ -54,7 +54,7 @@ const (
 )
 
 type Role struct {
-	Db *goqu.Database
+	Db *goqu.Database `db:"-"`
 
 	Id      uint32 `db:"id"`
 	GroupId uint64 `db:"group_id"`
@@ -126,8 +126,8 @@ func NewRoleEveryone(db *goqu.Database, groupId uint64) Role {
 
 func (role *Role) Insert() bool {
 	id := Insert(role.Db, TableRoles, role)
-	role.Id = uint32(*id)
-	return id != nil
+	role.Id = uint32(id)
+	return id != 0
 }
 
 func (role *Role) Update() bool {

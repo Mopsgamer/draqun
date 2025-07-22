@@ -10,7 +10,7 @@ import (
 )
 
 type User struct {
-	Db *goqu.Database
+	Db *goqu.Database `db:"-"`
 
 	Id         uint64        `db:"id"`
 	Moniker    string        `db:"moniker"` // Nick is customizable name. Can contain emojis and special characters.
@@ -62,8 +62,8 @@ func (user *User) IsEmpty() bool {
 
 func (user *User) Insert() bool {
 	id := Insert(user.Db, TableUsers, user)
-	user.Id = *id
-	return id != nil
+	user.Id = id
+	return id != 0
 }
 
 func (user *User) Update() bool {

@@ -8,7 +8,7 @@ import (
 )
 
 type ActionMembership struct {
-	Db *goqu.Database
+	Db *goqu.Database `db:"-"`
 
 	UserId  uint64        `db:"user_id"`  // The user being acted upon.
 	GroupId uint64        `db:"group_id"` // The group where the action was performed.
@@ -25,7 +25,7 @@ func (action ActionMembership) IsEmpty() bool {
 }
 
 func (action *ActionMembership) Insert() bool {
-	return Insert(action.Db, string(TableMemberships), action) != nil
+	return Insert(action.Db, string(TableMemberships), action) != 0
 }
 
 func (action ActionMembership) Update() bool {

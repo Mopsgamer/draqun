@@ -7,7 +7,7 @@ import (
 )
 
 type ActionBan struct {
-	Db *goqu.Database
+	Db *goqu.Database `db:"-"`
 
 	TargetId    uint64    `db:"target_id"`  // The user being banned.
 	CreatorId   uint64    `db:"creator_id"` // The user who created the ban.
@@ -27,7 +27,7 @@ func (action ActionBan) IsEmpty() bool {
 }
 
 func (action *ActionBan) Insert() bool {
-	return Insert(action.Db, string(TableBans), action) != nil
+	return Insert(action.Db, string(TableBans), action) != 0
 }
 
 func (action ActionBan) Update() bool {

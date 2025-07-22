@@ -24,21 +24,21 @@ func Last[T any](db *goqu.Database, table string, ex goqu.Ex, key exp.Identifier
 	}
 }
 
-func Insert[T any](db *goqu.Database, table string, item *T) *uint64 {
+func Insert[T any](db *goqu.Database, table string, item *T) uint64 {
 	result, err := db.Insert(table).Rows(item).Executor().Exec()
 	if err != nil {
 		log.Error(err)
-		return nil
+		return 0
 	}
 
 	newId, err := result.LastInsertId()
 	if err != nil {
 		log.Error(err)
-		return nil
+		return 0
 	}
 
 	newIdUint := uint64(newId)
-	return &newIdUint
+	return newIdUint
 }
 
 func Update[T any](db *goqu.Database, table string, item T, ex goqu.Ex) bool {
