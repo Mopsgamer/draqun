@@ -25,7 +25,7 @@ const AuthCookieKey = "Authorization"
 
 type RightsChecker func(ctx fiber.Ctx, role database.Role) bool
 
-func CheckGroupById(db *goqu.Database, groupIdUri string) fiber.Handler {
+func GroupById(db *goqu.Database, groupIdUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		groupId := fiber.Params[uint64](ctx, groupIdUri)
 		groupFound, group := database.NewGroupFromId(db, groupId)
@@ -38,7 +38,7 @@ func CheckGroupById(db *goqu.Database, groupIdUri string) fiber.Handler {
 	}
 }
 
-func CheckGroupByName(db *goqu.Database, groupNameUri string) fiber.Handler {
+func GroupByName(db *goqu.Database, groupNameUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		groupName := fiber.Params[string](ctx, groupNameUri)
 		groupFound, group := database.NewGroupFromName(db, groupName)
@@ -51,15 +51,15 @@ func CheckGroupByName(db *goqu.Database, groupNameUri string) fiber.Handler {
 	}
 }
 
-func CheckAuthMember(db *goqu.Database, groupIdUri string, rights RightsChecker) fiber.Handler {
+func MemberByAuthAndGroupId(db *goqu.Database, groupIdUri string, rights RightsChecker) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		if err := CheckAuth(db)(ctx); err != nil {
+		if err := UserByAuth(db)(ctx); err != nil {
 			return err
 		}
 
 		user := fiber.Locals[database.User](ctx, LocalAuth)
 		groupId := fiber.Params[uint64](ctx, groupIdUri)
-		if err := CheckGroupById(db, groupIdUri)(ctx); err != nil {
+		if err := GroupById(db, groupIdUri)(ctx); err != nil {
 			return err
 		}
 
@@ -86,7 +86,7 @@ func CheckAuthMember(db *goqu.Database, groupIdUri string, rights RightsChecker)
 	}
 }
 
-func CheckBindForm[T any](request T) fiber.Handler {
+func UseForm[T any](request T) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		if err := ctx.Bind().Form(request); err != nil {
 			return err
@@ -97,7 +97,7 @@ func CheckBindForm[T any](request T) fiber.Handler {
 	}
 }
 
-func CheckAuth(db *goqu.Database) fiber.Handler {
+func UserByAuth(db *goqu.Database) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		authCookie := ctx.Cookies(AuthCookieKey)
 		if authCookie == "" {

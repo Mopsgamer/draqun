@@ -55,7 +55,7 @@ func RegisterPagesRoutes(app *fiber.App, db *goqu.Database) {
 			group := fiber.Locals[database.Group](ctx, perms.LocalGroup)
 			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": group.Moniker, "IsChatPage": true}))
 		},
-		perms.CheckGroupById(db, "group_id"),
+		perms.GroupById(db, "group_id"),
 	)
 	app.Put("/groups/:group_id/join",
 		func(ctx fiber.Ctx) error {
@@ -95,7 +95,7 @@ func RegisterPagesRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		perms.CheckGroupById(db, "group_id"),
+		perms.GroupById(db, "group_id"),
 	)
 	app.Get("/chat/groups/join/:group_name",
 		func(ctx fiber.Ctx) error {
@@ -111,6 +111,6 @@ func RegisterPagesRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.Render("chat", controller.MapPage(ctx, &fiber.Map{"Title": "Join " + group.Moniker, "IsChatPage": true}))
 		},
-		perms.CheckGroupByName(db, "group_name"),
+		perms.GroupByName(db, "group_name"),
 	)
 }

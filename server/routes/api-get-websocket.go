@@ -69,7 +69,7 @@ func RegisterWebsocket(app *fiber.App, db *goqu.Database) {
 				ctxWs.Conn.Close()
 			})(ctx)
 		},
-		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+		perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
 			return role.PermMessages.CanReadMessages()
 		}),
 	)

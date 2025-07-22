@@ -51,8 +51,8 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		perms.CheckAuth(db),
-		perms.CheckBindForm(&UserChangeName{}),
+		perms.UserByAuth(db),
+		perms.UseForm(&UserChangeName{}),
 	)
 	type UserChangeEmail struct {
 		CurrentPassword string `form:"current-password"`
@@ -97,8 +97,8 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		perms.CheckAuth(db),
-		perms.CheckBindForm(&UserChangeEmail{}),
+		perms.UserByAuth(db),
+		perms.UseForm(&UserChangeEmail{}),
 	)
 	type UserChangePhone struct {
 		CurrentPassword string `form:"current-password"`
@@ -134,8 +134,8 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		perms.CheckAuth(db),
-		perms.CheckBindForm(&UserChangePhone{}),
+		perms.UserByAuth(db),
+		perms.UseForm(&UserChangePhone{}),
 	)
 	type UserChangePassword struct {
 		CurrentPassword string `form:"current-password"`
@@ -176,8 +176,8 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		perms.CheckAuth(db),
-		perms.CheckBindForm(&UserChangePassword{}),
+		perms.UserByAuth(db),
+		perms.UseForm(&UserChangePassword{}),
 	)
 	app.Put("/account/logout",
 		func(ctx fiber.Ctx) error {
@@ -253,9 +253,9 @@ func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+		perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
 			return role.PermGroupChange.Has()
 		}),
-		perms.CheckBindForm(&GroupChange{}),
+		perms.UseForm(&GroupChange{}),
 	)
 }

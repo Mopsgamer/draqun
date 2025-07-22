@@ -28,7 +28,7 @@ func RegisterGetRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.JSON(messageList)
 		},
-		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+		perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
 			return role.PermMessages.CanReadMessages()
 		}),
 	)
@@ -52,7 +52,7 @@ func RegisterGetRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.JSON(memberList)
 		},
-		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+		perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
 			return role.PermMessages.CanDeleteMessages()
 		}),
 	)

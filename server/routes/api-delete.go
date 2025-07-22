@@ -40,7 +40,7 @@ func RegisterDeleteRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+		perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
 			return true
 		}),
 	)
@@ -59,7 +59,7 @@ func RegisterDeleteRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+		perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
 			return role.PermGroupChange.Has()
 		}),
 	)
@@ -103,7 +103,7 @@ func RegisterDeleteRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		perms.CheckAuth(db),
-		perms.CheckBindForm(&UserDelete{}),
+		perms.UserByAuth(db),
+		perms.UseForm(&UserDelete{}),
 	)
 }

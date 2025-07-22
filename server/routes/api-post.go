@@ -57,7 +57,7 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 			}
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		perms.CheckBindForm(&UserLogin{}),
+		perms.UseForm(&UserLogin{}),
 	)
 	type UserSignUp struct {
 		*UserLogin
@@ -126,7 +126,7 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		perms.CheckBindForm(&UserSignUp{}),
+		perms.UseForm(&UserSignUp{}),
 	)
 	type GroupCreate struct {
 		Name        string `form:"name"`
@@ -191,8 +191,8 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		perms.CheckAuth(db),
-		perms.CheckBindForm(&GroupCreate{}),
+		perms.UserByAuth(db),
+		perms.UseForm(&GroupCreate{}),
 	)
 	type MessageCreate struct {
 		Content string `form:"content"`
@@ -239,9 +239,9 @@ func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
 
 			return ctx.SendStatus(fiber.StatusOK)
 		},
-		perms.CheckAuthMember(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
+		perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role database.Role) bool {
 			return role.PermMessages.CanWriteMessages()
 		}),
-		perms.CheckBindForm(&MessageCreate{}),
+		perms.UseForm(&MessageCreate{}),
 	)
 }
