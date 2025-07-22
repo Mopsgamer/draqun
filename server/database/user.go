@@ -104,10 +104,29 @@ func (user *User) Groups() []Group {
 	return *groupList
 }
 
-func (user *User) Member() []Group {
+func (user *User) GroupsMember() []Group {
 	groupList := new([]Group)
 
 	err := user.Db.Select(TableGroups+".*").From(TableGroups).
+		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
+		Where(goqu.Ex{TableMembers + ".user_id": user.Id}).
+		ScanStructs(groupList)
+
+	if err == sql.ErrNoRows {
+		return *groupList
+	}
+
+	if err != nil {
+		log.Error(err)
+	}
+
+	return *groupList
+}
+
+func (user *User) Member() []Member {
+	groupList := new([]Member)
+
+	err := user.Db.Select(TableMembers+".*").From(TableGroups).
 		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id}).
 		ScanStructs(groupList)

@@ -11,9 +11,8 @@
         {{- template "partials/settings-dialog" .}} {{- template
         "partials/new-group-dialog" .}} {{$this := .}} {{- if ne $this.Group
         nil}} {{- template "partials/group-settings-dialog" $this}} {{- else}}
-        {{- range $i, $group := userMemberships $this.User.Id}} {{$member :=
-        userMemberOf $group.Id $this.User.Id}} {{$rights := userRightsOf
-        $group.Id $this.User.Id}} {{- /*TODO: ChangeGroup should be simple */}}
+        {{- range $i, $member := $this.Member}} {{$group :=
+        $member.Group}} {{$rights := $member.Role}} {{- /*TODO: ChangeGroup should be simple */}}
         {{- if or $member.IsOwner $rights.ChangeGroup}} {{- template
         "partials/group-settings-dialog" (newMap "Group" $group)}} {{- end}} {{-
         end}} {{- end}}

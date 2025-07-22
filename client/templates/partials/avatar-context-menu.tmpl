@@ -3,9 +3,9 @@
         <span
             class="nickname aligned h-full"
             {{with
-            .User}}title="{{.Nick}}"
+            .User}}title="{{.Moniker}}"
             {{end}}
-        >{{with .User}}{{.Nick}}{{else}}Guest{{end}}</span>
+        >{{with .User}}{{.Moniker}}{{else}}Guest{{end}}</span>
         <sl-avatar class="-mr-2 ml-4" slot="suffix"></sl-avatar>
     </sl-button>
     <sl-menu>
