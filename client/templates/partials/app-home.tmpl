@@ -9,9 +9,11 @@
             </sl-button>
         </h2>
         <div class="flex flex-row gap-2 p-4">
-            {{- range $i, $member := $this.User.Member -}} {{-
-            $group := $member.Group -}} {{- $rights :=
-            $member.Role -}}
+            {{- $groupList = $this.User.GroupList -}}
+            {{- $memberList = $this.User.MemberList -}}
+            {{- range $i, $member := $memberList -}}
+            {{- $group := index $groupList $i -}}
+            {{- $rights := $member.Role -}}
             <a href="/chat/groups/{{$group.Id}}">
                 <sl-card
                     id="my-group-{{$group.Id}}"

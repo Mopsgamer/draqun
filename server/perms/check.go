@@ -76,7 +76,7 @@ func MemberByAuthAndGroupId(db *goqu.Database, groupIdUri string, rights RightsC
 		}
 
 		// TODO: implement ban and kick
-		// should read action list for both from db
+		// should read action list
 		isBannedOrKicked := false
 		if !isBannedOrKicked && !rights(ctx, role) {
 			return htmx.ErrGroupMemberNotAllowed

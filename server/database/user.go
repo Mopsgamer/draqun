@@ -85,7 +85,7 @@ func (user *User) FromName(name string) bool {
 	return user.IsEmpty()
 }
 
-func (user *User) Groups() []Group {
+func (user *User) GroupListCreator() []Group {
 	groupList := new([]Group)
 
 	err := user.Db.Select(TableGroups+".*").From(TableGroups).
@@ -104,7 +104,7 @@ func (user *User) Groups() []Group {
 	return *groupList
 }
 
-func (user *User) GroupsMember() []Group {
+func (user *User) GroupList() []Group {
 	groupList := new([]Group)
 
 	err := user.Db.Select(TableGroups+".*").From(TableGroups).
@@ -123,7 +123,7 @@ func (user *User) GroupsMember() []Group {
 	return *groupList
 }
 
-func (user *User) Member() []Member {
+func (user *User) MemberList() []Member {
 	groupList := new([]Member)
 
 	err := user.Db.Select(TableMembers+".*").From(TableGroups).
