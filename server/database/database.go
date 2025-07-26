@@ -10,6 +10,11 @@ import (
 	"github.com/gofiber/fiber/v3/log"
 )
 
+type DB struct {
+	Goqu *goqu.Database
+	Sqlx *sqlx.DB
+}
+
 // SQL table name.
 const (
 	TableGroups        = "app_groups"
@@ -24,7 +29,7 @@ const (
 )
 
 // Initialize the DB wrapper.
-func InitDB() (*goqu.Database, error) {
+func InitDB() (*DB, error) {
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		environment.DBUser,
 		environment.DBPassword,
@@ -44,5 +49,5 @@ func InitDB() (*goqu.Database, error) {
 
 	goquConnection := goqu.New("mysql", connection)
 	log.Info("Database connected successfully. Hope she is set up manually or by 'deno task init'.")
-	return goquConnection, nil
+	return &DB{Goqu: goquConnection, Sqlx: connection}, nil
 }

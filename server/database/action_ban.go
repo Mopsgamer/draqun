@@ -7,7 +7,7 @@ import (
 )
 
 type ActionBan struct {
-	Db *goqu.Database `db:"-"`
+	Db *DB `db:"-"`
 
 	TargetId    uint64    `db:"target_id"`  // The user being banned.
 	CreatorId   uint64    `db:"creator_id"` // The user who created the ban.

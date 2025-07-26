@@ -1,7 +1,6 @@
 package database
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
@@ -10,7 +9,7 @@ import (
 )
 
 type User struct {
-	Db *goqu.Database `db:"-"`
+	Db *DB `db:"-"`
 
 	Id         uint64        `db:"id"`
 	Moniker    string        `db:"moniker"` // Nick is customizable name. Can contain emojis and special characters.
@@ -25,7 +24,7 @@ type User struct {
 }
 
 func NewUser(
-	db *goqu.Database,
+	db *DB,
 	moniker, name, email, phone, password, avatar string,
 ) User {
 	return User{
@@ -41,17 +40,17 @@ func NewUser(
 	}
 }
 
-func NewUserFromId(db *goqu.Database, userId uint64) (bool, User) {
+func NewUserFromId(db *DB, userId uint64) (bool, User) {
 	user := User{Db: db}
 	return user.FromId(userId), user
 }
 
-func NewUserFromEmail(db *goqu.Database, email string) (bool, User) {
+func NewUserFromEmail(db *DB, email string) (bool, User) {
 	user := User{Db: db}
 	return user.FromEmail(email), user
 }
 
-func NewUserFromName(db *goqu.Database, name string) (bool, User) {
+func NewUserFromName(db *DB, name string) (bool, User) {
 	user := User{Db: db}
 	return user.FromName(name), user
 }
@@ -86,77 +85,87 @@ func (user *User) FromName(name string) bool {
 }
 
 func (user *User) GroupListCreator() []Group {
-	groupList := new([]Group)
+	groupList := []Group{}
 
-	err := user.Db.Select(TableGroups+".*").From(TableGroups).
+	sql, args, err := user.Db.Goqu.Select(TableGroups+".*").From(TableGroups).
 		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id, TableGroups + ".creator_id": TableMembers + ".user_id"}).
-		ScanStructs(groupList)
-
-	if err == sql.ErrNoRows {
-		return *groupList
-	}
-
+		ToSQL()
 	if err != nil {
 		log.Error(err)
+		return groupList
 	}
 
-	return *groupList
+	err = user.Db.Sqlx.Select(&groupList, sql, args...)
+	if err != nil {
+		log.Error(err)
+		return groupList
+	}
+
+	return groupList
 }
 
 func (user *User) GroupListOwner() []Group {
-	groupList := new([]Group)
+	groupList := []Group{}
 
-	err := user.Db.Select(TableGroups+".*").From(TableGroups).
+	sql, args, err := user.Db.Goqu.Select(TableGroups+".*").From(TableGroups).
 		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id, TableGroups + ".owner_id": TableMembers + ".user_id"}).
-		ScanStructs(groupList)
-
-	if err == sql.ErrNoRows {
-		return *groupList
-	}
-
+		ToSQL()
 	if err != nil {
 		log.Error(err)
+		return groupList
 	}
 
-	return *groupList
+	err = user.Db.Sqlx.Select(&groupList, sql, args...)
+	if err != nil {
+		log.Error(err)
+		return groupList
+	}
+
+	return groupList
 }
 
 func (user *User) GroupList() []Group {
-	groupList := new([]Group)
+	groupList := []Group{}
 
-	err := user.Db.Select(TableGroups+".*").From(TableGroups).
+	sql, args, err := user.Db.Goqu.Select(TableGroups+".*").From(TableGroups).
 		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id}).
-		ScanStructs(groupList)
-
-	if err == sql.ErrNoRows {
-		return *groupList
-	}
-
+		ToSQL()
 	if err != nil {
 		log.Error(err)
+		return groupList
+
 	}
 
-	return *groupList
+	err = user.Db.Sqlx.Select(&groupList, sql, args...)
+	if err != nil {
+		log.Error(err)
+		return groupList
+	}
+
+	return groupList
 }
 
 func (user *User) MemberList() []Member {
-	groupList := new([]Member)
+	memberList := []Member{}
 
-	err := user.Db.Select(TableMembers+".*").From(TableGroups).
+	sql, args, err := user.Db.Goqu.Select(TableMembers+".*").From(TableGroups).
 		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id}).
-		ScanStructs(groupList)
-
-	if err == sql.ErrNoRows {
-		return *groupList
-	}
-
+		ToSQL()
 	if err != nil {
 		log.Error(err)
+		return memberList
+
 	}
 
-	return *groupList
+	err = user.Db.Sqlx.Select(&memberList, sql, args...)
+	if err != nil {
+		log.Error(err)
+		return memberList
+	}
+
+	return memberList
 }

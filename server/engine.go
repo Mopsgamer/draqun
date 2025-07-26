@@ -9,14 +9,13 @@ import (
 	"github.com/Mopsgamer/draqun/server/controller"
 	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
-	"github.com/doug-martin/goqu/v9"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/template/html/v2"
 )
 
 // Initialize the view engine.
-func NewAppHtmlEngine(db *goqu.Database, embedFS fs.FS, clientEmbedded bool, directory string) *html.Engine {
+func NewAppHtmlEngine(db *database.DB, embedFS fs.FS, clientEmbedded bool, directory string) *html.Engine {
 	var engine *html.Engine
 	if !clientEmbedded {
 		engine = html.New(directory, environment.TemplateExt)

@@ -1,7 +1,6 @@
 package database
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
@@ -10,7 +9,7 @@ import (
 )
 
 type Member struct {
-	Db *goqu.Database `db:"-"`
+	Db *DB `db:"-"`
 
 	GroupId           uint64        `db:"group_id"`
 	UserId            uint64        `db:"user_id"`
@@ -19,7 +18,7 @@ type Member struct {
 	IsDeleted         types.BitBool `db:"is_deleted"`
 }
 
-func NewMember(db *goqu.Database, groupId, userId uint64, moniker string) Member {
+func NewMember(db *DB, groupId, userId uint64, moniker string) Member {
 	return Member{
 		Db:                db,
 		GroupId:           groupId,
@@ -29,7 +28,7 @@ func NewMember(db *goqu.Database, groupId, userId uint64, moniker string) Member
 	}
 }
 
-func NewMemberFromId(db *goqu.Database, groupId, userId uint64) (bool, Member) {
+func NewMemberFromId(db *DB, groupId, userId uint64) (bool, Member) {
 	member := Member{Db: db}
 	return member.FromId(groupId, userId), member
 }
@@ -64,21 +63,22 @@ func (member Member) Group() Group {
 }
 
 func (group Member) Roles() []Role {
-	roleList := new([]Role)
-	err := group.Db.From(TableRoles).Select(TableRoles+".*").
+	roleList := []Role{}
+	sql, args, err := group.Db.Goqu.From(TableRoles).Select(TableRoles+".*").
 		LeftJoin(goqu.T(TableRoleAssignees), goqu.On(goqu.I(TableRoleAssignees+".role_id").Eq(TableRoles+".id"))).
 		Where(goqu.Ex{TableRoles + ".group_id": group.GroupId, TableRoleAssignees + ".user_id": group.UserId}).
-		ScanStructs(roleList)
-
-	if err == sql.ErrNoRows {
-		return *roleList
+		ToSQL()
+	if err != nil {
+		log.Error(err)
+		return roleList
 	}
 
+	err = group.Db.Sqlx.Select(&roleList, sql, args...)
 	if err != nil {
 		log.Error(err)
 	}
 
-	return *roleList
+	return roleList
 }
 
 func (member Member) Role() Role {
@@ -155,26 +155,26 @@ func (group Member) JoinActed() bool {
 	return action.Insert()
 }
 
-func (member Member) ActionListPage(page uint, limit uint) ([]Action, bool) {
-	actions := new([]Action)
+func (member Member) ActionListPage(page uint, limit uint) []Action {
+	actions := []Action{}
 	from := (page - 1) * limit
 	filter := goqu.Ex{"group_id": member.GroupId, "user_id": member.UserId}
-	err := member.Db.From(TableBans).UnionAll(
-		member.Db.From(TableKicks).UnionAll(
-			member.Db.From(TableMemberships).Where(filter),
+	sql, args, err := member.Db.Goqu.From(TableBans).UnionAll(
+		member.Db.Goqu.From(TableKicks).UnionAll(
+			member.Db.Goqu.From(TableMemberships).Where(filter),
 		).Where(filter),
 	).Where(filter).
 		Limit(limit).Offset(from).
-		ScanStructs(actions)
-
-	if err == sql.ErrNoRows {
-		return *actions, true
-	}
-
+		ToSQL()
 	if err != nil {
 		log.Error(err)
-		return nil, false
+		return actions
 	}
 
-	return *actions, true
+	err = member.Db.Sqlx.Select(&actions, sql, args...)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return actions
 }

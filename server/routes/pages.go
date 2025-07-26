@@ -5,11 +5,10 @@ import (
 	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/perms"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 )
 
-func RegisterPagesRoutes(app *fiber.App, db *goqu.Database) {
+func RegisterPagesRoutes(app *fiber.App, db *database.DB) {
 	app.Get("/",
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("homepage", controller.MapPage(ctx, &fiber.Map{"Title": "Homepage", "IsHomePage": true}), "partials/main")

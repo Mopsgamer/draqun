@@ -8,11 +8,10 @@ import (
 	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/Mopsgamer/draqun/websocket"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 )
 
-func RegisterWebsocket(app *fiber.App, db *goqu.Database) {
+func RegisterWebsocket(app *fiber.App, db *database.DB) {
 	logWS := func(start time.Time, err error, ws *controller_ws.ControllerWs) {
 		colorErr := fiber.DefaultColors.Green
 		if err != nil {

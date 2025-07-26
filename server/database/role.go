@@ -54,7 +54,7 @@ const (
 )
 
 type Role struct {
-	Db *goqu.Database `db:"-"`
+	Db *DB `db:"-"`
 
 	Id      uint32 `db:"id"`
 	GroupId uint64 `db:"group_id"`
@@ -105,11 +105,11 @@ func mergePerm[T PermSwitch | PermMessages | PermMembers](list []T, perm1, perm2
 	panic("unexpected perm msg value: " + string(perm1) + " or " + string(perm2) + ". available values: " + strings.Join(listStr, ",") + ".")
 }
 
-func NewRole(db *goqu.Database) Role {
+func NewRole(db *DB) Role {
 	return Role{Db: db}
 }
 
-func NewRoleEveryone(db *goqu.Database, groupId uint64) Role {
+func NewRoleEveryone(db *DB, groupId uint64) Role {
 	return Role{
 		Db:      db,
 		GroupId: groupId,

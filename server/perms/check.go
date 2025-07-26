@@ -7,7 +7,6 @@ import (
 	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -25,7 +24,7 @@ const AuthCookieKey = "Authorization"
 
 type RightsChecker func(ctx fiber.Ctx, role database.Role) bool
 
-func GroupById(db *goqu.Database, groupIdUri string) fiber.Handler {
+func GroupById(db *database.DB, groupIdUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		groupId := fiber.Params[uint64](ctx, groupIdUri)
 		groupFound, group := database.NewGroupFromId(db, groupId)
@@ -38,7 +37,7 @@ func GroupById(db *goqu.Database, groupIdUri string) fiber.Handler {
 	}
 }
 
-func GroupByName(db *goqu.Database, groupNameUri string) fiber.Handler {
+func GroupByName(db *database.DB, groupNameUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		groupName := fiber.Params[string](ctx, groupNameUri)
 		groupFound, group := database.NewGroupFromName(db, groupName)
@@ -51,7 +50,7 @@ func GroupByName(db *goqu.Database, groupNameUri string) fiber.Handler {
 	}
 }
 
-func MemberByAuthAndGroupId(db *goqu.Database, groupIdUri string, rights RightsChecker) fiber.Handler {
+func MemberByAuthAndGroupId(db *database.DB, groupIdUri string, rights RightsChecker) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		if err := UserByAuth(db)(ctx); err != nil {
 			return err
@@ -97,7 +96,7 @@ func UseForm[T any](request T) fiber.Handler {
 	}
 }
 
-func UserByAuth(db *goqu.Database) fiber.Handler {
+func UserByAuth(db *database.DB) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		authCookie := ctx.Cookies(AuthCookieKey)
 		if authCookie == "" {

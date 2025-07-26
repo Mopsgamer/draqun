@@ -7,25 +7,42 @@ import (
 	"github.com/gofiber/fiber/v3/log"
 )
 
-func First[T any](db *goqu.Database, table string, ex goqu.Ex, item *T) {
-	found, err := db.From(table).Select(item).Where(ex).ScanStruct(item)
-	if !found {
-		log.Error(err)
-	}
-}
-
-func Last[T any](db *goqu.Database, table string, ex goqu.Ex, key exp.IdentifierExpression, item *T) {
-	found, err := db.From(table).Select(item).Where(ex).Order(key.Desc()).Limit(1).ScanStruct(item)
-	if !found {
-		log.Error(err)
-	}
+func First[T any](db *DB, table string, ex goqu.Ex, item *T) {
+	sql, args, err := db.Goqu.From(table).Select(item).Where(ex).ToSQL()
 	if err != nil {
 		log.Error(err)
+		return
+	}
+
+	err = db.Sqlx.DB.QueryRow(sql, args...).Scan(item)
+	if err != nil {
+		log.Error(err)
+		return
 	}
 }
 
-func Insert[T any](db *goqu.Database, table string, item *T) uint64 {
-	result, err := db.Insert(table).Rows(item).Executor().Exec()
+func Last[T any](db *DB, table string, ex goqu.Ex, key exp.IdentifierExpression, item *T) {
+	sql, args, err := db.Goqu.From(table).Select(item).Where(ex).Order(key.Desc()).Limit(1).ToSQL()
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	err = db.Sqlx.DB.QueryRow(sql, args...).Scan(item)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+}
+
+func Insert[T any](db *DB, table string, item *T) uint64 {
+	sql, args, err := db.Goqu.Insert(table).Rows(item).ToSQL()
+	if err != nil {
+		log.Error(err)
+		return 0
+	}
+
+	result, err := db.Sqlx.Exec(sql, args)
 	if err != nil {
 		log.Error(err)
 		return 0
@@ -41,22 +58,34 @@ func Insert[T any](db *goqu.Database, table string, item *T) uint64 {
 	return newIdUint
 }
 
-func Update[T any](db *goqu.Database, table string, item T, ex goqu.Ex) bool {
-	_, err := db.Update(table).Set(item).Where(ex).Executor().Exec()
-	isErr := err != nil
-	if isErr {
+func Update[T any](db *DB, table string, item T, ex goqu.Ex) bool {
+	sql, args, err := db.Goqu.Update(table).Set(item).Where(ex).ToSQL()
+	if err != nil {
 		log.Error(err)
+		return false
 	}
 
-	return isErr
+	_, err = db.Sqlx.Exec(sql, args)
+	if err != nil {
+		log.Error(err)
+		return false
+	}
+
+	return true
 }
 
-func Delete[T string | []any](db *goqu.Database, table T, ex goqu.Ex) bool {
-	_, err := db.From(table).Delete().Where(ex).Executor().Exec()
-	isErr := err != nil
-	if isErr {
+func Delete[T string | []any](db *DB, table T, ex goqu.Ex) bool {
+	sql, args, err := db.Goqu.From(table).Delete().Where(ex).ToSQL()
+	if err != nil {
 		log.Error(err)
+		return false
 	}
 
-	return isErr
+	_, err = db.Sqlx.Exec(sql, args...)
+	if err != nil {
+		log.Error(err)
+		return false
+	}
+
+	return true
 }

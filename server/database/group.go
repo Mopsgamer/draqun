@@ -1,7 +1,6 @@
 package database
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
@@ -18,7 +17,7 @@ const (
 )
 
 type Group struct {
-	Db *goqu.Database `db:"-"`
+	Db *DB `db:"-"`
 
 	Id          uint64        `db:"id"`
 	CreatorId   uint64        `db:"creator_id"`
@@ -34,7 +33,7 @@ type Group struct {
 }
 
 func NewGroup(
-	db *goqu.Database,
+	db *DB,
 	creatorId uint64,
 	moniker, name string,
 	mode GroupMode,
@@ -54,12 +53,12 @@ func NewGroup(
 	}
 }
 
-func NewGroupFromId(db *goqu.Database, id uint64) (bool, Group) {
+func NewGroupFromId(db *DB, id uint64) (bool, Group) {
 	group := Group{Db: db}
 	return group.FromId(id), group
 }
 
-func NewGroupFromName(db *goqu.Database, name string) (bool, Group) {
+func NewGroupFromName(db *DB, name string) (bool, Group) {
 	group := Group{Db: db}
 	return group.FromName(name), group
 }
@@ -107,46 +106,58 @@ func (group Group) Everyone() Role {
 }
 
 func (group Group) MembersCount() uint64 {
-	count := new(uint64)
-	ok, err := goqu.Select(goqu.COUNT("*")).From(TableMembers).
+	count := uint64(0)
+	sql, args, err := goqu.Select(goqu.COUNT("*")).From(TableMembers).
 		Where(goqu.Ex{TableMembers + ".group_id": group.Id, TableMembers + ".is_deleted": types.BitBool(false)}).
-		ScanVal(count)
-	if !ok {
+		ToSQL()
+	if err != nil {
 		log.Error(err)
+		return count
 	}
 
-	return *count
-}
-
-func (group Group) UsersPage(page, limit uint) []User {
-	memberList := new([]User)
-	from := (page - 1) * limit
-
-	err := group.Db.Select(TableUsers+".*").From(TableMembers).
-		LeftJoin(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(TableMembers+".user_id"))).
-		Where(goqu.Ex{TableMembers + ".group_id": group.Id}).
-		Order(goqu.I(TableMembers + ".user_id").Asc()).
-		Limit(limit).Offset(from).
-		ScanStructs(memberList)
-
-	if err == sql.ErrNoRows {
-		return *memberList
-	}
-
+	err = group.Db.Sqlx.Get(&count, sql, args...)
 	if err != nil {
 		log.Error(err)
 	}
 
-	return *memberList
+	return count
+}
+
+func (group Group) UsersPage(page, limit uint) []User {
+	userList := []User{}
+	from := (page - 1) * limit
+
+	sql, args, err := group.Db.Goqu.Select(TableUsers+".*").From(TableMembers).
+		LeftJoin(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(TableMembers+".user_id"))).
+		Where(goqu.Ex{TableMembers + ".group_id": group.Id}).
+		Order(goqu.I(TableMembers + ".user_id").Asc()).
+		Limit(limit).Offset(from).
+		ToSQL()
+	if err != nil {
+		log.Error(err)
+		return userList
+	}
+
+	err = group.Db.Sqlx.Select(&userList, sql, args...)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return userList
 }
 
 func (group Group) MessageFirst() *Message {
 	message := new(Message)
 
-	found, err := group.Db.From(TableMessages).Where(goqu.C("group_id").Eq(group.Id)).Order(goqu.C("id").Asc()).Limit(1).
-		ScanStruct(message)
+	sql, args, err := group.Db.Goqu.From(TableMessages).Where(goqu.C("group_id").Eq(group.Id)).Order(goqu.C("id").Asc()).Limit(1).
+		ToSQL()
+	if err != nil {
+		log.Error(err)
+		return message
+	}
 
-	if !found {
+	err = group.Db.Sqlx.QueryRowx(sql, args...).StructScan(&message)
+	if err != nil {
 		log.Error(err)
 	}
 
@@ -156,58 +167,65 @@ func (group Group) MessageFirst() *Message {
 func (group Group) MessageLast() *Message {
 	message := new(Message)
 
-	found, err := group.Db.From(TableMessages).Where(goqu.C("group_id").Eq(group.Id)).Order(goqu.C("id").Desc()).Limit(1).
-		ScanStruct(message)
-
-	if !found {
+	sql, args, err := group.Db.Goqu.From(TableMessages).Where(goqu.C("group_id").Eq(group.Id)).Order(goqu.C("id").Desc()).Limit(1).
+		ToSQL()
+	if err != nil {
 		log.Error(err)
+		return message
+	}
+
+	err = group.Db.Sqlx.QueryRowx(sql, args...).StructScan(&message)
+	if err != nil {
+		log.Error(err)
+		return message
 	}
 
 	return message
 }
 
 func (group Group) MessagesPage(page, limit uint) []Message {
-	messageList := new([]Message)
+	messageList := []Message{}
 	from := (page - 1) * limit
 
-	subquery := group.Db.From(TableMessages).
+	subquery := group.Db.Goqu.From(TableMessages).
 		Where(goqu.Ex{"group_id": group.Id}).
 		Order(goqu.I("id").Desc()).
 		Limit(limit).Offset(from)
-	err := group.Db.From(subquery.As("subquery")).Order(goqu.I("id").Asc()).
-		Executor().ScanStructs(messageList)
-
-	if err == sql.ErrNoRows {
-		return *messageList
+	sql, args, err := group.Db.Goqu.From(subquery).Order(goqu.I("id").Asc()).
+		ToSQL()
+	if err != nil {
+		log.Error(err)
+		return messageList
 	}
 
+	err = group.Db.Sqlx.Select(&messageList, sql, args...)
 	if err != nil {
 		log.Error(err)
 	}
 
-	return *messageList
+	return messageList
 }
 
-func (group Group) ActionListPage(page uint, limit uint) ([]Action, bool) {
-	actions := new([]Action)
+func (group Group) ActionListPage(page uint, limit uint) []Action {
+	actions := []Action{}
 	from := (page - 1) * limit
 	filter := goqu.Ex{"group_id": group.Id}
-	err := group.Db.From(TableBans).UnionAll(
-		group.Db.From(TableKicks).UnionAll(
-			group.Db.From(TableMemberships).Where(filter),
+	sql, args, err := group.Db.Goqu.From(TableBans).UnionAll(
+		group.Db.Goqu.From(TableKicks).UnionAll(
+			group.Db.Goqu.From(TableMemberships).Where(filter),
 		).Where(filter),
 	).Where(filter).
 		Limit(limit).Offset(from).
-		ScanStructs(actions)
-
-	if err == sql.ErrNoRows {
-		return *actions, true
-	}
-
+		ToSQL()
 	if err != nil {
 		log.Error(err)
-		return nil, false
+		return actions
 	}
 
-	return *actions, true
+	err = group.Db.Sqlx.Select(&actions, sql, args...)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return actions
 }

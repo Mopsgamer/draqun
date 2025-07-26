@@ -6,11 +6,10 @@ import (
 	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/perms"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 )
 
-func RegisterPutRoutes(app *fiber.App, db *goqu.Database) {
+func RegisterPutRoutes(app *fiber.App, db *database.DB) {
 	type UserChangeName struct {
 		NewNickname string `form:"new-nickname"`
 		NewName     string `form:"new-username"`

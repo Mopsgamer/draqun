@@ -6,13 +6,13 @@ import (
 )
 
 type RoleAssignee struct {
-	Db *goqu.Database `db:"-"`
+	Db *DB `db:"-"`
 
 	UserId uint64 `db:"user_id"`
 	RoleId uint32 `db:"role_id"`
 }
 
-func NewRoleAssign(db *goqu.Database) RoleAssignee {
+func NewRoleAssign(db *DB) RoleAssignee {
 	return RoleAssignee{Db: db}
 }
 
@@ -30,17 +30,23 @@ func (roleAssign *RoleAssignee) Delete() bool {
 
 func (roleAssign *RoleAssignee) Role() Role {
 	member := NewRole(roleAssign.Db)
-	found, err := roleAssign.Db.From(TableMembers).Select(TableMembers+".*").
+	sql, args, err := roleAssign.Db.Goqu.From(TableMembers).Select(TableMembers+".*").
 		LeftJoin(goqu.I(TableRoles), goqu.On(
 			goqu.I(TableRoles+".id").Eq(TableRoleAssignees+".role_id"),
 		)).
 		LeftJoin(goqu.I(TableRoleAssignees), goqu.On(
 			goqu.I(TableRoleAssignees+".user_id").Eq(TableMembers+".user_id"),
 		)).
-		ScanStruct(member)
-
-	if !found {
+		ToSQL()
+	if err != nil {
 		log.Error(err)
+		return member
+	}
+
+	roleAssign.Db.Sqlx.QueryRowx(sql, args...).StructScan(&member)
+	if err != nil {
+		log.Error(err)
+		return member
 	}
 
 	return member
@@ -48,17 +54,23 @@ func (roleAssign *RoleAssignee) Role() Role {
 
 func (roleAssign *RoleAssignee) Member() Member {
 	member := Member{Db: roleAssign.Db}
-	found, err := roleAssign.Db.From(TableMembers).Select(TableMembers+".*").
+	sql, args, err := roleAssign.Db.Goqu.From(TableMembers).Select(TableMembers+".*").
 		LeftJoin(goqu.I(TableRoles), goqu.On(
 			goqu.I(TableRoles+".id").Eq(TableRoleAssignees+".role_id"),
 		)).
 		LeftJoin(goqu.I(TableRoleAssignees), goqu.On(
 			goqu.I(TableRoleAssignees+".user_id").Eq(TableMembers+".user_id"),
 		)).
-		ScanStruct(member)
-
-	if !found {
+		ToSQL()
+	if err != nil {
 		log.Error(err)
+		return member
+	}
+
+	roleAssign.Db.Sqlx.QueryRowx(sql, args...).StructScan(&member)
+	if err != nil {
+		log.Error(err)
+		return member
 	}
 
 	return member

@@ -4,11 +4,10 @@ import (
 	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/perms"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 )
 
-func RegisterGetRoutes(app *fiber.App, db *goqu.Database) {
+func RegisterGetRoutes(app *fiber.App, db *database.DB) {
 	app.Get("/groups/:group_id/messages/page/:messages_page",
 		func(ctx fiber.Ctx) error {
 			group := fiber.Locals[database.Group](ctx, perms.LocalGroup)

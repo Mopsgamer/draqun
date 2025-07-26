@@ -18,7 +18,7 @@ import (
 
 // Initialize gofiber application, including DB and view engine.
 func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
-	var db, errDBLoad = database.InitDB()
+	db, errDBLoad := database.InitDB()
 	if errDBLoad != nil {
 		log.Error(errDBLoad)
 		fmt.Println("Your database connection should be configured by DB_* variables: " + environment.GitHubRepo + "/blob/main/scripts/init.ts")

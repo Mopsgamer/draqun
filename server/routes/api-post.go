@@ -10,11 +10,10 @@ import (
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/Mopsgamer/draqun/server/render"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 )
 
-func RegisterPostRoutes(app *fiber.App, db *goqu.Database) {
+func RegisterPostRoutes(app *fiber.App, db *database.DB) {
 	type UserLogin struct {
 		Email    string `form:"email"`
 		Password string `form:"password"`

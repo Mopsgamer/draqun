@@ -8,7 +8,7 @@ import (
 )
 
 type ActionMembership struct {
-	Db *goqu.Database `db:"-"`
+	Db *DB `db:"-"`
 
 	UserId  uint64        `db:"user_id"`  // The user being acted upon.
 	GroupId uint64        `db:"group_id"` // The group where the action was performed.

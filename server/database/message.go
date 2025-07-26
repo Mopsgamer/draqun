@@ -8,7 +8,7 @@ import (
 )
 
 type Message struct {
-	Db *goqu.Database `db:"-"`
+	Db *DB `db:"-"`
 
 	Id        uint64    `db:"id"`
 	GroupId   uint64    `db:"group_id"`
@@ -17,7 +17,7 @@ type Message struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
-func NewMessageFilled(db *goqu.Database, groupId, userId uint64, content string) Message {
+func NewMessageFilled(db *DB, groupId, userId uint64, content string) Message {
 	return Message{Db: db, GroupId: groupId, AuthorId: userId, Content: strings.TrimSpace(content), CreatedAt: time.Now()}
 }
 
