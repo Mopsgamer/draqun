@@ -1,4 +1,4 @@
-package controller
+package render
 
 import (
 	"bytes"
@@ -7,22 +7,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 )
-
-// Converts the pointer to a value
-func MapMerge(maps ...*fiber.Map) fiber.Map {
-	merge := fiber.Map{}
-	for _, m := range maps {
-		if m == nil {
-			continue
-		}
-
-		for k, v := range *m {
-			merge[k] = v
-		}
-	}
-
-	return merge
-}
 
 func RenderBuffer(app *fiber.App, templateName string, bind any) (bytes.Buffer, error) {
 	buf := bytes.NewBuffer([]byte{})

@@ -2,8 +2,7 @@ package controller
 
 import (
 	"github.com/Mopsgamer/draqun/server/environment"
-	"github.com/Mopsgamer/draqun/server/model_database"
-
+	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -16,12 +15,28 @@ func MapPage(ctx fiber.Ctx, bind *fiber.Map) fiber.Map {
 		"GitHash":     environment.GitHash,
 		"GitHashLong": environment.GitHashLong,
 
-		"User":   fiber.Locals[*model_database.User](ctx, LocalAuth),
-		"Group":  fiber.Locals[*model_database.Group](ctx, LocalGroup),
-		"Member": fiber.Locals[*model_database.Member](ctx, LocalMember),
-		"Rights": fiber.Locals[model_database.Role](ctx, LocalRights),
+		"User":   ctx.Locals(perms.LocalAuth),
+		"Group":  ctx.Locals(perms.LocalGroup),
+		"Member": ctx.Locals(perms.LocalMember),
+		"Rights": ctx.Locals(perms.LocalRights),
 	}
 
 	bindx = MapMerge(&bindx, bind)
 	return bindx
+}
+
+// Converts the pointer to a value
+func MapMerge(maps ...*fiber.Map) fiber.Map {
+	merge := fiber.Map{}
+	for _, m := range maps {
+		if m == nil {
+			continue
+		}
+
+		for k, v := range *m {
+			merge[k] = v
+		}
+	}
+
+	return merge
 }

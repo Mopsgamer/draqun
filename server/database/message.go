@@ -1,101 +1,44 @@
 package database
 
 import (
-	"database/sql"
+	"strings"
+	"time"
 
-	"github.com/Mopsgamer/draqun/server/model_database"
 	"github.com/doug-martin/goqu/v9"
-
-	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/log"
 )
 
-func (db Database) CachedMessageList(messageList []model_database.Message) []fiber.Map {
-	result := []fiber.Map{}
-	users := map[uint64]model_database.User{}
-	for _, message := range messageList {
-		if _, ok := users[message.AuthorId]; !ok {
-			users[message.AuthorId] = *db.UserById(message.AuthorId)
-		}
-		author := users[message.AuthorId]
-		result = append(result, fiber.Map{
-			"Message": message,
-			"Author":  author,
-		})
-	}
-	return result
+type Message struct {
+	Db *DB `db:"-"`
+
+	Id        uint64    `db:"id"`
+	GroupId   uint64    `db:"group_id"`
+	AuthorId  uint64    `db:"author_id"`
+	Content   string    `db:"content"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
-func (db Database) MessageById(messageId uint64) *model_database.Message {
-	return First[model_database.Message](db, "app_group_messages", goqu.Ex{"id": messageId})
+func NewMessageFilled(db *DB, groupId, userId uint64, content string) Message {
+	return Message{Db: db, GroupId: groupId, AuthorId: userId, Content: strings.TrimSpace(content), CreatedAt: time.Now()}
 }
 
-func (db Database) MessageCreate(message model_database.Message) *uint64 {
-	return Insert(db, "app_group_messages", message)
+func (message *Message) IsEmpty() bool {
+	return message.Id != 0 && message.GroupId != 0 && message.AuthorId != 0
 }
 
-func (db Database) MessageList(groupId uint64) []model_database.Message {
-	messageList := &[]model_database.Message{}
-	query := `SELECT * FROM app_group_messages WHERE group_id = ?`
-	err := db.Sqlx.Select(messageList, query, groupId)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return *messageList
-		}
-		log.Error(err)
-		return *messageList
-	}
-	return *messageList
+func (message *Message) Insert() bool {
+	return Insert(message.Db, TableMessages, message) != 0
 }
 
-func (db *Database) MessageFirst(groupId uint64) *model_database.Message {
-	message := new(model_database.Message)
-	query := `SELECT * FROM app_group_messages
-		WHERE group_id = ?
-		ORDER BY id ASC LIMIT 1`
-	err := db.Sqlx.Get(message, query, groupId)
-
-	if err != nil {
-		log.Error(err)
-		return message
-	}
-	return message
+func (message *Message) Update() bool {
+	return Update(message.Db, TableMessages, message, goqu.Ex{"id": message.Id})
 }
 
-func (db *Database) MessageLast(groupId uint64) *model_database.Message {
-	message := new(model_database.Message)
-	query := `SELECT * FROM app_group_messages
-		WHERE group_id = ?
-		ORDER BY id DESC LIMIT 1`
-	err := db.Sqlx.Get(message, query, groupId)
-
-	if err != nil {
-		log.Error(err)
-		return message
-	}
-	return message
+func (message *Message) Delete() bool {
+	return Delete(message.Db, TableMessages, goqu.Ex{"id": message.Id})
 }
 
-func (db Database) MessageListPage(groupId uint64, page uint64, perPage uint64) []model_database.Message {
-	messageList := &[]model_database.Message{}
-	query := `SELECT * FROM (
-		SELECT * FROM app_group_messages
-		WHERE group_id = ?
-		ORDER BY id DESC
-		LIMIT ?, ?
-	) subquery
-	ORDER BY id ASC`
-	from := (page - 1) * perPage
-	to := page * perPage
-	err := db.Sqlx.Select(messageList, query, groupId, from, to)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return *messageList
-		}
-		log.Error(err)
-		return *messageList
-	}
-	return *messageList
+func (message *Message) Author() User {
+	user := User{Db: message.Db}
+	user.FromId(message.AuthorId)
+	return user
 }

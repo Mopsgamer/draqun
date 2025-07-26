@@ -5,19 +5,31 @@ import (
 
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/gofiber/fiber/v3/log"
-	"github.com/jmoiron/sqlx"
 )
 
-// The SQL DB wrapper.
-type Database struct {
-	Sqlx *sqlx.DB
+type DB struct {
 	Goqu *goqu.Database
+	Sqlx *sqlx.DB
 }
 
+// SQL table name.
+const (
+	TableGroups        = "app_groups"
+	TableMembers       = "app_group_members"
+	TableUsers         = "app_users"
+	TableMessages      = "app_group_messages"
+	TableRoles         = "app_group_roles"
+	TableRoleAssignees = "app_group_role_assignees"
+	TableBans          = "app_group_action_bans"
+	TableKicks         = "app_group_action_kicks"
+	TableMemberships   = "app_group_action_memberships"
+)
+
 // Initialize the DB wrapper.
-func InitDB() (*Database, error) {
+func InitDB() (*DB, error) {
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		environment.DBUser,
 		environment.DBPassword,
@@ -26,7 +38,7 @@ func InitDB() (*Database, error) {
 		environment.DBName,
 	)
 
-	connection, err := sqlx.Connect("mysql", connectionString)
+	connection, err := sqlx.Open("mysql", connectionString)
 	if err != nil {
 		return nil, err
 	}
@@ -37,5 +49,5 @@ func InitDB() (*Database, error) {
 
 	goquConnection := goqu.New("mysql", connection)
 	log.Info("Database connected successfully. Hope she is set up manually or by 'deno task init'.")
-	return &Database{Sqlx: connection, Goqu: goquConnection}, nil
+	return &DB{Goqu: goquConnection, Sqlx: connection}, nil
 }

@@ -22,12 +22,9 @@ type userSessionMap struct {
 }
 
 // Push data for each connection by user id.
-func (conns *userSessionMap) Push(filter func(userId uint64) bool, data string, sub Subscription) {
+func (conns *userSessionMap) Push(data string, sub Subscription) {
 	conns.mutex.Lock()
 	for userId := range *conns.mp {
-		if !filter(userId) {
-			continue
-		}
 		for _, ws := range (*conns.mp)[userId] {
 			if slices.Contains(ws.Subs, sub) {
 				continue

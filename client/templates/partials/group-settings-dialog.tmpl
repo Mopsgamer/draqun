@@ -1,11 +1,11 @@
 <sl-dialog
     id="group-settings-dialog-{{.Group.Id}}"
     class="fullscreen-base"
-    label="Group settings dialog for {{.Group.Nick}}"
+    label="Group settings dialog for {{.Group.Moniker}}"
 >
     <span slot="label" class="aligned">
         <sl-icon name="people"></sl-icon>
-        Group settings - {{.Group.Nick}}
+        Group settings - {{.Group.Moniker}}
     </span>
     <div>
         <h1 class="anchor-header">
@@ -35,7 +35,7 @@
                 id="change-group-nick"
                 name="nick"
                 required
-                value="{{.Group.Nick}}"
+                value="{{.Group.Moniker}}"
             ></sl-input>
             <sl-input
                 label="Name"

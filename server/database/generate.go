@@ -1,81 +1,89 @@
 package database
 
 import (
-	"database/sql"
-
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/gofiber/fiber/v3/log"
 )
 
-func First[T any](db Database, table string, ex goqu.Ex) *T {
-	item := new(T)
-	query, params, err := db.Goqu.From(table).Prepared(true).Select(item).Where(ex).ToSQL()
+func First[T any](db *DB, table string, ex goqu.Ex, item *T) {
+	sql, args, err := db.Goqu.From(table).Select(item).Where(ex).ToSQL()
 	if err != nil {
-		log.Error(err, query)
-		return nil
+		log.Error(err)
+		return
 	}
 
-	err = db.Sqlx.Get(item, query, params...)
+	err = db.Sqlx.DB.QueryRow(sql, args...).Scan(item)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil
-		}
-		log.Error(err, query)
-		return nil
+		log.Error(err)
+		return
 	}
-	return item
 }
 
-func Insert[T any](db Database, table string, item T) *uint64 {
-	query, params, err := db.Goqu.Insert(table).Prepared(true).Rows(item).ToSQL()
+func Last[T any](db *DB, table string, ex goqu.Ex, key exp.IdentifierExpression, item *T) {
+	sql, args, err := db.Goqu.From(table).Select(item).Where(ex).Order(key.Desc()).Limit(1).ToSQL()
 	if err != nil {
-		log.Error(err, query)
-		return nil
+		log.Error(err)
+		return
 	}
 
-	r, err := db.Sqlx.Exec(query, params...)
+	err = db.Sqlx.DB.QueryRow(sql, args...).Scan(item)
 	if err != nil {
-		log.Error(err, query)
-		return nil
+		log.Error(err)
+		return
+	}
+}
+
+func Insert[T any](db *DB, table string, item *T) uint64 {
+	sql, args, err := db.Goqu.Insert(table).Rows(item).ToSQL()
+	if err != nil {
+		log.Error(err)
+		return 0
 	}
 
-	newId, err := r.LastInsertId()
+	result, err := db.Sqlx.Exec(sql, args)
 	if err != nil {
-		log.Error(err, query)
-		return nil
+		log.Error(err)
+		return 0
+	}
+
+	newId, err := result.LastInsertId()
+	if err != nil {
+		log.Error(err)
+		return 0
 	}
 
 	newIdUint := uint64(newId)
-	return &newIdUint
+	return newIdUint
 }
 
-func Update[T any](db Database, table string, item T, ex goqu.Ex) bool {
-	query, params, err := db.Goqu.Update(table).Prepared(true).Set(item).Where(ex).ToSQL()
+func Update[T any](db *DB, table string, item T, ex goqu.Ex) bool {
+	sql, args, err := db.Goqu.Update(table).Set(item).Where(ex).ToSQL()
 	if err != nil {
-		log.Error(err, query)
+		log.Error(err)
 		return false
 	}
 
-	_, err = db.Sqlx.Exec(query, params...)
+	_, err = db.Sqlx.Exec(sql, args)
 	if err != nil {
-		log.Error(err, query)
+		log.Error(err)
 		return false
 	}
 
 	return true
 }
 
-func Delete(db Database, table string, ex goqu.Ex) bool {
-	query, params, err := db.Goqu.From(table).Prepared(true).Delete().Where(ex).ToSQL()
+func Delete[T string | []any](db *DB, table T, ex goqu.Ex) bool {
+	sql, args, err := db.Goqu.From(table).Delete().Where(ex).ToSQL()
 	if err != nil {
-		log.Error(err, query)
+		log.Error(err)
 		return false
 	}
 
-	_, err = db.Sqlx.Exec(query, params...)
+	_, err = db.Sqlx.Exec(sql, args...)
 	if err != nil {
-		log.Error(err, query)
+		log.Error(err)
 		return false
 	}
 

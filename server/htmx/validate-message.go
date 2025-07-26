@@ -1,6 +1,4 @@
-package model_database
-
-import "github.com/Mopsgamer/draqun/server/environment"
+package htmx
 
 const (
 	RegexpMessageContent = `^.+$`
@@ -8,7 +6,7 @@ const (
 
 func IsValidMessageContent(text string) error {
 	if IsValidString(text, RegexpMessageContent, 8000) {
-		return environment.ErrChatMessageContent
+		return ErrGroupChatInvalidContent
 	}
 
 	return nil

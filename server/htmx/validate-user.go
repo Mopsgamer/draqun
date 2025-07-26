@@ -1,9 +1,7 @@
-package model_database
+package htmx
 
 import (
 	"regexp"
-
-	"github.com/Mopsgamer/draqun/server/environment"
 )
 
 var ()
@@ -19,39 +17,39 @@ const (
 
 func IsValidUserPassword(str string) error {
 	if !IsValidString(str, RegexpUserPassword, 255) {
-		return environment.ErrFormatUserPassword
+		return ErrFormatUserPassword
 	}
 	return nil
 }
 
 func IsValidUserNick(str string) error {
 	if !IsValidString(str, RegexpUserNick, 255) {
-		return environment.ErrFormatUserNickname
+		return ErrFormatUserMoniker
 	}
 	return nil
 }
 
 func IsValidUserName(str string) error {
 	if !IsValidString(str, RegexpUserName, 255) {
-		return environment.ErrFormatUserName
+		return ErrFormatUserName
 	}
 	return nil
 }
 
 func IsValidUserEmail(str string) error {
 	if !IsValidString(str, RegexpUserEmail, 255) {
-		return environment.ErrFormatUserEmail
+		return ErrFormatUserEmail
 	}
 	return nil
 }
 
-func IsValidUserPhone(str *string) error {
-	if str == nil {
+func IsValidUserPhone(str string) error {
+	if str == "" {
 		return nil // allow no phone
 	}
-	newstr := regexp.MustCompile(`\s`).ReplaceAllString(*str, "")
+	newstr := regexp.MustCompile(`\s`).ReplaceAllString(str, "")
 	if !IsValidString(newstr, RegexpUserPhone, 255) {
-		return environment.ErrFormatUserPhone
+		return ErrFormatUserPhone
 	}
 	return nil
 }
