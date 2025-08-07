@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
@@ -228,4 +229,12 @@ func (group Group) ActionListPage(page uint, limit uint) []Action {
 	}
 
 	return actions
+}
+
+func (group Group) Url() string {
+	return "/chat/groups/" + fmt.Sprintf("%d", group.Id)
+}
+
+func (group Group) UrlJoin() string {
+	return "/chat/groups/join/" + group.Name
 }

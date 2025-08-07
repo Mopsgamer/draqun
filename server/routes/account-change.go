@@ -1,0 +1,180 @@
+package routes
+
+import (
+	"github.com/Mopsgamer/draqun/server/database"
+	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/Mopsgamer/draqun/server/perms"
+	"github.com/gofiber/fiber/v3"
+)
+
+func routeAccountChange(router fiber.Router, db *database.DB) fiber.Router {
+	type UserChangeName struct {
+		NewNickname string `form:"new-nickname"`
+		NewName     string `form:"new-username"`
+	}
+	type UserChangeEmail struct {
+		CurrentPassword string `form:"current-password"`
+		NewEmail        string `form:"new-email"`
+	}
+	type UserChangePhone struct {
+		CurrentPassword string `form:"current-password"`
+		NewPhone        string `form:"new-phone"`
+	}
+	type UserChangePassword struct {
+		CurrentPassword string `form:"current-password"`
+		NewPassword     string `form:"new-password"`
+		ConfirmPassword string `form:"confirm-password"`
+	}
+	return router.Group("/change").
+		Put("/name",
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[*UserChangeName](ctx, perms.LocalForm)
+				user := fiber.Locals[database.User](ctx, perms.LocalAuth)
+
+				if request.NewNickname == user.Moniker && request.NewName == user.Name {
+					return htmx.ErrUseless
+				}
+
+				if err := htmx.IsValidUserNick(request.NewNickname); err != nil {
+					return err
+				}
+
+				if err := htmx.IsValidUserName(request.NewName); err != nil {
+					return err
+				}
+
+				foundUser, _ := database.NewUserFromName(db, request.NewName)
+				if foundUser {
+					return htmx.ErrUserExsistsName
+				}
+
+				user.Moniker = request.NewNickname
+				user.Name = request.NewName
+
+				if !user.Update() {
+					return htmx.ErrDatabase
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.EnableRefresh(ctx)
+					return ctx.SendStatus(fiber.StatusOK)
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+			perms.UserByAuth(db),
+			perms.UseForm(&UserChangeName{}),
+		).
+		Put("/email",
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[*UserChangeEmail](ctx, perms.LocalForm)
+				user := fiber.Locals[database.User](ctx, perms.LocalAuth)
+
+				if request.NewEmail == user.Email {
+					return htmx.ErrUseless
+				}
+
+				if err := htmx.IsValidUserEmail(request.NewEmail); err != nil {
+					return err
+				}
+
+				foundUser, _ := database.NewUserFromEmail(db, request.NewEmail)
+				if foundUser {
+					return htmx.ErrUserExsistsEmail
+				}
+
+				if err := htmx.IsValidUserPassword(request.CurrentPassword); err != nil {
+					return err
+				}
+
+				if !user.CheckPassword(request.CurrentPassword) {
+					return htmx.ErrUserPassword
+				}
+
+				user.Email = request.NewEmail
+
+				if !user.Update() {
+					return htmx.ErrDatabase
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.EnableRefresh(ctx)
+					return ctx.SendStatus(fiber.StatusOK)
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+			perms.UserByAuth(db),
+			perms.UseForm(&UserChangeEmail{}),
+		).
+		Put("/phone",
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[*UserChangePhone](ctx, perms.LocalForm)
+				user := fiber.Locals[database.User](ctx, perms.LocalAuth)
+
+				if request.NewPhone == user.Phone {
+					return htmx.ErrUseless
+				}
+
+				if err := htmx.IsValidUserPhone(request.NewPhone); err != nil {
+					return err
+				}
+
+				if !user.CheckPassword(request.CurrentPassword) {
+					return htmx.ErrUserPassword
+				}
+
+				user.Phone = request.NewPhone
+
+				if !user.Update() {
+					return htmx.ErrDatabase
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.EnableRefresh(ctx)
+					return ctx.SendStatus(fiber.StatusOK)
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+			perms.UserByAuth(db),
+			perms.UseForm(&UserChangePhone{}),
+		).
+		Put("/password",
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[*UserChangePassword](ctx, perms.LocalForm)
+				user := fiber.Locals[database.User](ctx, perms.LocalAuth)
+
+				if request.NewPassword == user.Password {
+					return htmx.ErrUseless
+				}
+
+				if err := htmx.IsValidUserPassword(request.CurrentPassword); err != nil {
+					return err
+				}
+
+				if request.ConfirmPassword != request.NewPassword {
+					return htmx.ErrUserPasswordConfirm
+				}
+
+				if !user.CheckPassword(request.CurrentPassword) {
+					return htmx.ErrUserPassword
+				}
+
+				user.Password = request.NewPassword
+
+				if !user.Update() {
+					return htmx.ErrDatabase
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.EnableRefresh(ctx)
+					return ctx.SendStatus(fiber.StatusOK)
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+			perms.UserByAuth(db),
+			perms.UseForm(&UserChangePassword{}),
+		)
+}

@@ -4,9 +4,7 @@ import (
 	_ "embed"
 	"io/fs"
 
-	"github.com/Mopsgamer/draqun/server/controller"
 	"github.com/Mopsgamer/draqun/server/database"
-	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/routes"
 
@@ -37,19 +35,10 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 	app.Use(logger.New())
 
-	static := controller.NewStaticFactory(embedFS, clientEmbedded)
-
-	// static
-	app.Get("/static", static(environment.StaticFolder))
-	app.Get("/static/*", static(environment.StaticFolder))
-
-	routes.RegisterPagesRoutes(app, db)
-	routes.RegisterGetRoutes(app, db)
-	routes.RegisterPostRoutes(app, db)
-	routes.RegisterPutRoutes(app, db)
-	routes.RegisterDeleteRoutes(app, db)
-
-	routes.RegisterWebsocket(app, db)
+	routes.RouteStatic(embedFS, clientEmbedded, app)
+	routes.RoutePages(app, db)
+	routes.RouteAccount(app, db)
+	routes.RouteGroups(app, db)
 
 	app.Use(func(ctx fiber.Ctx) error {
 		if htmx.IsHtmx(ctx) {

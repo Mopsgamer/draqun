@@ -1,4 +1,4 @@
-package controller_ws
+package session
 
 import (
 	"github.com/Mopsgamer/draqun/server/render"

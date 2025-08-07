@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Mopsgamer/draqun/server/controller"
 	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
 
@@ -74,10 +73,6 @@ func NewAppHtmlEngine(db *database.DB, embedFS fs.FS, clientEmbedded bool, direc
 				result[k] = v
 			}
 			return result
-		},
-
-		"groupLink": func(group database.Group) string {
-			return "localhost:3000" + controller.PathRedirectGroupJoin(group.Name)
 		},
 	})
 

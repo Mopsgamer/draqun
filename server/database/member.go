@@ -37,6 +37,10 @@ func (group Member) IsEmpty() bool {
 	return group.GroupId != 0 && group.UserId != 0
 }
 
+func (member Member) IsAvailable() bool {
+	return !member.IsEmpty() && !bool(member.IsDeleted)
+}
+
 func (group *Member) Insert() bool {
 	return Insert(group.Db, TableMembers, group) != 0
 }

@@ -1,12 +1,14 @@
-package controller
+package routes
 
 import (
+	"maps"
+
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/gofiber/fiber/v3"
 )
 
-func MapPage(ctx fiber.Ctx, bind *fiber.Map) fiber.Map {
+func MapPage(ctx fiber.Ctx, bind fiber.Map) fiber.Map {
 	bindx := fiber.Map{
 		"AppName":     environment.AppName,
 		"GitHubRepo":  environment.GitHubRepo,
@@ -21,22 +23,6 @@ func MapPage(ctx fiber.Ctx, bind *fiber.Map) fiber.Map {
 		"Rights": ctx.Locals(perms.LocalRights),
 	}
 
-	bindx = MapMerge(&bindx, bind)
+	maps.Copy(bindx, bind)
 	return bindx
-}
-
-// Converts the pointer to a value
-func MapMerge(maps ...*fiber.Map) fiber.Map {
-	merge := fiber.Map{}
-	for _, m := range maps {
-		if m == nil {
-			continue
-		}
-
-		for k, v := range *m {
-			merge[k] = v
-		}
-	}
-
-	return merge
 }

@@ -1,4 +1,4 @@
-package controller
+package routes
 
 import (
 	"io/fs"
@@ -9,6 +9,10 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/static"
 )
+
+func RouteStatic(embedFS fs.FS, clientEmbedded bool, app *fiber.App) {
+	app.Get("/static", NewStaticFactory(embedFS, clientEmbedded)(environment.StaticFolder))
+}
 
 func NewStaticFactory(embedFS fs.FS, clientEmbedded bool) func(dir string) fiber.Handler {
 	return func(dir string) fiber.Handler {

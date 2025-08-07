@@ -1,4 +1,4 @@
-package controller_ws
+package session
 
 import (
 	"slices"

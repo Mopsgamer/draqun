@@ -15,7 +15,7 @@
         <sl-alert open variant="primary">
             <sl-icon slot="icon" name="info-circle"></sl-icon>
             {{- "" -}} You can invite more people. Share the link {{- "" -}}
-            <sl-copy-button id="copy-invite" hoist value="{{groupLink .Group}}">
+            <sl-copy-button id="copy-invite" hoist value="{{.Group.UrlJoin}}">
                 {{- "" -}}
             </sl-copy-button>{{- "" -}}.{{- "" -}}
         </sl-alert>

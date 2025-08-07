@@ -76,8 +76,7 @@ func MemberByAuthAndGroupId(db *database.DB, groupIdUri string, rights RightsChe
 			return ctx.Next()
 		}
 
-		isMemberRightNow := !member.IsEmpty() && bool(!member.IsDeleted)
-		if isMemberRightNow && rights(ctx, role) {
+		if member.IsAvailable() && rights(ctx, role) {
 			return ctx.Next()
 		}
 
