@@ -27,6 +27,8 @@ const (
 	BuildModeProduction
 )
 
+var NoEnv bool
+
 // App settings.
 var (
 	JWTKey                  string
@@ -57,12 +59,12 @@ type DenoConfig struct {
 func Load(embedFS fs.FS) {
 	if err := godotenv.Load(); err != nil {
 		if os.IsNotExist(err) {
-			goto InitEnv
+			NoEnv = true
+		} else {
+			log.Error(err)
 		}
-		log.Error(err)
 	}
 
-InitEnv:
 	JWTKey = getenvString("JWT_KEY", "")
 	UserAuthTokenExpiration = time.Duration(getenvInt("USER_AUTH_TOKEN_EXPIRATION", 180)) * time.Minute
 	ChatMessageMaxLength = int(getenvInt("CHAT_MESSAGE_MAX_LENGTH", 8000))
