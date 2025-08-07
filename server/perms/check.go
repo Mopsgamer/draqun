@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -22,12 +22,12 @@ const (
 
 const AuthCookieKey = "Authorization"
 
-type RightsChecker func(ctx fiber.Ctx, role database.Role) bool
+type RightsChecker func(ctx fiber.Ctx, role model.Role) bool
 
-func GroupById(db *database.DB, groupIdUri string) fiber.Handler {
+func GroupById(db *model.DB, groupIdUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		groupId := fiber.Params[uint64](ctx, groupIdUri)
-		groupFound, group := database.NewGroupFromId(db, groupId)
+		groupFound, group := model.NewGroupFromId(db, groupId)
 		if !groupFound {
 			return htmx.ErrGroupNotFound
 		}
@@ -37,10 +37,10 @@ func GroupById(db *database.DB, groupIdUri string) fiber.Handler {
 	}
 }
 
-func GroupByName(db *database.DB, groupNameUri string) fiber.Handler {
+func GroupByName(db *model.DB, groupNameUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		groupName := fiber.Params[string](ctx, groupNameUri)
-		groupFound, group := database.NewGroupFromName(db, groupName)
+		groupFound, group := model.NewGroupFromName(db, groupName)
 		if !groupFound {
 			return htmx.ErrGroupNotFound
 		}
@@ -50,19 +50,19 @@ func GroupByName(db *database.DB, groupNameUri string) fiber.Handler {
 	}
 }
 
-func MemberByAuthAndGroupId(db *database.DB, groupIdUri string, rights RightsChecker) fiber.Handler {
+func MemberByAuthAndGroupId(db *model.DB, groupIdUri string, rights RightsChecker) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		if err := UserByAuth(db)(ctx); err != nil {
 			return err
 		}
 
-		user := fiber.Locals[database.User](ctx, LocalAuth)
+		user := fiber.Locals[model.User](ctx, LocalAuth)
 		groupId := fiber.Params[uint64](ctx, groupIdUri)
 		if err := GroupById(db, groupIdUri)(ctx); err != nil {
 			return err
 		}
 
-		memberFound, member := database.NewMemberFromId(db, groupId, user.Id)
+		memberFound, member := model.NewMemberFromId(db, groupId, user.Id)
 		if !memberFound { // never been a member
 			return htmx.ErrGroupMemberNotFound
 		}
@@ -95,7 +95,7 @@ func UseForm[T any](request T) fiber.Handler {
 	}
 }
 
-func UserByAuth(db *database.DB) fiber.Handler {
+func UserByAuth(db *model.DB) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		authCookie := ctx.Cookies(AuthCookieKey)
 		if authCookie == "" {
@@ -130,7 +130,7 @@ func UserByAuth(db *database.DB) fiber.Handler {
 			return errors.Join(htmx.ErrToken, errors.New("expected any password"))
 		}
 
-		foundUser, user := database.NewUserFromEmail(db, email)
+		foundUser, user := model.NewUserFromEmail(db, email)
 		if !foundUser {
 			return htmx.ErrUserNotFound
 		}

@@ -1,12 +1,12 @@
 package routes
 
 import (
-	"github.com/Mopsgamer/draqun/server/database"
+	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/gofiber/fiber/v3"
 )
 
-func RoutePages(app *fiber.App, db *database.DB) {
+func RoutePages(app *fiber.App, db *model.DB) {
 	app.Route("/").Get(
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("homepage", MapPage(ctx, fiber.Map{"Title": "Homepage", "IsHomePage": true}), "partials/main")
@@ -29,7 +29,7 @@ func RoutePages(app *fiber.App, db *database.DB) {
 	)
 	app.Route("/settings").Get(
 		func(ctx fiber.Ctx) error {
-			user := fiber.Locals[database.User](ctx, perms.LocalAuth)
+			user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 			if user.IsEmpty() {
 				return ctx.Redirect().To("/")
 			}

@@ -1,4 +1,4 @@
-package database
+package model
 
 import (
 	"github.com/Mopsgamer/draqun/server/environment"

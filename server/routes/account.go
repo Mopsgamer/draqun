@@ -3,14 +3,14 @@ package routes
 import (
 	"time"
 
-	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/gofiber/fiber/v3"
 )
 
-func RouteAccount(app *fiber.App, db *database.DB) fiber.Router {
+func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 	type UserDelete struct {
 		CurrentPassword string `form:"current-password"`
 		ConfirmUsername string `form:"confirm-username"`
@@ -57,12 +57,12 @@ func RouteAccount(app *fiber.App, db *database.DB) fiber.Router {
 					return err
 				}
 
-				userFound, _ := database.NewUserFromName(db, request.Username)
+				userFound, _ := model.NewUserFromName(db, request.Username)
 				if userFound {
 					return htmx.ErrUserExsistsNickname
 				}
 
-				userFound, _ = database.NewUserFromEmail(db, request.Email)
+				userFound, _ = model.NewUserFromEmail(db, request.Email)
 				if userFound {
 					return htmx.ErrUserExsistsEmail
 				}
@@ -77,12 +77,12 @@ func RouteAccount(app *fiber.App, db *database.DB) fiber.Router {
 					return htmx.ErrUserPasswordConfirm
 				}
 
-				hash, err := database.HashPassword(request.Password)
+				hash, err := model.HashPassword(request.Password)
 				if err != nil {
 					return err
 				}
 
-				user := database.NewUser(db, request.Nickname, request.Username, request.Email, request.Phone, hash, "")
+				user := model.NewUser(db, request.Nickname, request.Username, request.Email, request.Phone, hash, "")
 				if !user.Insert() {
 					return htmx.ErrDatabase
 				}
@@ -118,7 +118,7 @@ func RouteAccount(app *fiber.App, db *database.DB) fiber.Router {
 					return err
 				}
 
-				userFound, user := database.NewUserFromEmail(db, request.Email)
+				userFound, user := model.NewUserFromEmail(db, request.Email)
 				if !userFound {
 					return htmx.ErrUserNotFound
 				}
@@ -150,7 +150,7 @@ func RouteAccount(app *fiber.App, db *database.DB) fiber.Router {
 		Delete("/delete",
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[*UserDelete](ctx, perms.LocalForm)
-				user := fiber.Locals[database.User](ctx, perms.LocalAuth)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				if user.Moniker != request.ConfirmUsername {
 					return htmx.ErrUserNameConfirm

@@ -1,7 +1,7 @@
 package htmx
 
 import (
-	"github.com/Mopsgamer/draqun/server/database"
+	"github.com/Mopsgamer/draqun/server/model"
 )
 
 const (
@@ -43,7 +43,7 @@ func IsValidGroupDescription(str string) error {
 }
 
 func IsValidGroupMode(val string) error {
-	if !IsValidEnumString(val, []database.GroupMode{database.GroupModeDm, database.GroupModePrivate, database.GroupModePublic}) {
+	if !IsValidEnumString(val, []model.GroupMode{model.GroupModeDm, model.GroupModePrivate, model.GroupModePublic}) {
 		return ErrFormatGroupMode
 	}
 	return nil

@@ -1,4 +1,4 @@
-package database
+package model
 
 import (
 	"github.com/doug-martin/goqu/v9"

@@ -6,15 +6,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
+	"github.com/Mopsgamer/draqun/server/model"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/template/html/v2"
 )
 
 // Initialize the view engine.
-func NewAppHtmlEngine(db *database.DB, embedFS fs.FS, clientEmbedded bool, directory string) *html.Engine {
+func NewAppHtmlEngine(db *model.DB, embedFS fs.FS, clientEmbedded bool, directory string) *html.Engine {
 	var engine *html.Engine
 	if !clientEmbedded {
 		engine = html.New(directory, environment.TemplateExt)

@@ -1,13 +1,13 @@
 package routes
 
 import (
-	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/gofiber/fiber/v3"
 )
 
-func routeAccountChange(router fiber.Router, db *database.DB) fiber.Router {
+func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 	type UserChangeName struct {
 		NewNickname string `form:"new-nickname"`
 		NewName     string `form:"new-username"`
@@ -29,7 +29,7 @@ func routeAccountChange(router fiber.Router, db *database.DB) fiber.Router {
 		Put("/name",
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[*UserChangeName](ctx, perms.LocalForm)
-				user := fiber.Locals[database.User](ctx, perms.LocalAuth)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				if request.NewNickname == user.Moniker && request.NewName == user.Name {
 					return htmx.ErrUseless
@@ -43,7 +43,7 @@ func routeAccountChange(router fiber.Router, db *database.DB) fiber.Router {
 					return err
 				}
 
-				foundUser, _ := database.NewUserFromName(db, request.NewName)
+				foundUser, _ := model.NewUserFromName(db, request.NewName)
 				if foundUser {
 					return htmx.ErrUserExsistsName
 				}
@@ -68,7 +68,7 @@ func routeAccountChange(router fiber.Router, db *database.DB) fiber.Router {
 		Put("/email",
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[*UserChangeEmail](ctx, perms.LocalForm)
-				user := fiber.Locals[database.User](ctx, perms.LocalAuth)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				if request.NewEmail == user.Email {
 					return htmx.ErrUseless
@@ -78,7 +78,7 @@ func routeAccountChange(router fiber.Router, db *database.DB) fiber.Router {
 					return err
 				}
 
-				foundUser, _ := database.NewUserFromEmail(db, request.NewEmail)
+				foundUser, _ := model.NewUserFromEmail(db, request.NewEmail)
 				if foundUser {
 					return htmx.ErrUserExsistsEmail
 				}
@@ -110,7 +110,7 @@ func routeAccountChange(router fiber.Router, db *database.DB) fiber.Router {
 		Put("/phone",
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[*UserChangePhone](ctx, perms.LocalForm)
-				user := fiber.Locals[database.User](ctx, perms.LocalAuth)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				if request.NewPhone == user.Phone {
 					return htmx.ErrUseless
@@ -143,7 +143,7 @@ func routeAccountChange(router fiber.Router, db *database.DB) fiber.Router {
 		Put("/password",
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[*UserChangePassword](ctx, perms.LocalForm)
-				user := fiber.Locals[database.User](ctx, perms.LocalAuth)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				if request.NewPassword == user.Password {
 					return htmx.ErrUseless

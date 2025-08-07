@@ -4,8 +4,8 @@ import (
 	_ "embed"
 	"io/fs"
 
-	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/routes"
 
 	"github.com/gofiber/fiber/v3"
@@ -15,7 +15,7 @@ import (
 
 // Initialize gofiber application, including DB and view engine.
 func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
-	db, errDBLoad := database.InitDB()
+	db, errDBLoad := model.InitDB()
 	if errDBLoad != nil {
 		log.Error(errDBLoad)
 		return nil, errDBLoad
