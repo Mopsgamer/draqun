@@ -43,7 +43,7 @@ func (roleAssign *RoleAssignee) Role() Role {
 		return member
 	}
 
-	roleAssign.Db.Sqlx.QueryRowx(sql, args...).StructScan(&member)
+	err = roleAssign.Db.Sqlx.QueryRowx(sql, args...).StructScan(&member)
 	if err != nil {
 		log.Error(err)
 		return member
@@ -67,7 +67,7 @@ func (roleAssign *RoleAssignee) Member() Member {
 		return member
 	}
 
-	roleAssign.Db.Sqlx.QueryRowx(sql, args...).StructScan(&member)
+	err = roleAssign.Db.Sqlx.QueryRowx(sql, args...).StructScan(&member)
 	if err != nil {
 		log.Error(err)
 		return member

@@ -18,6 +18,8 @@ type ActionBan struct {
 	EndsAt      time.Time `db:"ends_at"`
 }
 
+var _ Action = (*ActionBan)(nil)
+
 func (action ActionBan) Kind() string {
 	return "ban"
 }

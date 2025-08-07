@@ -16,6 +16,8 @@ type ActionKick struct {
 	ActedAt     time.Time `db:"acted_at"`
 }
 
+var _ Action = (*ActionBan)(nil)
+
 func (action ActionKick) Kind() string {
 	return "kick"
 }

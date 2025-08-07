@@ -16,6 +16,8 @@ type ActionMembership struct {
 	IsJoin  types.BitBool `db:"is_join"`  // True if the action is a join, false if it's a leave.
 }
 
+var _ Action = (*ActionBan)(nil)
+
 func (action ActionMembership) Kind() string {
 	return "membership"
 }

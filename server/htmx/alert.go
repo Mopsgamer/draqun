@@ -4,6 +4,9 @@ import "fmt"
 
 type ShoelaceAlertLevel int
 
+var _ fmt.Stringer = (*ShoelaceAlertLevel)(nil)
+var _ fmt.GoStringer = (*ShoelaceAlertLevel)(nil)
+
 func (level ShoelaceAlertLevel) String() string {
 	switch level {
 	case Success:
@@ -15,6 +18,10 @@ func (level ShoelaceAlertLevel) String() string {
 	default:
 		panic(fmt.Sprintf("Unknown shoelace alert level: %d", level))
 	}
+}
+
+func (level ShoelaceAlertLevel) GoString() string {
+	return level.String()
 }
 
 const (
@@ -35,6 +42,8 @@ type alert struct {
 	local string // User friendly error message.
 	level ShoelaceAlertLevel
 }
+
+var _ HTMXAlert = (*alert)(nil)
 
 func NewHTMXAlert(err error, local string, level ShoelaceAlertLevel) HTMXAlert {
 	return &alert{
