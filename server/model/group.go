@@ -1,10 +1,10 @@
 package model
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/jmoiron/sqlx/types"
 )
@@ -231,10 +231,26 @@ func (group Group) ActionListPage(page uint, limit uint) []Action {
 	return actions
 }
 
-func (group Group) Url() string {
-	return "/chat/groups/" + fmt.Sprintf("%d", group.Id)
+func (group Group) Url(ctx fiber.Ctx) string {
+	url, err := ctx.GetRouteURL(
+		"page.group", fiber.Map{"group_id": group.Id},
+	)
+	if err != nil {
+		log.Error(err)
+		return url
+	}
+
+	return url
 }
 
-func (group Group) UrlJoin() string {
-	return "/chat/groups/join/" + group.Name
+func (group Group) UrlJoin(ctx fiber.Ctx) string {
+	url, err := ctx.GetRouteURL(
+		"page.group.join", fiber.Map{"group_name": group.Name},
+	)
+	if err != nil {
+		log.Error(err)
+		return url
+	}
+
+	return url
 }

@@ -5,12 +5,6 @@ import (
 	"sync"
 )
 
-type Subscription string
-
-const (
-	SubForMessages Subscription = "messages"
-)
-
 var UserSessionMap = userSessionMap{
 	mp:    &map[uint64][]*ControllerWs{},
 	mutex: &sync.Mutex{},
@@ -22,11 +16,11 @@ type userSessionMap struct {
 }
 
 // Push data for each connection by user id.
-func (conns *userSessionMap) Push(data string, sub Subscription) {
+func (conns *userSessionMap) Push(data string, pick EventPick) {
 	conns.mutex.Lock()
 	for userId := range *conns.mp {
 		for _, ws := range (*conns.mp)[userId] {
-			if slices.Contains(ws.Subs, sub) {
+			if slices.Contains(ws.Subs, pick) {
 				continue
 			}
 			ws.Push(data)

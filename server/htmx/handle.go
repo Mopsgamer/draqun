@@ -1,7 +1,6 @@
 package htmx
 
 import (
-	"github.com/Mopsgamer/draqun/server/render"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -20,7 +19,6 @@ func HandleHTMXError(ctx fiber.Ctx, err error) error {
 		"Variant": level.String(),
 		"Message": message,
 	}
-	buf, _ := render.RenderBuffer(ctx.App(), "partials/alert", bind)
 
-	return ctx.Send(buf.Bytes())
+	return ctx.Render("partials/alert", bind)
 }

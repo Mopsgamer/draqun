@@ -65,7 +65,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 					// 	controller_ws.SubForMessages,
 					// )
 
-					htmx.Redirect(ctx, group.Url())
+					htmx.Redirect(ctx, group.Url(ctx))
 					return ctx.SendStatus(fiber.StatusOK)
 				}
 
@@ -156,7 +156,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 
 					session.UserSessionMap.Push(
 						render.WrapOob("beforeend:#chat", &str),
-						session.SubForMessages,
+						session.PickMessages,
 					)
 
 					return ctx.SendStatus(fiber.StatusOK)
@@ -224,7 +224,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, group.Url())
+					htmx.Redirect(ctx, group.Url(ctx))
 					return ctx.SendStatus(fiber.StatusOK)
 				}
 

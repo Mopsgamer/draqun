@@ -17,6 +17,8 @@ func MapPage(ctx fiber.Ctx, bind fiber.Map) fiber.Map {
 		"GitHash":     environment.GitHash,
 		"GitHashLong": environment.GitHashLong,
 
+		"Ctx": ctx,
+
 		"User":   ctx.Locals(perms.LocalAuth),
 		"Group":  ctx.Locals(perms.LocalGroup),
 		"Member": ctx.Locals(perms.LocalMember),

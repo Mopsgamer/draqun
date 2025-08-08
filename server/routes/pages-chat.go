@@ -6,14 +6,16 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-func routePagesChat(router fiber.Router, db *model.DB) fiber.Register {
-	chat := router.Route("/chat")
+func routePagesChat(router fiber.Router, db *model.DB) fiber.Router {
+	chat := router.Group("/chat")
 	chat.Get(
+		"/",
 		func(ctx fiber.Ctx) error {
 			return ctx.Render("chat", MapPage(ctx, fiber.Map{"Title": "Home", "IsChatPage": true}))
 		},
-	)
-	chat.Route("/groups/:group_id").Get(
+	).Name("page.chat")
+	chat.Get(
+		"/groups/:group_id",
 		func(ctx fiber.Ctx) error {
 			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
 			if member.IsEmpty() {
@@ -24,8 +26,9 @@ func routePagesChat(router fiber.Router, db *model.DB) fiber.Register {
 			return ctx.Render("chat", MapPage(ctx, fiber.Map{"Title": group.Moniker, "IsChatPage": true}))
 		},
 		perms.GroupById(db, "group_id"),
-	)
-	chat.Route("/groups/join/:group_name").Get(
+	).Name("page.group")
+	chat.Get(
+		"/groups/join/:group_name",
 		func(ctx fiber.Ctx) error {
 			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
@@ -34,12 +37,12 @@ func routePagesChat(router fiber.Router, db *model.DB) fiber.Register {
 			}
 
 			if member.IsAvailable() {
-				return ctx.Redirect().To(group.Url())
+				return ctx.Redirect().To(group.Url(ctx))
 			}
 
 			return ctx.Render("chat", MapPage(ctx, fiber.Map{"Title": "Join " + group.Moniker, "IsChatPage": true}))
 		},
 		perms.GroupByName(db, "group_name"),
-	)
+	).Name("page.group.join")
 	return chat
 }
