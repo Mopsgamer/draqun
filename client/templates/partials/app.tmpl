@@ -11,7 +11,7 @@
         {{- template "partials/settings-dialog" . -}}
         {{- template "partials/new-group-dialog" . -}}
         {{- $this := . -}}
-        {{- if ne $this.Group nil -}}
+        {{- if not $this.Group.IsEmpty -}}
             {{- template "partials/group-settings-dialog" $this -}}
         {{- else -}}
             {{- $groupList = $this.User.GroupList -}}
@@ -29,8 +29,8 @@
         {{- end -}}
         <div id="real-body">
             {{- template "partials/app-header" . -}}
-            {{- if ne .Group nil -}}
-                {{- if eq .Member nil -}}
+            {{- if not .Group.IsEmpty -}}
+                {{- if .Member.IsEmpty -}}
                     {{- template "partials/app-group-join" . -}}
                 {{- else -}}
                     {{- template "partials/app-group" . -}}

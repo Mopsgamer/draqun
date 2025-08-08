@@ -69,8 +69,8 @@ type Role struct {
 	PermAdmin       PermSwitch   `db:"perm_admin"`
 }
 
-func (role Role) isEmpty() bool {
-	return role.Id == 0 && role.Name == ""
+func (role Role) IsEmpty() bool {
+	return role.Id == 0 || role.Name == ""
 }
 
 // permissions
@@ -128,20 +128,18 @@ func (role *Role) Insert() error {
 	return InsertId(role.Db, TableRoles, role, &role.Id)
 }
 
-func (role *Role) Update() error {
+func (role Role) Update() error {
 	return Update(role.Db, TableRoles, role, goqu.Ex{"id": role.Id, "group_id": role.GroupId})
 }
 
-func (role *Role) Delete() bool {
+func (role Role) Delete() error {
 	return Delete(role.Db, TableRoles, goqu.Ex{"id": role.Id, "group_id": role.GroupId})
 }
 
-func (role *Role) FromId(id uint32, groupId uint64) bool {
-	First(role.Db, TableRoles, goqu.Ex{"id": id, "group_id": groupId}, role)
-	return role.isEmpty()
+func (role *Role) FromId(id uint32, groupId uint64) error {
+	return First(role.Db, TableRoles, goqu.Ex{"id": id, "group_id": groupId}, role)
 }
 
-func (role *Role) FromName(name string, groupId uint64) bool {
-	First(role.Db, TableRoles, goqu.Ex{"name": name, "group_id": groupId}, role)
-	return role.isEmpty()
+func (role *Role) FromName(name string, groupId uint64) error {
+	return First(role.Db, TableRoles, goqu.Ex{"name": name, "group_id": groupId}, role)
 }

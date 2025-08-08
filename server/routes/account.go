@@ -35,7 +35,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 		Put("/logout",
 			func(ctx fiber.Ctx) error {
 				ctx.Cookie(&fiber.Cookie{
-					Name:    perms.AuthCookieKey,
+					Name:    fiber.HeaderAuthorization,
 					Value:   "",
 					Expires: time.Now(),
 				})
@@ -49,7 +49,6 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 			},
 		).
 		Post("/create",
-			perms.UseBind[UserSignUp](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserSignUp](ctx, perms.LocalForm)
 
@@ -61,13 +60,13 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 					return err
 				}
 
-				userFound, _ := model.NewUserFromName(db, request.Username)
-				if userFound {
+				_, err := model.NewUserFromName(db, request.Username)
+				if err != nil {
 					return htmx.ErrUserExsistsNickname
 				}
 
-				userFound, _ = model.NewUserFromEmail(db, request.Email)
-				if userFound {
+				_, err = model.NewUserFromEmail(db, request.Email)
+				if err != nil {
 					return htmx.ErrUserExsistsEmail
 				}
 
@@ -97,7 +96,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				}
 
 				ctx.Cookie(&fiber.Cookie{
-					Name:    perms.AuthCookieKey,
+					Name:    fiber.HeaderAuthorization,
 					Value:   token,
 					Expires: time.Now().Add(environment.UserAuthTokenExpiration),
 				})
@@ -109,9 +108,9 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
+			perms.UseBind[UserSignUp](),
 		).
 		Post("/login",
-			perms.UseBind[UserLogin](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserLogin](ctx, perms.LocalForm)
 				if err := htmx.IsValidUserPassword(request.Password); err != nil {
@@ -122,8 +121,8 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 					return err
 				}
 
-				userFound, user := model.NewUserFromEmail(db, request.Email)
-				if !userFound {
+				user, err := model.NewUserFromEmail(db, request.Email)
+				if err != nil {
 					return htmx.ErrUserNotFound
 				}
 
@@ -137,7 +136,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				}
 
 				ctx.Cookie(&fiber.Cookie{
-					Name:    perms.AuthCookieKey,
+					Name:    fiber.HeaderAuthorization,
 					Value:   token,
 					Expires: time.Now().Add(environment.UserAuthTokenExpiration),
 				})
@@ -149,6 +148,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				}
 				return ctx.SendStatus(fiber.StatusOK)
 			},
+			perms.UseBind[UserLogin](),
 		).
 		Delete("/delete",
 			func(ctx fiber.Ctx) error {
@@ -173,7 +173,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				}
 
 				ctx.Cookie(&fiber.Cookie{
-					Name:    perms.AuthCookieKey,
+					Name:    fiber.HeaderAuthorization,
 					Value:   "",
 					Expires: time.Now(),
 				})

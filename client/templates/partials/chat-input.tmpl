@@ -36,7 +36,7 @@
                 <sl-icon name="house" slot="prefix"></sl-icon>
                 {{.AppName}}
             </sl-breadcrumb-item>
-            {{- if ne .Group nil}}
+            {{- if not .Group.IsEmpty -}}
             <sl-breadcrumb-item href="/chat/groups/{{.Group.Id}}">
                 <sl-icon name="people" slot="prefix"></sl-icon>
                 <div class="groupname">{{- .Group.Moniker -}}</div>

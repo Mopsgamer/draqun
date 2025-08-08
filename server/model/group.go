@@ -64,7 +64,7 @@ func NewGroupFromName(db *DB, name string) (bool, Group) {
 }
 
 func (group Group) IsEmpty() bool {
-	return group.Id != 0 && group.Name != ""
+	return group.Id == 0 || group.Name == ""
 }
 
 func (group *Group) Insert() error {

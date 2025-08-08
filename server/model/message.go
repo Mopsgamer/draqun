@@ -21,19 +21,15 @@ func NewMessageFilled(db *DB, groupId, userId uint64, content string) Message {
 	return Message{Db: db, GroupId: groupId, AuthorId: userId, Content: strings.TrimSpace(content), CreatedAt: time.Now()}
 }
 
-func (message *Message) IsEmpty() bool {
-	return message.Id != 0 && message.GroupId != 0 && message.AuthorId != 0
-}
-
 func (message *Message) Insert() error {
 	return InsertId(message.Db, TableMessages, message, &message.Id)
 }
 
-func (message *Message) Update() error {
+func (message Message) Update() error {
 	return Update(message.Db, TableMessages, message, goqu.Ex{"id": message.Id})
 }
 
-func (message *Message) Delete() bool {
+func (message Message) Delete() error {
 	return Delete(message.Db, TableMessages, goqu.Ex{"id": message.Id})
 }
 

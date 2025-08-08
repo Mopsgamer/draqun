@@ -23,11 +23,11 @@ func (action ActionMembership) Kind() string {
 }
 
 func (action ActionMembership) IsEmpty() bool {
-	return action.UserId != 0 && action.GroupId != 0
+	return action.UserId == 0 || action.GroupId == 0
 }
 
 func (action *ActionMembership) Insert() error {
-	return Insert0(action.Db, string(TableMemberships), action)
+	return Insert(action.Db, string(TableMemberships), action)
 }
 
 func (action ActionMembership) Update() error {

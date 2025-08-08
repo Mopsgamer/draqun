@@ -1,4 +1,4 @@
-{{- if ne .User nil}}
+{{- if not .User.IsEmpty -}}
 <sl-dialog label="Dialog" id="new-group-dialog">
     <span slot="label" class="aligned">
         <sl-icon name="people"></sl-icon>

@@ -1,6 +1,6 @@
 <header id="header">
     <nav>
-        {{- if ne .Group nil}}
+        {{- if not .Group.IsEmpty -}}
         <sl-icon-button id="members-toggler" name="people"></sl-icon-button>
         {{- end}}
         <!-- TODO: implement search -->

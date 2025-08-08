@@ -23,11 +23,11 @@ func (action ActionKick) Kind() string {
 }
 
 func (action ActionKick) IsEmpty() bool {
-	return action.TargetId != 0 && action.CreatorId != 0 && action.GroupId != 0
+	return action.TargetId == 0 || action.CreatorId == 0 || action.GroupId == 0
 }
 
 func (action *ActionKick) Insert() error {
-	return Insert0(action.Db, string(TableKicks), action)
+	return Insert(action.Db, string(TableKicks), action)
 }
 
 func (action ActionKick) Update() error {

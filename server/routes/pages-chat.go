@@ -11,7 +11,7 @@ func routePagesChat(router fiber.Router, db *model.DB) fiber.Router {
 	chat.Get(
 		"/",
 		func(ctx fiber.Ctx) error {
-			return ctx.Render("chat", MapPage(ctx, fiber.Map{"Title": "Home", "IsChatPage": true}))
+			return ctx.Render("chat", MapPage(ctx, db, fiber.Map{"Title": "Home", "IsChatPage": true}))
 		},
 	).Name("page.chat")
 	chat.Get(
@@ -23,7 +23,7 @@ func routePagesChat(router fiber.Router, db *model.DB) fiber.Router {
 			}
 
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
-			return ctx.Render("chat", MapPage(ctx, fiber.Map{"Title": group.Moniker, "IsChatPage": true}))
+			return ctx.Render("chat", MapPage(ctx, db, fiber.Map{"Title": group.Moniker, "IsChatPage": true}))
 		},
 		perms.GroupById(db, "group_id"),
 	).Name("page.group")
@@ -40,7 +40,7 @@ func routePagesChat(router fiber.Router, db *model.DB) fiber.Router {
 				return ctx.Redirect().To(group.Url(ctx))
 			}
 
-			return ctx.Render("chat", MapPage(ctx, fiber.Map{"Title": "Join " + group.Moniker, "IsChatPage": true}))
+			return ctx.Render("chat", MapPage(ctx, db, fiber.Map{"Title": "Join " + group.Moniker, "IsChatPage": true}))
 		},
 		perms.GroupByName(db, "group_name"),
 	).Name("page.group.join")

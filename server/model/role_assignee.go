@@ -16,14 +16,14 @@ func NewRoleAssign(db *DB) RoleAssignee {
 }
 
 func (roleAssign *RoleAssignee) Insert() error {
-	return Insert0(roleAssign.Db, TableRoleAssignees, roleAssign)
+	return Insert(roleAssign.Db, TableRoleAssignees, roleAssign)
 }
 
-func (roleAssign *RoleAssignee) Update() error {
+func (roleAssign RoleAssignee) Update() error {
 	return Update(roleAssign.Db, TableRoleAssignees, roleAssign, goqu.Ex{"role_id": roleAssign.RoleId, "user_id": roleAssign.UserId})
 }
 
-func (roleAssign *RoleAssignee) Delete() bool {
+func (roleAssign RoleAssignee) Delete() error {
 	return Delete(roleAssign.Db, TableRoleAssignees, goqu.Ex{"role_id": roleAssign.RoleId, "user_id": roleAssign.UserId})
 }
 

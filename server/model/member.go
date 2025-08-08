@@ -27,13 +27,13 @@ func NewMember(db *DB, groupId, userId uint64, moniker string) Member {
 	}
 }
 
-func NewMemberFromId(db *DB, groupId, userId uint64) (bool, Member) {
+func NewMemberFromId(db *DB, groupId, userId uint64) (Member, error) {
 	member := Member{Db: db}
-	return member.FromId(groupId, userId), member
+	return member, member.FromId(groupId, userId)
 }
 
 func (member Member) IsEmpty() bool {
-	return member.GroupId != 0 && member.UserId != 0
+	return member.GroupId == 0 || member.UserId == 0
 }
 
 func (member Member) IsAvailable() bool {
@@ -41,16 +41,15 @@ func (member Member) IsAvailable() bool {
 }
 
 func (member *Member) Insert() error {
-	return Insert0(member.Db, TableMembers, member)
+	return Insert(member.Db, TableMembers, member)
 }
 
 func (member Member) Update() error {
 	return Update(member.Db, TableMembers, member, goqu.Ex{"group_id": member.GroupId, "user_id": member.UserId})
 }
 
-func (member *Member) FromId(groupId, userId uint64) bool {
-	First(member.Db, TableMembers, goqu.Ex{"group_id": groupId, "user_id": userId}, member)
-	return member.IsEmpty()
+func (member *Member) FromId(groupId, userId uint64) error {
+	return First(member.Db, TableMembers, goqu.Ex{"group_id": groupId, "user_id": userId}, member)
 }
 
 func (member *Member) User() User {
@@ -112,9 +111,9 @@ func (member Member) Ban(creatorId uint64, endsAt time.Time, description string)
 
 func (member Member) Unban(revokerId uint64) error {
 	ban := ActionBan{Db: member.Db}
-	ban.FromId(member.UserId, member.GroupId)
-	if ban.IsEmpty() {
-		return nil
+	err := ban.FromId(member.UserId, member.GroupId)
+	if err != nil {
+		return err
 	}
 
 	ban.RevokerId = revokerId

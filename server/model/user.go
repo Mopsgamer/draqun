@@ -39,46 +39,43 @@ func NewUser(
 	}
 }
 
-func NewUserFromId(db *DB, userId uint64) (bool, User) {
+func NewUserFromId(db *DB, userId uint64) (User, error) {
 	user := User{Db: db}
-	return user.FromId(userId), user
+	return user, user.FromId(userId)
 }
 
-func NewUserFromEmail(db *DB, email string) (bool, User) {
+func NewUserFromEmail(db *DB, email string) (User, error) {
 	user := User{Db: db}
-	return user.FromEmail(email), user
+	return user, user.FromEmail(email)
 }
 
-func NewUserFromName(db *DB, name string) (bool, User) {
+func NewUserFromName(db *DB, name string) (User, error) {
 	user := User{Db: db}
-	return user.FromName(name), user
+	return user, user.FromName(name)
 }
 
-func (user *User) IsEmpty() bool {
-	return user.Id != 0
+func (user User) IsEmpty() bool {
+	return user.Id == 0
 }
 
 func (user *User) Insert() error {
 	return InsertId(user.Db, TableUsers, user, &user.Id)
 }
 
-func (user *User) Update() error {
+func (user User) Update() error {
 	return Update(user.Db, TableUsers, user, goqu.Ex{"id": user.Id})
 }
 
-func (user *User) FromId(userId uint64) bool {
-	First(user.Db, TableUsers, goqu.Ex{"id": userId}, user)
-	return user.IsEmpty()
+func (user *User) FromId(userId uint64) error {
+	return First(user.Db, TableUsers, goqu.Ex{"id": userId}, user)
 }
 
-func (user *User) FromEmail(email string) bool {
-	First(user.Db, TableUsers, goqu.Ex{"email": email}, user)
-	return user.IsEmpty()
+func (user *User) FromEmail(email string) error {
+	return First(user.Db, TableUsers, goqu.Ex{"email": email}, user)
 }
 
-func (user *User) FromName(name string) bool {
-	First(user.Db, TableUsers, goqu.Ex{"name": name}, user)
-	return user.IsEmpty()
+func (user *User) FromName(name string) error {
+	return First(user.Db, TableUsers, goqu.Ex{"name": name}, user)
 }
 
 func (user *User) GroupListCreator() []Group {

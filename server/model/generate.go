@@ -43,7 +43,7 @@ func insert[T any](db *DB, table string, item *T) (result sql.Result, err error)
 	return
 }
 
-func Insert0[T any](db *DB, table string, item *T) (err error) {
+func Insert[T any](db *DB, table string, item *T) (err error) {
 	_, err = insert(db, table, item)
 	return
 }
@@ -77,12 +77,12 @@ func Update[T any](db *DB, table string, item T, ex goqu.Ex) (err error) {
 	return
 }
 
-func Delete[T string | []any](db *DB, table T, ex goqu.Ex) bool {
+func Delete[T string | []any](db *DB, table T, ex goqu.Ex) (err error) {
 	sql, args, err := db.Goqu.From(table).Delete().Where(ex).Prepared(true).ToSQL()
 	if err != nil {
-		return false
+		return
 	}
 
 	_, err = db.Sqlx.Exec(sql, args...)
-	return err == nil
+	return
 }

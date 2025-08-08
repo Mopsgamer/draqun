@@ -25,20 +25,19 @@ func (action ActionBan) Kind() string {
 }
 
 func (action ActionBan) IsEmpty() bool {
-	return action.TargetId != 0 && action.CreatorId != 0 && action.GroupId != 0
+	return action.TargetId == 0 || action.CreatorId == 0 || action.GroupId == 0
 }
 
 func (action *ActionBan) Insert() error {
-	return Insert0(action.Db, string(TableBans), action)
+	return Insert(action.Db, string(TableBans), action)
 }
 
 func (action ActionBan) Update() error {
 	return Update(action.Db, TableBans, action, goqu.Ex{"target_id": action.TargetId, "group_id": action.GroupId})
 }
 
-func (action *ActionBan) FromId(targetId, groupId uint64) bool {
-	Last(action.Db, TableBans, goqu.Ex{"target_id": targetId, "group_id": groupId}, goqu.I(TableBans+".target_id"), action)
-	return action.IsEmpty()
+func (action *ActionBan) FromId(targetId, groupId uint64) error {
+	return Last(action.Db, TableBans, goqu.Ex{"target_id": targetId, "group_id": groupId}, goqu.I(TableBans+".target_id"), action)
 }
 
 func (action ActionBan) Target() User {

@@ -47,8 +47,8 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 					return err
 				}
 
-				foundUser, _ := model.NewUserFromName(db, request.NewName)
-				if foundUser {
+				_, err := model.NewUserFromName(db, request.NewName)
+				if err != nil {
 					return htmx.ErrUserExsistsName
 				}
 
@@ -82,8 +82,8 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 					return err
 				}
 
-				foundUser, _ := model.NewUserFromEmail(db, request.NewEmail)
-				if foundUser {
+				_, err := model.NewUserFromEmail(db, request.NewEmail)
+				if err != nil {
 					return htmx.ErrUserExsistsEmail
 				}
 
