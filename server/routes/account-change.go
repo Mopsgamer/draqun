@@ -31,6 +31,8 @@ type UserChangePassword struct {
 func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 	return router.Group("/change").
 		Put("/name",
+			perms.UserByAuth(db),
+			perms.UseBind[UserChangeName](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserChangeName](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
@@ -66,10 +68,10 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
-			perms.UserByAuth(db),
-			perms.UseBind[UserChangeName](),
 		).
 		Put("/email",
+			perms.UserByAuth(db),
+			perms.UseBind[UserChangeEmail](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserChangeEmail](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
@@ -108,10 +110,10 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
-			perms.UserByAuth(db),
-			perms.UseBind[UserChangeEmail](),
 		).
 		Put("/phone",
+			perms.UserByAuth(db),
+			perms.UseBind[UserChangePhone](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserChangePhone](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
@@ -141,10 +143,10 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
-			perms.UserByAuth(db),
-			perms.UseBind[UserChangePhone](),
 		).
 		Put("/password",
+			perms.UserByAuth(db),
+			perms.UseBind[UserChangePassword](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserChangePassword](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
@@ -178,7 +180,5 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
-			perms.UserByAuth(db),
-			perms.UseBind[UserChangePassword](),
 		)
 }

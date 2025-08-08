@@ -11,22 +11,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const (
-	LocalForm = "Form"
-
-	LocalAuth   = "User"
-	LocalGroup  = "Group"
-	LocalMember = "Member"
-	LocalRights = "Rights"
-)
-
-type RightsChecker func(ctx fiber.Ctx, role model.Role) bool
-
 func GroupByIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri string) (group model.Group, err error) {
 	err = nil
 	groupId := fiber.Params[uint64](ctx, groupIdUri)
-	groupFound, group := model.NewGroupFromId(db, groupId)
-	if !groupFound {
+	group, err = model.NewGroupFromId(db, groupId)
+	if err != nil {
 		err = htmx.ErrGroupNotFound
 		return
 	}
@@ -38,36 +27,14 @@ func GroupByIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri string) (group mod
 func GroupByNameFromCtx(ctx fiber.Ctx, db *model.DB, groupNameUri string) (group model.Group, err error) {
 	err = nil
 	groupName := fiber.Params[string](ctx, groupNameUri)
-	groupFound, group := model.NewGroupFromName(db, groupName)
-	if !groupFound {
+	group, err = model.NewGroupFromName(db, groupName)
+	if err != nil {
 		err = htmx.ErrGroupNotFound
 		return
 	}
 
 	ctx.Locals(LocalGroup, group)
 	return
-}
-
-func GroupById(db *model.DB, groupIdUri string) fiber.Handler {
-	return func(ctx fiber.Ctx) error {
-		_, err := GroupByIdFromCtx(ctx, db, groupIdUri)
-		if err != nil {
-			return err
-		}
-
-		return ctx.Next()
-	}
-}
-
-func GroupByName(db *model.DB, groupNameUri string) fiber.Handler {
-	return func(ctx fiber.Ctx) error {
-		_, err := GroupByIdFromCtx(ctx, db, groupNameUri)
-		if err != nil {
-			return err
-		}
-
-		return ctx.Next()
-	}
 }
 
 func MemberByAuthAndGroupIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri string) error {
@@ -91,39 +58,6 @@ func MemberByAuthAndGroupIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri strin
 	role := member.Role()
 	ctx.Locals(LocalRights, role)
 	return nil
-}
-
-func MemberByAuthAndGroupId(db *model.DB, groupIdUri string, rights RightsChecker) fiber.Handler {
-	return func(ctx fiber.Ctx) error {
-		err := MemberByAuthAndGroupIdFromCtx(ctx, db, groupIdUri)
-		if err != nil {
-			return err
-		}
-
-		member := fiber.Locals[model.Member](ctx, LocalRights)
-		role := fiber.Locals[model.Role](ctx, LocalRights)
-		if role.PermAdmin.Has() {
-			return ctx.Next()
-		}
-
-		if member.IsAvailable() && (rights == nil || rights(ctx, role)) {
-			return ctx.Next()
-		}
-
-		return htmx.ErrGroupMemberNotAllowed
-	}
-}
-
-func UseBind[T any]() fiber.Handler {
-	return func(ctx fiber.Ctx) error {
-		request := new(T)
-		if err := ctx.Bind().All(request); err != nil {
-			return err
-		}
-
-		ctx.Locals(LocalForm, *request)
-		return ctx.Next()
-	}
 }
 
 func checkCookieToken(value string) (token *jwt.Token, err error) {
@@ -153,21 +87,30 @@ func checkCookieToken(value string) (token *jwt.Token, err error) {
 func checkUser(db *model.DB, token *jwt.Token) (user model.User, err error) {
 	claims := token.Claims.(jwt.MapClaims)
 	email, ok := claims["Email"].(string)
-	if !ok {
+	if !ok || htmx.IsValidUserEmail(email) != nil {
 		err = errors.Join(htmx.ErrToken, errors.New("expected any email"))
 		return
 	}
 
+	name, ok := claims["Name"].(string)
+	if !ok || htmx.IsValidUserName(name) != nil {
+		err = errors.Join(htmx.ErrToken, errors.New("expected any name"))
+		return
+	}
+
 	pass, ok := claims["Password"].(string)
-	if !ok {
+	if !ok || htmx.IsValidUserPassword(pass) != nil {
 		err = errors.Join(htmx.ErrToken, errors.New("expected any password"))
 		return
 	}
 
 	user, err = model.NewUserFromEmail(db, email)
 	if err != nil {
-		err = htmx.ErrUserNotFound
-		return
+		errName := user.FromName(name)
+		if errName != nil {
+			err = htmx.ErrUserNotFound.Join(err).Join(errName)
+			return
+		}
 	}
 
 	if pass != user.Password {
@@ -194,15 +137,4 @@ func UserByAuthFromCtx(ctx fiber.Ctx, db *model.DB) (user model.User, err error)
 
 	ctx.Locals(LocalAuth, user)
 	return
-}
-
-func UserByAuth(db *model.DB) fiber.Handler {
-	return func(ctx fiber.Ctx) error {
-		_, err := UserByAuthFromCtx(ctx, db)
-		if err != nil {
-			return err
-		}
-
-		return ctx.Next()
-	}
 }

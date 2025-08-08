@@ -29,7 +29,8 @@ func NewMember(db *DB, groupId, userId uint64, moniker string) Member {
 
 func NewMemberFromId(db *DB, groupId, userId uint64) (Member, error) {
 	member := Member{Db: db}
-	return member, member.FromId(groupId, userId)
+	err := member.FromId(groupId, userId)
+	return member, err
 }
 
 func (member Member) IsEmpty() bool {

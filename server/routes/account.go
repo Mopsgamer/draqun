@@ -49,6 +49,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 			},
 		).
 		Post("/create",
+			perms.UseBind[UserSignUp](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserSignUp](ctx, perms.LocalForm)
 
@@ -108,9 +109,9 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
-			perms.UseBind[UserSignUp](),
 		).
 		Post("/login",
+			perms.UseBind[UserLogin](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserLogin](ctx, perms.LocalForm)
 				if err := htmx.IsValidUserPassword(request.Password); err != nil {
@@ -123,7 +124,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 
 				user, err := model.NewUserFromEmail(db, request.Email)
 				if err != nil {
-					return htmx.ErrUserNotFound
+					return err
 				}
 
 				if !user.CheckPassword(request.Password) {
@@ -148,9 +149,10 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				}
 				return ctx.SendStatus(fiber.StatusOK)
 			},
-			perms.UseBind[UserLogin](),
 		).
 		Delete("/delete",
+			perms.UserByAuth(db),
+			perms.UseBind[UserDelete](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserDelete](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
@@ -185,7 +187,5 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
-			perms.UserByAuth(db),
-			perms.UseBind[UserDelete](),
 		)
 }

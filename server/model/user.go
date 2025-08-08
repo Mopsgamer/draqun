@@ -41,17 +41,20 @@ func NewUser(
 
 func NewUserFromId(db *DB, userId uint64) (User, error) {
 	user := User{Db: db}
-	return user, user.FromId(userId)
+	err := user.FromId(userId)
+	return user, err
 }
 
 func NewUserFromEmail(db *DB, email string) (User, error) {
 	user := User{Db: db}
-	return user, user.FromEmail(email)
+	err := user.FromEmail(email)
+	return user, err
 }
 
 func NewUserFromName(db *DB, name string) (User, error) {
 	user := User{Db: db}
-	return user, user.FromName(name)
+	err := user.FromName(name)
+	return user, err
 }
 
 func (user User) IsEmpty() bool {

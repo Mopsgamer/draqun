@@ -53,14 +53,16 @@ func NewGroup(
 	}
 }
 
-func NewGroupFromId(db *DB, id uint64) (bool, Group) {
+func NewGroupFromId(db *DB, id uint64) (Group, error) {
 	group := Group{Db: db}
-	return group.FromId(id), group
+	err := group.FromId(id)
+	return group, err
 }
 
-func NewGroupFromName(db *DB, name string) (bool, Group) {
+func NewGroupFromName(db *DB, name string) (Group, error) {
 	group := Group{Db: db}
-	return group.FromName(name), group
+	err := group.FromName(name)
+	return group, err
 }
 
 func (group Group) IsEmpty() bool {
@@ -75,14 +77,12 @@ func (group Group) Update() error {
 	return Update(group.Db, TableGroups, group, goqu.Ex{"id": group.Id})
 }
 
-func (group *Group) FromId(id uint64) bool {
-	First(group.Db, TableGroups, goqu.Ex{"id": id}, group)
-	return group.IsEmpty()
+func (group *Group) FromId(id uint64) error {
+	return First(group.Db, TableGroups, goqu.Ex{"id": id}, group)
 }
 
-func (group *Group) FromName(name string) bool {
-	First(group.Db, TableGroups, goqu.Ex{"name": name}, group)
-	return group.IsEmpty()
+func (group *Group) FromName(name string) error {
+	return First(group.Db, TableGroups, goqu.Ex{"name": name}, group)
 }
 
 func (group Group) Creator() User {
