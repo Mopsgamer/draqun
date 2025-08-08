@@ -35,7 +35,7 @@ func insert[T any](db *DB, table string, item *T) (result sql.Result, err error)
 		return
 	}
 
-	result, err = db.Sqlx.Exec(sql, args)
+	result, err = db.Sqlx.Exec(sql, args...)
 	if err != nil {
 		return
 	}
@@ -69,7 +69,7 @@ func Update[T any](db *DB, table string, item T, ex goqu.Ex) (err error) {
 		return
 	}
 
-	_, err = db.Sqlx.Exec(sql, args)
+	_, err = db.Sqlx.Exec(sql, args...)
 	if err != nil {
 		return
 	}
