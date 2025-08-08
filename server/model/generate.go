@@ -1,91 +1,88 @@
 package model
 
 import (
+	"database/sql"
+
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/gofiber/fiber/v3/log"
+	"golang.org/x/exp/constraints"
 )
 
-func First[T any](db *DB, table string, ex goqu.Ex, item *T) {
+func First[T any](db *DB, table string, ex goqu.Ex, item *T) (err error) {
 	sql, args, err := db.Goqu.From(table).Select(item).Where(ex).ToSQL()
 	if err != nil {
-		log.Error(err)
-		return
+		return err
 	}
 
 	err = db.Sqlx.DB.QueryRow(sql, args...).Scan(item)
-	if err != nil {
-		log.Error(err)
-		return
-	}
+	return
 }
 
-func Last[T any](db *DB, table string, ex goqu.Ex, key exp.IdentifierExpression, item *T) {
+func Last[T any](db *DB, table string, ex goqu.Ex, key exp.IdentifierExpression, item *T) (err error) {
 	sql, args, err := db.Goqu.From(table).Select(item).Where(ex).Order(key.Desc()).Limit(1).ToSQL()
 	if err != nil {
-		log.Error(err)
 		return
 	}
 
 	err = db.Sqlx.DB.QueryRow(sql, args...).Scan(item)
-	if err != nil {
-		log.Error(err)
-		return
-	}
+	return
 }
 
-func Insert[T any](db *DB, table string, item *T) uint64 {
+func insert[T any](db *DB, table string, item *T) (result sql.Result, err error) {
 	sql, args, err := db.Goqu.Insert(table).Rows(item).ToSQL()
 	if err != nil {
-		log.Error(err)
-		return 0
+		return
 	}
 
-	result, err := db.Sqlx.Exec(sql, args)
+	result, err = db.Sqlx.Exec(sql, args)
 	if err != nil {
-		log.Error(err)
-		return 0
+		return
+	}
+
+	return
+}
+
+func Insert0[T any](db *DB, table string, item *T) (err error) {
+	_, err = insert(db, table, item)
+	return
+}
+
+func InsertId[T any, Id constraints.Integer](db *DB, table string, item *T, itemId *Id) (err error) {
+	result, err := insert(db, table, item)
+	if err != nil {
+		return
 	}
 
 	newId, err := result.LastInsertId()
 	if err != nil {
-		log.Error(err)
-		return 0
+		return
 	}
 
-	newIdUint := uint64(newId)
-	return newIdUint
+	*itemId = Id(newId)
+	return
 }
 
-func Update[T any](db *DB, table string, item T, ex goqu.Ex) bool {
+func Update[T any](db *DB, table string, item T, ex goqu.Ex) (err error) {
 	sql, args, err := db.Goqu.Update(table).Set(item).Where(ex).ToSQL()
 	if err != nil {
-		log.Error(err)
-		return false
+		return
 	}
 
 	_, err = db.Sqlx.Exec(sql, args)
 	if err != nil {
-		log.Error(err)
-		return false
+		return
 	}
 
-	return true
+	return
 }
 
 func Delete[T string | []any](db *DB, table T, ex goqu.Ex) bool {
 	sql, args, err := db.Goqu.From(table).Delete().Where(ex).ToSQL()
 	if err != nil {
-		log.Error(err)
 		return false
 	}
 
 	_, err = db.Sqlx.Exec(sql, args...)
-	if err != nil {
-		log.Error(err)
-		return false
-	}
-
-	return true
+	return err == nil
 }

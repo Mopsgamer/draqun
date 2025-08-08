@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/doug-martin/goqu/v9"
-	"github.com/gofiber/fiber/v3/log"
 )
 
 type RoleAssignee struct {
@@ -16,11 +15,11 @@ func NewRoleAssign(db *DB) RoleAssignee {
 	return RoleAssignee{Db: db}
 }
 
-func (roleAssign *RoleAssignee) Insert() bool {
-	return Insert(roleAssign.Db, TableRoleAssignees, roleAssign) != 0
+func (roleAssign *RoleAssignee) Insert() error {
+	return Insert0(roleAssign.Db, TableRoleAssignees, roleAssign)
 }
 
-func (roleAssign *RoleAssignee) Update() bool {
+func (roleAssign *RoleAssignee) Update() error {
 	return Update(roleAssign.Db, TableRoleAssignees, roleAssign, goqu.Ex{"role_id": roleAssign.RoleId, "user_id": roleAssign.UserId})
 }
 
@@ -39,13 +38,13 @@ func (roleAssign *RoleAssignee) Role() Role {
 		)).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return member
 	}
 
 	err = roleAssign.Db.Sqlx.QueryRowx(sql, args...).StructScan(&member)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return member
 	}
 
@@ -63,13 +62,13 @@ func (roleAssign *RoleAssignee) Member() Member {
 		)).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return member
 	}
 
 	err = roleAssign.Db.Sqlx.QueryRowx(sql, args...).StructScan(&member)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return member
 	}
 

@@ -26,11 +26,11 @@ func (action ActionKick) IsEmpty() bool {
 	return action.TargetId != 0 && action.CreatorId != 0 && action.GroupId != 0
 }
 
-func (action *ActionKick) Insert() bool {
-	return Insert(action.Db, string(TableKicks), action) != 0
+func (action *ActionKick) Insert() error {
+	return Insert0(action.Db, string(TableKicks), action)
 }
 
-func (action ActionKick) Update() bool {
+func (action ActionKick) Update() error {
 	return Update(action.Db, TableKicks, action, goqu.Ex{"target_id": action.TargetId, "group_id": action.GroupId, "creator_id": action.CreatorId})
 }
 

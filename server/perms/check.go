@@ -8,6 +8,7 @@ import (
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/log"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -84,13 +85,15 @@ func MemberByAuthAndGroupId(db *model.DB, groupIdUri string, rights RightsChecke
 	}
 }
 
-func UseForm[T any](request T) fiber.Handler {
+func UseBind[T any]() fiber.Handler {
+	log.Debug("H")
 	return func(ctx fiber.Ctx) error {
-		if err := ctx.Bind().Form(request); err != nil {
+		request := new(T)
+		if err := ctx.Bind().All(request); err != nil {
 			return err
 		}
 
-		ctx.Locals(LocalForm, request)
+		ctx.Locals(LocalForm, *request)
 		return ctx.Next()
 	}
 }

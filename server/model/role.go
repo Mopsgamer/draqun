@@ -124,13 +124,11 @@ func NewRoleEveryone(db *DB, groupId uint64) Role {
 	}
 }
 
-func (role *Role) Insert() bool {
-	id := Insert(role.Db, TableRoles, role)
-	role.Id = uint32(id)
-	return id != 0
+func (role *Role) Insert() error {
+	return InsertId(role.Db, TableRoles, role, &role.Id)
 }
 
-func (role *Role) Update() bool {
+func (role *Role) Update() error {
 	return Update(role.Db, TableRoles, role, goqu.Ex{"id": role.Id, "group_id": role.GroupId})
 }
 

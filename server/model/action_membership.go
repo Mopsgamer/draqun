@@ -26,11 +26,11 @@ func (action ActionMembership) IsEmpty() bool {
 	return action.UserId != 0 && action.GroupId != 0
 }
 
-func (action *ActionMembership) Insert() bool {
-	return Insert(action.Db, string(TableMemberships), action) != 0
+func (action *ActionMembership) Insert() error {
+	return Insert0(action.Db, string(TableMemberships), action)
 }
 
-func (action ActionMembership) Update() bool {
+func (action ActionMembership) Update() error {
 	return Update(action.Db, TableMemberships, action, goqu.Ex{"user_id": action.UserId, "group_id": action.GroupId})
 }
 

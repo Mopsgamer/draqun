@@ -17,6 +17,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/valyala/fasthttp v1.64.0
 	golang.org/x/crypto v0.40.0
+	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792
 	golang.org/x/mod v0.26.0
 )
 
@@ -24,7 +25,6 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/gofiber/schema v1.6.0 // indirect
 	github.com/gofiber/template v1.8.3 // indirect
 	github.com/gofiber/utils v1.1.0 // indirect
@@ -37,7 +37,6 @@ require (
 	github.com/savsgio/gotils v0.0.0-20250408102913-196191ec6287 // indirect
 	github.com/tinylib/msgp v1.3.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/net v0.42.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.27.0 // indirect

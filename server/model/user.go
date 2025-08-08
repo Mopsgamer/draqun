@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/gofiber/fiber/v3/log"
 	"github.com/jmoiron/sqlx/types"
 )
 
@@ -59,13 +58,11 @@ func (user *User) IsEmpty() bool {
 	return user.Id != 0
 }
 
-func (user *User) Insert() bool {
-	id := Insert(user.Db, TableUsers, user)
-	user.Id = id
-	return id != 0
+func (user *User) Insert() error {
+	return InsertId(user.Db, TableUsers, user, &user.Id)
 }
 
-func (user *User) Update() bool {
+func (user *User) Update() error {
 	return Update(user.Db, TableUsers, user, goqu.Ex{"id": user.Id})
 }
 
@@ -92,13 +89,13 @@ func (user *User) GroupListCreator() []Group {
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id, TableGroups + ".creator_id": TableMembers + ".user_id"}).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return groupList
 	}
 
 	err = user.Db.Sqlx.Select(&groupList, sql, args...)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return groupList
 	}
 
@@ -113,13 +110,13 @@ func (user *User) GroupListOwner() []Group {
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id, TableGroups + ".owner_id": TableMembers + ".user_id"}).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return groupList
 	}
 
 	err = user.Db.Sqlx.Select(&groupList, sql, args...)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return groupList
 	}
 
@@ -134,14 +131,14 @@ func (user *User) GroupList() []Group {
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id}).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return groupList
 
 	}
 
 	err = user.Db.Sqlx.Select(&groupList, sql, args...)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return groupList
 	}
 
@@ -156,14 +153,14 @@ func (user *User) MemberList() []Member {
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id}).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return memberList
 
 	}
 
 	err = user.Db.Sqlx.Select(&memberList, sql, args...)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return memberList
 	}
 

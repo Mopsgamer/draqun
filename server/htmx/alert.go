@@ -1,6 +1,9 @@
 package htmx
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type ShoelaceAlertLevel int
 
@@ -45,12 +48,18 @@ type alert struct {
 
 var _ HTMXAlert = (*alert)(nil)
 
-func NewHTMXAlert(err error, local string, level ShoelaceAlertLevel) HTMXAlert {
-	return &alert{
+func NewHTMXAlert(err error, local string, level ShoelaceAlertLevel) alert {
+	return alert{
 		err:   err,
 		local: local,
 		level: level,
 	}
+}
+
+func (a alert) Join(errs ...error) alert {
+	errs = append([]error{a.err}, errs...)
+	a.err = errors.Join(errs...)
+	return a
 }
 
 func (a alert) Error() string {

@@ -26,7 +26,7 @@
         <form
             id="group-change-form"
             hx-put="/groups/{{.Group.Id}}/change"
-            hx-swap="outerHTML"
+            hx-swap="innerHTML"
             hx-target="#group-change-error"
         >
             <sl-input

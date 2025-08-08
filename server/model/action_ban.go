@@ -28,11 +28,11 @@ func (action ActionBan) IsEmpty() bool {
 	return action.TargetId != 0 && action.CreatorId != 0 && action.GroupId != 0
 }
 
-func (action *ActionBan) Insert() bool {
-	return Insert(action.Db, string(TableBans), action) != 0
+func (action *ActionBan) Insert() error {
+	return Insert0(action.Db, string(TableBans), action)
 }
 
-func (action ActionBan) Update() bool {
+func (action ActionBan) Update() error {
 	return Update(action.Db, TableBans, action, goqu.Ex{"target_id": action.TargetId, "group_id": action.GroupId})
 }
 

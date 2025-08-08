@@ -7,24 +7,28 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
+type UserChangeName struct {
+	NewNickname string `form:"new-nickname"`
+	NewName     string `form:"new-username"`
+}
+
+type UserChangeEmail struct {
+	CurrentPassword string `form:"current-password"`
+	NewEmail        string `form:"new-email"`
+}
+
+type UserChangePhone struct {
+	CurrentPassword string `form:"current-password"`
+	NewPhone        string `form:"new-phone"`
+}
+
+type UserChangePassword struct {
+	CurrentPassword string `form:"current-password"`
+	NewPassword     string `form:"new-password"`
+	ConfirmPassword string `form:"confirm-password"`
+}
+
 func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
-	type UserChangeName struct {
-		NewNickname string `form:"new-nickname"`
-		NewName     string `form:"new-username"`
-	}
-	type UserChangeEmail struct {
-		CurrentPassword string `form:"current-password"`
-		NewEmail        string `form:"new-email"`
-	}
-	type UserChangePhone struct {
-		CurrentPassword string `form:"current-password"`
-		NewPhone        string `form:"new-phone"`
-	}
-	type UserChangePassword struct {
-		CurrentPassword string `form:"current-password"`
-		NewPassword     string `form:"new-password"`
-		ConfirmPassword string `form:"confirm-password"`
-	}
 	return router.Group("/change").
 		Put("/name",
 			func(ctx fiber.Ctx) error {
@@ -51,8 +55,8 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				user.Moniker = request.NewNickname
 				user.Name = request.NewName
 
-				if !user.Update() {
-					return htmx.ErrDatabase
+				if err := user.Update(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -63,7 +67,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 			perms.UserByAuth(db),
-			perms.UseForm(&UserChangeName{}),
+			perms.UseBind[UserChangeName](),
 		).
 		Put("/email",
 			func(ctx fiber.Ctx) error {
@@ -93,8 +97,8 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 
 				user.Email = request.NewEmail
 
-				if !user.Update() {
-					return htmx.ErrDatabase
+				if err := user.Update(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -105,7 +109,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 			perms.UserByAuth(db),
-			perms.UseForm(&UserChangeEmail{}),
+			perms.UseBind[UserChangeEmail](),
 		).
 		Put("/phone",
 			func(ctx fiber.Ctx) error {
@@ -126,8 +130,8 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 
 				user.Phone = request.NewPhone
 
-				if !user.Update() {
-					return htmx.ErrDatabase
+				if err := user.Update(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -138,7 +142,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 			perms.UserByAuth(db),
-			perms.UseForm(&UserChangePhone{}),
+			perms.UseBind[UserChangePhone](),
 		).
 		Put("/password",
 			func(ctx fiber.Ctx) error {
@@ -163,8 +167,8 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 
 				user.Password = request.NewPassword
 
-				if !user.Update() {
-					return htmx.ErrDatabase
+				if err := user.Update(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -175,6 +179,6 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 			perms.UserByAuth(db),
-			perms.UseForm(&UserChangePassword{}),
+			perms.UseBind[UserChangePassword](),
 		)
 }

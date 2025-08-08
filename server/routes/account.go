@@ -10,22 +10,25 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
+type UserDelete struct {
+	CurrentPassword string `form:"current-password"`
+	ConfirmUsername string `form:"confirm-username"`
+}
+
+type UserLogin struct {
+	Email    string `form:"email"`
+	Password string `form:"password"`
+}
+
+type UserSignUp struct {
+	*UserLogin
+	Nickname        string `form:"nickname"`
+	Username        string `form:"username"`
+	Phone           string `form:"phone"`
+	ConfirmPassword string `form:"confirm-password"`
+}
+
 func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
-	type UserDelete struct {
-		CurrentPassword string `form:"current-password"`
-		ConfirmUsername string `form:"confirm-username"`
-	}
-	type UserLogin struct {
-		Email    string `form:"email"`
-		Password string `form:"password"`
-	}
-	type UserSignUp struct {
-		*UserLogin
-		Nickname        string `form:"nickname"`
-		Username        string `form:"username"`
-		Phone           string `form:"phone"`
-		ConfirmPassword string `form:"confirm-password"`
-	}
 	group := app.Group("/account")
 	routeAccountChange(group, db)
 	return group.
@@ -46,6 +49,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 			},
 		).
 		Post("/create",
+			perms.UseBind[UserSignUp](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserSignUp](ctx, perms.LocalForm)
 
@@ -83,8 +87,8 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				}
 
 				user := model.NewUser(db, request.Nickname, request.Username, request.Email, request.Phone, hash, "")
-				if !user.Insert() {
-					return htmx.ErrDatabase
+				if err := user.Insert(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				token, err := user.GenerateToken()
@@ -105,9 +109,9 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
-			perms.UseForm(&UserSignUp{}),
 		).
 		Post("/login",
+			perms.UseBind[UserLogin](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserLogin](ctx, perms.LocalForm)
 				if err := htmx.IsValidUserPassword(request.Password); err != nil {
@@ -145,7 +149,6 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				}
 				return ctx.SendStatus(fiber.StatusOK)
 			},
-			perms.UseForm(&UserLogin{}),
 		).
 		Delete("/delete",
 			func(ctx fiber.Ctx) error {
@@ -165,8 +168,8 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				}
 
 				user.IsDeleted = true
-				if !user.Update() {
-					return htmx.ErrDatabase
+				if err := user.Update(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				ctx.Cookie(&fiber.Cookie{
@@ -183,6 +186,6 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 			perms.UserByAuth(db),
-			perms.UseForm(&UserDelete{}),
+			perms.UseBind[UserDelete](),
 		)
 }

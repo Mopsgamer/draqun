@@ -25,11 +25,11 @@ func (message *Message) IsEmpty() bool {
 	return message.Id != 0 && message.GroupId != 0 && message.AuthorId != 0
 }
 
-func (message *Message) Insert() bool {
-	return Insert(message.Db, TableMessages, message) != 0
+func (message *Message) Insert() error {
+	return InsertId(message.Db, TableMessages, message, &message.Id)
 }
 
-func (message *Message) Update() bool {
+func (message *Message) Update() error {
 	return Update(message.Db, TableMessages, message, goqu.Ex{"id": message.Id})
 }
 

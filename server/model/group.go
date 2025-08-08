@@ -5,7 +5,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/log"
 	"github.com/jmoiron/sqlx/types"
 )
 
@@ -68,13 +67,11 @@ func (group Group) IsEmpty() bool {
 	return group.Id != 0 && group.Name != ""
 }
 
-func (group *Group) Insert() bool {
-	id := Insert(group.Db, TableGroups, group)
-	group.Id = id
-	return id != 0
+func (group *Group) Insert() error {
+	return InsertId(group.Db, TableGroups, group, &group.Id)
 }
 
-func (group Group) Update() bool {
+func (group Group) Update() error {
 	return Update(group.Db, TableGroups, group, goqu.Ex{"id": group.Id})
 }
 
@@ -112,13 +109,13 @@ func (group Group) MembersCount() uint64 {
 		Where(goqu.Ex{TableMembers + ".group_id": group.Id, TableMembers + ".is_deleted": types.BitBool(false)}).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return count
 	}
 
 	err = group.Db.Sqlx.Get(&count, sql, args...)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 	}
 
 	return count
@@ -135,13 +132,13 @@ func (group Group) UsersPage(page, limit uint) []User {
 		Limit(limit).Offset(from).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return userList
 	}
 
 	err = group.Db.Sqlx.Select(&userList, sql, args...)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 	}
 
 	return userList
@@ -153,13 +150,13 @@ func (group Group) MessageFirst() *Message {
 	sql, args, err := group.Db.Goqu.From(TableMessages).Where(goqu.C("group_id").Eq(group.Id)).Order(goqu.C("id").Asc()).Limit(1).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return message
 	}
 
 	err = group.Db.Sqlx.QueryRowx(sql, args...).StructScan(&message)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 	}
 
 	return message
@@ -171,13 +168,13 @@ func (group Group) MessageLast() *Message {
 	sql, args, err := group.Db.Goqu.From(TableMessages).Where(goqu.C("group_id").Eq(group.Id)).Order(goqu.C("id").Desc()).Limit(1).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return message
 	}
 
 	err = group.Db.Sqlx.QueryRowx(sql, args...).StructScan(&message)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return message
 	}
 
@@ -195,13 +192,13 @@ func (group Group) MessagesPage(page, limit uint) []Message {
 	sql, args, err := group.Db.Goqu.From(subquery).Order(goqu.I("id").Asc()).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return messageList
 	}
 
 	err = group.Db.Sqlx.Select(&messageList, sql, args...)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 	}
 
 	return messageList
@@ -219,13 +216,13 @@ func (group Group) ActionListPage(page uint, limit uint) []Action {
 		Limit(limit).Offset(from).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return actions
 	}
 
 	err = group.Db.Sqlx.Select(&actions, sql, args...)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 	}
 
 	return actions
@@ -236,7 +233,7 @@ func (group Group) Url(ctx fiber.Ctx) string {
 		"page.group", fiber.Map{"group_id": group.Id},
 	)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return url
 	}
 
@@ -248,7 +245,7 @@ func (group Group) UrlJoin(ctx fiber.Ctx) string {
 		"page.group.join", fiber.Map{"group_name": group.Name},
 	)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return url
 	}
 

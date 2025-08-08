@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/gofiber/fiber/v3/log"
 	"github.com/jmoiron/sqlx/types"
 )
 
@@ -33,30 +32,30 @@ func NewMemberFromId(db *DB, groupId, userId uint64) (bool, Member) {
 	return member.FromId(groupId, userId), member
 }
 
-func (group Member) IsEmpty() bool {
-	return group.GroupId != 0 && group.UserId != 0
+func (member Member) IsEmpty() bool {
+	return member.GroupId != 0 && member.UserId != 0
 }
 
 func (member Member) IsAvailable() bool {
 	return !member.IsEmpty() && !bool(member.IsDeleted)
 }
 
-func (group *Member) Insert() bool {
-	return Insert(group.Db, TableMembers, group) != 0
+func (member *Member) Insert() error {
+	return Insert0(member.Db, TableMembers, member)
 }
 
-func (group Member) Update() bool {
-	return Update(group.Db, TableMembers, group, goqu.Ex{"group_id": group.GroupId, "user_id": group.UserId})
+func (member Member) Update() error {
+	return Update(member.Db, TableMembers, member, goqu.Ex{"group_id": member.GroupId, "user_id": member.UserId})
 }
 
-func (group *Member) FromId(groupId, userId uint64) bool {
-	First(group.Db, TableMembers, goqu.Ex{"group_id": groupId, "user_id": userId}, group)
-	return group.IsEmpty()
+func (member *Member) FromId(groupId, userId uint64) bool {
+	First(member.Db, TableMembers, goqu.Ex{"group_id": groupId, "user_id": userId}, member)
+	return member.IsEmpty()
 }
 
-func (group *Member) User() User {
-	user := User{Db: group.Db}
-	user.FromId(group.UserId)
+func (member *Member) User() User {
+	user := User{Db: member.Db}
+	user.FromId(member.UserId)
 	return user
 }
 
@@ -66,20 +65,20 @@ func (member Member) Group() Group {
 	return group
 }
 
-func (group Member) Roles() []Role {
+func (member Member) Roles() []Role {
 	roleList := []Role{}
-	sql, args, err := group.Db.Goqu.From(TableRoles).Select(TableRoles+".*").
+	sql, args, err := member.Db.Goqu.From(TableRoles).Select(TableRoles+".*").
 		LeftJoin(goqu.T(TableRoleAssignees), goqu.On(goqu.I(TableRoleAssignees+".role_id").Eq(TableRoles+".id"))).
-		Where(goqu.Ex{TableRoles + ".group_id": group.GroupId, TableRoleAssignees + ".user_id": group.UserId}).
+		Where(goqu.Ex{TableRoles + ".group_id": member.GroupId, TableRoleAssignees + ".user_id": member.UserId}).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return roleList
 	}
 
-	err = group.Db.Sqlx.Select(&roleList, sql, args...)
+	err = member.Db.Sqlx.Select(&roleList, sql, args...)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 	}
 
 	return roleList
@@ -97,11 +96,11 @@ func (member Member) Role() Role {
 	return everyone
 }
 
-func (group Member) Ban(creatorId uint64, endsAt time.Time, description string) bool {
+func (member Member) Ban(creatorId uint64, endsAt time.Time, description string) error {
 	action := ActionBan{
-		Db:          group.Db,
-		GroupId:     group.GroupId,
-		TargetId:    group.UserId,
+		Db:          member.Db,
+		GroupId:     member.GroupId,
+		TargetId:    member.UserId,
 		CreatorId:   creatorId,
 		Description: description,
 		ActedAt:     time.Now(),
@@ -111,22 +110,22 @@ func (group Member) Ban(creatorId uint64, endsAt time.Time, description string) 
 	return action.Insert()
 }
 
-func (group Member) Unban(revokerId uint64) bool {
-	ban := ActionBan{Db: group.Db}
-	ban.FromId(group.UserId, group.GroupId)
+func (member Member) Unban(revokerId uint64) error {
+	ban := ActionBan{Db: member.Db}
+	ban.FromId(member.UserId, member.GroupId)
 	if ban.IsEmpty() {
-		return false
+		return nil
 	}
 
 	ban.RevokerId = revokerId
 	return ban.Update()
 }
 
-func (group Member) Kick(creatorId uint64, description string) bool {
+func (member Member) Kick(creatorId uint64, description string) error {
 	action := ActionKick{
-		Db:          group.Db,
-		GroupId:     group.GroupId,
-		TargetId:    group.UserId,
+		Db:          member.Db,
+		GroupId:     member.GroupId,
+		TargetId:    member.UserId,
 		CreatorId:   creatorId,
 		Description: description,
 		ActedAt:     time.Now(),
@@ -135,11 +134,11 @@ func (group Member) Kick(creatorId uint64, description string) bool {
 	return action.Insert()
 }
 
-func (group Member) LeaveActed() bool {
+func (member Member) LeaveActed() error {
 	action := ActionMembership{
-		Db:      group.Db,
-		GroupId: group.GroupId,
-		UserId:  group.UserId,
+		Db:      member.Db,
+		GroupId: member.GroupId,
+		UserId:  member.UserId,
 		IsJoin:  false,
 		ActedAt: time.Now(),
 	}
@@ -147,11 +146,11 @@ func (group Member) LeaveActed() bool {
 	return action.Insert()
 }
 
-func (group Member) JoinActed() bool {
+func (member Member) JoinActed() error {
 	action := ActionMembership{
-		Db:      group.Db,
-		GroupId: group.GroupId,
-		UserId:  group.UserId,
+		Db:      member.Db,
+		GroupId: member.GroupId,
+		UserId:  member.UserId,
 		IsJoin:  false,
 		ActedAt: time.Now(),
 	}
@@ -171,13 +170,13 @@ func (member Member) ActionListPage(page uint, limit uint) []Action {
 		Limit(limit).Offset(from).
 		ToSQL()
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 		return actions
 	}
 
 	err = member.Db.Sqlx.Select(&actions, sql, args...)
 	if err != nil {
-		log.Error(err)
+		handleErr(err)
 	}
 
 	return actions

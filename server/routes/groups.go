@@ -12,26 +12,29 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
+type GroupCreate struct {
+	Name        string `form:"name"`
+	Nick        string `form:"nick"`
+	Password    string `form:"password"`
+	Mode        string `form:"mode"`
+	Description string `form:"description"`
+	Avatar      string `form:"avatar"`
+}
+
+type MessageCreate struct {
+	Content string `form:"content"`
+}
+
+type GroupChange struct {
+	Name        string `form:"name"`
+	Nick        string `form:"nick"`
+	Password    string `form:"password"`
+	Mode        string `form:"mode"`
+	Description string `form:"description"`
+	Avatar      string `form:"avatar"`
+}
+
 func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
-	type GroupCreate struct {
-		Name        string `form:"name"`
-		Nick        string `form:"nick"`
-		Password    string `form:"password"`
-		Mode        string `form:"mode"`
-		Description string `form:"description"`
-		Avatar      string `form:"avatar"`
-	}
-	type MessageCreate struct {
-		Content string `form:"content"`
-	}
-	type GroupChange struct {
-		Name        string `form:"name"`
-		Nick        string `form:"nick"`
-		Password    string `form:"password"`
-		Mode        string `form:"mode"`
-		Description string `form:"description"`
-		Avatar      string `form:"avatar"`
-	}
 	return app.Group("/groups").
 		Put("/:group_id/join",
 			func(ctx fiber.Ctx) error {
@@ -40,22 +43,22 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 				if member.IsEmpty() {
 					// never been a member
 					member = model.NewMember(db, group.Id, member.UserId, "")
-					if !member.Insert() {
-						return htmx.ErrDatabase
+					if err := member.Insert(); err != nil {
+						return htmx.ErrDatabase.Join(err)
 					}
 				} else if member.IsDeleted {
 					// been a member, now isn't
 					member.IsDeleted = false
-					if !member.Update() {
-						return htmx.ErrDatabase
+					if err := member.Update(); err != nil {
+						return htmx.ErrDatabase.Join(err)
 					}
 				} else {
 					// already a member
 					return htmx.ErrUseless
 				}
 
-				if !member.JoinActed() {
-					return htmx.ErrDatabase
+				if err := member.JoinActed(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -112,8 +115,8 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 				group.Description = request.Description
 				group.Mode = model.GroupMode(request.Mode)
 				group.Password = request.Password
-				if !group.Update() {
-					return htmx.ErrDatabase
+				if err := group.Update(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -126,7 +129,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 			perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermGroupChange.Has()
 			}),
-			perms.UseForm(&GroupChange{}),
+			perms.UseBind[GroupChange](),
 		).
 		Post("/:group_id/messages/create",
 			func(ctx fiber.Ctx) error {
@@ -139,8 +142,8 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 					return err
 				}
 
-				if !message.Insert() {
-					return htmx.ErrDatabase
+				if err := message.Insert(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -173,7 +176,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 			perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermMessages.CanWriteMessages()
 			}),
-			perms.UseForm(&MessageCreate{}),
+			perms.UseBind[MessageCreate](),
 		).
 		Post("/create",
 			func(ctx fiber.Ctx) error {
@@ -207,20 +210,20 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				group := model.NewGroup(db, user.Id, request.Nick, request.Name, model.GroupMode(request.Mode), request.Password, request.Description, request.Avatar)
-				if !group.Insert() {
-					return htmx.ErrDatabase
+				if err := group.Insert(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				ctx.Locals(perms.LocalGroup, group)
 
 				member := model.NewMember(db, group.Id, user.Id, "")
-				if !member.Insert() {
-					return htmx.ErrDatabase
+				if err := member.Insert(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				everyone := model.NewRoleEveryone(db, group.Id)
-				if !everyone.Insert() {
-					return htmx.ErrDatabase
+				if err := everyone.Insert(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -231,7 +234,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 			perms.UserByAuth(db),
-			perms.UseForm(&GroupCreate{}),
+			perms.UseBind[GroupCreate](),
 		).
 		Get("/:group_id/messages/page/:messages_page",
 			func(ctx fiber.Ctx) error {
@@ -296,11 +299,11 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 				}
 
 				member.IsDeleted = true
-				if !member.Update() {
-					return htmx.ErrDatabase
+				if err := member.Update(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
-				if !member.LeaveActed() {
-					return htmx.ErrDatabase
+				if err := member.LeaveActed(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -318,8 +321,8 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				group.IsDeleted = true
-				if !group.Update() {
-					return htmx.ErrDatabase
+				if err := group.Update(); err != nil {
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {

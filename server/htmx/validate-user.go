@@ -10,7 +10,7 @@ var (
 	RegexpUserName     = regexp.MustCompile(`^[a-zA-Z0-9._]{1,255}$`)
 	// Source: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/email#basic_validation
 	RegexpUserEmail = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-	RegexpUserPhone = regexp.MustCompile(`^\+?\d{6,14}$`)
+	RegexpUserPhone = regexp.MustCompile(`^(|\+?\d{6,14})$`)
 )
 
 func IsValidUserPassword(str string) error {
