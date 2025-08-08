@@ -1,11 +1,13 @@
 package htmx
 
-const (
-	RegexpMessageContent = `^.+$`
+import "regexp"
+
+var (
+	RegexpMessageContent = regexp.MustCompile(`^.+$`)
 )
 
-func IsValidMessageContent(text string) error {
-	if IsValidString(text, RegexpMessageContent, 1, 8000) {
+func IsValidMessageContent(str string) error {
+	if !RegexpMessageContent.Match([]byte(str)) {
 		return ErrGroupChatInvalidContent
 	}
 
