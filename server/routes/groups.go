@@ -75,7 +75,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 		).
 		Put("/:group_id/change",
 			func(ctx fiber.Ctx) error {
-				request := fiber.Locals[*GroupChange](ctx, perms.LocalForm)
+				request := fiber.Locals[GroupChange](ctx, perms.LocalForm)
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				hasChanges := request.Nick != group.Moniker ||
 					group.Name != request.Name ||
@@ -130,7 +130,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 		).
 		Post("/:group_id/messages/create",
 			func(ctx fiber.Ctx) error {
-				request := fiber.Locals[*MessageCreate](ctx, perms.LocalForm)
+				request := fiber.Locals[MessageCreate](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 
@@ -177,7 +177,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 		).
 		Post("/create",
 			func(ctx fiber.Ctx) error {
-				request := fiber.Locals[*GroupCreate](ctx, perms.LocalForm)
+				request := fiber.Locals[GroupCreate](ctx, perms.LocalForm)
 				groupFound, _ := model.NewGroupFromName(db, request.Name)
 				if !groupFound {
 					return htmx.ErrGroupNotFound

@@ -5,7 +5,7 @@ const (
 )
 
 func IsValidMessageContent(text string) error {
-	if IsValidString(text, RegexpMessageContent, 8000) {
+	if IsValidString(text, RegexpMessageContent, 1, 8000) {
 		return ErrGroupChatInvalidContent
 	}
 

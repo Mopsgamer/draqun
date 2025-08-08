@@ -28,7 +28,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 	return router.Group("/change").
 		Put("/name",
 			func(ctx fiber.Ctx) error {
-				request := fiber.Locals[*UserChangeName](ctx, perms.LocalForm)
+				request := fiber.Locals[UserChangeName](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				if request.NewNickname == user.Moniker && request.NewName == user.Name {
@@ -67,7 +67,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 		).
 		Put("/email",
 			func(ctx fiber.Ctx) error {
-				request := fiber.Locals[*UserChangeEmail](ctx, perms.LocalForm)
+				request := fiber.Locals[UserChangeEmail](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				if request.NewEmail == user.Email {
@@ -109,7 +109,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 		).
 		Put("/phone",
 			func(ctx fiber.Ctx) error {
-				request := fiber.Locals[*UserChangePhone](ctx, perms.LocalForm)
+				request := fiber.Locals[UserChangePhone](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				if request.NewPhone == user.Phone {
@@ -142,7 +142,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 		).
 		Put("/password",
 			func(ctx fiber.Ctx) error {
-				request := fiber.Locals[*UserChangePassword](ctx, perms.LocalForm)
+				request := fiber.Locals[UserChangePassword](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				if request.NewPassword == user.Password {

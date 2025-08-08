@@ -47,7 +47,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 		).
 		Post("/create",
 			func(ctx fiber.Ctx) error {
-				request := fiber.Locals[*UserSignUp](ctx, perms.LocalForm)
+				request := fiber.Locals[UserSignUp](ctx, perms.LocalForm)
 
 				if err := htmx.IsValidUserNick(request.Nickname); err != nil {
 					return err
@@ -109,7 +109,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 		).
 		Post("/login",
 			func(ctx fiber.Ctx) error {
-				request := fiber.Locals[*UserLogin](ctx, perms.LocalForm)
+				request := fiber.Locals[UserLogin](ctx, perms.LocalForm)
 				if err := htmx.IsValidUserPassword(request.Password); err != nil {
 					return err
 				}
@@ -149,7 +149,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 		).
 		Delete("/delete",
 			func(ctx fiber.Ctx) error {
-				request := fiber.Locals[*UserDelete](ctx, perms.LocalForm)
+				request := fiber.Locals[UserDelete](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				if user.Moniker != request.ConfirmUsername {
