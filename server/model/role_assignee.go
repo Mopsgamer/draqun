@@ -36,7 +36,7 @@ func (roleAssign *RoleAssignee) Role() Role {
 		LeftJoin(goqu.I(TableRoleAssignees), goqu.On(
 			goqu.I(TableRoleAssignees+".user_id").Eq(TableMembers+".user_id"),
 		)).
-		ToSQL()
+		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return member
@@ -60,7 +60,7 @@ func (roleAssign *RoleAssignee) Member() Member {
 		LeftJoin(goqu.I(TableRoleAssignees), goqu.On(
 			goqu.I(TableRoleAssignees+".user_id").Eq(TableMembers+".user_id"),
 		)).
-		ToSQL()
+		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return member

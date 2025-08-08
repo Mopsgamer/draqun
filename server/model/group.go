@@ -107,7 +107,7 @@ func (group Group) MembersCount() uint64 {
 	count := uint64(0)
 	sql, args, err := goqu.Select(goqu.COUNT("*")).From(TableMembers).
 		Where(goqu.Ex{TableMembers + ".group_id": group.Id, TableMembers + ".is_deleted": types.BitBool(false)}).
-		ToSQL()
+		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return count
@@ -130,7 +130,7 @@ func (group Group) UsersPage(page, limit uint) []User {
 		Where(goqu.Ex{TableMembers + ".group_id": group.Id}).
 		Order(goqu.I(TableMembers + ".user_id").Asc()).
 		Limit(limit).Offset(from).
-		ToSQL()
+		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return userList
@@ -148,7 +148,7 @@ func (group Group) MessageFirst() *Message {
 	message := new(Message)
 
 	sql, args, err := group.Db.Goqu.From(TableMessages).Where(goqu.C("group_id").Eq(group.Id)).Order(goqu.C("id").Asc()).Limit(1).
-		ToSQL()
+		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return message
@@ -166,7 +166,7 @@ func (group Group) MessageLast() *Message {
 	message := new(Message)
 
 	sql, args, err := group.Db.Goqu.From(TableMessages).Where(goqu.C("group_id").Eq(group.Id)).Order(goqu.C("id").Desc()).Limit(1).
-		ToSQL()
+		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return message
@@ -190,7 +190,7 @@ func (group Group) MessagesPage(page, limit uint) []Message {
 		Order(goqu.I("id").Desc()).
 		Limit(limit).Offset(from)
 	sql, args, err := group.Db.Goqu.From(subquery).Order(goqu.I("id").Asc()).
-		ToSQL()
+		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return messageList
@@ -214,7 +214,7 @@ func (group Group) ActionListPage(page uint, limit uint) []Action {
 		).Where(filter),
 	).Where(filter).
 		Limit(limit).Offset(from).
-		ToSQL()
+		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return actions

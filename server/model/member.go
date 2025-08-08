@@ -70,7 +70,7 @@ func (member Member) Roles() []Role {
 	sql, args, err := member.Db.Goqu.From(TableRoles).Select(TableRoles+".*").
 		LeftJoin(goqu.T(TableRoleAssignees), goqu.On(goqu.I(TableRoleAssignees+".role_id").Eq(TableRoles+".id"))).
 		Where(goqu.Ex{TableRoles + ".group_id": member.GroupId, TableRoleAssignees + ".user_id": member.UserId}).
-		ToSQL()
+		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return roleList
@@ -168,7 +168,7 @@ func (member Member) ActionListPage(page uint, limit uint) []Action {
 		).Where(filter),
 	).Where(filter).
 		Limit(limit).Offset(from).
-		ToSQL()
+		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return actions
