@@ -11,24 +11,28 @@ import (
 )
 
 func RouteStatic(embedFS fs.FS, clientEmbedded bool, app *fiber.App) {
-	app.Get("/static", NewStaticFactory(embedFS, clientEmbedded)(environment.StaticFolder))
+	app.Get("/static*", staticHandler(embedFS, clientEmbedded, environment.StaticFolder))
 }
 
-func NewStaticFactory(embedFS fs.FS, clientEmbedded bool) func(dir string) fiber.Handler {
-	return func(dir string) fiber.Handler {
-		cacheDuration := time.Duration(-1)
-		if environment.BuildModeValue == environment.BuildModeProduction {
-			cacheDuration = time.Minute
-		}
-		if !clientEmbedded {
-			return static.New(dir, static.Config{Browse: true, CacheDuration: cacheDuration})
-		}
-
-		Fs, err := fs.Sub(embedFS, dir)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		return static.New("", static.Config{Browse: true, FS: Fs, CacheDuration: cacheDuration})
+func staticHandler(embedFS fs.FS, clientEmbedded bool, dir string) fiber.Handler {
+	cacheDuration := time.Duration(-1)
+	if environment.BuildModeValue == environment.BuildModeProduction {
+		cacheDuration = time.Minute
 	}
+	cfg := static.Config{
+		Browse:        true,
+		CacheDuration: cacheDuration,
+		// NotFoundHandler: func(ctx fiber.Ctx) error { return ctx.Next() },
+	}
+	if !clientEmbedded {
+		return static.New(dir, cfg)
+	}
+
+	Fs, err := fs.Sub(embedFS, dir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cfg.FS = Fs
+	return static.New(dir, cfg)
 }
