@@ -74,13 +74,15 @@ func checkCookieToken(value string) (token *jwt.Token, err error) {
 	token, err = jwt.Parse(value, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			return []byte{}, errors.Join(htmx.ErrToken, err)
+			return []byte{}, htmx.ErrToken.Join(err)
 		}
 
 		return []byte(environment.JWTKey), nil
 	})
 
-	err = errors.Join(htmx.ErrToken, err)
+	if err != nil {
+		err = htmx.ErrToken.Join(err)
+	}
 	return
 }
 
@@ -88,19 +90,19 @@ func checkUser(db *model.DB, token *jwt.Token) (user model.User, err error) {
 	claims := token.Claims.(jwt.MapClaims)
 	email, ok := claims["Email"].(string)
 	if !ok || htmx.IsValidUserEmail(email) != nil {
-		err = errors.Join(htmx.ErrToken, errors.New("expected any email"))
+		err = htmx.ErrToken.Join(errors.New("expected any email"))
 		return
 	}
 
 	name, ok := claims["Name"].(string)
 	if !ok || htmx.IsValidUserName(name) != nil {
-		err = errors.Join(htmx.ErrToken, errors.New("expected any name"))
+		err = htmx.ErrToken.Join(errors.New("expected any name"))
 		return
 	}
 
 	pass, ok := claims["Password"].(string)
 	if !ok || htmx.IsValidUserPassword(pass) != nil {
-		err = errors.Join(htmx.ErrToken, errors.New("expected any password"))
+		err = htmx.ErrToken.Join(errors.New("expected any password"))
 		return
 	}
 
@@ -114,18 +116,17 @@ func checkUser(db *model.DB, token *jwt.Token) (user model.User, err error) {
 	}
 
 	if pass != user.Password {
-		err = errors.Join(htmx.ErrToken, errors.New("incorrect password"))
-		return
+		err = htmx.ErrToken.Join(errors.New("incorrect password"))
 	}
-
 	return
 }
 
 func UserByAuthFromCtx(ctx fiber.Ctx, db *model.DB) (user model.User, err error) {
 	user, err = model.User{Db: db}, nil
-	cookieToken := ctx.Cookies(fiber.HeaderAuthorization)
+	tokenString := ctx.Cookies(fiber.HeaderAuthorization)
 
-	token, err := checkCookieToken(cookieToken)
+	token := new(jwt.Token)
+	token, err = checkCookieToken(tokenString)
 	if err != nil {
 		return
 	}
