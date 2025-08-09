@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/environment"
@@ -124,7 +126,10 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 
 				user, err := model.NewUserFromEmail(db, request.Email)
 				if err != nil {
-					return err
+					if errors.Is(err, sql.ErrNoRows) {
+						return htmx.ErrUserNotFound
+					}
+					return htmx.ErrDatabase.Join(err)
 				}
 
 				if !user.CheckPassword(request.Password) {

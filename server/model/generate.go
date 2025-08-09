@@ -15,7 +15,7 @@ func First[T any](db *DB, table string, ex goqu.Ex, item *T) (err error) {
 		return err
 	}
 
-	err = db.Sqlx.QueryRow(sql, args...).Scan(item)
+	err = db.Sqlx.QueryRowx(sql, args...).StructScan(item)
 	return
 }
 
@@ -25,7 +25,7 @@ func Last[T any](db *DB, table string, ex goqu.Ex, key exp.IdentifierExpression,
 		return
 	}
 
-	err = db.Sqlx.QueryRow(sql, args...).Scan(item)
+	err = db.Sqlx.QueryRowx(sql, args...).StructScan(item)
 	return
 }
 
