@@ -34,7 +34,7 @@ func RoutePages(app *fiber.App, db *model.DB) {
 	app.Get(
 		"/settings",
 		func(ctx fiber.Ctx) error {
-			user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+			user, _ := perms.UserByAuthFromCtx(ctx, db)
 			if user.IsEmpty() {
 				return ctx.Redirect().To("/")
 			}
