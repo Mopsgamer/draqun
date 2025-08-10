@@ -3,6 +3,7 @@ package model
 import (
 	"time"
 
+	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
 )
@@ -12,18 +13,20 @@ type Member struct {
 
 	GroupId           uint64        `db:"group_id"`
 	UserId            uint64        `db:"user_id"`
-	Moniker           string        `db:"moniker"`
-	FirstTimeJoinedAt time.Time     `db:"first_time_joined_at"`
+	Moniker           Moniker       `db:"moniker"`
+	FirstTimeJoinedAt TimePast      `db:"first_time_joined_at"`
 	IsDeleted         types.BitBool `db:"is_deleted"`
 }
 
-func NewMember(db *DB, groupId, userId uint64, moniker string) Member {
+var _ Model = (*Member)(nil)
+
+func NewMember(db *DB, groupId, userId uint64, moniker Moniker) Member {
 	return Member{
 		Db:                db,
 		GroupId:           groupId,
 		UserId:            userId,
 		Moniker:           moniker,
-		FirstTimeJoinedAt: time.Now(),
+		FirstTimeJoinedAt: TimePast(time.Now()),
 	}
 }
 
@@ -31,6 +34,17 @@ func NewMemberFromId(db *DB, groupId, userId uint64) (Member, error) {
 	member := Member{Db: db}
 	err := member.FromId(groupId, userId)
 	return member, err
+}
+
+func (member Member) IsValid() htmx.Alert {
+	if !member.Moniker.IsValid() {
+		return htmx.AlertFormatMoniker
+	}
+	if !member.FirstTimeJoinedAt.IsValid() {
+		return htmx.AlertFormatPastMoment
+	}
+
+	return nil
 }
 
 func (member Member) IsEmpty() bool {
@@ -96,14 +110,14 @@ func (member Member) Role() Role {
 	return everyone
 }
 
-func (member Member) Ban(creatorId uint64, endsAt time.Time, description string) error {
+func (member Member) Ban(creatorId uint64, endsAt TimeFuture, description Description) error {
 	action := ActionBan{
 		Db:          member.Db,
 		GroupId:     member.GroupId,
 		TargetId:    member.UserId,
 		CreatorId:   creatorId,
 		Description: description,
-		ActedAt:     time.Now(),
+		ActedAt:     TimePast(time.Now()),
 		EndsAt:      endsAt,
 	}
 
@@ -121,14 +135,14 @@ func (member Member) Unban(revokerId uint64) error {
 	return ban.Update()
 }
 
-func (member Member) Kick(creatorId uint64, description string) error {
+func (member Member) Kick(creatorId uint64, description Description) error {
 	action := ActionKick{
 		Db:          member.Db,
 		GroupId:     member.GroupId,
 		TargetId:    member.UserId,
 		CreatorId:   creatorId,
 		Description: description,
-		ActedAt:     time.Now(),
+		ActedAt:     TimePast(time.Now()),
 	}
 
 	return action.Insert()
@@ -140,7 +154,7 @@ func (member Member) LeaveActed() error {
 		GroupId: member.GroupId,
 		UserId:  member.UserId,
 		IsJoin:  false,
-		ActedAt: time.Now(),
+		ActedAt: TimePast(time.Now()),
 	}
 
 	return action.Insert()
@@ -152,7 +166,7 @@ func (member Member) JoinActed() error {
 		GroupId: member.GroupId,
 		UserId:  member.UserId,
 		IsJoin:  false,
-		ActedAt: time.Now(),
+		ActedAt: TimePast(time.Now()),
 	}
 
 	return action.Insert()

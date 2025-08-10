@@ -16,7 +16,7 @@ func GroupByIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri string) (group mod
 	groupId := fiber.Params[uint64](ctx, groupIdUri)
 	group, err = model.NewGroupFromId(db, groupId)
 	if err != nil {
-		err = htmx.ErrGroupNotFound
+		err = htmx.AlertGroupNotFound
 		return
 	}
 
@@ -26,10 +26,10 @@ func GroupByIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri string) (group mod
 
 func GroupByNameFromCtx(ctx fiber.Ctx, db *model.DB, groupNameUri string) (group model.Group, err error) {
 	err = nil
-	groupName := fiber.Params[string](ctx, groupNameUri)
+	groupName := model.Name(fiber.Params[string](ctx, groupNameUri))
 	group, err = model.NewGroupFromName(db, groupName)
 	if err != nil {
-		err = htmx.ErrGroupNotFound
+		err = htmx.AlertGroupNotFound
 		return
 	}
 
@@ -50,7 +50,7 @@ func MemberByAuthAndGroupIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri strin
 
 	member, err := model.NewMemberFromId(db, groupId, user.Id)
 	if err != nil { // never been a member
-		return htmx.ErrGroupMemberNotFound
+		return htmx.AlertGroupMemberNotFound
 	}
 
 	ctx.Locals(LocalMember, member)
@@ -67,42 +67,42 @@ func checkCookieToken(value string) (token *jwt.Token, err error) {
 	}
 
 	if len(value) < 1 {
-		err = htmx.ErrToken
+		err = htmx.AlertToken
 		return
 	}
 
 	token, err = jwt.Parse(value, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			return []byte{}, htmx.ErrToken.Join(err)
+			return []byte{}, htmx.AlertToken.Join(err)
 		}
 
 		return []byte(environment.JWTKey), nil
 	})
 
 	if err != nil {
-		err = htmx.ErrToken.Join(err)
+		err = htmx.AlertToken.Join(err)
 	}
 	return
 }
 
 func checkUser(db *model.DB, token *jwt.Token) (user model.User, err error) {
 	claims := token.Claims.(jwt.MapClaims)
-	email, ok := claims["Email"].(string)
-	if !ok || htmx.IsValidUserEmail(email) != nil {
-		err = htmx.ErrToken.Join(errors.New("expected any email"))
+	email, ok := claims["Email"].(model.Email)
+	if !ok || model.Email(email).IsValid() {
+		err = htmx.AlertToken.Join(errors.New("expected any email"))
 		return
 	}
 
-	name, ok := claims["Name"].(string)
-	if !ok || htmx.IsValidUserName(name) != nil {
-		err = htmx.ErrToken.Join(errors.New("expected any name"))
+	name, ok := claims["Name"].(model.Name)
+	if !ok || model.Name(name).IsValid() {
+		err = htmx.AlertToken.Join(errors.New("expected any name"))
 		return
 	}
 
-	pass, ok := claims["Password"].(string)
-	if !ok || htmx.IsValidUserPassword(pass) != nil {
-		err = htmx.ErrToken.Join(errors.New("expected any password"))
+	pass, ok := claims["Password"].(model.PasswordHashed)
+	if !ok || model.PasswordHashed(pass).IsValid() {
+		err = htmx.AlertToken.Join(errors.New("expected any password"))
 		return
 	}
 
@@ -110,13 +110,13 @@ func checkUser(db *model.DB, token *jwt.Token) (user model.User, err error) {
 	if err != nil {
 		errName := user.FromName(name)
 		if errName != nil {
-			err = htmx.ErrUserNotFound.Join(err).Join(errName)
+			err = htmx.AlertUserNotFound.Join(err).Join(errName)
 			return
 		}
 	}
 
 	if pass != user.Password {
-		err = htmx.ErrToken.Join(errors.New("incorrect password"))
+		err = htmx.AlertToken.Join(errors.New("incorrect password"))
 	}
 	return
 }

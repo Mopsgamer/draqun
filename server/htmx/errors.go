@@ -7,148 +7,180 @@ import (
 )
 
 var (
-	ErrDatabase = NewHTMXAlert(
+	AlertEncryption = NewAlert(
+		errors.Join(fiber.ErrInternalServerError, errors.New("encryption: failed")),
+		"Internal encryption error.",
+		Danger,
+	)
+	AlertDatabase = NewAlert(
 		errors.Join(fiber.ErrInternalServerError, errors.New("database: failed")),
 		"Internal database error.",
 		Danger,
 	)
-	ErrUseless = NewHTMXAlert(
+	AlertUseless = NewAlert(
 		errors.Join(fiber.ErrNotFound, errors.New("change: useless")),
 		"Useless change.",
 		Danger,
 	)
 
-	ErrToken = NewHTMXAlert(
+	AlertToken = NewAlert(
 		errors.Join(fiber.ErrUnauthorized, errors.New("token: invalid")),
 		"Invalid token.",
 		Danger,
 	)
 
-	ErrUserNotFound = NewHTMXAlert(
+	AlertUserNotFound = NewAlert(
 		errors.Join(fiber.ErrNotFound, errors.New("user: not found")),
 		"User not found.",
 		Danger,
 	)
-	ErrUserNickname = NewHTMXAlert(
+	AlertUserNickname = NewAlert(
 		errors.Join(fiber.ErrUnauthorized, errors.New("user: invalid nickname")),
 		"Invalid nickname.",
 		Danger,
 	)
-	ErrUserNameConfirm = NewHTMXAlert(
+	AlertUserNameConfirm = NewAlert(
 		errors.Join(fiber.ErrUnauthorized, errors.New("user: invalid name confirmation")),
 		"Invalid name confirmation.",
 		Danger,
 	)
-	ErrUserPassword = NewHTMXAlert(
+	AlertUserPassword = NewAlert(
 		errors.Join(fiber.ErrUnauthorized, errors.New("user: invalid password")),
 		"Invalid password.",
 		Danger,
 	)
-	ErrUserPasswordConfirm = NewHTMXAlert(
+	AlertUserPasswordConfirm = NewAlert(
 		errors.Join(fiber.ErrUnauthorized, errors.New("user: invalid password confirmation")),
 		"Invalid password confirmation.",
 		Danger,
 	)
-	ErrUserExsistsEmail = NewHTMXAlert(
+	AlertUserExsistsEmail = NewAlert(
 		errors.Join(fiber.ErrConflict, errors.New("user: another user with this email exists")),
 		"Email already exists.",
 		Danger,
 	)
-	ErrUserExsistsName = NewHTMXAlert(
+	AlertUserExsistsName = NewAlert(
 		errors.Join(fiber.ErrConflict, errors.New("user: another user with this username exists")),
 		"Username already exists.",
 		Danger,
 	)
-	ErrUserExsistsNickname = NewHTMXAlert(
+	AlertUserExsistsNickname = NewAlert(
 		errors.Join(fiber.ErrConflict, errors.New("user: another user with this nickname exists")),
 		"Nickname already exists.",
 		Danger,
 	)
-	ErrUserDeleteOwnerAccount = NewHTMXAlert(
+	AlertUserDeleteOwnerAccount = NewAlert(
 		errors.Join(fiber.ErrForbidden, errors.New("user: cannot delete account if a group owner")),
 		"Cannot delete account as group owner.",
 		Danger,
 	)
 
-	ErrGroupNotFound = NewHTMXAlert(
+	AlertGroupNotFound = NewAlert(
 		errors.Join(fiber.ErrNotFound, errors.New("group: not found")),
 		"Group not found.",
 		Danger,
 	)
+	AlertGroupExsistsName = NewAlert(
+		errors.Join(fiber.ErrNotFound, errors.New("group: another group with this name exists")),
+		"Group with this name already exists.",
+		Danger,
+	)
 
-	ErrGroupMemberNotFound = NewHTMXAlert(
+	AlertGroupMemberNotFound = NewAlert(
 		errors.Join(fiber.ErrNotFound, errors.New("group: member: not found")),
 		"Group member not found.",
 		Danger,
 	)
-	ErrGroupMemberIsOnlyOwner = NewHTMXAlert(
+	AlertGroupMemberIsOnlyOwner = NewAlert(
 		errors.Join(fiber.ErrForbidden, errors.New("group: member: last owner")),
 		"Group member is only owner.",
 		Danger,
 	)
-	ErrGroupMemberNotAllowed = NewHTMXAlert(
+	AlertGroupMemberNotAllowed = NewAlert(
 		errors.Join(fiber.ErrForbidden, errors.New("group: member: rights: not allowed")),
 		"Group member rights not allowed.",
-		Danger,
-	)
-
-	ErrGroupChatInvalidContent = NewHTMXAlert(
-		errors.Join(fiber.ErrUnprocessableEntity, errors.New("group: chat: invalid content")),
-		"Invalid chat message content.",
 		Danger,
 	)
 )
 
 var (
-	ErrFormatUserPassword = NewHTMXAlert(
-		errors.New("format: user: invalid password"),
-		"Invalid password format.",
-		Warning,
-	)
-	ErrFormatUserEmail = NewHTMXAlert(
-		errors.New("format: user: invalid email"),
-		"Invalid email format.",
-		Warning,
-	)
-	ErrFormatUserMoniker = NewHTMXAlert(
-		errors.New("format: user: invalid moniker"),
+	ErrFormat = errors.Join(fiber.ErrUnprocessableEntity, errors.New("invalid data format"))
+
+	AlertFormatMoniker = NewAlert(
+		errors.Join(ErrFormat, errors.New("bad moniker")),
 		"Invalid moniker format.",
 		Warning,
 	)
-	ErrFormatUserName = NewHTMXAlert(
-		errors.New("format: user: invalid name"),
+	AlertFormatName = NewAlert(
+		errors.Join(ErrFormat, errors.New("bad name")),
 		"Invalid name format.",
 		Warning,
 	)
-	ErrFormatUserPhone = NewHTMXAlert(
-		errors.New("format: user: invalid phone"),
+	AlertFormatEmail = NewAlert(
+		errors.Join(ErrFormat, errors.New("bad email")),
+		"Invalid email format.",
+		Warning,
+	)
+	AlertFormatPassword = NewAlert(
+		errors.Join(ErrFormat, errors.New("bad password")),
+		"Invalid password format.",
+		Warning,
+	)
+	AlertFormatPhone = NewAlert(
+		errors.Join(ErrFormat, errors.New("bad phone")),
 		"Invalid phone format.",
 		Warning,
 	)
+	AlertFormatDescription = NewAlert(
+		errors.Join(ErrFormat, errors.New("bad description")),
+		"Invalid description format.",
+		Warning,
+	)
+	AlertFormatMessageContent = NewAlert(
+		errors.Join(ErrFormat, errors.New("bad message content")),
+		"Invalid message format.",
+		Warning,
+	)
+	AlertFormatAvatar = NewAlert(
+		errors.Join(ErrFormat, errors.New("bad avatar")),
+		"Invalid avatar format.",
+		Warning,
+	)
+	AlertFormatColor = NewAlert(
+		errors.Join(ErrFormat, errors.New("bad color")),
+		"Invalid color.",
+		Warning,
+	)
+	AlertFormatPastMoment = NewAlert(
+		errors.Join(ErrFormat, errors.New("bad past moment")),
+		"Invalid past time moment.",
+		Warning,
+	)
+	AlertFormatFutureMoment = NewAlert(
+		errors.Join(ErrFormat, errors.New("bad future moment")),
+		"Invalid future time moment.",
+		Warning,
+	)
 
-	ErrFormatGroupName = NewHTMXAlert(
-		errors.New("format: invalid group name"),
-		"Invalid group name format.",
-		Warning,
-	)
-	ErrFormatGroupMoniker = NewHTMXAlert(
-		errors.New("format: invalid group moniker"),
-		"Invalid group moniker format.",
-		Warning,
-	)
-	ErrFormatGroupPassword = NewHTMXAlert(
-		errors.New("format: invalid group password"),
-		"Invalid group password format.",
-		Warning,
-	)
-	ErrFormatGroupDescription = NewHTMXAlert(
-		errors.New("format: invalid group description"),
-		"Invalid group description format.",
-		Warning,
-	)
-	ErrFormatGroupMode = NewHTMXAlert(
-		errors.New("format: invalid group mode"),
+	AlertFormatGroupMode = NewAlert(
+		errors.Join(ErrFormat, errors.New("bad group mode")),
 		"Invalid group mode format.",
+		Warning,
+	)
+	ErrFormatGroupPerm         = errors.Join(ErrFormat, errors.New("bad group permission"))
+	AlertFormatGroupPermSwitch = NewAlert(
+		errors.Join(ErrFormatGroupPerm, errors.New("bad group message permission")),
+		"Invalid message permission format.",
+		Warning,
+	)
+	AlertFormatGroupPermMessages = NewAlert(
+		errors.Join(ErrFormatGroupPerm, errors.New("bad group message permission")),
+		"Invalid message permission format.",
+		Warning,
+	)
+	AlertFormatGroupPermMembers = NewAlert(
+		errors.Join(ErrFormatGroupPerm, errors.New("bad group member permission")),
+		"Invalid member permission format.",
 		Warning,
 	)
 )

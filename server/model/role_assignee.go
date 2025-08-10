@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/doug-martin/goqu/v9"
 )
 
@@ -11,8 +12,18 @@ type RoleAssignee struct {
 	RoleId uint32 `db:"role_id"`
 }
 
+var _ Model = (*RoleAssignee)(nil)
+
 func NewRoleAssign(db *DB) RoleAssignee {
 	return RoleAssignee{Db: db}
+}
+
+func (roleAssign RoleAssignee) IsValid() htmx.Alert {
+	return nil
+}
+
+func (roleAssign RoleAssignee) IsEmpty() bool {
+	return roleAssign.UserId == 0 || roleAssign.RoleId == 0
 }
 
 func (roleAssign *RoleAssignee) Insert() error {

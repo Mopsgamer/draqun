@@ -1,8 +1,7 @@
 package model
 
 import (
-	"time"
-
+	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
 )
@@ -12,7 +11,7 @@ type ActionMembership struct {
 
 	UserId  uint64        `db:"user_id"`  // The user being acted upon.
 	GroupId uint64        `db:"group_id"` // The group where the action was performed.
-	ActedAt time.Time     `db:"acted_at"` // The time when the action was performed.
+	ActedAt TimePast      `db:"acted_at"` // The time when the action was performed.
 	IsJoin  types.BitBool `db:"is_join"`  // True if the action is a join, false if it's a leave.
 }
 
@@ -20,6 +19,14 @@ var _ Action = (*ActionBan)(nil)
 
 func (action ActionMembership) Kind() string {
 	return "membership"
+}
+
+func (action ActionMembership) IsValid() htmx.Alert {
+	if !action.ActedAt.IsValid() {
+		return htmx.AlertFormatPastMoment
+	}
+
+	return nil
 }
 
 func (action ActionMembership) IsEmpty() bool {

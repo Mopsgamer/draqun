@@ -8,24 +8,24 @@ import (
 )
 
 type UserChangeName struct {
-	NewNickname string `form:"new-nickname"`
-	NewName     string `form:"new-username"`
+	NewNickname model.Moniker `form:"new-nickname"`
+	NewName     model.Name    `form:"new-username"`
 }
 
 type UserChangeEmail struct {
-	CurrentPassword string `form:"current-password"`
-	NewEmail        string `form:"new-email"`
+	CurrentPassword model.Password `form:"current-password"`
+	NewEmail        model.Email    `form:"new-email"`
 }
 
 type UserChangePhone struct {
-	CurrentPassword string `form:"current-password"`
-	NewPhone        string `form:"new-phone"`
+	CurrentPassword model.Password `form:"current-password"`
+	NewPhone        model.Phone    `form:"new-phone"`
 }
 
 type UserChangePassword struct {
-	CurrentPassword string `form:"current-password"`
-	NewPassword     string `form:"new-password"`
-	ConfirmPassword string `form:"confirm-password"`
+	CurrentPassword model.Password `form:"current-password"`
+	NewPassword     model.Password `form:"new-password"`
+	ConfirmPassword model.Password `form:"confirm-password"`
 }
 
 func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
@@ -37,28 +37,24 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				request := fiber.Locals[UserChangeName](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
-				if request.NewNickname == user.Moniker && request.NewName == user.Name {
-					return htmx.ErrUseless
-				}
-
-				if err := htmx.IsValidUserNick(request.NewNickname); err != nil {
-					return err
-				}
-
-				if err := htmx.IsValidUserName(request.NewName); err != nil {
-					return err
+				if request.NewNickname == user.Moniker &&
+					request.NewName == user.Name {
+					return htmx.AlertUseless
 				}
 
 				_, err := model.NewUserFromName(db, request.NewName)
 				if err != nil {
-					return htmx.ErrUserExsistsName
+					return htmx.AlertUserExsistsName
 				}
 
 				user.Moniker = request.NewNickname
 				user.Name = request.NewName
+				if err := user.IsValid(); err != nil {
+					return err
+				}
 
 				if err := user.Update(); err != nil {
-					return htmx.ErrDatabase.Join(err)
+					return htmx.AlertDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -77,30 +73,25 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				if request.NewEmail == user.Email {
-					return htmx.ErrUseless
-				}
-
-				if err := htmx.IsValidUserEmail(request.NewEmail); err != nil {
-					return err
+					return htmx.AlertUseless
 				}
 
 				_, err := model.NewUserFromEmail(db, request.NewEmail)
 				if err != nil {
-					return htmx.ErrUserExsistsEmail
+					return htmx.AlertUserExsistsEmail
 				}
 
-				if err := htmx.IsValidUserPassword(request.CurrentPassword); err != nil {
-					return err
-				}
-
-				if !user.CheckPassword(request.CurrentPassword) {
-					return htmx.ErrUserPassword
+				if err := user.Password.Compare(request.CurrentPassword); err != nil {
+					return htmx.AlertUserPassword.Join(err)
 				}
 
 				user.Email = request.NewEmail
+				if err := user.IsValid(); err != nil {
+					return err
+				}
 
 				if err := user.Update(); err != nil {
-					return htmx.ErrDatabase.Join(err)
+					return htmx.AlertDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -119,21 +110,20 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				if request.NewPhone == user.Phone {
-					return htmx.ErrUseless
+					return htmx.AlertUseless
 				}
 
-				if err := htmx.IsValidUserPhone(request.NewPhone); err != nil {
-					return err
-				}
-
-				if !user.CheckPassword(request.CurrentPassword) {
-					return htmx.ErrUserPassword
+				if err := user.Password.Compare(request.CurrentPassword); err != nil {
+					return htmx.AlertUserPassword.Join(err)
 				}
 
 				user.Phone = request.NewPhone
+				if err := user.IsValid(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
 
 				if err := user.Update(); err != nil {
-					return htmx.ErrDatabase.Join(err)
+					return htmx.AlertDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -151,26 +141,30 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				request := fiber.Locals[UserChangePassword](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
-				if request.NewPassword == user.Password {
-					return htmx.ErrUseless
+				if err := user.Password.Compare(request.CurrentPassword); err != nil {
+					return htmx.AlertUserPassword.Join(err)
 				}
 
-				if err := htmx.IsValidUserPassword(request.CurrentPassword); err != nil {
-					return err
+				if err := user.Password.Compare(request.NewPassword); err != nil {
+					return htmx.AlertUseless.Join(err)
 				}
 
 				if request.ConfirmPassword != request.NewPassword {
-					return htmx.ErrUserPasswordConfirm
+					return htmx.AlertUserPasswordConfirm
 				}
 
-				if !user.CheckPassword(request.CurrentPassword) {
-					return htmx.ErrUserPassword
+				var err error
+				user.Password, err = request.NewPassword.Hash()
+				if err != nil {
+					return htmx.AlertEncryption.Join(err)
 				}
 
-				user.Password = request.NewPassword
+				if err := user.IsValid(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
 
 				if err := user.Update(); err != nil {
-					return htmx.ErrDatabase.Join(err)
+					return htmx.AlertDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {

@@ -3,6 +3,7 @@ package model
 import (
 	"strings"
 
+	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/doug-martin/goqu/v9"
 )
 
@@ -13,6 +14,12 @@ const (
 	PermSwitchDisallow PermSwitch = "disallow"
 	PermSwitchAllow    PermSwitch = "allow"
 )
+
+func (perm PermSwitch) IsValid() bool {
+	return perm == PermSwitchNone ||
+		perm == PermSwitchDisallow ||
+		perm == PermSwitchAllow
+}
 
 func (perm PermSwitch) Has() bool {
 	return perm == PermSwitchAllow
@@ -27,6 +34,14 @@ const (
 	PermMessagesWrite  PermMessages = "write"  // Can read, write and delete own messages.
 	PermMessagesDelete PermMessages = "delete" // Can read, write and delete own messages. Can delete other people's messages.
 )
+
+func (perm PermMessages) IsValid() bool {
+	return perm == PermMessagesNone ||
+		perm == PermMessagesHidden ||
+		perm == PermMessagesRead ||
+		perm == PermMessagesWrite ||
+		perm == PermMessagesDelete
+}
 
 func (perm PermMessages) CanReadMessages() bool {
 	return perm == PermMessagesRead ||
@@ -53,20 +68,60 @@ const (
 	PermMembersDelete PermMembers = "delete" // Can invite, change nicknames, kick and ban people.
 )
 
+func (perm PermMembers) IsValid() bool {
+	return perm == PermMembersNone ||
+		perm == PermMembersRead ||
+		perm == PermMembersInvite ||
+		perm == PermMembersWrite ||
+		perm == PermMembersDelete
+}
+
 type Role struct {
 	Db *DB `db:"-"`
 
-	Id      uint32 `db:"id"`
-	GroupId uint64 `db:"group_id"`
-	Name    string `db:"name"`
-	Moniker string `db:"moniker"`
-	Color   uint32 `db:"color"`
+	Id      uint32  `db:"id"`
+	GroupId uint64  `db:"group_id"`
+	Name    Name    `db:"name"`
+	Moniker Moniker `db:"moniker"`
+	Color   Color   `db:"color"`
 
 	PermMessages    PermMessages `db:"perm_messages"`
 	PermRoles       PermSwitch   `db:"perm_roles"`
 	PermMembers     PermMembers  `db:"perm_members"`
 	PermGroupChange PermSwitch   `db:"perm_group_change"`
 	PermAdmin       PermSwitch   `db:"perm_admin"`
+}
+
+var _ Model = (*Role)(nil)
+
+func (role Role) IsValid() htmx.Alert {
+	if !role.Name.IsValid() {
+		return htmx.AlertFormatName
+	}
+	if !role.Moniker.IsValid() {
+		return htmx.AlertFormatMoniker
+	}
+	if !role.Color.IsValid() {
+		return htmx.AlertFormatColor
+	}
+
+	if !role.PermMessages.IsValid() {
+		return htmx.AlertFormatGroupPermMessages
+	}
+	if !role.PermRoles.IsValid() {
+		return htmx.AlertFormatGroupPermSwitch
+	}
+	if !role.PermMembers.IsValid() {
+		return htmx.AlertFormatGroupPermMembers
+	}
+	if !role.PermGroupChange.IsValid() {
+		return htmx.AlertFormatGroupPermSwitch
+	}
+	if !role.PermAdmin.IsValid() {
+		return htmx.AlertFormatGroupPermSwitch
+	}
+
+	return nil
 }
 
 func (role Role) IsEmpty() bool {
@@ -140,6 +195,6 @@ func (role *Role) FromId(id uint32, groupId uint64) error {
 	return First(role.Db, TableRoles, goqu.Ex{"id": id, "group_id": groupId}, role)
 }
 
-func (role *Role) FromName(name string, groupId uint64) error {
+func (role *Role) FromName(name Name, groupId uint64) error {
 	return First(role.Db, TableRoles, goqu.Ex{"name": name, "group_id": groupId}, role)
 }

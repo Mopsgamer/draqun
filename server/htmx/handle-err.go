@@ -10,7 +10,7 @@ func HandleHTMXError(ctx fiber.Ctx, err error) error {
 		return ctx.SendString(message)
 	}
 
-	if responseErr, ok := err.(HTMXAlert); ok {
+	if responseErr, ok := err.(Alert); ok {
 		level = responseErr.Level()
 		message = responseErr.Local()
 	}

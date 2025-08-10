@@ -56,7 +56,7 @@ func MemberByAuthAndGroupId(db *model.DB, groupIdUri string, rights RightsChecke
 			return ctx.Next()
 		}
 
-		return htmx.ErrGroupMemberNotAllowed
+		return htmx.AlertGroupMemberNotAllowed
 	}
 }
 

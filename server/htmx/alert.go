@@ -34,7 +34,7 @@ const (
 	Danger
 )
 
-type HTMXAlert interface {
+type Alert interface {
 	error
 	Local() string // User friendly error message.
 	Level() ShoelaceAlertLevel
@@ -46,9 +46,9 @@ type alert struct {
 	level ShoelaceAlertLevel
 }
 
-var _ HTMXAlert = (*alert)(nil)
+var _ Alert = (*alert)(nil)
 
-func NewHTMXAlert(err error, local string, level ShoelaceAlertLevel) alert {
+func NewAlert(err error, local string, level ShoelaceAlertLevel) alert {
 	return alert{
 		err:   err,
 		local: local,

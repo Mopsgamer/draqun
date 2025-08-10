@@ -3,6 +3,7 @@ package model
 import (
 	"time"
 
+	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx/types"
@@ -16,28 +17,37 @@ const (
 	GroupModePublic  GroupMode = "public"
 )
 
+func (gm GroupMode) IsValid() bool {
+	return gm == GroupModeDm || gm == GroupModePrivate || gm == GroupModePublic
+}
+
 type Group struct {
 	Db *DB `db:"-"`
 
-	Id          uint64        `db:"id"`
-	CreatorId   uint64        `db:"creator_id"`
-	OwnerId     uint64        `db:"owner_id"`
-	Moniker     string        `db:"moniker"` // Nick is a customizable name.
-	Name        string        `db:"name"`    // Name is a simple identificator, which can be used to create invite-links.
-	Mode        GroupMode     `db:"mode"`
-	Password    string        `db:"password"` // Optional hashed password string.
-	Description string        `db:"description"`
-	Avatar      string        `db:"avatar"`
-	CreatedAt   time.Time     `db:"created_at"`
-	IsDeleted   types.BitBool `db:"is_deleted"`
+	Id          uint64                 `db:"id"`
+	CreatorId   uint64                 `db:"creator_id"`
+	OwnerId     uint64                 `db:"owner_id"`
+	Moniker     Moniker                `db:"moniker"` // Nick is a customizable name.
+	Name        Name                   `db:"name"`    // Name is a simple identificator, which can be used to create invite-links.
+	Mode        GroupMode              `db:"mode"`
+	Password    OptionalPasswordHashed `db:"password"`
+	Description Description            `db:"description"`
+	Avatar      Avatar                 `db:"avatar"`
+	CreatedAt   TimePast               `db:"created_at"`
+	IsDeleted   types.BitBool          `db:"is_deleted"`
 }
+
+var _ Model = (*Group)(nil)
 
 func NewGroup(
 	db *DB,
 	creatorId uint64,
-	moniker, name string,
+	moniker Moniker,
+	name Name,
 	mode GroupMode,
-	password, description, avatar string,
+	password OptionalPasswordHashed,
+	description Description,
+	avatar Avatar,
 ) Group {
 	return Group{
 		Db:          db,
@@ -48,7 +58,7 @@ func NewGroup(
 		Password:    password,
 		Description: description,
 		Avatar:      avatar,
-		CreatedAt:   time.Now(),
+		CreatedAt:   TimePast(time.Now()),
 		IsDeleted:   false,
 	}
 }
@@ -59,10 +69,36 @@ func NewGroupFromId(db *DB, id uint64) (Group, error) {
 	return group, err
 }
 
-func NewGroupFromName(db *DB, name string) (Group, error) {
+func NewGroupFromName(db *DB, name Name) (Group, error) {
 	group := Group{Db: db}
 	err := group.FromName(name)
 	return group, err
+}
+
+func (group Group) IsValid() htmx.Alert {
+	if !group.Moniker.IsValid() {
+		return htmx.AlertFormatMoniker
+	}
+	if !group.Name.IsValid() {
+		return htmx.AlertFormatName
+	}
+	if !group.Mode.IsValid() {
+		return htmx.AlertFormatGroupMode
+	}
+	if !group.Password.IsValid() {
+		return htmx.AlertFormatPassword
+	}
+	if !group.Description.IsValid() {
+		return htmx.AlertFormatDescription
+	}
+	if !group.Avatar.IsValid() {
+		return htmx.AlertFormatAvatar
+	}
+	if !group.CreatedAt.IsValid() {
+		return htmx.AlertFormatPastMoment
+	}
+
+	return nil
 }
 
 func (group Group) IsEmpty() bool {
@@ -81,7 +117,7 @@ func (group *Group) FromId(id uint64) error {
 	return First(group.Db, TableGroups, goqu.Ex{"id": id}, group)
 }
 
-func (group *Group) FromName(name string) error {
+func (group *Group) FromName(name Name) error {
 	return First(group.Db, TableGroups, goqu.Ex{"name": name}, group)
 }
 

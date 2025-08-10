@@ -13,21 +13,21 @@ import (
 )
 
 type UserDelete struct {
-	CurrentPassword string `form:"current-password"`
-	ConfirmUsername string `form:"confirm-username"`
+	CurrentPassword model.Password `form:"current-password"`
+	ConfirmUsername model.Name     `form:"confirm-username"`
 }
 
 type UserLogin struct {
-	Email    string `form:"email"`
-	Password string `form:"password"`
+	Email    model.Email    `form:"email"`
+	Password model.Password `form:"password"`
 }
 
 type UserSignUp struct {
 	*UserLogin
-	Nickname        string `form:"nickname"`
-	Username        string `form:"username"`
-	Phone           string `form:"phone"`
-	ConfirmPassword string `form:"confirm-password"`
+	Nickname        model.Moniker  `form:"nickname"`
+	Username        model.Name     `form:"username"`
+	Phone           model.Phone    `form:"phone"`
+	ConfirmPassword model.Password `form:"confirm-password"`
 }
 
 func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
@@ -55,42 +55,32 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserSignUp](ctx, perms.LocalForm)
 
-				if err := htmx.IsValidUserNick(request.Nickname); err != nil {
-					return err
+				u, _ := model.NewUserFromName(db, request.Username)
+				if !u.IsEmpty() {
+					return htmx.AlertUserExsistsNickname
 				}
 
-				if err := htmx.IsValidUserName(request.Username); err != nil {
-					return err
+				u, _ = model.NewUserFromEmail(db, request.Email)
+				if !u.IsEmpty() {
+					return htmx.AlertUserExsistsEmail
 				}
-
-				_, err := model.NewUserFromName(db, request.Username)
-				if err != nil {
-					return htmx.ErrUserExsistsNickname
-				}
-
-				_, err = model.NewUserFromEmail(db, request.Email)
-				if err != nil {
-					return htmx.ErrUserExsistsEmail
-				}
-
-				if err := htmx.IsValidUserPhone(request.Phone); err != nil {
-					return err
-				}
-
-				// TODO: validate user avatar
 
 				if request.ConfirmPassword != request.Password {
-					return htmx.ErrUserPasswordConfirm
+					return htmx.AlertUserPasswordConfirm
 				}
 
-				hash, err := model.HashPassword(request.Password)
+				hash, err := request.Password.Hash()
 				if err != nil {
 					return err
 				}
 
 				user := model.NewUser(db, request.Nickname, request.Username, request.Email, request.Phone, hash, "")
+				if err := user.IsValid(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
 				if err := user.Insert(); err != nil {
-					return htmx.ErrDatabase.Join(err)
+					return htmx.AlertDatabase.Join(err)
 				}
 
 				token, err := user.GenerateToken()
@@ -116,24 +106,21 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 			perms.UseBind[UserLogin](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserLogin](ctx, perms.LocalForm)
-				if err := htmx.IsValidUserPassword(request.Password); err != nil {
-					return err
-				}
-
-				if err := htmx.IsValidUserEmail(request.Email); err != nil {
-					return err
-				}
 
 				user, err := model.NewUserFromEmail(db, request.Email)
 				if err != nil {
 					if errors.Is(err, sql.ErrNoRows) {
-						return htmx.ErrUserNotFound
+						return htmx.AlertUserNotFound
 					}
-					return htmx.ErrDatabase.Join(err)
+					return htmx.AlertDatabase.Join(err)
 				}
 
-				if !user.CheckPassword(request.Password) {
-					return htmx.ErrUserPassword
+				if err := user.IsValid(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if user.Password.Compare(request.Password) != nil {
+					return htmx.AlertUserPassword
 				}
 
 				token, err := user.GenerateToken()
@@ -162,21 +149,24 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				request := fiber.Locals[UserDelete](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
-				if user.Moniker != request.ConfirmUsername {
-					return htmx.ErrUserNameConfirm
+				if user.Name != request.ConfirmUsername {
+					return htmx.AlertUserNameConfirm
 				}
 
-				if !user.CheckPassword(request.CurrentPassword) {
-					return htmx.ErrUserPassword
+				if user.Password.Compare(request.CurrentPassword) != nil {
+					return htmx.AlertUserPassword
 				}
 
 				if len(user.GroupListOwner()) > 0 {
-					return htmx.ErrUserDeleteOwnerAccount
+					return htmx.AlertUserDeleteOwnerAccount
 				}
 
 				user.IsDeleted = true
+				if err := user.IsValid(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
 				if err := user.Update(); err != nil {
-					return htmx.ErrDatabase.Join(err)
+					return htmx.AlertDatabase.Join(err)
 				}
 
 				ctx.Cookie(&fiber.Cookie{

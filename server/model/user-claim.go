@@ -8,7 +8,7 @@ import (
 )
 
 func (c User) GetAudience() (jwt.ClaimStrings, error) {
-	return []string{c.Email}, nil
+	return []string{string(c.Email)}, nil
 }
 
 func (c User) GetExpirationTime() (*jwt.NumericDate, error) {
@@ -28,5 +28,5 @@ func (c User) GetIssuer() (string, error) {
 }
 
 func (c User) GetSubject() (string, error) {
-	return c.Email, nil
+	return string(c.Email), nil
 }

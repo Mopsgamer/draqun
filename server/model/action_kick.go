@@ -1,25 +1,35 @@
 package model
 
 import (
-	"time"
-
+	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/doug-martin/goqu/v9"
 )
 
 type ActionKick struct {
 	Db *DB `db:"-"`
 
-	TargetId    uint64    `db:"target_id"`  // The user being banned.
-	CreatorId   uint64    `db:"creator_id"` // The user who created the ban.
-	GroupId     uint64    `db:"group_id"`   // The group from which the user is kicked.
-	Description string    `db:"description"`
-	ActedAt     time.Time `db:"acted_at"`
+	TargetId    uint64      `db:"target_id"`  // The user being banned.
+	CreatorId   uint64      `db:"creator_id"` // The user who created the ban.
+	GroupId     uint64      `db:"group_id"`   // The group from which the user is kicked.
+	Description Description `db:"description"`
+	ActedAt     TimePast    `db:"acted_at"`
 }
 
 var _ Action = (*ActionBan)(nil)
 
 func (action ActionKick) Kind() string {
 	return "kick"
+}
+
+func (action ActionKick) IsValid() htmx.Alert {
+	if !action.Description.IsValid() {
+		return htmx.AlertFormatDescription
+	}
+	if !action.ActedAt.IsValid() {
+		return htmx.AlertFormatPastMoment
+	}
+
+	return nil
 }
 
 func (action ActionKick) IsEmpty() bool {
