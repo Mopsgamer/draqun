@@ -119,7 +119,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 
 				user.Phone = request.NewPhone
 				if err := user.Validate(); err != nil {
-					return htmx.AlertDatabase.Join(err)
+					return err
 				}
 
 				if err := user.Update(); err != nil {
@@ -160,7 +160,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				}
 
 				if err := user.Validate(); err != nil {
-					return htmx.AlertDatabase.Join(err)
+					return err
 				}
 
 				if err := user.Update(); err != nil {
