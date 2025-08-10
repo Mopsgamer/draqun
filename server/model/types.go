@@ -78,7 +78,7 @@ type Phone string
 var regexpPhone = regexp.MustCompile(`^\+?\d+$`)
 
 func (phone Phone) IsValid() bool {
-	return len(phone) >= 10 && len(phone) <= 15 && regexpPhone.Match([]byte(phone))
+	return len(phone) == 0 || len(phone) >= 10 && len(phone) <= 15 && regexpPhone.Match([]byte(phone))
 }
 
 type Description string
