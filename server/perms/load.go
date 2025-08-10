@@ -8,6 +8,7 @@ import (
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/log"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -62,7 +63,7 @@ func MemberByAuthAndGroupIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri strin
 
 func checkCookieToken(value string) (token *jwt.Token, err error) {
 	if value == "" {
-		err = fiber.ErrUnauthorized
+		err = htmx.AlertUserUnauthorized
 		return
 	}
 
@@ -88,34 +89,28 @@ func checkCookieToken(value string) (token *jwt.Token, err error) {
 
 func checkUser(db *model.DB, token *jwt.Token) (user model.User, err error) {
 	claims := token.Claims.(jwt.MapClaims)
-	email, ok := claims["Email"].(model.Email)
-	if !ok || model.Email(email).IsValid() {
-		err = htmx.AlertToken.Join(errors.New("expected any email"))
+	log.Debugf("%#v", claims)
+	userIdFloat, ok := claims["Id"].(float64)
+	userId := uint64(userIdFloat)
+	if !ok || userId == 0 {
+		err = htmx.AlertToken.Join(errors.New("expected non-zero id"))
 		return
 	}
 
-	name, ok := claims["Name"].(model.Name)
-	if !ok || model.Name(name).IsValid() {
-		err = htmx.AlertToken.Join(errors.New("expected any name"))
-		return
-	}
-
-	pass, ok := claims["Password"].(model.PasswordHashed)
-	if !ok || model.PasswordHashed(pass).IsValid() {
+	passwordString, ok := claims["Password"].(string)
+	password := model.PasswordHashed(passwordString)
+	if !ok || !password.IsValid() {
 		err = htmx.AlertToken.Join(errors.New("expected any password"))
 		return
 	}
 
-	user, err = model.NewUserFromEmail(db, email)
+	user, err = model.NewUserFromId(db, userId)
 	if err != nil {
-		errName := user.FromName(name)
-		if errName != nil {
-			err = htmx.AlertUserNotFound.Join(err).Join(errName)
-			return
-		}
+		err = htmx.AlertUserNotFound.Join(err)
+		return
 	}
 
-	if pass != user.Password {
+	if password != user.Password {
 		err = htmx.AlertToken.Join(errors.New("incorrect password"))
 	}
 	return

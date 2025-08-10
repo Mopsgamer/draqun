@@ -66,6 +66,9 @@ func Load(embedFS fs.FS) {
 	}
 
 	JWTKey = getenvString("JWT_KEY", "")
+	if len(JWTKey) < 8 {
+		log.Fatal("JWT_KEY must be at least 8 characters long.")
+	}
 	UserAuthTokenExpiration = time.Duration(getenvInt("USER_AUTH_TOKEN_EXPIRATION", 180)) * time.Minute
 	ChatMessageMaxLength = int(getenvInt("CHAT_MESSAGE_MAX_LENGTH", 8000))
 

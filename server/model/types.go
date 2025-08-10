@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/Mopsgamer/draqun/server/environment"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -90,7 +91,7 @@ func (description Description) IsValid() bool {
 type MessageContent string
 
 func (messageContent MessageContent) IsValid() bool {
-	return len(messageContent) <= 5000
+	return len(messageContent) <= environment.ChatMessageMaxLength
 }
 
 type Avatar string

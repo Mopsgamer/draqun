@@ -62,6 +62,10 @@ func (a alert) Join(errs ...error) alert {
 	return a
 }
 
+func (a alert) Is(err error) bool {
+	return errors.Is(a.err, err)
+}
+
 func (a alert) Error() string {
 	return a.err.Error()
 }

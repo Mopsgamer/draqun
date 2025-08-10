@@ -1,12 +1,15 @@
 package routes
 
 import (
+	"errors"
 	"maps"
 
 	"github.com/Mopsgamer/draqun/server/environment"
+	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/log"
 )
 
 func MapPage(ctx fiber.Ctx, db *model.DB, bind fiber.Map) fiber.Map {
@@ -16,7 +19,10 @@ func MapPage(ctx fiber.Ctx, db *model.DB, bind fiber.Map) fiber.Map {
 	fiber.Locals(ctx, perms.LocalMember, model.Member{Db: db})
 
 	// actually fill
-	perms.UserByAuthFromCtx(ctx, db)
+	_, err := perms.UserByAuthFromCtx(ctx, db)
+	if err != nil && errors.Is(err, htmx.ErrToken) {
+		log.Error(err)
+	}
 	perms.GroupByIdFromCtx(ctx, db, "group_id")
 	if fiber.Locals[model.Group](ctx, perms.LocalGroup).IsEmpty() {
 		perms.GroupByNameFromCtx(ctx, db, "group_name")

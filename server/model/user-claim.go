@@ -7,26 +7,38 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func (c User) GetAudience() (jwt.ClaimStrings, error) {
-	return []string{string(c.Email)}, nil
+func (user User) Claim() UserClaim {
+	return UserClaim{
+		Id:       user.Id,
+		Password: user.Password,
+	}
 }
 
-func (c User) GetExpirationTime() (*jwt.NumericDate, error) {
+type UserClaim struct {
+	Id       uint64
+	Password PasswordHashed
+}
+
+func (c UserClaim) GetAudience() (jwt.ClaimStrings, error) {
+	return []string{}, nil
+}
+
+func (c UserClaim) GetExpirationTime() (*jwt.NumericDate, error) {
 	return jwt.NewNumericDate(time.Now().Add(environment.UserAuthTokenExpiration)), nil
 }
 
-func (c User) GetIssuedAt() (*jwt.NumericDate, error) {
+func (c UserClaim) GetIssuedAt() (*jwt.NumericDate, error) {
 	return jwt.NewNumericDate(time.Now()), nil
 }
 
-func (c User) GetNotBefore() (*jwt.NumericDate, error) {
+func (c UserClaim) GetNotBefore() (*jwt.NumericDate, error) {
 	return jwt.NewNumericDate(time.Now()), nil
 }
 
-func (c User) GetIssuer() (string, error) {
+func (c UserClaim) GetIssuer() (string, error) {
 	return "draqun", nil
 }
 
-func (c User) GetSubject() (string, error) {
-	return string(c.Email), nil
+func (c UserClaim) GetSubject() (string, error) {
+	return "", nil
 }

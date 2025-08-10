@@ -23,12 +23,18 @@ var (
 		Danger,
 	)
 
+	ErrToken   = errors.Join(fiber.ErrUnauthorized, errors.New("token: invalid"))
 	AlertToken = NewAlert(
-		errors.Join(fiber.ErrUnauthorized, errors.New("token: invalid")),
+		ErrToken,
 		"Invalid token.",
 		Danger,
 	)
 
+	AlertUserUnauthorized = NewAlert(
+		errors.Join(fiber.ErrUnauthorized, errors.New("user: unauthorized")),
+		"Unauthorized user.",
+		Danger,
+	)
 	AlertUserNotFound = NewAlert(
 		errors.Join(fiber.ErrNotFound, errors.New("user: not found")),
 		"User not found.",
