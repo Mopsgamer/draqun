@@ -49,7 +49,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 
 				user.Moniker = request.NewNickname
 				user.Name = request.NewName
-				if err := user.IsValid(); err != nil {
+				if err := user.Validate(); err != nil {
 					return err
 				}
 
@@ -86,7 +86,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				}
 
 				user.Email = request.NewEmail
-				if err := user.IsValid(); err != nil {
+				if err := user.Validate(); err != nil {
 					return err
 				}
 
@@ -118,7 +118,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				}
 
 				user.Phone = request.NewPhone
-				if err := user.IsValid(); err != nil {
+				if err := user.Validate(); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
 
@@ -159,7 +159,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 					return htmx.AlertEncryption.Join(err)
 				}
 
-				if err := user.IsValid(); err != nil {
+				if err := user.Validate(); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
 

@@ -23,7 +23,7 @@ func (action ActionBan) Kind() string {
 	return "ban"
 }
 
-func (action ActionBan) IsValid() htmx.Alert {
+func (action ActionBan) Validate() htmx.Alert {
 	if !action.Description.IsValid() {
 		return htmx.AlertFormatDescription
 	}

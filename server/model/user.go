@@ -65,7 +65,7 @@ func NewUserFromName(db *DB, name Name) (User, error) {
 	return user, err
 }
 
-func (user User) IsValid() htmx.Alert {
+func (user User) Validate() htmx.Alert {
 	if !user.Moniker.IsValid() {
 		return htmx.AlertFormatMoniker
 	}

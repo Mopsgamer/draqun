@@ -94,7 +94,7 @@ type Role struct {
 
 var _ Model = (*Role)(nil)
 
-func (role Role) IsValid() htmx.Alert {
+func (role Role) Validate() htmx.Alert {
 	if !role.Name.IsValid() {
 		return htmx.AlertFormatName
 	}

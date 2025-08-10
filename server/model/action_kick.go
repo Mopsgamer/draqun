@@ -15,13 +15,13 @@ type ActionKick struct {
 	ActedAt     TimePast    `db:"acted_at"`
 }
 
-var _ Action = (*ActionBan)(nil)
+var _ Action = (*ActionKick)(nil)
 
 func (action ActionKick) Kind() string {
 	return "kick"
 }
 
-func (action ActionKick) IsValid() htmx.Alert {
+func (action ActionKick) Validate() htmx.Alert {
 	if !action.Description.IsValid() {
 		return htmx.AlertFormatDescription
 	}

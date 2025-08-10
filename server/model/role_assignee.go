@@ -18,7 +18,7 @@ func NewRoleAssign(db *DB) RoleAssignee {
 	return RoleAssignee{Db: db}
 }
 
-func (roleAssign RoleAssignee) IsValid() htmx.Alert {
+func (roleAssign RoleAssignee) Validate() htmx.Alert {
 	return nil
 }
 

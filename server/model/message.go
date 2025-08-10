@@ -30,7 +30,7 @@ func NewMessageFilled(db *DB, groupId, userId uint64, content string) Message {
 	}
 }
 
-func (message Message) IsValid() htmx.Alert {
+func (message Message) Validate() htmx.Alert {
 	if !message.Content.IsValid() {
 		return htmx.AlertFormatMessageContent
 	}

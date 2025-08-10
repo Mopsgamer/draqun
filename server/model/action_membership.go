@@ -15,13 +15,13 @@ type ActionMembership struct {
 	IsJoin  types.BitBool `db:"is_join"`  // True if the action is a join, false if it's a leave.
 }
 
-var _ Action = (*ActionBan)(nil)
+var _ Action = (*ActionMembership)(nil)
 
 func (action ActionMembership) Kind() string {
 	return "membership"
 }
 
-func (action ActionMembership) IsValid() htmx.Alert {
+func (action ActionMembership) Validate() htmx.Alert {
 	if !action.ActedAt.IsValid() {
 		return htmx.AlertFormatPastMoment
 	}

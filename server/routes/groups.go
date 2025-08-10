@@ -104,7 +104,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 					return htmx.AlertEncryption.Join(err)
 				}
 
-				if err := group.IsValid(); err != nil {
+				if err := group.Validate(); err != nil {
 					return err
 				}
 
@@ -131,7 +131,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 
 				message := model.NewMessageFilled(db, group.Id, user.Id, request.Content)
-				if err := message.IsValid(); err != nil {
+				if err := message.Validate(); err != nil {
 					return err
 				}
 
@@ -184,7 +184,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				group := model.NewGroup(db, user.Id, request.Nick, request.Name, request.Mode, hash, request.Description, request.Avatar)
-				if err := group.IsValid(); err != nil {
+				if err := group.Validate(); err != nil {
 					return err
 				}
 

@@ -75,7 +75,7 @@ func NewGroupFromName(db *DB, name Name) (Group, error) {
 	return group, err
 }
 
-func (group Group) IsValid() htmx.Alert {
+func (group Group) Validate() htmx.Alert {
 	if !group.Moniker.IsValid() {
 		return htmx.AlertFormatMoniker
 	}

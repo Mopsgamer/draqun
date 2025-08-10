@@ -75,7 +75,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				}
 
 				user := model.NewUser(db, request.Nickname, request.Username, request.Email, request.Phone, hash, "")
-				if err := user.IsValid(); err != nil {
+				if err := user.Validate(); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
 
@@ -115,7 +115,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 					return htmx.AlertDatabase.Join(err)
 				}
 
-				if err := user.IsValid(); err != nil {
+				if err := user.Validate(); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
 
@@ -162,7 +162,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				}
 
 				user.IsDeleted = true
-				if err := user.IsValid(); err != nil {
+				if err := user.Validate(); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
 				if err := user.Update(); err != nil {

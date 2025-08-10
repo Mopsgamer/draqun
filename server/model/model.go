@@ -7,5 +7,5 @@ type Model interface {
 	Update() error
 
 	IsEmpty() bool
-	IsValid() htmx.Alert
+	Validate() htmx.Alert
 }

@@ -36,7 +36,7 @@ func NewMemberFromId(db *DB, groupId, userId uint64) (Member, error) {
 	return member, err
 }
 
-func (member Member) IsValid() htmx.Alert {
+func (member Member) Validate() htmx.Alert {
 	if !member.Moniker.IsValid() {
 		return htmx.AlertFormatMoniker
 	}
