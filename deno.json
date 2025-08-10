@@ -27,6 +27,7 @@
         "htmx-ext-debug": "npm:htmx-ext-debug@^2.0.1",
         "htmx-ext-ws": "npm:htmx-ext-ws@2.0.3",
         "htmx.org": "npm:htmx.org@^2.0.6",
+        "is-ci": "npm:is-ci@^4.1.0",
         "mysql2": "npm:mysql2@^3.14.3",
         "tailwindcss": "npm:tailwindcss@^4.1.11",
         "tree-kill": "npm:tree-kill@^1.2.2"
