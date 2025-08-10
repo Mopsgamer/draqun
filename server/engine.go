@@ -35,10 +35,10 @@ func NewAppHtmlEngine(db *model.DB, embedFS fs.FS, clientEmbedded bool, director
 			}
 			return result
 		},
-		"hideEmail": func(text string) string {
-			splits := strings.Split(text, "@")
+		"hideEmail": func(email model.Email) string {
+			splits := strings.Split(string(email), "@")
 			if len(splits) != 2 {
-				return strings.Repeat("*", len(text))
+				return strings.Repeat("*", len(email))
 			}
 			// a in a@b.c
 			before := splits[0]
@@ -55,11 +55,11 @@ func NewAppHtmlEngine(db *model.DB, embedFS fs.FS, clientEmbedded bool, director
 		"jsonTime": func(t time.Time) string {
 			return t.Format("2006-01-02T15:04:05.000Z")
 		},
-		"hidePhone": func(text string) string {
-			if len(text) > 5 {
-				return text[:4] + strings.Repeat("*", len(text)-4)
+		"hidePhone": func(phone model.Phone) string {
+			if len(phone) > 5 {
+				return string(phone)[:4] + strings.Repeat("*", len(phone)-4)
 			}
-			return strings.Repeat("*", len(text))
+			return strings.Repeat("*", len(phone))
 		},
 		"hide": func(text string) string {
 			return strings.Repeat("*", len(text))
