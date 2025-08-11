@@ -21,19 +21,19 @@
 4. Open terminal. You can use built-in
    [VSC terminal](https://code.visualstudio.com/docs/terminal/getting-started).
 5. Run `deno install --allow-scripts` to install required client dependencies.
-6. Run `deno task init` to create `.env` file and initialize DB (use
+6. Run `go mod download` to install required server dependencies (optional).
+7. Run `deno task init` to create `.env` file and initialize DB (use
    `deno task init nodb` to skip db initialization).
-7. Run `deno task compile:client` to create client files.
-8. Change the `.env` file.
+8. Run `deno task compile:client` to create client files.
+9. Change the `.env` file.
    - Set up server connection with MySQL.
    - Set up JWT secret.
-9. Run `deno task serve` to start the server.
+10. Run `deno task serve` to start the server.
 
 ## Compilation
 
-Compilation is used to create a standalone server binary. It is useful for
-deploying the server to production or for distributing it as a standalone
-application.
+Creating a standalone server binary is useful for deploying the server to
+production or for distributing it as a standalone application.
 
 Available go build tags:
 
@@ -52,15 +52,17 @@ Example: `go -o dist/server.exe -tags lite,prod .`
 Available deno tasks:
 
 ```bash
-deno task compile:server # prod
-deno task compile:server dev # lite
-deno task compile:server:cross # prod
-deno task compile:server:cross dev #lite
+# -tags prod
+deno task compile:server
+deno task compile:server:cross
+
+# -tags lite
+deno task compile:server dev
+deno task compile:server:cross dev
 ```
 
-## Changing the code base
+## Making changes
 
-Client code base (./client) is not tied with the server code base (./server).
 The best way is to use 2 terminals (3-rd for other tasks):
 
 > [!NOTE]
@@ -77,10 +79,13 @@ deno task compile:client watch
 deno task serve
 ```
 
-> [!WARNING]
-> The `serve` script can ignore new files, so it should be started after
-> `compile:client` script generates all files. If you are using `watch`, wait
-> for "watching..." message.
+### Resources
+
+- <https://shoelace.style>
+- <https://htmx.org/docs/>
+- <https://htmx.org/reference/>
+- <https://pkg.go.dev/html/template>
+- <https://docs.gofiber.io/next/>
 
 ## How to write commit messages and PR names.
 
@@ -106,12 +111,12 @@ Most common commit message prefixes are:
 Messages itself should be lowercase, without punctuation at the end and should
 be short, but descriptive.
 
-## Releasing
+## About releases
 
 > [!NOTE]
 > You should be a repository owner or have write access to create a release.
 
-You can create new releases and git tag automatically based on commits or custom
+You can create new release and git tag automatically based on commits or custom
 release type, using GitHub workflow manual execution (dispatch). Available
 options:
 
@@ -126,44 +131,15 @@ options:
 - `pre`: 1.2.0 → 1.2.0-0 → 1.2.0-1;
 - `prerelease`: 1.2.0 → 1.2.1-0 → 1.2.1-1;
 
-You can also use deno task to create a release from your machine, but it is not
-recommended:
+You can get next version and changelog output without creating a release:
 
 ```bash
 deno task release
 ```
 
-You can get next version and changelog output without creating a release:
+You can also use deno task to create a release from your machine, but it is not
+recommended:
 
 ```bash
-deno task release --dry-run
+deno task release --force
 ```
-
-## About DOM (HTMX, Shoelace) and Session
-
-Resources:
-
-- <https://shoelace.style>
-- <https://htmx.org/docs/>
-- <https://htmx.org/reference/>
-- <https://pkg.go.dev/html/template>
-- <https://docs.gofiber.io/next/> - v3 (Next), not v2!
-
-We are using HTMX. JavaScript (TypeScript) is an utility for importing
-libraries, extending DOM and web-components functionality. We are fetching HTML
-from the server instead of JSON.
-
-The session stored in cookies and should be changed this way:
-
-1. Client sends request to change own cookies.
-2. Server responds with new cookies.
-
-### About templates
-
-Files in the [./client/templates](./client/templates) can be rendered through
-Go's template language: <https://pkg.go.dev/html/template>.
-
-That means, you can use specific syntax and replacements, but the variables
-should be declared by the server. You can find more it in the
-[./server](./server). Specific functions are declared in the
-[./server/engine.go](./server/engine.go). .

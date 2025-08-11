@@ -12,7 +12,7 @@ if (!isCI) {
     logRelease.warn("This is not an actual release.");
     logRelease.warn(
         "You are not in CI environment, dry run is enabled by default to prevent accidental releases.\n" +
-        "If you really want to release, run this script in CI environment on GitHub or set 'CI' environment variable to 'true' (not recommended)."
+            "If you really want to release, run this script in CI environment on GitHub or set 'CI' environment variable to 'true' (not recommended).",
     );
 }
 
