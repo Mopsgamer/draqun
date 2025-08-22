@@ -2,19 +2,21 @@ import dotenv from "dotenv";
 import { Logger } from "@m234/logger";
 import { ensureDir } from "@std/fs/ensure-dir";
 
-dotenv.config();
+export const logRelease = new Logger("release");
+export const logServerComp = new Logger("server-compilation");
+export const logClientComp = new Logger("client-compilation");
+export const logInitDb = new Logger("init-database");
+export const logInitFiles = new Logger("init-files");
+
+logInitFiles.start("Loading ./.env")
+dotenv.config({quiet: true});
+logInitFiles.end()
 
 /**
  * Consider using same value in the environment/config.go and deno.json.
  */
 export const distFolder = "dist";
 await ensureDir(distFolder);
-
-export const logRelease = new Logger("release");
-export const logServerComp = new Logger("server-compilation");
-export const logClientComp = new Logger("client-compilation");
-export const logInitDb = new Logger("init-database");
-export const logInitFiles = new Logger("init-files");
 
 export const encoder = new TextEncoder();
 export const decoder = new TextDecoder("utf-8");

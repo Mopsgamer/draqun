@@ -4,7 +4,7 @@
     "nodeModulesDir": "auto",
     "tasks": {
         "init": "deno run -A scripts/init.ts",
-        "serve": "deno run -A scripts/serve.ts",
+        "dev": "deno run -A scripts/dev.ts",
         "compile:client": "deno run -A scripts/compile-client.ts",
         "compile:server": "deno run -A scripts/compile-server.ts",
         "compile:server:cross": "deno run -A scripts/compile-server-cross.ts",

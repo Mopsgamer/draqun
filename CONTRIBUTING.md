@@ -28,7 +28,7 @@
 9. Change the `.env` file.
    - Set up server connection with MySQL.
    - Set up JWT secret.
-10. Run `deno task serve` to start the server.
+10. Run `deno task dev` to start the server.
 
 ## Compilation
 
@@ -76,7 +76,7 @@ deno task compile:client watch
 ```
 
 ```bash
-deno task serve
+deno task dev
 ```
 
 ### Resources
