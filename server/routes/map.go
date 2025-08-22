@@ -40,6 +40,7 @@ func MapPage(ctx fiber.Ctx, db *model.DB, bind fiber.Map) fiber.Map {
 		"GoMod":       environment.GoMod,
 		"GitHash":     environment.GitHash,
 		"GitHashLong": environment.GitHashLong,
+		"GitBranch":   environment.GitBranch,
 	}
 
 	maps.Copy(bindx, bind)

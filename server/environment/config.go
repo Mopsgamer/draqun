@@ -41,6 +41,7 @@ var (
 	GoMod       modfile.File
 	GitHash     string
 	GitHashLong string
+	GitBranch   string
 
 	DBUser     string
 	DBPassword string
@@ -55,8 +56,30 @@ type DenoConfig struct {
 	Imports map[string]string `json:"imports"`
 }
 
-// Load environemnt variables from the '.env' file. Exits if any errors.
-func Load(embedFS fs.FS) {
+func LoadMeta(embedFS fs.FS) {
+	DenoJson = getJson[DenoConfig](embedFS, "deno.json")
+	GoMod = getGoMod(embedFS)
+	GitHash, _ = commandOutput("git", "rev-parse", "--short", "HEAD")
+	GitHashLong, _ = commandOutput("git", "rev-parse", "HEAD")
+	GitBranch, _ = commandOutput("git", "rev-parse", "--abbrev-ref", "HEAD")
+
+	if len(GitHash) < 7 {
+		log.Warn("Git hash is too short, using 'unknown' instead.")
+		GitHash = "unknown"
+	}
+	if len(GitHashLong) < 7 {
+		log.Warn("Git long hash is too short, using 'unknown' instead.")
+		GitHashLong = "unknown"
+	}
+
+	if len(GitBranch) == 0 {
+		log.Warn("Git branch is empty, using 'unknown' instead.")
+		GitBranch = "unknown"
+	}
+}
+
+// LoadEnv environemnt variables from the '.env' file. Exits if any errors.
+func LoadEnv(embedFS fs.FS) {
 	if err := godotenv.Load(); err != nil {
 		if os.IsNotExist(err) {
 			NoEnv = true
@@ -74,11 +97,6 @@ func Load(embedFS fs.FS) {
 
 	Port = getenvString("PORT", "3000")
 
-	DenoJson = getJson[DenoConfig](embedFS, "deno.json")
-	GoMod = getGoMod(embedFS)
-	GitHash, _ = commandOutput("git", "log", "-n1", `--format="%h"`)
-	GitHashLong, _ = commandOutput("git", "log", "-n1", `--format="%H"`)
-
 	DBHost = getenvString("DB_HOST", "localhost")
 	DBName = getenvString("DB_NAME", "mysql")
 	DBPassword = getenvString("DB_PASSWORD", "")
@@ -93,7 +111,7 @@ func commandOutput(name string, arg ...string) (string, error) {
 	}
 
 	// "hash"\n -> hash
-	return string(bytes)[1 : len(bytes)-2], nil
+	return string(bytes)[:len(bytes)-1], nil
 }
 
 func getenvString(key string, or string) string {
@@ -119,7 +137,7 @@ func getenvInt(key string, or int64) int64 {
 }
 
 // func getenvBool(key string) bool {
-// 	val := strings.ToLower(os.Getenv(key))
+// 	val := strings.TrimSpace(strings.ToLower(os.Getenv(key)))
 // 	return val == "1" || val == "true" || val == "y" || val == "yes"
 // }
 
