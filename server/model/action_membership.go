@@ -42,18 +42,18 @@ func (action ActionMembership) Update() error {
 }
 
 func (action *ActionMembership) FromId(userId, groupId uint64) bool {
-	Last(action.Db, TableMemberships, goqu.Ex{"user_id": userId, "group_id": groupId}, goqu.I(TableMemberships+".user_id"), action)
+	_ = Last(action.Db, TableMemberships, goqu.Ex{"user_id": userId, "group_id": groupId}, goqu.I(TableMemberships+".user_id"), action)
 	return action.IsEmpty()
 }
 
 func (action ActionMembership) User() User {
 	user := User{Db: action.Db}
-	user.FromId(action.UserId)
+	_ = user.FromId(action.UserId)
 	return user
 }
 
 func (action ActionMembership) Group() Group {
 	group := Group{Db: action.Db}
-	group.FromId(action.GroupId)
+	_ = group.FromId(action.GroupId)
 	return group
 }

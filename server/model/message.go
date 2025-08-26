@@ -59,6 +59,6 @@ func (message Message) Delete() error {
 
 func (message *Message) Author() User {
 	user := User{Db: message.Db}
-	user.FromId(message.AuthorId)
+	_ = user.FromId(message.AuthorId)
 	return user
 }

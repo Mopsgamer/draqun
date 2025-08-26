@@ -69,13 +69,13 @@ func (member *Member) FromId(groupId, userId uint64) error {
 
 func (member *Member) User() User {
 	user := User{Db: member.Db}
-	user.FromId(member.UserId)
+	_ = user.FromId(member.UserId)
 	return user
 }
 
 func (member Member) Group() Group {
 	group := Group{Db: member.Db}
-	group.FromId(member.GroupId)
+	_ = group.FromId(member.GroupId)
 	return group
 }
 

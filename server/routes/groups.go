@@ -274,7 +274,9 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 
 				if isAlone {
 					group.IsDeleted = true
-					group.Update()
+					if err := group.Update(); err != nil {
+						return htmx.AlertDatabase.Join(err)
+					}
 				}
 
 				member.IsDeleted = true
@@ -346,7 +348,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 						}
 					}
 					ctxWs.Closed = true
-					ctxWs.Conn.Close()
+					_ = ctxWs.Conn.Close()
 				})(ctx)
 			},
 		)

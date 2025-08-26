@@ -45,24 +45,24 @@ func (action ActionKick) Update() error {
 }
 
 func (action *ActionKick) FromId(targetId, creatorId, groupId uint64) bool {
-	Last(action.Db, TableKicks, goqu.Ex{"target_id": targetId, "group_id": groupId, "creator_id": creatorId}, goqu.I(TableKicks+".target_id"), action)
+	_ = Last(action.Db, TableKicks, goqu.Ex{"target_id": targetId, "group_id": groupId, "creator_id": creatorId}, goqu.I(TableKicks+".target_id"), action)
 	return action.IsEmpty()
 }
 
 func (action ActionKick) Target() User {
 	user := User{Db: action.Db}
-	user.FromId(action.TargetId)
+	_ = user.FromId(action.TargetId)
 	return user
 }
 
 func (action ActionKick) Creator() User {
 	user := User{Db: action.Db}
-	user.FromId(action.CreatorId)
+	_ = user.FromId(action.CreatorId)
 	return user
 }
 
 func (action ActionKick) Group() Group {
 	group := Group{Db: action.Db}
-	group.FromId(action.GroupId)
+	_ = group.FromId(action.GroupId)
 	return group
 }

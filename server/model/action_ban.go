@@ -55,18 +55,18 @@ func (action *ActionBan) FromId(targetId, groupId uint64) error {
 
 func (action ActionBan) Target() User {
 	user := User{Db: action.Db}
-	user.FromId(action.TargetId)
+	_ = user.FromId(action.TargetId)
 	return user
 }
 
 func (action ActionBan) Creator() User {
 	user := User{Db: action.Db}
-	user.FromId(action.CreatorId)
+	_ = user.FromId(action.CreatorId)
 	return user
 }
 
 func (action ActionBan) Revoker() User {
 	user := User{Db: action.Db}
-	user.FromId(action.RevokerId)
+	_ = user.FromId(action.RevokerId)
 	return user
 }

@@ -23,11 +23,11 @@ func MapPage(ctx fiber.Ctx, db *model.DB, bind fiber.Map) fiber.Map {
 	if err != nil && errors.Is(err, htmx.ErrToken) {
 		log.Error(err)
 	}
-	perms.GroupByIdFromCtx(ctx, db, "group_id")
+	_, _ = perms.GroupByIdFromCtx(ctx, db, "group_id")
 	if fiber.Locals[model.Group](ctx, perms.LocalGroup).IsEmpty() {
-		perms.GroupByNameFromCtx(ctx, db, "group_name")
+		_, _ = perms.GroupByNameFromCtx(ctx, db, "group_name")
 	}
-	perms.MemberByAuthAndGroupIdFromCtx(ctx, db, "group_id")
+	_ = perms.MemberByAuthAndGroupIdFromCtx(ctx, db, "group_id")
 
 	// other values
 	bindx := fiber.Map{

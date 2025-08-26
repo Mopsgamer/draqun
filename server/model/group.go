@@ -123,19 +123,19 @@ func (group *Group) FromName(name Name) error {
 
 func (group Group) Creator() User {
 	user := User{Db: group.Db}
-	user.FromId(group.CreatorId)
+	_ = user.FromId(group.CreatorId)
 	return user
 }
 
 func (group Group) Owner() User {
 	user := User{Db: group.Db}
-	user.FromId(group.OwnerId)
+	_ = user.FromId(group.OwnerId)
 	return user
 }
 
 func (group Group) Everyone() Role {
 	role := NewRoleEveryone(group.Db, group.Id)
-	role.FromName(role.Name, role.GroupId)
+	_ = role.FromName(role.Name, role.GroupId)
 	return role
 }
 
