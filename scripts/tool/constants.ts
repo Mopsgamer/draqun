@@ -8,9 +8,9 @@ export const logClientComp = new Logger("client-compilation");
 export const logInitDb = new Logger("init-database");
 export const logInitFiles = new Logger("init-files");
 
-logInitFiles.start("Loading ./.env")
-dotenv.config({quiet: true});
-logInitFiles.end()
+logInitFiles.start("Loading ./.env");
+dotenv.config({ quiet: true });
+logInitFiles.end();
 
 /**
  * Consider using same value in the environment/config.go and deno.json.
