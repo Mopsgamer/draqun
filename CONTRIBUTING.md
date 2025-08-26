@@ -3,14 +3,11 @@
 ## First setup
 
 1. Install required tools.
-   - MySQL@^8.0
-     - [Windows installation](https://winstall.app/apps/Oracle.MySQL),
-       [Ubuntu installation](https://documentation.ubuntu.com/server/how-to/databases/install-mysql/index.html),
-       [Mac installation](https://dev.mysql.com/doc/refman/8.4/en/macos-installation-pkg.html)
+   - MySQL `~8`.
      - Recommended db name: `mysql`.
      - Recommended user: `admin`.
-   - Go@^1.24 ([Installation](https://go.dev/doc/install))
-   - Deno@^2.4 ([Installation](https://deno.com/))
+   - @^1.25 ([Go](https://go.dev/doc/install)) `^1.25`
+   - @^2.4.5 ([Deno](https://deno.com/)) `^2.4.5`
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
    and
    [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
@@ -29,37 +26,6 @@
    - Set up server connection with MySQL.
    - Set up JWT secret.
 10. Run `deno task dev` to start the server.
-
-## Compilation
-
-Creating a standalone server binary is useful for deploying the server to
-production or for distributing it as a standalone application.
-
-Available go build tags:
-
-- Environment:
-  - `[none]` enables client files watching.
-  - `prod` normal mode.
-- Client embedding:
-  - `[none]` enables client files embedding. The server binary will become
-    standalone.
-  - `lite` disables files embedding. The server binary will use closest
-    ./client/static and ./client/templates directories. This option makes the
-    server binary more flexible and reduces its size.
-
-Example: `go -o dist/server.exe -tags lite,prod .`
-
-Available deno tasks:
-
-```bash
-# -tags prod
-deno task compile:server
-deno task compile:server:cross
-
-# -tags lite
-deno task compile:server dev
-deno task compile:server:cross dev
-```
 
 ## Making changes
 
@@ -142,4 +108,35 @@ recommended:
 
 ```bash
 deno task release --force
+```
+
+## Compilation
+
+Creating a standalone server binary is useful for deploying the server to
+production or for distributing it as a standalone application.
+
+Available go build tags:
+
+- Environment:
+  - `[none]` enables client files watching.
+  - `prod` normal mode.
+- Client embedding:
+  - `[none]` enables client files embedding. The server binary will become
+    standalone.
+  - `lite` disables files embedding. The server binary will use closest
+    ./client/static and ./client/templates directories. This option makes the
+    server binary more flexible and reduces its size.
+
+Example: `go -o dist/server.exe -tags lite,prod .`
+
+Available deno tasks:
+
+```bash
+# -tags prod
+deno task compile:server
+deno task compile:server:cross
+
+# -tags lite
+deno task compile:server dev
+deno task compile:server:cross dev
 ```
