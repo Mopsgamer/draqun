@@ -2,6 +2,17 @@ module github.com/Mopsgamer/draqun
 
 go 1.25.0
 
+ignore (
+	client
+	scripts
+)
+
+ignore (
+	node_modules
+	coverage
+	dist
+)
+
 require (
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/fasthttp/websocket v1.5.12
