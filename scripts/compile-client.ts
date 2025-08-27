@@ -230,10 +230,6 @@ if (unknownGroups.length > 0) {
     );
 }
 
-logClientComp.info(
-    `Starting bundling "./${distFolder}" ${isWatch ? " in watch mode" : ""}...`,
-);
-
 const existingGroupsUsed = !Deno.args.includes("all") &&
     existingGroups.some((g) => Deno.args.includes(g));
 
@@ -257,11 +253,6 @@ for (const [fn, args] of calls) {
     await fn(...args as any);
 }
 
-if (logClientComp.state === "failed") {
-    logClientComp.error("Bundled");
-} else {
-    logClientComp.success("Bundled successfully");
-}
 if (isWatch) {
     if (logClientComp.state === "failed") {
         logClientComp.error("Watching for file changes...");

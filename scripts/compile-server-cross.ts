@@ -5,7 +5,6 @@ const osList = ["windows", "linux", "darwin"];
 const archList = ["amd64", "arm64"];
 
 const total = osList.length * archList.length;
-logServerComp.info(`Compiling for ${total} targets.`);
 
 let current: number = 0;
 let success = true;
@@ -24,4 +23,3 @@ for (const os of osList) {
 if (!success) {
     Deno.exit(1);
 }
-logServerComp.success("Cross-compilation task completed.");
