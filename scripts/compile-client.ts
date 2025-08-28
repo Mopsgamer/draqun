@@ -1,6 +1,6 @@
 import * as esbuild from "esbuild";
 import { copy as copyPlugin } from "esbuild-plugin-copy";
-import { denoPlugins } from "@luca/esbuild-deno-loader";
+import { denoPlugin } from "@deno/esbuild-plugin";
 import { existsSync } from "@std/fs";
 import { distFolder, logClientComp } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
@@ -175,7 +175,7 @@ const calls: (Call<typeof copy> | Call<typeof build>)[] = [
         whenChange: [
             `./${distFolder}/static/js`,
         ],
-        plugins: [...denoPlugins()],
+        plugins: [denoPlugin()],
     }], ["js", ...slAlias]],
 
     [build, [{

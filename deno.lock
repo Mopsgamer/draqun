@@ -2,26 +2,26 @@
   "version": "5",
   "specifiers": {
     "jsr:@117/mutex@^1.0.8": "1.0.8",
-    "jsr:@luca/esbuild-deno-loader@~0.11.1": "0.11.1",
+    "jsr:@deno/esbuild-plugin@^1.2.0": "1.2.0",
+    "jsr:@deno/loader@~0.3.3": "0.3.5",
     "jsr:@m234/logger@^2.0.1": "2.0.1",
     "jsr:@std/async@^1.0.14": "1.0.14",
-    "jsr:@std/bytes@^1.0.2": "1.0.6",
-    "jsr:@std/encoding@^1.0.5": "1.0.10",
     "jsr:@std/fmt@^1.0.8": "1.0.8",
     "jsr:@std/fs@^1.0.19": "1.0.19",
     "jsr:@std/internal@^1.0.10": "1.0.10",
     "jsr:@std/internal@^1.0.9": "1.0.10",
-    "jsr:@std/path@^1.0.6": "1.1.2",
     "jsr:@std/path@^1.1.1": "1.1.2",
     "jsr:@std/path@^1.1.2": "1.1.2",
     "jsr:@std/semver@^1.0.5": "1.0.5",
     "npm:@octokit/rest@22": "22.0.0_@octokit+core@7.0.3",
     "npm:@shoelace-style/shoelace@^2.20.1": "2.20.1",
     "npm:@tailwindcss/postcss@^4.1.12": "4.1.12",
+    "npm:@types/mysql@*": "2.15.27",
     "npm:@types/node@*": "22.15.15",
     "npm:dotenv@^17.2.1": "17.2.1",
     "npm:esbuild-plugin-copy@^2.1.1": "2.1.1_esbuild@0.25.9",
     "npm:esbuild-plugin-tailwindcss@^2.1.0": "2.1.0_postcss@8.5.6",
+    "npm:esbuild@~0.25.5": "0.25.9",
     "npm:esbuild@~0.25.9": "0.25.9",
     "npm:htmx-ext-debug@^2.0.1": "2.0.1",
     "npm:htmx-ext-ws@2.0.3": "2.0.3",
@@ -37,13 +37,16 @@
     "@117/mutex@1.0.8": {
       "integrity": "8f14ef3e124ae427c92f93951fbe36b5cfad3aa74f84d443b2acf3034683255d"
     },
-    "@luca/esbuild-deno-loader@0.11.1": {
-      "integrity": "dc020d16d75b591f679f6b9288b10f38bdb4f24345edb2f5732affa1d9885267",
+    "@deno/esbuild-plugin@1.2.0": {
+      "integrity": "04ddd0fca9416d8a2866263928a53b9d5ed08dfca064d64504a0aaf9800c709e",
       "dependencies": [
-        "jsr:@std/bytes",
-        "jsr:@std/encoding",
-        "jsr:@std/path@^1.0.6"
+        "jsr:@deno/loader",
+        "jsr:@std/path@^1.1.1",
+        "npm:esbuild@~0.25.5"
       ]
+    },
+    "@deno/loader@0.3.5": {
+      "integrity": "72f6ce9c6e7242c6e070705dbd8a838884dd236d5dd0bd907d08bece92db5722"
     },
     "@m234/logger@2.0.1": {
       "integrity": "d12ea0d6f63a9e73455b2ee7e4f5baddaef74a78e9de85f0244c13482be2fc62",
@@ -56,12 +59,6 @@
     },
     "@std/async@1.0.14": {
       "integrity": "62e954a418652c704d37563a3e54a37d4cf0268a9dcaeac1660cc652880b5326"
-    },
-    "@std/bytes@1.0.6": {
-      "integrity": "f6ac6adbd8ccd99314045f5703e23af0a68d7f7e58364b47d2c7f408aeb5820a"
-    },
-    "@std/encoding@1.0.10": {
-      "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
     },
     "@std/fmt@1.0.8": {
       "integrity": "71e1fc498787e4434d213647a6e43e794af4fd393ef8f52062246e06f7e372b7"
@@ -551,10 +548,22 @@
         "tslib"
       ]
     },
+    "@types/mysql@2.15.27": {
+      "integrity": "sha512-YfWiV16IY0OeBfBCk8+hXKmdTKrKlwKN1MNKAPBu5JYxLwBEZl7QzeEpGnlZb3VMGJrrGmB84gXiH+ofs/TezA==",
+      "dependencies": [
+        "@types/node@24.2.0"
+      ]
+    },
     "@types/node@22.15.15": {
       "integrity": "sha512-R5muMcZob3/Jjchn5LcO8jdKwSCbzqmPB6ruBxMcf9kbxtniZHP327s6C37iOfuw8mbKK3cAQa7sEl7afLrQ8A==",
       "dependencies": [
-        "undici-types"
+        "undici-types@6.21.0"
+      ]
+    },
+    "@types/node@24.2.0": {
+      "integrity": "sha512-3xyG3pMCq3oYCNg7/ZP+E1ooTaGB4cG8JWRsqqOYQdbWNY4zbaV0Ennrd7stjiJEFZCaybcIgpTjJWHRfBSIDw==",
+      "dependencies": [
+        "undici-types@7.10.0"
       ]
     },
     "@types/react@19.1.9": {
@@ -1224,6 +1233,9 @@
     "undici-types@6.21.0": {
       "integrity": "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ=="
     },
+    "undici-types@7.10.0": {
+      "integrity": "sha512-t5Fy/nfn+14LuOc2KNYg75vZqClpAiqscVvMygNnlsHBFpSXdJaYtXMcdNLpl/Qvc3P2cB3s6lOV51nqsFq4ag=="
+    },
     "universal-user-agent@7.0.3": {
       "integrity": "sha512-TmnEAEAsBJVZM/AADELsK76llnwcf9vMKuPz8JflO1frO8Lchitr0fNaN9d+Ap0BjKtqWqd/J17qeDnXh8CL2A=="
     },
@@ -1251,7 +1263,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@luca/esbuild-deno-loader@~0.11.1",
+      "jsr:@deno/esbuild-plugin@^1.2.0",
       "jsr:@m234/logger@^2.0.1",
       "jsr:@std/fmt@^1.0.8",
       "jsr:@std/fs@^1.0.19",
