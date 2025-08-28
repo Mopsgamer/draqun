@@ -12,7 +12,7 @@
     },
     "imports": {
         "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.1",
-        "@m234/logger": "jsr:@m234/logger@^1.4.1",
+        "@m234/logger": "jsr:@m234/logger@^2.0.0",
         "@octokit/rest": "npm:@octokit/rest@^22.0.0",
         "@shoelace-style/shoelace": "npm:@shoelace-style/shoelace@^2.20.1",
         "@std/fmt": "jsr:@std/fmt@^1.0.8",
@@ -29,22 +29,17 @@
         "htmx.org": "npm:htmx.org@^2.0.6",
         "is-ci": "npm:is-ci@^4.1.0",
         "mysql2": "npm:mysql2@^3.14.3",
+        "p-limit": "npm:p-limit@^7.1.1",
         "tailwindcss": "npm:tailwindcss@^4.1.12",
         "tree-kill": "npm:tree-kill@^1.2.2"
     },
     "exports": {},
+    "exclude": [
+        "dist/static",
+        "client/src/*tailwind*"
+    ],
     "fmt": {
-        "indentWidth": 4,
-        "exclude": [
-            "client/src/*tailwind*",
-            "dist/static"
-        ]
-    },
-    "lint": {
-        "exclude": [
-            "client/src/*tailwind*",
-            "dist/static"
-        ]
+        "indentWidth": 4
     },
     "compilerOptions": {
         "lib": [

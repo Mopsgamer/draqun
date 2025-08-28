@@ -12,6 +12,7 @@ import {
 import { promisify } from "node:util";
 import { parse } from "@std/path/parse";
 import { blue } from "@std/fmt/colors";
+import { format } from "@m234/logger";
 
 async function initMysqlTables(): Promise<void> {
     const sqlFileList = [
@@ -26,8 +27,8 @@ async function initMysqlTables(): Promise<void> {
         "./scripts/queries/create_group_action_bans.sql",
     ];
     logInitDb.info(
-        `We want to create tables:\n${blue(" - ")}%s`,
-        sqlFileList.map((p) => parse(p).base).join("\n" + blue(" - ")),
+        `We want to create tables:\n${blue(" - ")}` +
+            sqlFileList.map((p) => parse(p).base).join("\n" + blue(" - ")),
     );
     logInitDb.info("You can pass 'nodb' to ignore DB initialization step.");
 
@@ -44,25 +45,27 @@ async function initMysqlTables(): Promise<void> {
     const execQuery = promisify(connection.query.bind(connection));
     const disconnect = promisify(connection.end.bind(connection));
 
-    logInitDb.start("Connecting to the database using .env confifuration");
+    let task = logInitDb.task({
+        text: "Connecting to the database using .env confifuration",
+    }).start();
     await connect();
-    logInitDb.end("completed");
+    task.end("completed");
     logInitDb.warn(
         "If you are trying to reinitialize the database, this have not changeed existing tables. Delete or change them manually.",
     );
     for (const sqlFile of sqlFileList) {
-        logInitDb.start(`Executing '${sqlFile}'`);
+        const task = logInitDb.task({ text: `Executing '${sqlFile}'` }).start();
         const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
         await execQuery(sqlString);
-        logInitDb.end("completed");
+        task.end("completed");
     }
 
     logInitDb.success(
         "All queries have been executed.",
     );
-    logInitDb.start("Disconnecting from the database");
+    task = logInitDb.task({ text: "Disconnecting from the database" }).start();
     await disconnect();
-    logInitDb.end("completed");
+    task.end("completed");
 }
 
 function initEnvFile(path: string): void {
@@ -136,11 +139,11 @@ function initEnvFile(path: string): void {
 
 try {
     const path = ".env";
-    logInitFiles.start(`Initializing '${path}'`);
+    const task = logInitFiles.task({ text: `Initializing '${path}'` }).start();
     initEnvFile(path);
-    logInitFiles.end("completed");
+    task.end("completed");
 } catch (error) {
-    logInitFiles.error(error);
+    logInitFiles.error(format(error));
     Deno.exit(1);
 }
 
@@ -148,7 +151,7 @@ if (!Deno.args.includes("nodb")) {
     try {
         await initMysqlTables();
     } catch (error) {
-        logInitDb.error(error);
+        logInitDb.error(format(error));
         logInitDb.warn(
             "If the initialization fails because of references,\n" +
                 "we are supposed to CHANGE THE ORDER: './scripts/init.ts'.",

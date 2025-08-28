@@ -25,7 +25,7 @@ const manifestPath = "deno.json";
 const manifestExists = existsSync(manifestPath);
 
 if (!manifestExists) {
-    logRelease.error("Manifest file %s not found.", manifestPath);
+    logRelease.error("Manifest file" + manifestPath + "not found.");
     Deno.exit(1);
 }
 
@@ -33,16 +33,16 @@ const newVersion = getNewVersion();
 const tagName = newVersion;
 const releaseName = newVersion;
 const newChangelog = getNewChangelog();
-logRelease.info("Increment: %s -> %s", denojson.version, newVersion);
+logRelease.info("Increment: " + denojson.version + " -> " + newVersion);
 if (isDryRun) {
-    logRelease.info("Changelog:\n%s", newChangelog);
+    logRelease.info("Changelog:\n" + newChangelog);
 }
-logRelease.info("Old latest tag: %s", getLastTag() ?? "undefined");
+logRelease.info("Old latest tag: " + (getLastTag() ?? "undefined"));
 if (!isDryRun) {
-    logRelease.start("Creating tag %s", tagName);
+    const task = logRelease.task({ text: "Creating tag " + tagName }).start();
     createTag(tagName, newChangelog);
-    logRelease.end();
-    logRelease.info("New latest tag: %s", getLastTag() ?? "undefined");
+    task.end("completed");
+    logRelease.info("New latest tag: " + (getLastTag() ?? "undefined"));
 }
 if (newVersion !== denojson.version) {
     const manifestOldContent = await Deno.readTextFile(manifestPath);
@@ -51,16 +51,18 @@ if (newVersion !== denojson.version) {
         `$1${newVersion}$3`,
     );
     if (!isDryRun) {
-        logRelease.start("Writing new version to %s", manifestPath);
+        const task = logRelease.task({
+            text: "Writing new version to " + manifestPath,
+        });
         await Deno.writeTextFile(manifestPath, manifestNewContent);
-        logRelease.end();
+        task.end("completed");
     }
 }
 if (!isDryRun) {
     const repoInfo = getRepoInfo();
-    logRelease.start("Creating GitHub release");
+    const task = logRelease.task({ text: "Creating GitHub release" }).start();
     await createRelease(releaseName, tagName, newChangelog, repoInfo);
-    logRelease.end();
+    task.end("completed");
     logRelease.success("Released successfully.");
 }
 

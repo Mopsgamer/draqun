@@ -25,8 +25,7 @@ async function watchAndRestart() {
 
         tryToKill();
         logClientComp.info(
-            "File change detected: %s. Restarting...",
-            event.kind,
+            "File change detected: " + event.kind + ". Restarting...",
         );
         start();
     }
