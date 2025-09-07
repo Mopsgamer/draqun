@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import { Logger } from "@m234/logger";
 import { ensureDir } from "@std/fs/ensure-dir";
 
+export const logDevelopment = new Logger({ prefix: "development" });
 export const logRelease = new Logger({ prefix: "release" });
 export const logServerComp = new Logger({ prefix: "server-compilation" });
 export const logClientComp = new Logger({ prefix: "client-compilation" });

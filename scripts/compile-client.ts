@@ -250,7 +250,7 @@ await Promise.allSettled(calls.map(([builder, builderArgs]) => {
             return "completed";
         }),
     );
-}))
+}));
 
 if (isWatch) {
     logClientComp.info("Watching for file changes...");

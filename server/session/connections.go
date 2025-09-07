@@ -2,46 +2,33 @@ package session
 
 import (
 	"slices"
-	"sync"
 )
 
-var UserSessionMap = userSessionMap{
-	mp:    &map[uint64][]*ControllerWs{},
-	mutex: &sync.Mutex{},
-}
+type userSessionMap map[uint64][]*ControllerWs
 
-type userSessionMap struct {
-	mutex *sync.Mutex
-	mp    *map[uint64][]*ControllerWs // A websocket connection list for each user id.
-}
+var UserSessionMap = make(userSessionMap)
 
 // Push data for each connection by user id.
 func (conns *userSessionMap) Push(data string, pick EventPick) {
-	conns.mutex.Lock()
-	for userId := range *conns.mp {
-		for _, ws := range (*conns.mp)[userId] {
+	for userId := range *conns {
+		for _, ws := range (*conns)[userId] {
 			if slices.Contains(ws.Subs, pick) {
 				continue
 			}
-			ws.Push(data)
+			go ws.Push(data)
 		}
 	}
-	conns.mutex.Unlock()
 }
 
-func (conns *userSessionMap) Connections(userId uint64) []*ControllerWs {
-	return (*conns.mp)[userId]
+func (conns userSessionMap) Connections(userId uint64) []*ControllerWs {
+	return conns[userId]
 }
 
-func (conns *userSessionMap) Connect(userId uint64, ws *ControllerWs) {
-	conns.mutex.Lock()
-	(*conns.mp)[userId] = append((*conns.mp)[userId], ws)
-	conns.mutex.Unlock()
+func (conns userSessionMap) Connect(userId uint64, ws *ControllerWs) {
+	conns[userId] = append(conns[userId], ws)
 }
 
-func (conns *userSessionMap) Close(userId uint64, ws *ControllerWs) {
-	conns.mutex.Lock()
-	i := slices.Index((*conns.mp)[userId], ws)
-	(*conns.mp)[userId] = slices.Delete((*conns.mp)[userId], i, i+1)
-	conns.mutex.Unlock()
+func (conns userSessionMap) Close(userId uint64, ws *ControllerWs) {
+	i := slices.Index(conns[userId], ws)
+	conns[userId] = slices.Delete(conns[userId], i, i+1)
 }

@@ -76,7 +76,7 @@ function initEnvFile(path: string): void {
     const defaultEnv = new Map<string, EnvKeyEntry>();
     defaultEnv.set(envKeys.JWT_KEY, {
         comment: "use any online jwt generator to fill this value:\n" +
-            "- https://jwtsecret.com/generate",
+            "- https://randomfungenerator.com/generators/jwt-generator",
     });
     defaultEnv.set(envKeys.USER_AUTH_TOKEN_EXPIRATION, {
         value: 180,

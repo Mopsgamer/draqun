@@ -1,7 +1,7 @@
-import { logClientComp } from "./tool/constants.ts";
+import { logDevelopment } from "./tool/constants.ts";
 import kill from "tree-kill";
 
-const paths = ["server", "lite.go"];
+const paths = ["server", "lite.go", ".env"];
 
 const serverCommand = new Deno.Command("go", {
     args: ["run", "-tags", "lite", "."],
@@ -13,7 +13,9 @@ function start() {
 }
 
 async function watchAndRestart() {
-    start();
+    logDevelopment.task({
+        text: "Starting",
+    }).startRunner(start);
     const watcher = Deno.watchFs(paths, { recursive: true });
     for await (const event of watcher) {
         if (
@@ -24,10 +26,7 @@ async function watchAndRestart() {
         ) continue;
 
         tryToKill();
-        logClientComp.info(
-            "File change detected: " + event.kind + ". Restarting...",
-        );
-        start();
+        logDevelopment.task({ text: "Restarting" }).startRunner(start);
     }
 }
 
