@@ -12,7 +12,7 @@
     },
     "imports": {
         "@deno/esbuild-plugin": "jsr:@deno/esbuild-plugin@^1.2.0",
-        "@m234/logger": "jsr:@m234/logger@^2.0.4",
+        "@m234/logger": "jsr:@m234/logger@^2.0.5",
         "@octokit/rest": "npm:@octokit/rest@^22.0.0",
         "@shoelace-style/shoelace": "npm:@shoelace-style/shoelace@^2.20.1",
         "@std/fmt": "jsr:@std/fmt@^1.0.8",
@@ -26,9 +26,9 @@
         "esbuild-plugin-tailwindcss": "npm:esbuild-plugin-tailwindcss@^2.1.0",
         "htmx-ext-debug": "npm:htmx-ext-debug@^2.0.1",
         "htmx-ext-ws": "npm:htmx-ext-ws@2.0.3",
-        "htmx.org": "npm:htmx.org@^2.0.6",
+        "htmx.org": "npm:htmx.org@^2.0.7",
         "is-ci": "npm:is-ci@^4.1.0",
-        "mysql2": "npm:mysql2@^3.14.4",
+        "mysql2": "npm:mysql2@^3.14.5",
         "p-limit": "npm:p-limit@^7.1.1",
         "tailwindcss": "npm:tailwindcss@^4.1.13",
         "tree-kill": "npm:tree-kill@^1.2.2"

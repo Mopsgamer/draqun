@@ -4,7 +4,7 @@
     "jsr:@117/mutex@^1.0.8": "1.0.8",
     "jsr:@deno/esbuild-plugin@^1.2.0": "1.2.0",
     "jsr:@deno/loader@~0.3.3": "0.3.5",
-    "jsr:@m234/logger@^2.0.4": "2.0.4",
+    "jsr:@m234/logger@^2.0.5": "2.0.5",
     "jsr:@std/async@^1.0.14": "1.0.14",
     "jsr:@std/fmt@^1.0.8": "1.0.8",
     "jsr:@std/fs@^1.0.19": "1.0.19",
@@ -24,10 +24,10 @@
     "npm:esbuild@~0.25.9": "0.25.9",
     "npm:htmx-ext-debug@^2.0.1": "2.0.1",
     "npm:htmx-ext-ws@2.0.3": "2.0.3",
-    "npm:htmx.org@^2.0.6": "2.0.6",
+    "npm:htmx.org@^2.0.7": "2.0.7",
     "npm:is-ci@^4.1.0": "4.1.0",
     "npm:is-interactive@2": "2.0.0",
-    "npm:mysql2@^3.14.4": "3.14.4",
+    "npm:mysql2@^3.14.5": "3.14.5",
     "npm:p-limit@^7.1.1": "7.1.1",
     "npm:tailwindcss@^4.1.13": "4.1.13",
     "npm:tree-kill@^1.2.2": "1.2.2"
@@ -46,8 +46,8 @@
     "@deno/loader@0.3.5": {
       "integrity": "72f6ce9c6e7242c6e070705dbd8a838884dd236d5dd0bd907d08bece92db5722"
     },
-    "@m234/logger@2.0.4": {
-      "integrity": "7a9b7c1df18314f14b29ff66701506eedd101947d37ae54525da36dfec4529ab",
+    "@m234/logger@2.0.5": {
+      "integrity": "131f9f110339310f77760ee198a28ee732a26d56721ff3b070e91ccf11dab405",
       "dependencies": [
         "jsr:@117/mutex",
         "jsr:@std/async",
@@ -848,8 +848,8 @@
         "htmx.org"
       ]
     },
-    "htmx.org@2.0.6": {
-      "integrity": "sha512-7ythjYneGSk3yCHgtCnQeaoF+D+o7U2LF37WU3O0JYv3gTZSicdEFiI/Ai/NJyC5ZpYJWMpUb11OC5Lr6AfAqA=="
+    "htmx.org@2.0.7": {
+      "integrity": "sha512-YiJqF3U5KyO28VC5mPfehKJPF+n1Gni+cupK+D69TF0nm7wY6AXn3a4mPWIikfAXtl1u1F1+ZhSCS7KT8pVmqA=="
     },
     "iconv-lite@0.7.0": {
       "integrity": "sha512-cf6L2Ds3h57VVmkZe+Pn+5APsT7FpqJtEhhieDCvrE2MK5Qk9MyffgQyuxQTm6BChfeZNtcOLHp9IcWRVcIcBQ==",
@@ -1044,8 +1044,8 @@
       "integrity": "sha512-+NsyUUAZDmo6YVHzL/stxSu3t9YS1iljliy3BSDrXJ/dkn1KYdmtZODGGjLcc9XLgVVpH4KshHB8XmZgMhaBXg==",
       "bin": true
     },
-    "mysql2@3.14.4": {
-      "integrity": "sha512-Cs/jx3WZPNrYHVz+Iunp9ziahaG5uFMvD2R8Zlmc194AqXNxt9HBNu7ZsPYrUtmJsF0egETCWIdMIYAwOGjL1w==",
+    "mysql2@3.14.5": {
+      "integrity": "sha512-40hDf8LPUsuuJ2hFq+UgOuPwt2IFLIRDvMv6ez9hKbXeYuZPxDDwiJW7KdknvOsQqKznaKczOT1kELgFkhDvFg==",
       "dependencies": [
         "aws-ssl-profiles",
         "denque",
@@ -1262,7 +1262,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@deno/esbuild-plugin@^1.2.0",
-      "jsr:@m234/logger@^2.0.4",
+      "jsr:@m234/logger@^2.0.5",
       "jsr:@std/fmt@^1.0.8",
       "jsr:@std/fs@^1.0.19",
       "jsr:@std/path@^1.1.2",
@@ -1276,9 +1276,9 @@
       "npm:esbuild@~0.25.9",
       "npm:htmx-ext-debug@^2.0.1",
       "npm:htmx-ext-ws@2.0.3",
-      "npm:htmx.org@^2.0.6",
+      "npm:htmx.org@^2.0.7",
       "npm:is-ci@^4.1.0",
-      "npm:mysql2@^3.14.4",
+      "npm:mysql2@^3.14.5",
       "npm:p-limit@^7.1.1",
       "npm:tailwindcss@^4.1.13",
       "npm:tree-kill@^1.2.2"
