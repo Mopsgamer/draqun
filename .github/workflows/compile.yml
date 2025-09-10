@@ -10,6 +10,8 @@ on:
 
 jobs:
     cross-compile:
+        env:
+            GOCACHE: dist/cache
         if: github.event.pull_request.draft == false
         runs-on: ubuntu-latest
         steps:
