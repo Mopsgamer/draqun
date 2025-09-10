@@ -1,15 +1,17 @@
 import { logDevelopment } from "./tool/constants.ts";
 import kill from "tree-kill";
+import { existsSync } from "@std/fs";
 
-const paths = ["server", "lite.go", ".env"];
-
+const paths = ["server", "lite.go"];
+if (existsSync(".env")) paths.push(".env");
 const serverCommand = new Deno.Command("go", {
     args: ["run", "-tags", "lite", "."],
 });
 let goRunProcess: Deno.ChildProcess | undefined = undefined;
 
-function start() {
+async function start() {
     goRunProcess = serverCommand.spawn();
+    await goRunProcess.status;
 }
 
 async function watchAndRestart() {
