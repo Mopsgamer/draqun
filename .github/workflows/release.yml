@@ -24,7 +24,7 @@ on:
 jobs:
     release:
         env:
-            GOCACHE: dist/cache
+            GOCACHE: ${{ github.workspace }}/dist/cache
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         permissions:
             contents: write

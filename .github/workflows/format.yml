@@ -11,7 +11,7 @@ on:
 jobs:
     apply:
         env:
-            GOCACHE: dist/cache
+            GOCACHE: ${{ github.workspace }}/dist/cache
         if: github.event.pull_request.draft == false
         permissions:
             contents: write
