@@ -2,6 +2,9 @@ import { logServerComp } from "./tool/constants.ts";
 import { binaryInfo, compile } from "./tool/compile-binary.ts";
 import { limit1 } from "./tool/limit1.ts";
 import type { Task, TaskStateEnd } from "@m234/logger";
+import { writeGitJson } from "./tool/generate-git.ts";
+
+await writeGitJson();
 
 const osList = ["windows", "linux", "darwin"];
 const archList = ["amd64", "arm64"];
