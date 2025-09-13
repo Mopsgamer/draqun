@@ -5,7 +5,6 @@ import (
 	"io"
 	"io/fs"
 	"os"
-	"os/exec"
 	"strconv"
 	"time"
 
@@ -37,11 +36,9 @@ var (
 
 	Port string
 
-	DenoJson    DenoConfig
-	GoMod       modfile.File
-	GitHash     string
-	GitHashLong string
-	GitBranch   string
+	DenoJson DenoConfig
+	GitJson  GitInfo
+	GoMod    modfile.File
 
 	DBUser     string
 	DBPassword string
@@ -56,26 +53,16 @@ type DenoConfig struct {
 	Imports map[string]string `json:"imports"`
 }
 
+type GitInfo struct {
+	Hash     string `json:"hash"`
+	HashLong string `json:"hashlong"`
+	Branch   string `json:"branch"`
+}
+
 func LoadMeta(embedFS fs.FS) {
 	DenoJson = getJson[DenoConfig](embedFS, "deno.json")
+	GitJson = getJson[GitInfo](embedFS, DistFolder+"/git.json")
 	GoMod = getGoMod(embedFS)
-	GitHash, _ = commandOutput("git", "rev-parse", "--short", "HEAD")
-	GitHashLong, _ = commandOutput("git", "rev-parse", "HEAD")
-	GitBranch, _ = commandOutput("git", "rev-parse", "--abbrev-ref", "HEAD")
-
-	if len(GitHash) < 7 {
-		log.Warn("Git hash is too short, using 'unknown' instead.")
-		GitHash = "unknown"
-	}
-	if len(GitHashLong) < 7 {
-		log.Warn("Git long hash is too short, using 'unknown' instead.")
-		GitHashLong = "unknown"
-	}
-
-	if len(GitBranch) == 0 {
-		log.Warn("Git branch is empty, using 'unknown' instead.")
-		GitBranch = "unknown"
-	}
 }
 
 // LoadEnv environemnt variables from the '.env' file. Exits if any errors.
@@ -102,16 +89,6 @@ func LoadEnv(embedFS fs.FS) {
 	DBPassword = getenvString("DB_PASSWORD", "")
 	DBPort = getenvString("DB_PORT", "3306")
 	DBUser = getenvString("DB_USER", "admin")
-}
-
-func commandOutput(name string, arg ...string) (string, error) {
-	bytes, err := exec.Command(name, arg...).Output()
-	if err != nil {
-		return "", err
-	}
-
-	// "hash"\n -> hash
-	return string(bytes)[:len(bytes)-1], nil
 }
 
 func getenvString(key string, or string) string {

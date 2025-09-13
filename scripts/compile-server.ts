@@ -1,5 +1,8 @@
 import { binaryInfo, compile } from "./tool/compile-binary.ts";
 import { logServerComp } from "./tool/constants.ts";
+import { writeGitJson } from "./tool/generate-git.ts";
+
+await writeGitJson();
 
 const { stdout } = new Deno.Command("go", {
     args: ["env", "GOOS", "GOARCH"],

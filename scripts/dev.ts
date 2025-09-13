@@ -1,6 +1,7 @@
 import { logDevelopment } from "./tool/constants.ts";
 import kill from "tree-kill";
 import { existsSync } from "@std/fs";
+import { writeGitJson } from "./tool/generate-git.ts";
 
 const paths = ["server", "lite.go"];
 if (existsSync(".env")) paths.push(".env");
@@ -10,6 +11,7 @@ const serverCommand = new Deno.Command("go", {
 let goRunProcess: Deno.ChildProcess | undefined = undefined;
 
 async function start() {
+    await writeGitJson();
     goRunProcess = serverCommand.spawn();
     await goRunProcess.status;
 }
