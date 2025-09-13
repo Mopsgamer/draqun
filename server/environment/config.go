@@ -27,7 +27,8 @@ const (
 	BuildModeProduction
 )
 
-// TODO: Should be configurable using database.
+var NoEnv bool
+
 // App settings.
 var (
 	JWTKey                  string
@@ -40,6 +41,7 @@ var (
 	GoMod       modfile.File
 	GitHash     string
 	GitHashLong string
+	GitBranch   string
 
 	DBUser     string
 	DBPassword string
@@ -54,26 +56,46 @@ type DenoConfig struct {
 	Imports map[string]string `json:"imports"`
 }
 
-// Load environemnt variables from the '.env' file. Exits if any errors.
-func Load(embedFS fs.FS) {
-	if err := godotenv.Load(); err != nil {
-		if os.IsNotExist(err) {
-			goto InitEnv
-		}
-		log.Error(err)
+func LoadMeta(embedFS fs.FS) {
+	DenoJson = getJson[DenoConfig](embedFS, "deno.json")
+	GoMod = getGoMod(embedFS)
+	GitHash, _ = commandOutput("git", "rev-parse", "--short", "HEAD")
+	GitHashLong, _ = commandOutput("git", "rev-parse", "HEAD")
+	GitBranch, _ = commandOutput("git", "rev-parse", "--abbrev-ref", "HEAD")
+
+	if len(GitHash) < 7 {
+		log.Warn("Git hash is too short, using 'unknown' instead.")
+		GitHash = "unknown"
+	}
+	if len(GitHashLong) < 7 {
+		log.Warn("Git long hash is too short, using 'unknown' instead.")
+		GitHashLong = "unknown"
 	}
 
-InitEnv:
+	if len(GitBranch) == 0 {
+		log.Warn("Git branch is empty, using 'unknown' instead.")
+		GitBranch = "unknown"
+	}
+}
+
+// LoadEnv environemnt variables from the '.env' file. Exits if any errors.
+func LoadEnv(embedFS fs.FS) {
+	if err := godotenv.Load(); err != nil {
+		if os.IsNotExist(err) {
+			NoEnv = true
+		} else {
+			log.Error(err)
+		}
+	}
+
 	JWTKey = getenvString("JWT_KEY", "")
+	if len(JWTKey) < 8 {
+		log.Fatal("JWT_KEY must be at least 8 characters long.")
+	}
 	UserAuthTokenExpiration = time.Duration(getenvInt("USER_AUTH_TOKEN_EXPIRATION", 180)) * time.Minute
 	ChatMessageMaxLength = int(getenvInt("CHAT_MESSAGE_MAX_LENGTH", 8000))
 
 	Port = getenvString("PORT", "3000")
-
-	DenoJson = getJson[DenoConfig](embedFS, "deno.json")
-	GoMod = getGoMod(embedFS)
-	GitHash, _ = commandOutput("git", "log", "-n1", `--format="%h"`)
-	GitHashLong, _ = commandOutput("git", "log", "-n1", `--format="%H"`)
 
 	DBHost = getenvString("DB_HOST", "localhost")
 	DBName = getenvString("DB_NAME", "mysql")
@@ -89,7 +111,7 @@ func commandOutput(name string, arg ...string) (string, error) {
 	}
 
 	// "hash"\n -> hash
-	return string(bytes)[1 : len(bytes)-2], nil
+	return string(bytes)[:len(bytes)-1], nil
 }
 
 func getenvString(key string, or string) string {
@@ -115,7 +137,7 @@ func getenvInt(key string, or int64) int64 {
 }
 
 // func getenvBool(key string) bool {
-// 	val := strings.ToLower(os.Getenv(key))
+// 	val := strings.TrimSpace(strings.ToLower(os.Getenv(key)))
 // 	return val == "1" || val == "true" || val == "y" || val == "yes"
 // }
 

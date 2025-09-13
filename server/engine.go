@@ -6,17 +6,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Mopsgamer/draqun/server/controller"
-	"github.com/Mopsgamer/draqun/server/database"
 	"github.com/Mopsgamer/draqun/server/environment"
-	"github.com/Mopsgamer/draqun/server/model_database"
+	"github.com/Mopsgamer/draqun/server/model"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/template/html/v2"
 )
 
 // Initialize the view engine.
-func NewAppHtmlEngine(db *database.Database, embedFS fs.FS, clientEmbedded bool, directory string) *html.Engine {
+func NewAppHtmlEngine(db *model.DB, embedFS fs.FS, clientEmbedded bool, directory string) *html.Engine {
 	var engine *html.Engine
 	if !clientEmbedded {
 		engine = html.New(directory, environment.TemplateExt)
@@ -37,10 +35,10 @@ func NewAppHtmlEngine(db *database.Database, embedFS fs.FS, clientEmbedded bool,
 			}
 			return result
 		},
-		"hideEmail": func(text string) string {
-			splits := strings.Split(text, "@")
+		"hideEmail": func(email model.Email) string {
+			splits := strings.Split(string(email), "@")
 			if len(splits) != 2 {
-				return strings.Repeat("*", len(text))
+				return strings.Repeat("*", len(email))
 			}
 			// a in a@b.c
 			before := splits[0]
@@ -57,11 +55,11 @@ func NewAppHtmlEngine(db *database.Database, embedFS fs.FS, clientEmbedded bool,
 		"jsonTime": func(t time.Time) string {
 			return t.Format("2006-01-02T15:04:05.000Z")
 		},
-		"hidePhone": func(text string) string {
-			if len(text) > 5 {
-				return text[:4] + strings.Repeat("*", len(text)-4)
+		"hidePhone": func(phone model.Phone) string {
+			if len(phone) > 5 {
+				return string(phone)[:4] + strings.Repeat("*", len(phone)-4)
 			}
-			return strings.Repeat("*", len(text))
+			return strings.Repeat("*", len(phone))
 		},
 		"hide": func(text string) string {
 			return strings.Repeat("*", len(text))
@@ -76,14 +74,6 @@ func NewAppHtmlEngine(db *database.Database, embedFS fs.FS, clientEmbedded bool,
 			}
 			return result
 		},
-
-		"groupLink": func(group model_database.Group) string {
-			return "localhost:3000" + controller.PathRedirectGroupJoin(group.Name)
-		},
-		"userRightsOf":    db.MemberRights,
-		"userMemberOf":    db.MemberById,
-		"userMemberships": db.UserGroupList,
-		"groupMembers":    db.MemberList,
 	})
 
 	return engine

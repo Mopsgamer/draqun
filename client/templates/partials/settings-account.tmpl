@@ -14,7 +14,7 @@
     <form
         id="change-name-form"
         hx-put="/account/change/name"
-        hx-swap="outerHTML"
+        hx-swap="innerHTML"
         hx-target="#change-name-error"
     >
         <sl-input
@@ -22,7 +22,7 @@
             type="text"
             id="new-nickname"
             name="new-nickname"
-            value="{{.User.Nick}}"
+            value="{{.User.Moniker}}"
         ></sl-input>
         <sl-input
             label="Username"
@@ -47,7 +47,7 @@
         Email
     </h4>
     <div class="flex justify-between">
-        {{- hideEmail .User.Email}}
+        {{- hideEmail .User.Email -}}
         <sl-button variant="primary" href="#change-email-dialog"
         >Change email</sl-button>
     </div>
@@ -56,7 +56,11 @@
         Phone
     </h4>
     <div class="flex justify-between">
-        {{if ne .User.Phone nil}}{{- hidePhone .User.Phone}}{{else}}None{{end}}
+        {{- if ne .User.Phone "" -}}
+            {{- hidePhone .User.Phone -}}
+        {{- else -}}
+            None
+        {{- end -}}
         <sl-button variant="primary" href="#change-phone-dialog"
         >Change phone</sl-button>
     </div>

@@ -69,7 +69,7 @@
             "command": "deno",
             "args": [
                 "task",
-                "serve"
+                "dev"
             ],
             "detail": "Serve locally.",
             "icon": {

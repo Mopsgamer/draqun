@@ -1,0 +1,87 @@
+package model
+
+import (
+	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/doug-martin/goqu/v9"
+)
+
+type RoleAssignee struct {
+	Db *DB `db:"-"`
+
+	UserId uint64 `db:"user_id"`
+	RoleId uint32 `db:"role_id"`
+}
+
+var _ Model = (*RoleAssignee)(nil)
+
+func NewRoleAssign(db *DB) RoleAssignee {
+	return RoleAssignee{Db: db}
+}
+
+func (roleAssign RoleAssignee) Validate() htmx.Alert {
+	return nil
+}
+
+func (roleAssign RoleAssignee) IsEmpty() bool {
+	return roleAssign.UserId == 0 || roleAssign.RoleId == 0
+}
+
+func (roleAssign *RoleAssignee) Insert() error {
+	return Insert(roleAssign.Db, TableRoleAssignees, roleAssign)
+}
+
+func (roleAssign RoleAssignee) Update() error {
+	return Update(roleAssign.Db, TableRoleAssignees, roleAssign, goqu.Ex{"role_id": roleAssign.RoleId, "user_id": roleAssign.UserId})
+}
+
+func (roleAssign RoleAssignee) Delete() error {
+	return Delete(roleAssign.Db, TableRoleAssignees, goqu.Ex{"role_id": roleAssign.RoleId, "user_id": roleAssign.UserId})
+}
+
+func (roleAssign *RoleAssignee) Role() Role {
+	member := NewRole(roleAssign.Db)
+	sql, args, err := roleAssign.Db.Goqu.From(TableMembers).Select(TableMembers+".*").
+		LeftJoin(goqu.I(TableRoles), goqu.On(
+			goqu.I(TableRoles+".id").Eq(TableRoleAssignees+".role_id"),
+		)).
+		LeftJoin(goqu.I(TableRoleAssignees), goqu.On(
+			goqu.I(TableRoleAssignees+".user_id").Eq(TableMembers+".user_id"),
+		)).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return member
+	}
+
+	err = roleAssign.Db.Sqlx.QueryRowx(sql, args...).StructScan(&member)
+	if err != nil {
+		handleErr(err)
+		return member
+	}
+
+	return member
+}
+
+func (roleAssign *RoleAssignee) Member() Member {
+	member := Member{Db: roleAssign.Db}
+	sql, args, err := roleAssign.Db.Goqu.From(TableMembers).Select(TableMembers+".*").
+		LeftJoin(goqu.I(TableRoles), goqu.On(
+			goqu.I(TableRoles+".id").Eq(TableRoleAssignees+".role_id"),
+		)).
+		LeftJoin(goqu.I(TableRoleAssignees), goqu.On(
+			goqu.I(TableRoleAssignees+".user_id").Eq(TableMembers+".user_id"),
+		)).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return member
+	}
+
+	err = roleAssign.Db.Sqlx.QueryRowx(sql, args...).StructScan(&member)
+	if err != nil {
+		handleErr(err)
+		return member
+	}
+
+	return member
+}

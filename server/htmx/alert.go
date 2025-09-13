@@ -1,8 +1,14 @@
 package htmx
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type ShoelaceAlertLevel int
+
+var _ fmt.Stringer = (*ShoelaceAlertLevel)(nil)
+var _ fmt.GoStringer = (*ShoelaceAlertLevel)(nil)
 
 func (level ShoelaceAlertLevel) String() string {
 	switch level {
@@ -17,6 +23,10 @@ func (level ShoelaceAlertLevel) String() string {
 	}
 }
 
+func (level ShoelaceAlertLevel) GoString() string {
+	return level.String()
+}
+
 const (
 	Primary ShoelaceAlertLevel = iota
 	Success
@@ -24,7 +34,7 @@ const (
 	Danger
 )
 
-type HTMXAlert interface {
+type Alert interface {
 	error
 	Local() string // User friendly error message.
 	Level() ShoelaceAlertLevel
@@ -36,12 +46,24 @@ type alert struct {
 	level ShoelaceAlertLevel
 }
 
-func NewHTMXAlert(err error, local string, level ShoelaceAlertLevel) HTMXAlert {
-	return &alert{
+var _ Alert = (*alert)(nil)
+
+func NewAlert(err error, local string, level ShoelaceAlertLevel) alert {
+	return alert{
 		err:   err,
 		local: local,
 		level: level,
 	}
+}
+
+func (a alert) Join(errs ...error) alert {
+	errs = append([]error{a.err}, errs...)
+	a.err = errors.Join(errs...)
+	return a
+}
+
+func (a alert) Is(err error) bool {
+	return errors.Is(a.err, err)
 }
 
 func (a alert) Error() string {

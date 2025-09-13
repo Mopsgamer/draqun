@@ -1,4 +1,4 @@
-{{- if eq .User nil}}
+{{- if .User.IsEmpty -}}
 <sl-dialog label="Dialog" id="signup-dialog">
     <span slot="label" class="aligned">
         <sl-icon name="box-arrow-in-right"></sl-icon>
@@ -8,7 +8,7 @@
         id="signup-form"
         name="signup-form"
         hx-post="/account/create"
-        hx-swap="outerHTML"
+        hx-swap="innerHTML"
         hx-target="#signup-error"
     >
         <sl-input
@@ -33,6 +33,7 @@
             autocomplete="email"
             id="signup-email"
             name="email"
+            inputmode="email"
             required
         ></sl-input>
         <sl-input

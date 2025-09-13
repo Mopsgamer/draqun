@@ -1,10 +1,12 @@
 import * as esbuild from "esbuild";
 import { copy as copyPlugin } from "esbuild-plugin-copy";
-import { denoPlugins } from "@luca/esbuild-deno-loader";
+import { denoPlugin } from "@deno/esbuild-plugin";
 import { existsSync } from "@std/fs";
 import { distFolder, logClientComp } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { dirname } from "@std/path/dirname";
+import { format, type TaskStateEnd } from "@m234/logger";
+import { limit1 } from "./tool/limit1.ts";
 
 const isWatch = Deno.args.includes("watch");
 
@@ -37,18 +39,6 @@ async function build(
 ): Promise<void> {
     const { outdir, outfile, entryPoints = [], whenChange = [] } = options;
     buildCalls++;
-
-    const directory = outdir || dirname(outfile!);
-    if (calls.length == 1) {
-        logClientComp.start("Bundling %s", directory);
-    } else {
-        logClientComp.start(
-            "Bundling %d/%d %s",
-            buildCalls,
-            calls.length,
-            directory,
-        );
-    }
 
     const entryPointsNormalized = Array.isArray(entryPoints)
         ? entryPoints
@@ -93,12 +83,11 @@ async function build(
         try {
             await ctx.rebuild();
         } catch (error) {
-            logClientComp.error(error);
+            logClientComp.error(format(error));
         }
     }
 
     await rebuild();
-    logClientComp.end("completed");
 
     if (!isWatch) {
         await ctx.dispose();
@@ -108,7 +97,7 @@ async function build(
     try {
         await ctx.watch();
     } catch (error) {
-        logClientComp.error(error);
+        logClientComp.error(format(error));
         return;
     }
 
@@ -122,7 +111,7 @@ async function build(
     try {
         watcher = Deno.watchFs(whenChange, { recursive: true });
     } catch (error) {
-        logClientComp.error(error);
+        logClientComp.error(format(error));
         logClientComp.error(
             "Bad paths, can not add watcher: " + whenChange.join(", ") + ".",
         );
@@ -186,7 +175,7 @@ const calls: (Call<typeof copy> | Call<typeof build>)[] = [
         whenChange: [
             `./${distFolder}/static/js`,
         ],
-        plugins: [...denoPlugins()],
+        plugins: [denoPlugin()],
     }], ["js", ...slAlias]],
 
     [build, [{
@@ -210,8 +199,8 @@ const availableGroups = [...extraGroups, ...existingGroups];
 
 if (Deno.args.includes("help")) {
     logClientComp.info(
-        "Available options: %s.",
-        availableGroups.join(", "),
+        "Available options: " +
+            availableGroups.join(", ") + ".",
     );
     logClientComp.info(
         "Usage example:\n\n\tdeno task compile:client js css min watch\n",
@@ -225,14 +214,10 @@ const unknownGroups = Deno.args.filter(
 if (unknownGroups.length > 0) {
     logClientComp.warn(
         `Unknown groups: ${unknownGroups.join(", ")}\n` +
-            "Available groups: %s.",
-        availableGroups.join(", "),
+            "Available groups: " +
+            availableGroups.join(", ") + ".",
     );
 }
-
-logClientComp.info(
-    `Starting bundling "./${distFolder}" ${isWatch ? " in watch mode" : ""}...`,
-);
 
 const existingGroupsUsed = !Deno.args.includes("all") &&
     existingGroups.some((g) => Deno.args.includes(g));
@@ -252,22 +237,21 @@ if (existingGroupsUsed) {
     );
 }
 
-for (const [fn, args] of calls) {
-    // deno-lint-ignore no-explicit-any
-    await fn(...args as any);
-}
+await Promise.allSettled(calls.map(([builder, builderArgs]) => {
+    const { outdir, outfile } = builderArgs.length === 1
+        ? builderArgs[0]
+        : { outdir: dirname(builderArgs[1]) };
+    const directory = outdir || dirname(outfile!);
 
-if (logClientComp.state === "failed") {
-    logClientComp.error("Bundled");
-} else {
-    logClientComp.success("Bundled successfully");
-}
+    return logClientComp.task({ text: "Bundling " + directory }).startRunner(
+        limit1(async (): Promise<TaskStateEnd> => {
+            // deno-lint-ignore no-explicit-any
+            await builder(...builderArgs as any);
+            return "completed";
+        }),
+    );
+}));
+
 if (isWatch) {
-    if (logClientComp.state === "failed") {
-        logClientComp.error("Watching for file changes...");
-    } else {
-        logClientComp.success("Watching for file changes...");
-    }
-} else if (logClientComp.state === "failed") {
-    Deno.exit(1);
+    logClientComp.info("Watching for file changes...");
 }

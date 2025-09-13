@@ -7,7 +7,7 @@
         id="change-phone-form"
         name="change-phone-form"
         hx-put="/account/change/phone"
-        hx-swap="outerHTML"
+        hx-swap="innerHTML"
         hx-target="#change-phone-error"
     >
         <sl-input
@@ -20,8 +20,13 @@
             password-toggle
         >
         </sl-input>
-
-        <sl-input label="New phone" type="tel" id="new-phone" name="new-phone">
+        <sl-input
+            label="New phone"
+            type="tel"
+            id="new-phone"
+            name="new-phone"
+            inputmode="tel"
+        >
         </sl-input>
         <div id="change-phone-error"></div>
     </form>

@@ -58,7 +58,7 @@
         </nav>
     </section>*/}}
     <div class="absolute right-0 bottom-0 text-neutral-500 p-2 font-[monospace]">
-        version: {{.DenoJson.Version}}{{if ne .GitHash ""}} (<a
+        version: {{.DenoJson.Version}}{{if ne .GitHash ""}} ({{.GitBranch}} <a
             class="text-cyan-500 underline"
             href="{{.GitHubRepo}}/commit/{{.GitHashLong}}"
         >{{.GitHash}}</a>){{end -}}

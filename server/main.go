@@ -18,9 +18,9 @@ func Serve(embedFS fs.FS, clientEmbedded bool) {
 		clientEmbeddedStatus = "client embedded"
 	}
 
-	environment.Load(embedFS)
-
-	log.Infof("Server version: %s, %s, %s", environment.DenoJson.Version, clientEmbeddedStatus, environment.BuildModeName)
+	environment.LoadMeta(embedFS)
+	log.Infof("Server version: %s (%s %s), %s, %s", environment.DenoJson.Version, environment.GitBranch, environment.GitHash, clientEmbeddedStatus, environment.BuildModeName)
+	environment.LoadEnv(embedFS)
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)

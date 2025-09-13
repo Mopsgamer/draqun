@@ -9,9 +9,11 @@
             </sl-button>
         </h2>
         <div class="flex flex-row gap-2 p-4">
-            {{- range $i, $group := userMemberships $this.User.Id -}} {{-
-            $member := userMemberOf $group.Id $this.User.Id -}} {{- $rights :=
-            userRightsOf $group.Id $this.User.Id -}}
+            {{- $groupList = $this.User.GroupList -}}
+            {{- $memberList = $this.User.MemberList -}}
+            {{- range $i, $member := $memberList -}}
+            {{- $group := index $groupList $i -}}
+            {{- $rights := $member.Role -}}
             <a href="/chat/groups/{{$group.Id}}">
                 <sl-card
                     id="my-group-{{$group.Id}}"
@@ -23,11 +25,10 @@
                             <sl-icon slot="icon" name="people-fill"></sl-icon>
                         </sl-avatar>
                         <div class="suffix">
-                            <div class="groupname" title="{{$group.Nick}}">
-                                {{- $group.Nick -}}
+                            <div class="groupname" title="{{$group.Moniker}}">
+                                {{- $group.Moniker -}}
                             </div>
-                            {{- /*TODO: ChangeGroup should be simple */}} {{- if
-                            or $member.IsOwner $rights.ChangeGroup}}
+                            {{- if or ($rights.PermAdmin.Has) (and (not $member.IsEmpty) $rights.PermGroupChange.Has)}}
                             <div class="group-actions">
                                 {{template "partials/group-actions" $group}}
                             </div>

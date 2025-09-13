@@ -1,4 +1,4 @@
-{{- if ne .User nil}}
+{{- if not .User.IsEmpty -}}
 <sl-dialog label="Dialog" id="new-group-dialog">
     <span slot="label" class="aligned">
         <sl-icon name="people"></sl-icon>
@@ -8,7 +8,7 @@
         id="new-group-form"
         name="new-group-form"
         hx-post="/groups/create"
-        hx-swap="outerHTML"
+        hx-swap="innerHTML"
         hx-target="#new-group-error"
     >
         <sl-input

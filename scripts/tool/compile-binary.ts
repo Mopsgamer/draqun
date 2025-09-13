@@ -8,17 +8,21 @@ export type BinaryInfo = {
     fileName: string;
     filePath: string;
 };
-export function compile(
-    os: string,
-    arch: string,
-    onStart?: (info: BinaryInfo) => void,
-): boolean {
+
+export function binaryInfo(os: string, arch: string): BinaryInfo {
     let fileName = `server-${os}-${arch}`;
     if (os === "windows") fileName += ".exe";
     const filePath = `${distFolder}/${fileName}`;
-    onStart?.({ fileName, filePath });
+    return { fileName, filePath };
+}
 
-    const { success } = new Deno.Command("go", {
+export async function compile(
+    os: string,
+    arch: string,
+): Promise<boolean> {
+    const { fileName, filePath } = binaryInfo(os, arch);
+
+    const { success } = await new Deno.Command("go", {
         args: [
             "build",
             "-tags",
@@ -35,7 +39,7 @@ export function compile(
         },
         stdout: "inherit",
         stderr: "inherit",
-    }).outputSync();
+    }).output();
 
     if (!success) {
         logServerComp.error(`Failed to build ${underline(fileName)}.`);

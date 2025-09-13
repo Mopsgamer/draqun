@@ -1,11 +1,11 @@
 <sl-dialog
     id="group-settings-dialog-{{.Group.Id}}"
     class="fullscreen-base"
-    label="Group settings dialog for {{.Group.Nick}}"
+    label="Group settings dialog for {{.Group.Moniker}}"
 >
     <span slot="label" class="aligned">
         <sl-icon name="people"></sl-icon>
-        Group settings - {{.Group.Nick}}
+        Group settings - {{.Group.Moniker}}
     </span>
     <div>
         <h1 class="anchor-header">
@@ -15,7 +15,7 @@
         <sl-alert open variant="primary">
             <sl-icon slot="icon" name="info-circle"></sl-icon>
             {{- "" -}} You can invite more people. Share the link {{- "" -}}
-            <sl-copy-button id="copy-invite" hoist value="{{groupLink .Group}}">
+            <sl-copy-button id="copy-invite" hoist value="{{.Group.UrlJoin .Ctx}}">
                 {{- "" -}}
             </sl-copy-button>{{- "" -}}.{{- "" -}}
         </sl-alert>
@@ -26,7 +26,7 @@
         <form
             id="group-change-form"
             hx-put="/groups/{{.Group.Id}}/change"
-            hx-swap="outerHTML"
+            hx-swap="innerHTML"
             hx-target="#group-change-error"
         >
             <sl-input
@@ -35,7 +35,7 @@
                 id="change-group-nick"
                 name="nick"
                 required
-                value="{{.Group.Nick}}"
+                value="{{.Group.Moniker}}"
             ></sl-input>
             <sl-input
                 label="Name"

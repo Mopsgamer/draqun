@@ -4,10 +4,11 @@
         Delete account
     </span>
     <form
+        autocomplete="off"
         id="account-delete-form"
         name="account-delete-form"
         hx-delete="/account/delete"
-        hx-swap="outerHTML"
+        hx-swap="innerHTML"
         hx-target="#account-delete-error"
     >
         <sl-input
@@ -18,15 +19,16 @@
             name="current-password"
             required
             password-toggle
+            autocomplete="password"
         >
         </sl-input>
-
         <sl-input
             label="Confirm username"
-            type="tel"
             id="account-delete-current-username"
             name="confirm-username"
             required
+            type="text"
+            autocomplete="off"
         >
         </sl-input>
         <div id="account-delete-error"></div>
