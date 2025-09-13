@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
-// @deno-types="npm:@types/mysql"
-import mysql from "mysql2";
+import mysql from "mysql2/promise";
 import { existsSync } from "@std/fs";
 import {
     decoder,
@@ -13,6 +12,11 @@ import { promisify } from "node:util";
 import { parse } from "@std/path/parse";
 import { blue } from "@std/fmt/colors";
 import { format } from "@m234/logger";
+
+function logError(e: unknown) {
+    logInitDb.error(format(e));
+    throw e;
+}
 
 async function initMysqlTables(): Promise<void> {
     const sqlFileList = [
@@ -32,40 +36,50 @@ async function initMysqlTables(): Promise<void> {
     );
     logInitDb.info("You can pass 'nodb' to ignore DB initialization step.");
 
-    const connection = mysql.createConnection({
+    const con = await mysql.createConnection({
         password: Deno.env.get(envKeys.DB_PASSWORD),
         database: Deno.env.get(envKeys.DB_NAME),
         user: Deno.env.get(envKeys.DB_USER),
         host: Deno.env.get(envKeys.DB_HOST),
         port: Number(Deno.env.get(envKeys.DB_PORT)),
     });
-
+    con.catch(logError);
+const connection = await con;
     const decoder = new TextDecoder("utf-8");
-    const connect = promisify(connection.connect.bind(connection));
-    const execQuery = promisify(connection.query.bind(connection));
-    const disconnect = promisify(connection.end.bind(connection));
+    const connect = async (): Promise<void> => {
+        await connection.connect().catch(logError);
+    };
+    const execQuery = connection.query;
+    execQuery.bind(connection);
+    const disconnect = async (): Promise<void> => {
+        await connection.end().catch(logError);
+    };
 
-    let task = logInitDb.task({
-        text: "Connecting to the database using .env confifuration",
-    }).start();
-    await connect();
-    task.end("completed");
+    await logInitDb.task({ text: "Connecting" }).startRunner(connect).catch(
+        logError,
+    );
     logInitDb.warn(
         "If you are trying to reinitialize the database, this have not changeed existing tables. Delete or change them manually.",
     );
     for (const sqlFile of sqlFileList) {
-        const task = logInitDb.task({ text: `Executing '${sqlFile}'` }).start();
-        const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
-        await execQuery(sqlString);
-        task.end("completed");
+        await logInitDb.task({ text: `Executing '${sqlFile}'` })
+            .startRunner(async () => {
+                const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
+                await execQuery(sqlString);
+            }).catch((e) => {
+                logInitDb.warn(
+                    "If the initialization fails because of references,\n" +
+                        "we are supposed to CHANGE THE ORDER: './scripts/init.ts'.",
+                );
+                logError(e);
+            });
     }
 
     logInitDb.success(
         "All queries have been executed.",
     );
-    task = logInitDb.task({ text: "Disconnecting from the database" }).start();
-    await disconnect();
-    task.end("completed");
+    await logInitDb.task({ text: "Disconnecting from the database" })
+        .startRunner(disconnect).catch(logError);
 }
 
 function initEnvFile(path: string): void {
@@ -137,25 +151,15 @@ function initEnvFile(path: string): void {
     );
 }
 
-try {
+if (!Deno.args.includes("noenv")) {
     const path = ".env";
-    const task = logInitFiles.task({ text: `Initializing '${path}'` }).start();
-    initEnvFile(path);
-    task.end("completed");
-} catch (error) {
-    logInitFiles.error(format(error));
-    Deno.exit(1);
+    logInitFiles.task({ text: `Initializing '${path}'` }).startRunner(() => {
+        initEnvFile(path);
+    });
 }
 
 if (!Deno.args.includes("nodb")) {
-    try {
-        await initMysqlTables();
-    } catch (error) {
-        logInitDb.error(format(error));
-        logInitDb.warn(
-            "If the initialization fails because of references,\n" +
-                "we are supposed to CHANGE THE ORDER: './scripts/init.ts'.",
-        );
-        Deno.exit(1);
-    }
+    await logInitDb.task({ text: "Initializing DB" })
+        .startRunner(initMysqlTables)
+        .catch(() => {});
 }

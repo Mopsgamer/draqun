@@ -4,7 +4,7 @@
     "nodeModulesDir": "auto",
     "tasks": {
         "init": "deno run -A scripts/init.ts",
-        "dev": "deno run -A scripts/dev.ts",
+        "dev": "deno run -A --allow-run scripts/dev.ts",
         "compile:client": "deno run -A scripts/compile-client.ts",
         "compile:server": "deno run -A scripts/compile-server.ts",
         "compile:server:cross": "deno run -A scripts/compile-server-cross.ts",
@@ -12,7 +12,7 @@
     },
     "imports": {
         "@deno/esbuild-plugin": "jsr:@deno/esbuild-plugin@^1.2.0",
-        "@m234/logger": "jsr:@m234/logger@^2.0.5",
+        "@m234/logger": "jsr:@m234/logger@^2.0.6",
         "@octokit/rest": "npm:@octokit/rest@^22.0.0",
         "@shoelace-style/shoelace": "npm:@shoelace-style/shoelace@^2.20.1",
         "@std/fmt": "jsr:@std/fmt@^1.0.8",
