@@ -8,7 +8,6 @@ import {
     logInitDb,
     logInitFiles,
 } from "./tool/constants.ts";
-import { promisify } from "node:util";
 import { parse } from "@std/path/parse";
 import { blue } from "@std/fmt/colors";
 import { format } from "@m234/logger";
@@ -44,7 +43,7 @@ async function initMysqlTables(): Promise<void> {
         port: Number(Deno.env.get(envKeys.DB_PORT)),
     });
     con.catch(logError);
-const connection = await con;
+    const connection = await con;
     const decoder = new TextDecoder("utf-8");
     const connect = async (): Promise<void> => {
         await connection.connect().catch(logError);

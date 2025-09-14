@@ -1,4 +1,3 @@
-import { logDevelopment } from "./tool/constants.ts";
 import kill from "tree-kill";
 import { existsSync } from "@std/fs";
 import { writeGitJson } from "./tool/generate-git.ts";
