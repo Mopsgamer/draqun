@@ -1,4 +1,3 @@
-import { logDevelopment } from "./tool/constants.ts";
 import kill from "tree-kill";
 import { existsSync } from "@std/fs";
 import { writeGitJson } from "./tool/generate-git.ts";
@@ -17,10 +16,8 @@ async function start() {
 }
 
 async function watchAndRestart() {
-    logDevelopment.task({
-        text: "Starting",
-    }).startRunner(start);
     const watcher = Deno.watchFs(paths, { recursive: true });
+    await start();
     for await (const event of watcher) {
         if (
             !(
@@ -30,7 +27,7 @@ async function watchAndRestart() {
         ) continue;
 
         tryToKill();
-        logDevelopment.task({ text: "Restarting" }).startRunner(start);
+        await start();
     }
 }
 
