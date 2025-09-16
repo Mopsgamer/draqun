@@ -1,2 +1,2 @@
-{{- if .User.IsEmpty }} {{- template "partials/app" .}} {{- else}} {{- template
+{{- if not .User.IsEmpty }} {{- template "partials/app" .}} {{- else}} {{- template
 "partials/app-login" .}} {{- end}}

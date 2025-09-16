@@ -1,7 +1,7 @@
 <header id="header">
     <nav>
         <sl-dropdown class="aligned" id="page-nav">
-            <sl-icon-button name="list" slot="trigger"></sl-icon-button>
+            <sl-icon-button src="/static/assets/logo.svg" slot="trigger"></sl-icon-button>
             <sl-menu>
                 {{if not .IsHomePage}}
                 <a href="/">
@@ -13,7 +13,7 @@
                 {{end}}
                 <a href="/chat">
                     <sl-menu-item>
-                        <sl-icon name="house" slot="prefix"></sl-icon>
+                        <sl-icon src="/static/assets/logo.svg" slot="prefix"></sl-icon>
                         Open {{.AppName}}
                     </sl-menu-item>
                 </a>
