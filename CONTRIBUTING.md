@@ -3,24 +3,24 @@
 ## First setup
 
 1. Install required tools.
-   - MySQL `~8`.
+   - MySQL `8||9`.
      - Recommended db name: `mysql`.
      - Recommended user: `admin`.
-   - @^1.25 ([Go](https://go.dev/doc/install)) `^1.25`
-   - @^2.4.5 ([Deno](https://deno.com/)) `^2.4.5`
+   - [Go](https://go.dev/doc/install) `^1.25`
+   - [Deno](https://deno.com/) `^2.5`
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
    and
    [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
    the repository.
 3. Open it in your favorite editor. [VSC](https://code.visualstudio.com/) is
    recommended. For small changes you can also use
-   [in-browser GitHub editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor).
+   [web-based GitHub editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor).
 4. Open terminal. You can use built-in
    [VSC terminal](https://code.visualstudio.com/docs/terminal/getting-started).
 5. Run `deno install --allow-scripts` to install required client dependencies.
 6. Run `go mod download` to install required server dependencies (optional).
-7. Run `deno task init` to create `.env` file and initialize DB (use
-   `deno task init nodb` to skip db initialization).
+7. Run `deno task init` to create `.env` file and initialize the database.
+   `noenv` and `nodb` options are available.
 8. Run `deno task compile:client` to create client files.
 9. Change the `.env` file.
    - Set up server connection with MySQL.
@@ -29,7 +29,7 @@
 
 ## Making changes
 
-The best way is to use 2 terminals (3-rd for other tasks):
+The best way is to use two terminals, with a third for other tasks:
 
 > [!NOTE]
 > You can use Visual Studio Code's task commands: `Tasks: Run Task`.
@@ -63,6 +63,8 @@ Most common commit message prefixes are:
 - `fix:` which represents bug fixes and generate a patch release.
 - `feat:` which represents a new feature and generate a minor release.
 - `impr:` which represents an improvement and generate a minor release.
+- `ci:` which represents a CI/CD change and generate a patch release.
+- `docs:` which represents documentation change and generate a patch release.
 - `chore:` which represents a development environment change and generate a
   patch release.
 - `docs:` which represents documentation change and generate a patch release.
@@ -82,20 +84,38 @@ be short, but descriptive.
 > [!NOTE]
 > You should be a repository owner or have write access to create a release.
 
-You can create new release and git tag automatically based on commits or custom
-release type, using GitHub workflow manual execution (dispatch). Available
-options:
+You can create new release and git tag automatically using GitHub workflow.
 
-- `keep`: do not increment;
-- `from-commits`: determine from commit messages;
-- `patch`: 1.2.0 → 1.2.1 → 1.2.2;
-- `minor`: 1.2.0 → 1.3.0 → 1.4.0;
-- `major`: 1.2.0 → 2.0.0 → 3.0.0;
-- `prepatch`: 1.2.0 → 1.2.1-0 → 1.2.2-1;
-- `preminor`: 1.2.0 → 1.3.1-0 → 1.4.0-1;
-- `premajor`: 1.2.0 → 2.0.0-0 → 3.0.0-1;
-- `pre`: 1.2.0 → 1.2.0-0 → 1.2.0-1;
-- `prerelease`: 1.2.0 → 1.2.1-0 → 1.2.1-1;
+Available options:
+
+- `patch`
+- `minor`
+- `major`
+- `release`
+- `alpha patch`
+- `alpha minor`
+- `alpha major`
+- `alpha release`
+- `beta patch`
+- `beta minor`
+- `beta major`
+- `beta release`
+
+Examples:
+
+| Release type  | Result                        |
+| ------------- | ----------------------------- |
+| major         | 0.0.1 → 1.0.0 → 2.0.0         |
+| minor         | 0.0.1 → 0.1.0 → 0.2.0         |
+| patch         | 0.0.1 → 0.0.2 → 0.0.3         |
+| patch         | 0.0.1.alpha.1 → 0.0.1         |
+| patch alpha   | 0.0.1.alpha.1 → 0.0.2-alpha.0 |
+| patch beta    | 0.0.1.alpha.1 → 0.0.2-beta.0  |
+| release       | 0.0.1.alpha.1 → 0.0.1         |
+| release alpha | 0.0.1.alpha.1 → 0.0.1-alpha.2 |
+| release beta  | 0.0.1.alpha.1 → 0.0.1-beta.0  |
+| alpha         | 0.0.1.alpha.1 → 1.0.0-alpha.0 |
+| beta          | 0.0.1.alpha.1 → 1.0.0-beta.0  |
 
 You can get next version and changelog output without creating a release:
 
@@ -103,8 +123,7 @@ You can get next version and changelog output without creating a release:
 deno task release
 ```
 
-You can also use deno task to create a release from your machine, but it is not
-recommended:
+You can also create a release from your machine, but it is not recommended:
 
 ```bash
 deno task release --force

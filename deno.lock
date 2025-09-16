@@ -12,11 +12,11 @@
     "jsr:@std/internal@^1.0.9": "1.0.10",
     "jsr:@std/path@^1.1.1": "1.1.2",
     "jsr:@std/path@^1.1.2": "1.1.2",
-    "jsr:@std/semver@^1.0.5": "1.0.5",
     "npm:@octokit/rest@22": "22.0.0_@octokit+core@7.0.3",
     "npm:@shoelace-style/shoelace@^2.20.1": "2.20.1",
     "npm:@tailwindcss/postcss@^4.1.13": "4.1.13",
     "npm:@types/node@*": "24.2.0",
+    "npm:@types/semver@^7.7.1": "7.7.1",
     "npm:dotenv@^17.2.2": "17.2.2",
     "npm:esbuild-plugin-copy@^2.1.1": "2.1.1_esbuild@0.25.9",
     "npm:esbuild-plugin-tailwindcss@^2.1.0": "2.1.0_postcss@8.5.6",
@@ -30,6 +30,7 @@
     "npm:mysql2@^3.14.5": "3.14.5",
     "npm:p-limit@^7.1.1": "7.1.1",
     "npm:restore-cursor@^5.1.0": "5.1.0",
+    "npm:semver@^7.7.2": "7.7.2",
     "npm:tailwindcss@^4.1.13": "4.1.13",
     "npm:tree-kill@^1.2.2": "1.2.2"
   },
@@ -79,9 +80,6 @@
       "dependencies": [
         "jsr:@std/internal@^1.0.10"
       ]
-    },
-    "@std/semver@1.0.5": {
-      "integrity": "529f79e83705714c105ad0ba55bec0f9da0f24d2f726b6cc1c15e505cc2c0624"
     }
   },
   "npm": {
@@ -519,6 +517,9 @@
       "dependencies": [
         "csstype"
       ]
+    },
+    "@types/semver@7.7.1": {
+      "integrity": "sha512-FmgJfu+MOcQ370SD0ev7EI8TlCAfKYU+B4m5T3yXc1CiRN94g/SZPtsCkk506aUDtlMnFZvasDwHHUcZUEaYuA=="
     },
     "@types/trusted-types@2.0.7": {
       "integrity": "sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw=="
@@ -1143,6 +1144,10 @@
     "safer-buffer@2.1.2": {
       "integrity": "sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg=="
     },
+    "semver@7.7.2": {
+      "integrity": "sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==",
+      "bin": true
+    },
     "seq-queue@0.0.5": {
       "integrity": "sha512-hr3Wtp/GZIc/6DAGPDcV4/9WoZhjrkXsi5B/07QgX8tsdc6ilr7BFM6PM6rbdAX1kFSDYeZGLipIZZKyQP0O5Q=="
     },
@@ -1229,10 +1234,10 @@
       "jsr:@std/fmt@^1.0.8",
       "jsr:@std/fs@^1.0.19",
       "jsr:@std/path@^1.1.2",
-      "jsr:@std/semver@^1.0.5",
       "npm:@octokit/rest@22",
       "npm:@shoelace-style/shoelace@^2.20.1",
       "npm:@tailwindcss/postcss@^4.1.13",
+      "npm:@types/semver@^7.7.1",
       "npm:dotenv@^17.2.2",
       "npm:esbuild-plugin-copy@^2.1.1",
       "npm:esbuild-plugin-tailwindcss@^2.1.0",
@@ -1243,6 +1248,7 @@
       "npm:is-ci@^4.1.0",
       "npm:mysql2@^3.14.5",
       "npm:p-limit@^7.1.1",
+      "npm:semver@^7.7.2",
       "npm:tailwindcss@^4.1.13",
       "npm:tree-kill@^1.2.2"
     ]

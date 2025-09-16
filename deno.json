@@ -18,8 +18,8 @@
         "@std/fmt": "jsr:@std/fmt@^1.0.8",
         "@std/fs": "jsr:@std/fs@^1.0.19",
         "@std/path": "jsr:@std/path@^1.1.2",
-        "@std/semver": "jsr:@std/semver@^1.0.5",
         "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.1.13",
+        "@types/semver": "npm:@types/semver@^7.7.1",
         "dotenv": "npm:dotenv@^17.2.2",
         "esbuild": "npm:esbuild@^0.25.9",
         "esbuild-plugin-copy": "npm:esbuild-plugin-copy@^2.1.1",
@@ -30,6 +30,7 @@
         "is-ci": "npm:is-ci@^4.1.0",
         "mysql2": "npm:mysql2@^3.14.5",
         "p-limit": "npm:p-limit@^7.1.1",
+        "semver": "npm:semver@^7.7.2",
         "tailwindcss": "npm:tailwindcss@^4.1.13",
         "tree-kill": "npm:tree-kill@^1.2.2"
     },
