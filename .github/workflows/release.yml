@@ -10,16 +10,22 @@ on:
                 default: "from-commits"
                 type: choice
                 options:
-                    - keep
-                    - from-commits
+                    - release
                     - patch
+                    - patch alpha
+                    - patch beta
                     - minor
+                    - minor alpha
+                    - minor beta
                     - major
-                    - prepatch
-                    - preminor
-                    - premajor
-                    - pre
-                    - prerelease
+                    - major alpha
+                    - major beta
+            dry_run:
+                description: |
+                    Perform a dry run only (no release).
+                required: false
+                default: false
+                type: boolean
 
 jobs:
     release:
@@ -62,5 +68,6 @@ jobs:
               run: |
                   deno task compile:server:cross
             - name: Increment and release
+              if: ${{ !github.event.inputs.dry_run }}
               run: |
                   deno task release ${{ github.event.inputs.release_type }}

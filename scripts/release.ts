@@ -1,9 +1,11 @@
-import { format, increment, parse, type ReleaseType } from "@std/semver";
+import { inc, type ReleaseType } from "semver";
 import { Octokit } from "@octokit/rest";
 import denojson from "../deno.json" with { type: "json" };
 import { logRelease, taskDotenv } from "./tool/constants.ts";
 import { existsSync, expandGlob } from "@std/fs";
 import isCI from "is-ci";
+
+const gitLogFormat = "- [%h] %s (@%cN)";
 
 taskDotenv(logRelease);
 let isDryRun = Deno.args.includes("--dry-run");
@@ -30,20 +32,22 @@ if (!manifestExists) {
     Deno.exit(1);
 }
 
+const latestTag = getLastTag();
+const latestTagString = latestTag ?? "undefined";
 const newVersion = getNewVersion();
 const tagName = newVersion;
 const releaseName = newVersion;
-const newChangelog = getNewChangelog();
-logRelease.info("Increment: " + denojson.version + " -> " + newVersion);
+const newChangelog = getNewChangelog(latestTag);
 if (isDryRun) {
     logRelease.info("Changelog:\n" + newChangelog);
 }
-logRelease.info("Old latest tag: " + (getLastTag() ?? "undefined"));
+logRelease.info("Increment: " + denojson.version + " -> " + newVersion);
+logRelease.info("Old latest tag: " + latestTagString);
 if (!isDryRun) {
     const task = logRelease.task({ text: "Creating tag " + tagName }).start();
     createTag(tagName, newChangelog);
     task.end("completed");
-    logRelease.info("New latest tag: " + (getLastTag() ?? "undefined"));
+    logRelease.info("New latest tag: " + latestTagString);
 }
 if (newVersion !== denojson.version) {
     const manifestOldContent = await Deno.readTextFile(manifestPath);
@@ -133,12 +137,28 @@ function getRepoInfo(): RepoInfo {
 }
 
 function getNewVersion(): string {
-    const releaseType = getReleaseType();
-    if (releaseType === "none") {
-        return denojson.version;
+    let releaseType: ReleaseType;
+    const preId = Deno.args.includes("alpha")
+        ? "alpha"
+        : Deno.args.includes("beta")
+        ? "beta"
+        : undefined;
+
+    if (preId) {
+        const found = (["major", "minor", "patch"] as ReleaseType[]).find((a) =>
+            Deno.args.includes(a)
+        );
+        releaseType = found ? ("pre" + found) as ReleaseType : "premajor";
+    } else {
+        releaseType =
+            (["major", "minor", "patch", "release"] as ReleaseType[]).find((
+                a,
+            ) => Deno.args.includes(a)) || getReleaseTypeFromCommits();
     }
 
-    return format(increment(parse(denojson.version), releaseType));
+    const result = inc(denojson.version, releaseType, preId!);
+    if (!result) throw new Error("Invalid inc result");
+    return result;
 }
 
 function createTag(name: string, changelog: string): void {
@@ -161,13 +181,13 @@ function createTag(name: string, changelog: string): void {
 }
 
 function getNewChangelog(from?: string): string {
-    if (!getLastTag()) {
-        return "Initial release.";
-    }
-    const gitLogFormat = "- %s (@%aN)%n";
+    // if (!latestTag) {
+    //     return "Initial release.";
+    // }
     const { stdout } = new Deno.Command(`git`, {
         args: [
             "log",
+            "--all",
             "--reverse",
             `--format=${gitLogFormat}`,
             `${from ? `${from}..` : ""}HEAD`,
@@ -175,38 +195,10 @@ function getNewChangelog(from?: string): string {
     }).outputSync();
 
     const output = new TextDecoder().decode(stdout);
-    const ignoreUsers: string[] = []; // ["dependabot[bot]", "github-actions"]
-    return output.split("\n").filter((line) => {
-        if (ignoreUsers.some((user) => line.endsWith(` (@${user})`))) {
-            return false;
-        }
-        const r = /^- [a-zA-Z\d]+(\([a-zA-Z\d]+\))?!?: /g;
-        return r.test(line);
-    }).join("\n");
+    return output;
 }
 
-function getReleaseType(): ReleaseType | "none" {
-    for (
-        const releaseType of [
-            "major",
-            "minor",
-            "patch",
-            "pre",
-            "premajor",
-            "preminor",
-            "prepatch",
-            "prerelease",
-        ] as ReleaseType[]
-    ) {
-        if (Deno.args.includes(releaseType)) {
-            return releaseType;
-        }
-    }
-    for (const releaseType of ["keep", "none", "current"]) {
-        if (Deno.args.includes(releaseType)) {
-            return "none";
-        }
-    }
+function getReleaseTypeFromCommits(): ReleaseType {
     const minor = ["feat"];
     const major = ["BREAKING CHANGE"];
     const messageList = getCommitMessages().split("\n");
