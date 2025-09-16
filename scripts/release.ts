@@ -144,16 +144,12 @@ function getNewVersion(): string {
         ? "beta"
         : undefined;
 
+    const found = (["major", "minor", "patch", "release"] as ReleaseType[])
+        .find((a) => Deno.args.includes(a));
     if (preId) {
-        const found = (["major", "minor", "patch"] as ReleaseType[]).find((a) =>
-            Deno.args.includes(a)
-        );
         releaseType = found ? ("pre" + found) as ReleaseType : "premajor";
     } else {
-        releaseType =
-            (["major", "minor", "patch", "release"] as ReleaseType[]).find((
-                a,
-            ) => Deno.args.includes(a)) || getReleaseTypeFromCommits();
+        releaseType = found || getReleaseTypeFromCommits();
     }
 
     const result = inc(denojson.version, releaseType, preId!);

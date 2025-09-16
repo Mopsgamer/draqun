@@ -10,16 +10,18 @@ on:
                 default: "from-commits"
                 type: choice
                 options:
-                    - release
                     - patch
-                    - patch alpha
-                    - patch beta
                     - minor
-                    - minor alpha
-                    - minor beta
                     - major
-                    - major alpha
-                    - major beta
+                    - release
+                    - alpha patch
+                    - alpha minor
+                    - alpha major
+                    - alpha release
+                    - beta patch
+                    - beta minor
+                    - beta major
+                    - beta release
             dry_run:
                 description: |
                     Perform a dry run only (no release).
