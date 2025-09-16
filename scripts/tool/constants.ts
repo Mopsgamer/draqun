@@ -9,9 +9,16 @@ export const logClientComp = new Logger({ prefix: "client-compilation" });
 export const logInitDb = new Logger({ prefix: "init-database" });
 export const logInitFiles = new Logger({ prefix: "init-files" });
 
-const task = logInitFiles.task({ text: "Loading ./.env" }).start();
-dotenv.config({ quiet: true });
-task.end("completed");
+export function taskDotenv(
+    logger: Logger,
+    distination = "./.env",
+): void {
+    logger.task({ text: "Loading " + distination }).startRunner(
+        () => {
+            dotenv.config({ quiet: true });
+        },
+    );
+}
 
 /**
  * Consider using same value in the environment/config.go and deno.json.

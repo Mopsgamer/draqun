@@ -2,11 +2,13 @@ import * as esbuild from "esbuild";
 import { copy as copyPlugin } from "esbuild-plugin-copy";
 import { denoPlugin } from "@deno/esbuild-plugin";
 import { existsSync } from "@std/fs";
-import { distFolder, logClientComp } from "./tool/constants.ts";
+import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { dirname } from "@std/path/dirname";
 import { format, type TaskStateEnd } from "@m234/logger";
 import { limit1 } from "./tool/limit1.ts";
+
+taskDotenv(logClientComp);
 
 const isWatch = Deno.args.includes("watch");
 

@@ -1,6 +1,9 @@
 import kill from "tree-kill";
 import { existsSync } from "@std/fs";
 import { writeGitJson } from "./tool/generate-git.ts";
+import { logDevelopment, taskDotenv } from "./tool/constants.ts";
+
+taskDotenv(logDevelopment);
 
 const paths = ["server", "lite.go"];
 if (existsSync(".env")) paths.push(".env");

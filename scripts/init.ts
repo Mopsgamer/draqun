@@ -7,13 +7,18 @@ import {
     envKeys,
     logInitDb,
     logInitFiles,
+    taskDotenv,
 } from "./tool/constants.ts";
-import { parse } from "@std/path/parse";
-import { blue } from "@std/fmt/colors";
 import { format } from "@m234/logger";
 
+taskDotenv(logInitFiles);
+
 function logError(e: unknown) {
-    logInitDb.error(format(e));
+    if (e instanceof Error) {
+        logInitDb.error(e.message);
+    } else {
+        logInitDb.error(format(e));
+    }
     throw e;
 }
 
@@ -29,13 +34,9 @@ async function initMysqlTables(): Promise<void> {
         "./scripts/queries/create_group_action_kicks.sql",
         "./scripts/queries/create_group_action_bans.sql",
     ];
-    logInitDb.info(
-        `We want to create tables:\n${blue(" - ")}` +
-            sqlFileList.map((p) => parse(p).base).join("\n" + blue(" - ")),
-    );
     logInitDb.info("You can pass 'nodb' to ignore DB initialization step.");
 
-    const con = await mysql.createConnection({
+    const con = mysql.createConnection({
         password: Deno.env.get(envKeys.DB_PASSWORD),
         database: Deno.env.get(envKeys.DB_NAME),
         user: Deno.env.get(envKeys.DB_USER),
@@ -48,37 +49,47 @@ async function initMysqlTables(): Promise<void> {
     const connect = async (): Promise<void> => {
         await connection.connect().catch(logError);
     };
-    const execQuery = connection.query;
-    execQuery.bind(connection);
+    const execQuery = async (sql: string): Promise<void> => {
+        await connection.query(sql).catch(logError);
+    };
     const disconnect = async (): Promise<void> => {
         await connection.end().catch(logError);
     };
 
-    await logInitDb.task({ text: "Connecting" }).startRunner(connect).catch(
-        logError,
-    );
+    if (
+        (await logInitDb.task({ text: "Connecting" }).startRunner(() =>
+            connect().catch(logError)
+        )).state === "failed"
+    ) {
+        return;
+    }
     logInitDb.warn(
-        "If you are trying to reinitialize the database, this have not changeed existing tables. Delete or change them manually.",
+        "If you are trying to reinitialize the database, this script will not not change existing tables. Delete and reinitialize or change them manually.",
     );
     for (const sqlFile of sqlFileList) {
-        await logInitDb.task({ text: `Executing '${sqlFile}'` })
+        const execution = await logInitDb.task({
+            text: "Executing " + sqlFile,
+            indent: 1,
+        })
             .startRunner(async () => {
                 const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
                 await execQuery(sqlString);
-            }).catch((e) => {
-                logInitDb.warn(
-                    "If the initialization fails because of references,\n" +
-                        "we are supposed to CHANGE THE ORDER: './scripts/init.ts'.",
-                );
-                logError(e);
             });
+        if (execution.state === "failed") {
+            logInitDb.warn(
+                "If the initialization fails because of references, we are supposed to change the order.",
+            );
+            await logInitDb.task({ text: "Disconnecting from the database" })
+                .startRunner(disconnect);
+            return;
+        }
     }
 
     logInitDb.success(
         "All queries have been executed.",
     );
     await logInitDb.task({ text: "Disconnecting from the database" })
-        .startRunner(disconnect).catch(logError);
+        .startRunner(disconnect);
 }
 
 function initEnvFile(path: string): void {
