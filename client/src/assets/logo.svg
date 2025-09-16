@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0.9 0.9 36.3 30.65">
+    <style>
+    /* Default color for light mode */
+    .icon-fill {
+        fill: #000000;
+    }
+
+    /* Change fill color for dark mode */
+    @media (prefers-color-scheme: dark) {
+        .icon-fill {
+            fill: #ffffff;
+        }
+    }
+    </style>
+    <path
+		class="icon-fill"
+        d="M 17 2 Q 13 1 9 11 Q 13 18 22 4 Q 19 4 21 1 L 17 2 L 19 2 L 19 1 Z M 10 27 Q 20 34 29 30 T 37 14 T 21 5 L 11 13 Q 27 8 27 17 Q 26 27 13 23 Q 4 20 1 27 Q 3 22 10 27 Z M 31 6 L 25 12 L 23 18 Q 23 19 24 19 Q 24 19 24 18 Q 24 19 25 19 L 25 17 L 28 15 Z"
+    />
+</svg>
