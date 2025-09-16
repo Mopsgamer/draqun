@@ -14,7 +14,11 @@ import { format } from "@m234/logger";
 taskDotenv(logInitFiles);
 
 function logError(e: unknown) {
-    logInitDb.error(format(e));
+    if (e instanceof Error) {
+        logInitDb.error(e.message);
+    } else {
+        logInitDb.error(format(e));
+    }
     throw e;
 }
 
@@ -60,7 +64,7 @@ async function initMysqlTables(): Promise<void> {
         return;
     }
     logInitDb.warn(
-        "If you are trying to reinitialize the database, this have not changeed existing tables. Delete or change them manually.",
+        "If you are trying to reinitialize the database, this script will not not change existing tables. Delete and reinitialize or change them manually.",
     );
     for (const sqlFile of sqlFileList) {
         const execution = await logInitDb.task({
@@ -73,7 +77,7 @@ async function initMysqlTables(): Promise<void> {
             });
         if (execution.state === "failed") {
             logInitDb.warn(
-                "If the initialization fails because of references, we are supposed to CHANGE THE ORDER: ./scripts/init.ts.",
+                "If the initialization fails because of references, we are supposed to change the order.",
             );
             await logInitDb.task({ text: "Disconnecting from the database" })
                 .startRunner(disconnect);
