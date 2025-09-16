@@ -3,11 +3,11 @@
 ## First setup
 
 1. Install required tools.
-   - MySQL `~8`.
+   - MySQL `8||9`.
      - Recommended db name: `mysql`.
      - Recommended user: `admin`.
-   - @^1.25 ([Go](https://go.dev/doc/install)) `^1.25`
-   - @^2.4.5 ([Deno](https://deno.com/)) `^2.4.5`
+   - [Go](https://go.dev/doc/install) `^1.25`
+   - [Deno](https://deno.com/) `^2.5`
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
    and
    [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
@@ -19,8 +19,8 @@
    [VSC terminal](https://code.visualstudio.com/docs/terminal/getting-started).
 5. Run `deno install --allow-scripts` to install required client dependencies.
 6. Run `go mod download` to install required server dependencies (optional).
-7. Run `deno task init` to create `.env` file and initialize DB (use `nodb` to
-   skip DB step).
+7. Run `deno task init` to create `.env` file and initialize the database.
+   `noenv` and `nodb` options are available.
 8. Run `deno task compile:client` to create client files.
 9. Change the `.env` file.
    - Set up server connection with MySQL.
