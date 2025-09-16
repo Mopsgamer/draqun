@@ -1,4 +1,5 @@
 import type { Logger, TaskStateEnd } from "@m234/logger";
+import { ensureDir, exists } from "@std/fs";
 import { distFolder, logServerComp } from "./constants.ts";
 
 export async function taskGitJson(
@@ -25,7 +26,9 @@ export async function writeGitJson(
     ]);
 
     const data = JSON.stringify({ hash, hashLong, branch });
-    const same = data === await Deno.readTextFile(distination);
+    const same = await exists(distination) &&
+        data === await Deno.readTextFile(distination);
+    await ensureDir(distFolder);
     if (same) return "skipped";
     await Deno.writeTextFile(distination, data);
     return "completed";
