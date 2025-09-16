@@ -1,8 +1,23 @@
+import type { Logger, TaskStateEnd } from "@m234/logger";
 import { distFolder, logServerComp } from "./constants.ts";
+
+export async function taskGitJson(
+    logger: Logger,
+    distination = distFolder + "/git.json",
+): Promise<void> {
+    await logger.task({ text: "Creating " + distination }).startRunner(
+        async () => {
+            const success = await writeGitJson(distination);
+            if (!success) {
+                return "skipped";
+            }
+        },
+    );
+}
 
 export async function writeGitJson(
     distination = distFolder + "/git.json",
-): Promise<void> {
+): Promise<TaskStateEnd> {
     const [hash, hashLong, branch] = await Promise.all([
         gitCommandOutput(["rev-parse", "--short", "HEAD"]),
         gitCommandOutput(["rev-parse", "HEAD"]),
@@ -10,7 +25,10 @@ export async function writeGitJson(
     ]);
 
     const data = JSON.stringify({ hash, hashLong, branch });
+    const same = data === await Deno.readTextFile(distination);
+    if (same) return "skipped";
     await Deno.writeTextFile(distination, data);
+    return "completed";
 }
 
 export async function gitCommandOutput(args: string[]): Promise<string> {

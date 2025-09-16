@@ -1,10 +1,11 @@
 import { format, increment, parse, type ReleaseType } from "@std/semver";
 import { Octokit } from "@octokit/rest";
 import denojson from "../deno.json" with { type: "json" };
-import { logRelease } from "./tool/constants.ts";
+import { logRelease, taskDotenv } from "./tool/constants.ts";
 import { existsSync, expandGlob } from "@std/fs";
 import isCI from "is-ci";
 
+taskDotenv(logRelease);
 let isDryRun = Deno.args.includes("--dry-run");
 
 if (!isCI) {
