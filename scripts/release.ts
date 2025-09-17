@@ -6,6 +6,8 @@ import { existsSync, expandGlob } from "@std/fs";
 import isCI from "is-ci";
 
 const gitLogFormat = "- [%h] %s (@%cN)";
+const preIdList = ["alpha", "beta"];
+const preId = Deno.args.find((a) => preIdList.includes(a));
 
 taskDotenv(logRelease);
 let isDryRun = Deno.args.includes("--dry-run");
@@ -110,7 +112,8 @@ async function createRelease(
         owner,
         repo: repoName,
         draft: false,
-        make_latest: "true",
+        make_latest: preId !== undefined ? "false" : "true",
+        prerelease: preId !== undefined,
     });
 }
 
@@ -138,21 +141,18 @@ function getRepoInfo(): RepoInfo {
 
 function getNewVersion(): string {
     let releaseType: ReleaseType;
-    const preId = Deno.args.includes("alpha")
-        ? "alpha"
-        : Deno.args.includes("beta")
-        ? "beta"
-        : undefined;
 
     const found = (["major", "minor", "patch", "release"] as ReleaseType[])
         .find((a) => Deno.args.includes(a));
-    if (preId) {
+    let result: string | null;
+    if (preId !== undefined) {
         releaseType = found ? ("pre" + found) as ReleaseType : "premajor";
+        result = inc(denojson.version, releaseType, preId);
     } else {
         releaseType = found || getReleaseTypeFromCommits();
+        result = inc(denojson.version, releaseType);
     }
 
-    const result = inc(denojson.version, releaseType, preId!);
     if (!result) throw new Error("Invalid inc result");
     return result;
 }
