@@ -39,7 +39,7 @@
             {{- if not .Group.IsEmpty -}}
             <sl-breadcrumb-item href="/chat/groups/{{.Group.Id}}">
                 <sl-icon name="people" slot="prefix"></sl-icon>
-                <div class="groupname">{{- .Group.Moniker -}}</div>
+                <div class="name">{{- .Group.Moniker -}}</div>
                 {{- if or .Member.IsOwner .Rights.ChangeGroup}}
                 <div class="group-actions" slot="suffix">
                     {{template "partials/group-actions" .Group}}

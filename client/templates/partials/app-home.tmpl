@@ -25,7 +25,7 @@
                             <sl-icon slot="icon" name="people-fill"></sl-icon>
                         </sl-avatar>
                         <div class="suffix">
-                            <div class="groupname" title="{{$group.Moniker}}">
+                            <div class="name" title="{{$group.Moniker}}">
                                 {{- $group.Moniker -}}
                             </div>
                             {{- if or ($rights.PermAdmin.Has) (and (not $member.IsEmpty) $rights.PermGroupChange.Has)}}

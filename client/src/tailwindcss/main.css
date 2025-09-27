@@ -178,7 +178,7 @@ sl-card.group-card {
     }
     .group-card-header {
         @apply aligned justify-between w-full overflow-hidden;
-        .groupname {
+        .name {
             @apply font-semibold w-full;
         }
         .suffix {
