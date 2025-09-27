@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql/driver"
 	"regexp"
 	"time"
 
@@ -108,12 +109,29 @@ func (color Color) IsValid() bool {
 
 type TimePast time.Time
 
+func (tp TimePast) Value() (driver.Value, error) {
+	t := time.Time(tp)
+	if t.IsZero() {
+		// return nil if you want SQL NULL for zero time
+		return nil, nil
+	}
+	return t, nil
+}
+
 func (tp TimePast) IsValid() bool {
 	now := time.Now()
 	return time.Time(tp).Before(now) || now.Equal(time.Time(tp))
 }
 
 type TimeFuture time.Time
+
+func (tp TimeFuture) Value() (driver.Value, error) {
+	t := time.Time(tp)
+	if t.IsZero() {
+		return nil, nil
+	}
+	return t, nil
+}
 
 func (tf TimeFuture) IsValid() bool {
 	now := time.Now()
