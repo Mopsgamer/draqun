@@ -190,7 +190,7 @@ sl-card.group-card {
     }
 }
 
-.nickname, .groupname {
+.moniker {
     @apply limited max-w-52;
 }
 

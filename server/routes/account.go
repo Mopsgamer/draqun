@@ -14,7 +14,7 @@ import (
 
 type UserDelete struct {
 	CurrentPassword model.Password `form:"current-password"`
-	ConfirmUsername model.Name     `form:"confirm-username"`
+	ConfirmUsername model.Name     `form:"confirm-name"`
 }
 
 type UserLogin struct {
@@ -23,9 +23,9 @@ type UserLogin struct {
 }
 
 type UserSignUp struct {
-	*UserLogin
-	Nickname        model.Moniker  `form:"nickname"`
-	Username        model.Name     `form:"username"`
+	UserLogin
+	Moniker         model.Moniker  `form:"moniker"`
+	Name            model.Name     `form:"name"`
 	Phone           model.Phone    `form:"phone"`
 	ConfirmPassword model.Password `form:"confirm-password"`
 }
@@ -55,7 +55,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserSignUp](ctx, perms.LocalForm)
 
-				u, _ := model.NewUserFromName(db, request.Username)
+				u, _ := model.NewUserFromName(db, request.Name)
 				if !u.IsEmpty() {
 					return htmx.AlertUserExsistsNickname
 				}
@@ -74,7 +74,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 					return err
 				}
 
-				user := model.NewUser(db, request.Nickname, request.Username, request.Email, request.Phone, hash, "")
+				user := model.NewUser(db, request.Moniker, request.Name, request.Email, request.Phone, hash, "")
 				if err := user.Validate(); err != nil {
 					return err
 				}

@@ -8,8 +8,8 @@ import (
 )
 
 type UserChangeName struct {
-	NewNickname model.Moniker `form:"new-nickname"`
-	NewName     model.Name    `form:"new-username"`
+	NewNickname model.Moniker `form:"new-moniker"`
+	NewName     model.Name    `form:"new-name"`
 }
 
 type UserChangeEmail struct {

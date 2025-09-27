@@ -1,6 +1,6 @@
 <sl-dropdown placement="bottom-end">
     <sl-button id="avatar-button" variant="text" slot="trigger">
-        <span class="nickname aligned h-full" title={{with .User.Moniker}}{{.}}{{end}}
+        <span class="moniker aligned h-full" title={{with .User.Moniker}}{{.}}{{end}}
         >{{if not .User.IsEmpty}}{{.User.Moniker}}{{else}}Guest{{end}}</span>
         <sl-avatar class="-mr-2 ml-4" slot="suffix"></sl-avatar>
     </sl-button>

@@ -64,8 +64,8 @@ const (
 	PermMembersNone   PermMembers = ""
 	PermMembersRead   PermMembers = "read"   // Can see all information about all users.
 	PermMembersInvite PermMembers = "invite" // Can invite new users.
-	PermMembersWrite  PermMembers = "write"  // Can invite new users and change other people's nicknames.
-	PermMembersDelete PermMembers = "delete" // Can invite, change nicknames, kick and ban people.
+	PermMembersWrite  PermMembers = "write"  // Can invite new users and change other people's monikers.
+	PermMembersDelete PermMembers = "delete" // Can invite, change monikers, kick and ban people.
 )
 
 func (perm PermMembers) IsValid() bool {
