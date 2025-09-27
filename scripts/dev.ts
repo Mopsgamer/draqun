@@ -5,7 +5,7 @@ import { logDevelopment, taskDotenv } from "./tool/constants.ts";
 
 taskDotenv(logDevelopment);
 
-const paths = ["server", "lite.go"];
+const paths = ["server/", "lite.go"];
 if (existsSync(".env")) paths.push(".env");
 const serverCommand = new Deno.Command("go", {
     args: ["run", "-tags", "lite", "."],
@@ -15,7 +15,6 @@ let goRunProcess: Deno.ChildProcess | undefined = undefined;
 async function start() {
     await writeGitJson();
     goRunProcess = serverCommand.spawn();
-    await goRunProcess.status;
 }
 
 async function watchAndRestart() {

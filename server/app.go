@@ -42,7 +42,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 	app.Use(func(ctx fiber.Ctx) error {
 		if htmx.IsHtmx(ctx) {
-			return ctx.Render(
+			return htmx.TryRenderPage(
+				ctx,
 				"partials/alert",
 				fiber.Map{
 					"Variant": "primary",
@@ -51,7 +52,8 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			)
 		}
 		if ctx.Method() == "GET" {
-			return ctx.Render(
+			return htmx.TryRenderPage(
+				ctx,
 				"partials/x",
 				fiber.Map{
 					"Title":         "404",

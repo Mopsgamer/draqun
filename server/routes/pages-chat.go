@@ -1,17 +1,21 @@
 package routes
 
 import (
+	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/gofiber/fiber/v3"
 )
 
 func routePagesChat(router fiber.Router, db *model.DB) fiber.Router {
-	chat := router.Group("/chat")
+	chat := router.Group("/chat", func(ctx fiber.Ctx) error {
+		ctx.Locals("IsChatPage", true)
+		return ctx.Next()
+	})
 	chat.Get(
 		"/",
 		func(ctx fiber.Ctx) error {
-			return ctx.Render("chat", MapPage(ctx, db, fiber.Map{"Title": "Home", "IsChatPage": true}))
+			return htmx.TryRenderPage(ctx, "chat", MapPage(ctx, db, fiber.Map{"Title": "Home"}))
 		},
 	).Name("page.chat")
 	chat.Get(
@@ -24,7 +28,7 @@ func routePagesChat(router fiber.Router, db *model.DB) fiber.Router {
 			}
 
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
-			return ctx.Render("chat", MapPage(ctx, db, fiber.Map{"Title": group.Moniker, "IsChatPage": true}))
+			return htmx.TryRenderPage(ctx, "chat", MapPage(ctx, db, fiber.Map{"Title": group.Moniker}))
 		},
 	).Name("page.group")
 	chat.Get(
@@ -41,7 +45,7 @@ func routePagesChat(router fiber.Router, db *model.DB) fiber.Router {
 				return ctx.Redirect().To(group.Url(ctx))
 			}
 
-			return ctx.Render("chat", MapPage(ctx, db, fiber.Map{"Title": "Join " + group.Moniker, "IsChatPage": true}))
+			return htmx.TryRenderPage(ctx, "chat", MapPage(ctx, db, fiber.Map{"Title": "Join " + group.Moniker}))
 		},
 	).Name("page.group.join")
 	return chat
