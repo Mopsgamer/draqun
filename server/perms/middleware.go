@@ -46,17 +46,22 @@ func MemberByAuthAndGroupId(db *model.DB, groupIdUri string, rights RightsChecke
 			return err
 		}
 
-		member := fiber.Locals[model.Member](ctx, LocalRights)
+		member := fiber.Locals[model.Member](ctx, LocalMember)
+		if !member.IsAvailable() {
+			return htmx.AlertGroupMemberNotFound
+		}
+
+		group := fiber.Locals[model.Group](ctx, LocalGroup)
 		role := fiber.Locals[model.Role](ctx, LocalRights)
-		if role.PermAdmin.Has() {
+		if role.PermAdmin.Has() || member.UserId == group.OwnerId {
 			return ctx.Next()
 		}
 
-		if member.IsAvailable() && (rights == nil || rights(ctx, role)) {
-			return ctx.Next()
+		if rights == nil || !rights(ctx, role) {
+			return htmx.AlertGroupMemberNotAllowed
 		}
 
-		return htmx.AlertGroupMemberNotAllowed
+		return ctx.Next()
 	}
 }
 

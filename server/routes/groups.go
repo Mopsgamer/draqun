@@ -237,7 +237,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 		).
 		Get("/:group_id/members/page/:members_page",
 			perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role model.Role) bool {
-				return role.PermMessages.CanDeleteMessages()
+				return role.PermMembers.CanSee()
 			}),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)

@@ -12,7 +12,6 @@
             <sl-textarea
                 id="new-message-input"
                 form="send-message-form"
-                filled
                 placeholder="Write to {{.Group.Moniker}}"
                 name="content"
                 rows="1"
@@ -40,7 +39,7 @@
             <sl-breadcrumb-item href="/chat/groups/{{.Group.Id}}">
                 <sl-icon name="people" slot="prefix"></sl-icon>
                 <div class="name">{{- .Group.Moniker -}}</div>
-                {{- if or .Member.IsOwner .Rights.ChangeGroup}}
+                {{- if or .Role.ChangeGroup}}
                 <div class="group-actions" slot="suffix">
                     {{template "partials/group-actions" .Group}}
                 </div>

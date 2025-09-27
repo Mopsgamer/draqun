@@ -61,6 +61,9 @@ func (password OptionalPassword) IsValid() bool {
 }
 
 func (password OptionalPassword) Hash() (OptionalPasswordHashed, error) {
+	if len(password) == 0 {
+		return "", nil
+	}
 	hash, err := Password(password).Hash()
 	return OptionalPasswordHashed(hash), err
 }

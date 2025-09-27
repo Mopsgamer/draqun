@@ -17,6 +17,10 @@ type ActionKick struct {
 
 var _ Action = (*ActionKick)(nil)
 
+func (action *ActionKick) SetDb(db *DB) {
+	action.Db = db
+}
+
 func (action ActionKick) Kind() string {
 	return "kick"
 }

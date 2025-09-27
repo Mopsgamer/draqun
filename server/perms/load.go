@@ -8,7 +8,6 @@ import (
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/log"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -45,7 +44,8 @@ func MemberByAuthAndGroupIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri strin
 	}
 
 	groupId := fiber.Params[uint64](ctx, groupIdUri)
-	if err := GroupById(db, groupIdUri)(ctx); err != nil {
+	_, err = GroupByIdFromCtx(ctx, db, groupIdUri)
+	if err != nil {
 		return err
 	}
 
@@ -89,7 +89,6 @@ func checkCookieToken(value string) (token *jwt.Token, err error) {
 
 func checkUser(db *model.DB, token *jwt.Token) (user model.User, err error) {
 	claims := token.Claims.(jwt.MapClaims)
-	log.Debugf("%#v", claims)
 	userIdFloat, ok := claims["Id"].(float64)
 	userId := uint64(userIdFloat)
 	if !ok || userId == 0 {

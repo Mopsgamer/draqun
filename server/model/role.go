@@ -76,6 +76,28 @@ func (perm PermMembers) IsValid() bool {
 		perm == PermMembersDelete
 }
 
+func (perm PermMembers) CanSee() bool {
+	return perm == PermMembersRead ||
+		perm == PermMembersInvite ||
+		perm == PermMembersWrite ||
+		perm == PermMembersDelete
+}
+
+func (perm PermMembers) CanInvite() bool {
+	return perm == PermMembersInvite ||
+		perm == PermMembersWrite ||
+		perm == PermMembersDelete
+}
+
+func (perm PermMembers) CanManage() bool {
+	return perm == PermMembersWrite ||
+		perm == PermMembersDelete
+}
+
+func (perm PermMembers) CanKickBan() bool {
+	return perm == PermMembersDelete
+}
+
 type Role struct {
 	Db *DB `db:"-"`
 
@@ -171,7 +193,7 @@ func NewRoleEveryone(db *DB, groupId uint64) Role {
 		Name:    "@everyone",
 		Moniker: "everyone",
 
-		PermMessages:    PermMessagesRead,
+		PermMessages:    PermMessagesWrite,
 		PermRoles:       PermSwitchDisallow,
 		PermMembers:     PermMembersRead,
 		PermGroupChange: PermSwitchDisallow,

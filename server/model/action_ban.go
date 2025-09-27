@@ -19,6 +19,10 @@ type ActionBan struct {
 
 var _ Action = (*ActionBan)(nil)
 
+func (action *ActionBan) SetDb(db *DB) {
+	action.Db = db
+}
+
 func (action ActionBan) Kind() string {
 	return "ban"
 }

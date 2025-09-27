@@ -52,6 +52,7 @@ func NewGroup(
 	return Group{
 		Db:          db,
 		CreatorId:   creatorId,
+		OwnerId:     creatorId,
 		Moniker:     moniker,
 		Name:        name,
 		Mode:        mode,
@@ -162,7 +163,7 @@ func (group Group) UsersPage(page, limit uint) []User {
 	from := (page - 1) * limit
 
 	sql, args, err := group.Db.Goqu.Select(TableUsers+".*").From(TableMembers).
-		LeftJoin(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(TableMembers+".user_id"))).
+		LeftJoin(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(goqu.I(TableMembers+".user_id")))).
 		Where(goqu.Ex{TableMembers + ".group_id": group.Id}).
 		Order(goqu.I(TableMembers + ".user_id").Asc()).
 		Limit(limit).Offset(from).
@@ -175,6 +176,10 @@ func (group Group) UsersPage(page, limit uint) []User {
 	err = group.Db.Sqlx.Select(&userList, sql, args...)
 	if err != nil {
 		handleErr(err)
+	}
+
+	for i := range userList {
+		userList[i].Db = group.Db
 	}
 
 	return userList
@@ -237,6 +242,10 @@ func (group Group) MessagesPage(page, limit uint) []Message {
 		handleErr(err)
 	}
 
+	for i := range messageList {
+		messageList[i].Db = group.Db
+	}
+
 	return messageList
 }
 
@@ -259,6 +268,10 @@ func (group Group) ActionListPage(page uint, limit uint) []Action {
 	err = group.Db.Sqlx.Select(&actions, sql, args...)
 	if err != nil {
 		handleErr(err)
+	}
+
+	for i := range actions {
+		actions[i].SetDb(group.Db)
 	}
 
 	return actions

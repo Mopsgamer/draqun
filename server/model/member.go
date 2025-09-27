@@ -82,7 +82,9 @@ func (member Member) Group() Group {
 func (member Member) Roles() []Role {
 	roleList := []Role{}
 	sql, args, err := member.Db.Goqu.From(TableRoles).Select(TableRoles+".*").
-		LeftJoin(goqu.T(TableRoleAssignees), goqu.On(goqu.I(TableRoleAssignees+".role_id").Eq(TableRoles+".id"))).
+		LeftJoin(goqu.T(TableRoleAssignees), goqu.On(
+			goqu.I(TableRoleAssignees+".role_id").Eq(goqu.C("id").Table(TableRoles)),
+		)).
 		Where(goqu.Ex{TableRoles + ".group_id": member.GroupId, TableRoleAssignees + ".user_id": member.UserId}).
 		Prepared(true).ToSQL()
 	if err != nil {
@@ -93,6 +95,10 @@ func (member Member) Roles() []Role {
 	err = member.Db.Sqlx.Select(&roleList, sql, args...)
 	if err != nil {
 		handleErr(err)
+	}
+
+	for i := range roleList {
+		roleList[i].Db = member.Db
 	}
 
 	return roleList
@@ -191,6 +197,10 @@ func (member Member) ActionListPage(page uint, limit uint) []Action {
 	err = member.Db.Sqlx.Select(&actions, sql, args...)
 	if err != nil {
 		handleErr(err)
+	}
+
+	for i := range actions {
+		actions[i].SetDb(member.Db)
 	}
 
 	return actions

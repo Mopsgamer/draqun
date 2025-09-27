@@ -42,10 +42,10 @@ func (roleAssign *RoleAssignee) Role() Role {
 	member := NewRole(roleAssign.Db)
 	sql, args, err := roleAssign.Db.Goqu.From(TableMembers).Select(TableMembers+".*").
 		LeftJoin(goqu.I(TableRoles), goqu.On(
-			goqu.I(TableRoles+".id").Eq(TableRoleAssignees+".role_id"),
+			goqu.I(TableRoles+".id").Eq(goqu.I(TableRoleAssignees+".role_id")),
 		)).
 		LeftJoin(goqu.I(TableRoleAssignees), goqu.On(
-			goqu.I(TableRoleAssignees+".user_id").Eq(TableMembers+".user_id"),
+			goqu.I(TableRoleAssignees+".user_id").Eq(goqu.I(TableMembers+".user_id")),
 		)).
 		Prepared(true).ToSQL()
 	if err != nil {
@@ -66,10 +66,10 @@ func (roleAssign *RoleAssignee) Member() Member {
 	member := Member{Db: roleAssign.Db}
 	sql, args, err := roleAssign.Db.Goqu.From(TableMembers).Select(TableMembers+".*").
 		LeftJoin(goqu.I(TableRoles), goqu.On(
-			goqu.I(TableRoles+".id").Eq(TableRoleAssignees+".role_id"),
+			goqu.I(TableRoles+".id").Eq(goqu.I(TableRoleAssignees+".role_id")),
 		)).
 		LeftJoin(goqu.I(TableRoleAssignees), goqu.On(
-			goqu.I(TableRoleAssignees+".user_id").Eq(TableMembers+".user_id"),
+			goqu.I(TableRoleAssignees+".user_id").Eq(goqu.I(TableMembers+".user_id")),
 		)).
 		Prepared(true).ToSQL()
 	if err != nil {

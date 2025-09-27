@@ -117,11 +117,11 @@ func (user *User) FromName(name Name) error {
 	return First(user.Db, TableUsers, goqu.Ex{"name": name}, user)
 }
 
-func (user *User) GroupListCreator() []Group {
+func (user User) GroupListCreator() []Group {
 	groupList := []Group{}
 
 	sql, args, err := user.Db.Goqu.Select(TableGroups+".*").From(TableGroups).
-		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
+		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id, TableGroups + ".creator_id": TableMembers + ".user_id"}).
 		Prepared(true).ToSQL()
 	if err != nil {
@@ -135,14 +135,18 @@ func (user *User) GroupListCreator() []Group {
 		return groupList
 	}
 
+	for i := range groupList {
+		groupList[i].Db = user.Db
+	}
+
 	return groupList
 }
 
-func (user *User) GroupListOwner() []Group {
+func (user User) GroupListOwner() []Group {
 	groupList := []Group{}
 
 	sql, args, err := user.Db.Goqu.Select(TableGroups+".*").From(TableGroups).
-		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
+		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id, TableGroups + ".owner_id": TableMembers + ".user_id"}).
 		Prepared(true).ToSQL()
 	if err != nil {
@@ -156,20 +160,23 @@ func (user *User) GroupListOwner() []Group {
 		return groupList
 	}
 
+	for i := range groupList {
+		groupList[i].Db = user.Db
+	}
+
 	return groupList
 }
 
-func (user *User) GroupList() []Group {
+func (user User) GroupList() []Group {
 	groupList := []Group{}
 
 	sql, args, err := user.Db.Goqu.Select(TableGroups+".*").From(TableGroups).
-		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
+		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id}).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return groupList
-
 	}
 
 	err = user.Db.Sqlx.Select(&groupList, sql, args...)
@@ -178,14 +185,18 @@ func (user *User) GroupList() []Group {
 		return groupList
 	}
 
+	for i := range groupList {
+		groupList[i].Db = user.Db
+	}
+
 	return groupList
 }
 
-func (user *User) MemberList() []Member {
+func (user User) MemberList() []Member {
 	memberList := []Member{}
 
 	sql, args, err := user.Db.Goqu.Select(TableMembers+".*").From(TableGroups).
-		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
+		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id}).
 		Prepared(true).ToSQL()
 	if err != nil {
@@ -198,6 +209,10 @@ func (user *User) MemberList() []Member {
 	if err != nil {
 		handleErr(err)
 		return memberList
+	}
+
+	for i := range memberList {
+		memberList[i].Db = user.Db
 	}
 
 	return memberList

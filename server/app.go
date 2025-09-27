@@ -45,22 +45,22 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			return htmx.TryRenderPage(
 				ctx,
 				"partials/alert",
-				fiber.Map{
+				routes.MapPage(ctx, db, fiber.Map{
 					"Variant": "primary",
 					"Message": "404",
-				},
+				}),
 			)
 		}
 		if ctx.Method() == "GET" {
 			return htmx.TryRenderPage(
 				ctx,
 				"partials/x",
-				fiber.Map{
+				routes.MapPage(ctx, db, fiber.Map{
 					"Title":         "404",
 					"StatusCode":    fiber.StatusNotFound,
 					"StatusMessage": fiber.ErrNotFound.Message,
 					"CenterContent": true,
-				},
+				}),
 				"partials/main",
 			)
 		}

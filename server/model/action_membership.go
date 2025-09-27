@@ -17,6 +17,10 @@ type ActionMembership struct {
 
 var _ Action = (*ActionMembership)(nil)
 
+func (action *ActionMembership) SetDb(db *DB) {
+	action.Db = db
+}
+
 func (action ActionMembership) Kind() string {
 	return "membership"
 }

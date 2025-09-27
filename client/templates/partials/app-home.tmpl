@@ -1,4 +1,3 @@
-{{- $this := . -}}
 <main id="app-content">
     <div class="p-page">
         <h2 class="anchor-header">
@@ -9,8 +8,9 @@
             </sl-button>
         </h2>
         <div class="flex flex-row gap-2 p-4">
-            {{- $groupList = $this.User.GroupList -}}
-            {{- $memberList = $this.User.MemberList -}}
+            {{- $groupList := .User.GroupList -}}
+            {{- $memberList := .User.MemberList -}}
+            {{- $this := . -}}
             {{- range $i, $member := $memberList -}}
             {{- $group := index $groupList $i -}}
             {{- $rights := $member.Role -}}
