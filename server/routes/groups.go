@@ -140,10 +140,8 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					buf, err := render.RenderBuffer(app, "partials/chat-messages", &fiber.Map{
+					buf, err := render.RenderBuffer(app, "partials/chat-messages", fiber.Map{
 						"MessageList": []model.Message{message},
-						"Group":       group,
-						"User":        user,
 					})
 					if err != nil {
 						return err
@@ -157,12 +155,6 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 
 					return ctx.SendStatus(fiber.StatusOK)
 				}
-
-				// controller_ws.UserSessionMap.Push(
-				// 		filter,
-				// 		...,
-				// 		controller_ws.SubForMessages,
-				// 	)
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
@@ -314,15 +306,11 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
-		Get("/:group_id",
+		Get("/ws/:group_id/",
 			perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermMessages.CanReadMessages()
 			}),
 			func(ctx fiber.Ctx) error {
-				if !websocket.IsWebSocketUpgrade(ctx) || !htmx.IsHtmx(ctx) {
-					return ctx.Next()
-				}
-
 				ctxWs := session.New(ctx)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 

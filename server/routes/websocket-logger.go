@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/session"
 	"github.com/gofiber/fiber/v3"
 )
 
 func logWS(start time.Time, err error, ws *session.ControllerWs) {
+	if environment.BuildModeValue == environment.BuildModeProduction {
+		return
+	}
+
 	colorErr := fiber.DefaultColors.Green
 	if err != nil {
 		colorErr = fiber.DefaultColors.Red

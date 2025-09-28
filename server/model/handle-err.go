@@ -1,9 +1,12 @@
 package model
 
 import (
-	"github.com/gofiber/fiber/v3/log"
+	"log"
+
+	"github.com/Mopsgamer/draqun/server/debug"
 )
 
 func handleErr(err error) {
-	log.Error(err)
+	log.Println(err)
+	debug.PrintStack()
 }

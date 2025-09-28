@@ -31,7 +31,7 @@
                 year="numeric"
                 month="long"
                 day="numeric"
-                date="{{$message.CreatedAt.Value}}"
+                date="{{jsonTime $message.CreatedAt.Value}}"
             ></sl-format-date>
         </div>
     </div>

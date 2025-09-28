@@ -142,8 +142,11 @@ func (group Group) Everyone() Role {
 
 func (group Group) MembersCount() uint64 {
 	count := uint64(0)
-	sql, args, err := goqu.Select(goqu.COUNT("*")).From(TableMembers).
-		Where(goqu.Ex{TableMembers + ".group_id": group.Id, TableMembers + ".is_deleted": types.BitBool(false)}).
+	sql, args, err := group.Db.Goqu.Select(goqu.COUNT("*")).From(TableMembers).
+		Where(goqu.And(
+			goqu.C("group_id").Eq(group.Id),
+			goqu.C("is_deleted").Eq([]byte{0}),
+		)).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
