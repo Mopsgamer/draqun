@@ -1,6 +1,5 @@
-import { distFolder, logServerComp } from "./constants.ts";
+import { distFolder } from "./constants.ts";
 import { resolve } from "@std/path";
-import { underline } from "@std/fmt/colors";
 
 const isDev = Deno.args.includes("dev");
 
@@ -20,7 +19,7 @@ export async function compile(
     os: string,
     arch: string,
 ): Promise<boolean> {
-    const { fileName, filePath } = binaryInfo(os, arch);
+    const { filePath } = binaryInfo(os, arch);
 
     const { success } = await new Deno.Command("go", {
         args: [
@@ -41,8 +40,5 @@ export async function compile(
         stderr: "inherit",
     }).output();
 
-    if (!success) {
-        logServerComp.error(`Failed to build ${underline(fileName)}.`);
-    }
     return success;
 }
