@@ -9,12 +9,15 @@ const onEvent: HTMX.HtmxExtension["onEvent"] = function (name, event): boolean {
 
         let form = event.target || {} as object;
         if (event.target instanceof HTMLFormElement) {
-            form = (event.target.querySelector('sl-button[type=submit]') || document.querySelector('sl-button[form='+event.target.id+'][type=submit]') || {}) as object
+            form = (event.target.querySelector("sl-button[type=submit]") ||
+                document.querySelector(
+                    "sl-button[form=" + event.target.id + "][type=submit]",
+                ) || {}) as object;
         }
 
         if (form instanceof SlButton || form instanceof SlMenuItem) {
-            form.loading = enable
-            form.disabled = enable
+            form.loading = enable;
+            form.disabled = enable;
         }
         return true;
     }
