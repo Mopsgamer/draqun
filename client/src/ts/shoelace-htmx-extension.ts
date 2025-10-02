@@ -34,9 +34,9 @@ const onEvent: htmx.HtmxExtension["onEvent"] = function (name, event): boolean {
         return true;
     }
 
-    const formData = getFormPropData(form)
+    const formData = getFormPropData(form);
     Object.assign(event.detail.formData, formData);
-    console.log("configRequest details: %o", event.detail)
+    console.log("configRequest details: %o", event.detail);
 
     // Prevent form submission if one or more fields are invalid.
     // form is always a form as per the main if statement
