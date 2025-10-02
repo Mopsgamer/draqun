@@ -1,9 +1,8 @@
 import htmx from "htmx.org";
-import type HTMX from "htmx.org";
 import { getFormPropData } from "./lib.ts";
 import { SlButton, SlMenuItem } from "@shoelace-style/shoelace";
 
-const onEvent: HTMX.HtmxExtension["onEvent"] = function (name, event): boolean {
+const onEvent: htmx.HtmxExtension["onEvent"] = function (name, event): boolean {
     if (name === "htmx:beforeRequest" || name === "htmx:afterRequest") {
         const enable = name === "htmx:beforeRequest";
 
@@ -29,14 +28,15 @@ const onEvent: HTMX.HtmxExtension["onEvent"] = function (name, event): boolean {
         console.groupEnd();
         return true;
     }
-    const { detail } = event;
-    const form = detail.elt;
+    const form = event.detail.elt;
     if (!(form instanceof HTMLFormElement)) {
         console.groupEnd();
         return true;
     }
 
-    Object.assign(detail.parameters, getFormPropData(form));
+    const formData = getFormPropData(form)
+    Object.assign(event.detail.formData, formData);
+    console.log("configRequest details: %o", event.detail)
 
     // Prevent form submission if one or more fields are invalid.
     // form is always a form as per the main if statement
@@ -49,6 +49,6 @@ const onEvent: HTMX.HtmxExtension["onEvent"] = function (name, event): boolean {
     return true;
 };
 
-(htmx as unknown as typeof HTMX.default).defineExtension("shoelace", {
+(htmx as unknown as typeof htmx.default).defineExtension("shoelace", {
     onEvent,
 });

@@ -50,7 +50,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
-		Post("/create",
+		Post("/",
 			perms.UseBind[UserSignUp](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserSignUp](ctx, perms.LocalForm)
@@ -142,7 +142,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
-		Delete("/delete",
+		Delete("/",
 			perms.UserByAuth(db),
 			perms.UseBind[UserDelete](),
 			func(ctx fiber.Ctx) error {

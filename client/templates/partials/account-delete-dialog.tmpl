@@ -7,7 +7,7 @@
         autocomplete="off"
         id="account-delete-form"
         name="account-delete-form"
-        hx-delete="/account/delete"
+        hx-delete="/account"
         hx-swap="innerHTML"
         hx-target="#account-delete-error"
     >
@@ -23,8 +23,8 @@
         >
         </sl-input>
         <sl-input
-            label="Confirm name"
-            id="account-delete-current-name"
+            label="Confirm name ({{.User.Name}})"
+            id="account-delete-confirm-name"
             name="confirm-name"
             required
             type="text"

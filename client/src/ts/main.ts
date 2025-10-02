@@ -12,6 +12,8 @@ declare namespace globalThis {
 }
 globalThis.htmx = htmx as unknown as typeof HTMX.default;
 
+(htmx as unknown as typeof htmx.default).config.methodsThatUseUrlParams.length = 0
+
 import("htmx-ext-debug");
 
 setBasePath("/static/shoelace");
