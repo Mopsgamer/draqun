@@ -106,6 +106,10 @@ func (group Group) IsEmpty() bool {
 	return group.Id == 0 || group.Name == ""
 }
 
+func (group Group) IsAvailable() bool {
+	return !group.IsEmpty() && !bool(group.IsDeleted)
+}
+
 func (group *Group) Insert() error {
 	return InsertId(group.Db, TableGroups, group, &group.Id)
 }

@@ -15,7 +15,7 @@ func GroupByIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri string) (group mod
 	err = nil
 	groupId := fiber.Params[uint64](ctx, groupIdUri)
 	group, err = model.NewGroupFromId(db, groupId)
-	if err != nil {
+	if group.IsEmpty() {
 		err = htmx.AlertGroupNotFound
 		return
 	}
@@ -28,7 +28,7 @@ func GroupByNameFromCtx(ctx fiber.Ctx, db *model.DB, groupNameUri string) (group
 	err = nil
 	groupName := model.Name(fiber.Params[string](ctx, groupNameUri))
 	group, err = model.NewGroupFromName(db, groupName)
-	if err != nil {
+	if group.IsEmpty() {
 		err = htmx.AlertGroupNotFound
 		return
 	}
@@ -50,7 +50,7 @@ func MemberByAuthAndGroupIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri strin
 	}
 
 	member, err := model.NewMemberFromId(db, groupId, user.Id)
-	if err != nil { // never been a member
+	if member.IsEmpty() { // never been a member
 		return htmx.AlertGroupMemberNotFound
 	}
 
@@ -104,7 +104,7 @@ func checkUser(db *model.DB, token *jwt.Token) (user model.User, err error) {
 	}
 
 	user, err = model.NewUserFromId(db, userId)
-	if err != nil {
+	if user.IsEmpty() {
 		err = htmx.AlertUserNotFound.Join(err)
 		return
 	}
@@ -112,6 +112,7 @@ func checkUser(db *model.DB, token *jwt.Token) (user model.User, err error) {
 	if password != user.Password {
 		err = htmx.AlertToken.Join(errors.New("incorrect password"))
 	}
+
 	return
 }
 

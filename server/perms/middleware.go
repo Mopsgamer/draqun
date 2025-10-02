@@ -20,9 +20,13 @@ type RightsChecker func(ctx fiber.Ctx, role model.Role) bool
 
 func GroupById(db *model.DB, groupIdUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		_, err := GroupByIdFromCtx(ctx, db, groupIdUri)
+		group, err := GroupByIdFromCtx(ctx, db, groupIdUri)
 		if err != nil {
 			return err
+		}
+
+		if !group.IsAvailable() {
+			return htmx.AlertGroupNotFound
 		}
 
 		return ctx.Next()
@@ -31,9 +35,13 @@ func GroupById(db *model.DB, groupIdUri string) fiber.Handler {
 
 func GroupByName(db *model.DB, groupNameUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		_, err := GroupByIdFromCtx(ctx, db, groupNameUri)
+		group, err := GroupByNameFromCtx(ctx, db, groupNameUri)
 		if err != nil {
 			return err
+		}
+
+		if !group.IsAvailable() {
+			return htmx.AlertGroupNotFound
 		}
 
 		return ctx.Next()

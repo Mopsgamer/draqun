@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"database/sql"
-	"errors"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/environment"
@@ -109,7 +107,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 
 				user, err := model.NewUserFromEmail(db, request.Email)
 				if err != nil {
-					if errors.Is(err, sql.ErrNoRows) {
+					if user.IsEmpty() {
 						return htmx.AlertUserNotFound
 					}
 					return htmx.AlertDatabase.Join(err)
@@ -133,6 +131,13 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 					Value:   token,
 					Expires: time.Now().Add(environment.UserAuthTokenExpiration),
 				})
+
+				if user.IsDeleted {
+					user.IsDeleted = false
+					if err := user.Update(); err != nil {
+						return err
+					}
+				}
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, htmx.Path(ctx))

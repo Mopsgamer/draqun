@@ -40,7 +40,7 @@ func routePagesChat(router fiber.Router, db *model.DB) fiber.Router {
 		func(ctx fiber.Ctx) error {
 			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
-			if group.IsEmpty() {
+			if !group.IsAvailable() || group.Mode == model.GroupModePrivate {
 				return ctx.Redirect().To("/chat")
 			}
 
