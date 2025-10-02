@@ -164,9 +164,9 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 			perms.UseBind[GroupCreate](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[GroupCreate](ctx, perms.LocalForm)
-				g, _ := model.NewGroupFromName(db, request.Name)
-				if !g.IsEmpty() {
-					return htmx.AlertGroupExsistsName
+				existingGroup, _ := model.NewGroupFromName(db, request.Name)
+				if !existingGroup.IsEmpty() {
+					return htmx.AlertGroupExistsName
 				}
 
 				hash, err := request.Password.Hash()

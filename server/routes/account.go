@@ -55,14 +55,14 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserSignUp](ctx, perms.LocalForm)
 
-				u, _ := model.NewUserFromName(db, request.Name)
-				if !u.IsEmpty() {
-					return htmx.AlertUserExsistsNickname
+				existingUser, _ := model.NewUserFromName(db, request.Name)
+				if !existingUser.IsEmpty() {
+					return htmx.AlertUserExistsNickname
 				}
 
-				u, _ = model.NewUserFromEmail(db, request.Email)
-				if !u.IsEmpty() {
-					return htmx.AlertUserExsistsEmail
+				existingUser, _ = model.NewUserFromEmail(db, request.Email)
+				if !existingUser.IsEmpty() {
+					return htmx.AlertUserExistsEmail
 				}
 
 				if request.ConfirmPassword != request.Password {

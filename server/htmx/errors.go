@@ -60,17 +60,17 @@ var (
 		"Password confirmation is invalid.",
 		Danger,
 	)
-	AlertUserExsistsEmail = NewAlert(
+	AlertUserExistsEmail = NewAlert(
 		errors.Join(fiber.ErrConflict, errors.New("user: another user with this email exists")),
 		"This email already exists.",
 		Danger,
 	)
-	AlertUserExsistsName = NewAlert(
+	AlertUserExistsName = NewAlert(
 		errors.Join(fiber.ErrConflict, errors.New("user: another user with this name exists")),
 		"This name already exists.",
 		Danger,
 	)
-	AlertUserExsistsNickname = NewAlert(
+	AlertUserExistsNickname = NewAlert(
 		errors.Join(fiber.ErrConflict, errors.New("user: another user with this moniker exists")),
 		"This moniker already exists.",
 		Danger,
@@ -86,7 +86,7 @@ var (
 		"The group was not found.",
 		Danger,
 	)
-	AlertGroupExsistsName = NewAlert(
+	AlertGroupExistsName = NewAlert(
 		errors.Join(fiber.ErrNotFound, errors.New("group: another group with this name exists")),
 		"A group with this name already exists.",
 		Danger,

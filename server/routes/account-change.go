@@ -42,9 +42,9 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 					return htmx.AlertUseless
 				}
 
-				_, err := model.NewUserFromName(db, request.NewName)
-				if err != nil {
-					return htmx.AlertUserExsistsName
+				existingUser, _ := model.NewUserFromName(db, request.NewName)
+				if !existingUser.IsEmpty() {
+					return htmx.AlertUserExistsName
 				}
 
 				user.Moniker = request.NewNickname
@@ -76,9 +76,9 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 					return htmx.AlertUseless
 				}
 
-				_, err := model.NewUserFromEmail(db, request.NewEmail)
-				if err != nil {
-					return htmx.AlertUserExsistsEmail
+				existingUser, _ := model.NewUserFromEmail(db, request.NewEmail)
+				if !existingUser.IsEmpty() {
+					return htmx.AlertUserExistsEmail
 				}
 
 				if err := user.Password.Compare(request.CurrentPassword); err != nil {
@@ -95,7 +95,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.EnableRefresh(ctx)
+					htmx.Redirect(ctx, htmx.Path(ctx))
 					return ctx.SendStatus(fiber.StatusOK)
 				}
 
