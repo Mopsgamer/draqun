@@ -1,6 +1,9 @@
 package routes
 
 import (
+	"time"
+
+	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/perms"
@@ -145,7 +148,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 					return htmx.AlertUserPassword.Join(err)
 				}
 
-				if err := user.Password.Compare(request.NewPassword); err != nil {
+				if err := user.Password.Compare(request.NewPassword); err == nil {
 					return htmx.AlertUseless.Join(err)
 				}
 
@@ -166,6 +169,17 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				if err := user.Update(); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
+
+				token, err := user.GenerateToken()
+				if err != nil {
+					return err
+				}
+
+				ctx.Cookie(&fiber.Cookie{
+					Name:    fiber.HeaderAuthorization,
+					Value:   token,
+					Expires: time.Now().Add(environment.UserAuthTokenExpiration),
+				})
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, htmx.Path(ctx))
