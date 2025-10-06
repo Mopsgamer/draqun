@@ -18,7 +18,7 @@ paths:
     /groups/{group_id}/join:
         put:
             tags:
-              - Group
+                - Group
             summary: Join a group
             parameters:
                 - name: group_id
@@ -32,7 +32,7 @@ paths:
     /groups/{group_id}/change:
         put:
             tags:
-              - Group
+                - Group
             summary: Change group details
             parameters:
                 - name: group_id
@@ -51,7 +51,7 @@ paths:
     /groups/{group_id}/messages/create:
         post:
             tags:
-              - Group
+                - Group
             summary: Create a message in a group
             parameters:
                 - name: group_id
@@ -70,7 +70,7 @@ paths:
     /groups/create:
         post:
             tags:
-              - Group
+                - Group
             summary: Create a new group
             requestBody:
                 content:
@@ -83,7 +83,7 @@ paths:
     /groups/{group_id}/messages/page/{messages_page}:
         get:
             tags:
-              - Group
+                - Group
             summary: Get paginated messages
             parameters:
                 - name: group_id
@@ -102,7 +102,7 @@ paths:
     /groups/{group_id}/members/page/{members_page}:
         get:
             tags:
-              - Group
+                - Group
             summary: Get paginated members
             parameters:
                 - name: group_id
@@ -121,7 +121,7 @@ paths:
     /groups/{group_id}/leave:
         delete:
             tags:
-              - Group
+                - Group
             summary: Leave a group
             parameters:
                 - name: group_id
@@ -135,7 +135,7 @@ paths:
     /groups/{group_id}:
         delete:
             tags:
-              - Group
+                - Group
             summary: Delete a group
             parameters:
                 - name: group_id
@@ -149,7 +149,7 @@ paths:
     /groups/ws/{group_id}/:
         get:
             tags:
-              - Group
+                - Group
             summary: WebSocket for group messages
             parameters:
                 - name: group_id
@@ -163,7 +163,7 @@ paths:
     /account/logout:
         put:
             tags:
-              - Account
+                - Account
             summary: Log out
             responses:
                 "200":
@@ -171,7 +171,7 @@ paths:
     /account:
         post:
             tags:
-              - Account
+                - Account
             summary: Sign up
             requestBody:
                 content:
@@ -183,7 +183,7 @@ paths:
                     description: Signed up
         delete:
             tags:
-              - Account
+                - Account
             summary: Delete account
             requestBody:
                 content:
@@ -196,7 +196,7 @@ paths:
     /account/login:
         post:
             tags:
-              - Account
+                - Account
             summary: Log in
             requestBody:
                 content:
@@ -209,7 +209,7 @@ paths:
     /account/change/name:
         put:
             tags:
-              - Account
+                - Account
             summary: Change nickname and name
             requestBody:
                 content:
@@ -222,7 +222,7 @@ paths:
     /account/change/email:
         put:
             tags:
-              - Account
+                - Account
             summary: Change email
             requestBody:
                 content:
@@ -235,7 +235,7 @@ paths:
     /account/change/phone:
         put:
             tags:
-              - Account
+                - Account
             summary: Change phone
             requestBody:
                 content:
@@ -248,7 +248,7 @@ paths:
     /account/change/password:
         put:
             tags:
-              - Account
+                - Account
             summary: Change password
             requestBody:
                 content:

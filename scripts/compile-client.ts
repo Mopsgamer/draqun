@@ -1,6 +1,6 @@
 import * as esbuild from "esbuild";
 import { denoPlugin } from "@deno/esbuild-plugin";
-import { existsSync, copy } from "@std/fs";
+import { copy, existsSync } from "@std/fs";
 import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { format, type TaskStateEnd } from "@m234/logger";
@@ -143,41 +143,61 @@ type Call<Args extends (...args: any[]) => Promise<void>> = [
 const slAlias = ["shoelace", "shoe", "sl"];
 
 const calls: [() => Promise<void>, string, string[]][] = [
-    [() => copy(
-        "./node_modules/@shoelace-style/shoelace/dist/assets",
+    [
+        () =>
+            copy(
+                "./node_modules/@shoelace-style/shoelace/dist/assets",
+                `./${distFolder}/static/shoelace/assets`,
+                { overwrite: true },
+            ),
         `./${distFolder}/static/shoelace/assets`,
-        {overwrite: true},
-    ), `./${distFolder}/static/shoelace/assets`, [...slAlias]],
+        [...slAlias],
+    ],
 
-    [() => copy(
-        `./client/src/assets`,
+    [
+        () =>
+            copy(
+                `./client/src/assets`,
+                `./${distFolder}/static/assets`,
+                { overwrite: true },
+            ),
         `./${distFolder}/static/assets`,
-        {overwrite: true},
-    ), `./${distFolder}/static/assets`, ["assets"]],
+        ["assets"],
+    ],
 
-    [() => build({
-        ...options,
-        outdir: `./${distFolder}/static/js`,
-        entryPoints: [`./client/src/ts/**/*`],
-        whenChange: [
-            `./${distFolder}/static/js`,
-        ],
-        plugins: [denoPlugin()],
-    }), `./${distFolder}/static/js`, ["js", ...slAlias]],
+    [
+        () =>
+            build({
+                ...options,
+                outdir: `./${distFolder}/static/js`,
+                entryPoints: [`./client/src/ts/**/*`],
+                whenChange: [
+                    `./${distFolder}/static/js`,
+                ],
+                plugins: [denoPlugin()],
+            }),
+        `./${distFolder}/static/js`,
+        ["js", ...slAlias],
+    ],
 
-    [() => build({
-        ...options,
-        outdir: `./${distFolder}/static/css`,
-        entryPoints: [`./client/src/tailwindcss/**/*.css`],
-        whenChange: [
-            `./client/templates`,
-            `./client/src/tailwindcss`,
-        ],
-        external: ["/static/assets/*"],
-        plugins: [
-            tailwindcssPlugin(),
-        ],
-    }), `./${distFolder}/static/css`, ["css", ...slAlias]],
+    [
+        () =>
+            build({
+                ...options,
+                outdir: `./${distFolder}/static/css`,
+                entryPoints: [`./client/src/tailwindcss/**/*.css`],
+                whenChange: [
+                    `./client/templates`,
+                    `./client/src/tailwindcss`,
+                ],
+                external: ["/static/assets/*"],
+                plugins: [
+                    tailwindcssPlugin(),
+                ],
+            }),
+        `./${distFolder}/static/css`,
+        ["css", ...slAlias],
+    ],
 ];
 
 const existingGroups = Array.from(new Set(calls.flatMap((c) => c[2])));
