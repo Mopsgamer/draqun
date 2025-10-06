@@ -28,9 +28,9 @@ type UserSignUp struct {
 	ConfirmPassword model.Password `form:"confirm-password"`
 }
 
-func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
+func RouteAccount(app *fiber.App) fiber.Router {
 	group := app.Group("/account")
-	routeAccountChange(group, db)
+	routeAccountChange(group)
 	return group.
 		Put("/logout",
 			func(ctx fiber.Ctx) error {
@@ -53,12 +53,12 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserSignUp](ctx, perms.LocalForm)
 
-				existingUser, _ := model.NewUserFromName(db, request.Name)
+				existingUser, _ := model.NewUserFromName(request.Name)
 				if !existingUser.IsEmpty() {
 					return htmx.AlertUserExistsNickname
 				}
 
-				existingUser, _ = model.NewUserFromEmail(db, request.Email)
+				existingUser, _ = model.NewUserFromEmail(request.Email)
 				if !existingUser.IsEmpty() {
 					return htmx.AlertUserExistsEmail
 				}
@@ -72,7 +72,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 					return err
 				}
 
-				user := model.NewUser(db, request.Moniker, request.Name, request.Email, request.Phone, hash, "")
+				user := model.NewUser(request.Moniker, request.Name, request.Email, request.Phone, hash, "")
 				if err := user.Validate(); err != nil {
 					return err
 				}
@@ -105,7 +105,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserLogin](ctx, perms.LocalForm)
 
-				user, err := model.NewUserFromEmail(db, request.Email)
+				user, err := model.NewUserFromEmail(request.Email)
 				if err != nil {
 					if user.IsEmpty() {
 						return htmx.AlertUserNotFound
@@ -148,7 +148,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 			},
 		).
 		Delete("/",
-			perms.UserByAuth(db),
+			perms.UserByAuth(),
 			perms.UseBind[UserDelete](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserDelete](ctx, perms.LocalForm)

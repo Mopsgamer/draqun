@@ -11,10 +11,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GroupByIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri string) (group model.Group, err error) {
+func GroupByIdFromCtx(ctx fiber.Ctx, groupIdUri string) (group model.Group, err error) {
 	err = nil
 	groupId := fiber.Params[uint64](ctx, groupIdUri)
-	group, err = model.NewGroupFromId(db, groupId)
+	group, err = model.NewGroupFromId(groupId)
 	if group.IsEmpty() {
 		err = htmx.AlertGroupNotFound
 		return
@@ -24,10 +24,10 @@ func GroupByIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri string) (group mod
 	return
 }
 
-func GroupByNameFromCtx(ctx fiber.Ctx, db *model.DB, groupNameUri string) (group model.Group, err error) {
+func GroupByNameFromCtx(ctx fiber.Ctx, groupNameUri string) (group model.Group, err error) {
 	err = nil
 	groupName := model.Name(fiber.Params[string](ctx, groupNameUri))
-	group, err = model.NewGroupFromName(db, groupName)
+	group, err = model.NewGroupFromName(groupName)
 	if group.IsEmpty() {
 		err = htmx.AlertGroupNotFound
 		return
@@ -37,19 +37,19 @@ func GroupByNameFromCtx(ctx fiber.Ctx, db *model.DB, groupNameUri string) (group
 	return
 }
 
-func MemberByAuthAndGroupIdFromCtx(ctx fiber.Ctx, db *model.DB, groupIdUri string) error {
-	user, err := UserByAuthFromCtx(ctx, db)
+func MemberByAuthAndGroupIdFromCtx(ctx fiber.Ctx, groupIdUri string) error {
+	user, err := UserByAuthFromCtx(ctx)
 	if err != nil {
 		return err
 	}
 
 	groupId := fiber.Params[uint64](ctx, groupIdUri)
-	_, err = GroupByIdFromCtx(ctx, db, groupIdUri)
+	_, err = GroupByIdFromCtx(ctx, groupIdUri)
 	if err != nil {
 		return err
 	}
 
-	member, err := model.NewMemberFromId(db, groupId, user.Id)
+	member, err := model.NewMemberFromId(groupId, user.Id)
 	if member.IsEmpty() { // never been a member
 		return htmx.AlertGroupMemberNotFound
 	}
@@ -87,7 +87,7 @@ func checkCookieToken(value string) (token *jwt.Token, err error) {
 	return
 }
 
-func checkUser(db *model.DB, token *jwt.Token) (user model.User, err error) {
+func checkUser(token *jwt.Token) (user model.User, err error) {
 	claims := token.Claims.(jwt.MapClaims)
 	userIdFloat, ok := claims["Id"].(float64)
 	userId := uint64(userIdFloat)
@@ -103,7 +103,7 @@ func checkUser(db *model.DB, token *jwt.Token) (user model.User, err error) {
 		return
 	}
 
-	user, err = model.NewUserFromId(db, userId)
+	user, err = model.NewUserFromId(userId)
 	if user.IsEmpty() {
 		err = htmx.AlertUserNotFound.Join(err)
 		return
@@ -116,8 +116,8 @@ func checkUser(db *model.DB, token *jwt.Token) (user model.User, err error) {
 	return
 }
 
-func UserByAuthFromCtx(ctx fiber.Ctx, db *model.DB) (user model.User, err error) {
-	user, err = model.User{Db: db}, nil
+func UserByAuthFromCtx(ctx fiber.Ctx) (user model.User, err error) {
+	user, err = model.User{}, nil
 	tokenString := ctx.Cookies(fiber.HeaderAuthorization)
 
 	token := new(jwt.Token)
@@ -126,7 +126,7 @@ func UserByAuthFromCtx(ctx fiber.Ctx, db *model.DB) (user model.User, err error)
 		return
 	}
 
-	user, err = checkUser(db, token)
+	user, err = checkUser(token)
 	if err != nil {
 		return
 	}

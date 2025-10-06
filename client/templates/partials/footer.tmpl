@@ -60,7 +60,7 @@
     <div class="absolute right-0 bottom-0 text-neutral-500 p-2 font-[monospace]">
         version: {{.DenoJson.Version}}{{if ne .GitJson.Hash ""}} ({{.GitJson.Branch}} <a
             class="text-cyan-500 underline"
-            href="{{.GitHubRepo}}/commit/{{.GitJson.HashLong}}"
+            href="{{.GitHubCommit}}"
         >{{.GitJson.Hash}}</a>){{end -}}
     </div>
 </footer>

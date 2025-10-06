@@ -99,8 +99,6 @@ func (perm PermMembers) CanKickBan() bool {
 }
 
 type Role struct {
-	Db *DB `db:"-"`
-
 	Id      uint32  `db:"id"`
 	GroupId uint64  `db:"group_id"`
 	Name    Name    `db:"name"`
@@ -182,15 +180,22 @@ func mergePerm[T PermSwitch | PermMessages | PermMembers](list []T, perm1, perm2
 	panic("unexpected perm msg value: " + string(perm1) + " or " + string(perm2) + ". available values: " + strings.Join(listStr, ",") + ".")
 }
 
-func NewRole(db *DB) Role {
-	return Role{Db: db}
+func NewRoleFromId(id uint32, groupId uint64) (Role, error) {
+	role := Role{}
+	return role, First(TableRoles, goqu.Ex{"id": id, "group_id": groupId}, &role)
 }
 
-func NewRoleEveryone(db *DB, groupId uint64) Role {
+func NewRoleFromName(name Name, groupId uint64) (Role, error) {
+	role := Role{}
+	return role, First(TableRoles, goqu.Ex{"name": name, "group_id": groupId}, &role)
+}
+
+const Everyone Name = "@everyone"
+
+func NewRoleEveryone(groupId uint64) Role {
 	return Role{
-		Db:      db,
 		GroupId: groupId,
-		Name:    "@everyone",
+		Name:    Everyone,
 		Moniker: "everyone",
 
 		PermMessages:    PermMessagesWrite,
@@ -202,21 +207,13 @@ func NewRoleEveryone(db *DB, groupId uint64) Role {
 }
 
 func (role *Role) Insert() error {
-	return InsertId(role.Db, TableRoles, role, &role.Id)
+	return InsertId(TableRoles, role, &role.Id)
 }
 
 func (role Role) Update() error {
-	return Update(role.Db, TableRoles, role, goqu.Ex{"id": role.Id, "group_id": role.GroupId})
+	return Update(TableRoles, role, goqu.Ex{"id": role.Id, "group_id": role.GroupId})
 }
 
 func (role Role) Delete() error {
-	return Delete(role.Db, TableRoles, goqu.Ex{"id": role.Id, "group_id": role.GroupId})
-}
-
-func (role *Role) FromId(id uint32, groupId uint64) error {
-	return First(role.Db, TableRoles, goqu.Ex{"id": id, "group_id": groupId}, role)
-}
-
-func (role *Role) FromName(name Name, groupId uint64) error {
-	return First(role.Db, TableRoles, goqu.Ex{"name": name, "group_id": groupId}, role)
+	return Delete(TableRoles, goqu.Ex{"id": role.Id, "group_id": role.GroupId})
 }

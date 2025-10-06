@@ -31,10 +31,10 @@ type UserChangePassword struct {
 	ConfirmPassword model.Password `form:"confirm-password"`
 }
 
-func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
+func routeAccountChange(router fiber.Router) fiber.Router {
 	return router.Group("/change").
 		Put("/name",
-			perms.UserByAuth(db),
+			perms.UserByAuth(),
 			perms.UseBind[UserChangeName](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserChangeName](ctx, perms.LocalForm)
@@ -45,7 +45,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 					return htmx.AlertUseless
 				}
 
-				existingUser, _ := model.NewUserFromName(db, request.NewName)
+				existingUser, _ := model.NewUserFromName(request.NewName)
 				if !existingUser.IsEmpty() {
 					return htmx.AlertUserExistsName
 				}
@@ -69,7 +69,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 			},
 		).
 		Put("/email",
-			perms.UserByAuth(db),
+			perms.UserByAuth(),
 			perms.UseBind[UserChangeEmail](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserChangeEmail](ctx, perms.LocalForm)
@@ -79,7 +79,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 					return htmx.AlertUseless
 				}
 
-				existingUser, _ := model.NewUserFromEmail(db, request.NewEmail)
+				existingUser, _ := model.NewUserFromEmail(request.NewEmail)
 				if !existingUser.IsEmpty() {
 					return htmx.AlertUserExistsEmail
 				}
@@ -106,7 +106,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 			},
 		).
 		Put("/phone",
-			perms.UserByAuth(db),
+			perms.UserByAuth(),
 			perms.UseBind[UserChangePhone](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserChangePhone](ctx, perms.LocalForm)
@@ -138,7 +138,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 			},
 		).
 		Put("/password",
-			perms.UserByAuth(db),
+			perms.UserByAuth(),
 			perms.UseBind[UserChangePassword](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserChangePassword](ctx, perms.LocalForm)

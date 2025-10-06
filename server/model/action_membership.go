@@ -7,19 +7,18 @@ import (
 )
 
 type ActionMembership struct {
-	Db *DB `db:"-"`
-
 	UserId  uint64        `db:"user_id"`  // The user being acted upon.
 	GroupId uint64        `db:"group_id"` // The group where the action was performed.
 	ActedAt TimePast      `db:"acted_at"` // The time when the action was performed.
 	IsJoin  types.BitBool `db:"is_join"`  // True if the action is a join, false if it's a leave.
 }
 
-var _ Action = (*ActionMembership)(nil)
-
-func (action *ActionMembership) SetDb(db *DB) {
-	action.Db = db
+func NewActionMembershipFromId(userId, creatorId, groupId uint64) (ActionMembership, error) {
+	action := ActionMembership{}
+	return action, Last(TableMemberships, goqu.Ex{"user_id": userId, "group_id": groupId}, goqu.I(TableMemberships+".user_id"), &action)
 }
+
+var _ Action = (*ActionMembership)(nil)
 
 func (action ActionMembership) Kind() string {
 	return "membership"
@@ -38,26 +37,19 @@ func (action ActionMembership) IsEmpty() bool {
 }
 
 func (action *ActionMembership) Insert() error {
-	return Insert(action.Db, string(TableMemberships), action)
+	return Insert(string(TableMemberships), action)
 }
 
 func (action ActionMembership) Update() error {
-	return Update(action.Db, TableMemberships, action, goqu.Ex{"user_id": action.UserId, "group_id": action.GroupId})
-}
-
-func (action *ActionMembership) FromId(userId, groupId uint64) bool {
-	_ = Last(action.Db, TableMemberships, goqu.Ex{"user_id": userId, "group_id": groupId}, goqu.I(TableMemberships+".user_id"), action)
-	return action.IsEmpty()
+	return Update(TableMemberships, action, goqu.Ex{"user_id": action.UserId, "group_id": action.GroupId})
 }
 
 func (action ActionMembership) User() User {
-	user := User{Db: action.Db}
-	_ = user.FromId(action.UserId)
+	user, _ := NewUserFromId(action.UserId)
 	return user
 }
 
 func (action ActionMembership) Group() Group {
-	group := Group{Db: action.Db}
-	_ = group.FromId(action.GroupId)
+	group, _ := NewGroupFromId(action.GroupId)
 	return group
 }

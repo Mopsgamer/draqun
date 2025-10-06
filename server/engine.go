@@ -14,7 +14,7 @@ import (
 )
 
 // Initialize the view engine.
-func NewAppHtmlEngine(db *model.DB, embedFS fs.FS, clientEmbedded bool, directory string) *html.Engine {
+func NewAppHtmlEngine(embedFS fs.FS, clientEmbedded bool, directory string) *html.Engine {
 	var engine *html.Engine
 	if !clientEmbedded {
 		engine = html.New(directory, environment.TemplateExt)

@@ -18,9 +18,9 @@ const (
 
 type RightsChecker func(ctx fiber.Ctx, role model.Role) bool
 
-func GroupById(db *model.DB, groupIdUri string) fiber.Handler {
+func GroupById(groupIdUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		group, err := GroupByIdFromCtx(ctx, db, groupIdUri)
+		group, err := GroupByIdFromCtx(ctx, groupIdUri)
 		if err != nil {
 			return err
 		}
@@ -33,9 +33,9 @@ func GroupById(db *model.DB, groupIdUri string) fiber.Handler {
 	}
 }
 
-func GroupByName(db *model.DB, groupNameUri string) fiber.Handler {
+func GroupByName(groupNameUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		group, err := GroupByNameFromCtx(ctx, db, groupNameUri)
+		group, err := GroupByNameFromCtx(ctx, groupNameUri)
 		if err != nil {
 			return err
 		}
@@ -48,9 +48,9 @@ func GroupByName(db *model.DB, groupNameUri string) fiber.Handler {
 	}
 }
 
-func MemberByAuthAndGroupId(db *model.DB, groupIdUri string, rights RightsChecker) fiber.Handler {
+func MemberByAuthAndGroupId(groupIdUri string, rights RightsChecker) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		err := MemberByAuthAndGroupIdFromCtx(ctx, db, groupIdUri)
+		err := MemberByAuthAndGroupIdFromCtx(ctx, groupIdUri)
 		if err != nil {
 			return err
 		}
@@ -87,9 +87,9 @@ func UseBind[T any]() fiber.Handler {
 	}
 }
 
-func UserByAuth(db *model.DB) fiber.Handler {
+func UserByAuth() fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		_, err := UserByAuthFromCtx(ctx, db)
+		_, err := UserByAuthFromCtx(ctx)
 		if err != nil {
 			return err
 		}

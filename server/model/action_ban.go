@@ -6,8 +6,6 @@ import (
 )
 
 type ActionBan struct {
-	Db *DB `db:"-"`
-
 	TargetId    uint64      `db:"target_id"`  // The user being banned.
 	CreatorId   uint64      `db:"creator_id"` // The user who created the ban.
 	RevokerId   uint64      `db:"revoker_id"` // The user who unbanned the user.
@@ -19,8 +17,9 @@ type ActionBan struct {
 
 var _ Action = (*ActionBan)(nil)
 
-func (action *ActionBan) SetDb(db *DB) {
-	action.Db = db
+func NewActionBanFromId(targetId uint64, groupId uint64) (ActionBan, error) {
+	action := ActionBan{}
+	return action, Last(TableBans, goqu.Ex{"target_id": targetId, "group_id": groupId}, goqu.C("target_id"), &action)
 }
 
 func (action ActionBan) Kind() string {
@@ -46,31 +45,24 @@ func (action ActionBan) IsEmpty() bool {
 }
 
 func (action *ActionBan) Insert() error {
-	return Insert(action.Db, string(TableBans), action)
+	return Insert(string(TableBans), action)
 }
 
 func (action ActionBan) Update() error {
-	return Update(action.Db, TableBans, action, goqu.Ex{"target_id": action.TargetId, "group_id": action.GroupId})
-}
-
-func (action *ActionBan) FromId(targetId, groupId uint64) error {
-	return Last(action.Db, TableBans, goqu.Ex{"target_id": targetId, "group_id": groupId}, goqu.I(TableBans+".target_id"), action)
+	return Update(TableBans, action, goqu.Ex{"target_id": action.TargetId, "group_id": action.GroupId})
 }
 
 func (action ActionBan) Target() User {
-	user := User{Db: action.Db}
-	_ = user.FromId(action.TargetId)
+	user, _ := NewUserFromId(action.TargetId)
 	return user
 }
 
 func (action ActionBan) Creator() User {
-	user := User{Db: action.Db}
-	_ = user.FromId(action.CreatorId)
+	user, _ := NewUserFromId(action.CreatorId)
 	return user
 }
 
 func (action ActionBan) Revoker() User {
-	user := User{Db: action.Db}
-	_ = user.FromId(action.RevokerId)
+	user, _ := NewUserFromId(action.RevokerId)
 	return user
 }

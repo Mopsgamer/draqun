@@ -6,8 +6,6 @@ import (
 )
 
 type ActionKick struct {
-	Db *DB `db:"-"`
-
 	TargetId    uint64      `db:"target_id"`  // The user being banned.
 	CreatorId   uint64      `db:"creator_id"` // The user who created the ban.
 	GroupId     uint64      `db:"group_id"`   // The group from which the user is kicked.
@@ -15,11 +13,12 @@ type ActionKick struct {
 	ActedAt     TimePast    `db:"acted_at"`
 }
 
-var _ Action = (*ActionKick)(nil)
-
-func (action *ActionKick) SetDb(db *DB) {
-	action.Db = db
+func NewActionKickFromId(targetId, creatorId, groupId uint64) (ActionKick, error) {
+	action := ActionKick{}
+	return action, Last(TableKicks, goqu.Ex{"target_id": targetId, "group_id": groupId, "creator_id": creatorId}, goqu.C("target_id"), &action)
 }
+
+var _ Action = (*ActionKick)(nil)
 
 func (action ActionKick) Kind() string {
 	return "kick"
@@ -41,32 +40,24 @@ func (action ActionKick) IsEmpty() bool {
 }
 
 func (action *ActionKick) Insert() error {
-	return Insert(action.Db, string(TableKicks), action)
+	return Insert(string(TableKicks), action)
 }
 
 func (action ActionKick) Update() error {
-	return Update(action.Db, TableKicks, action, goqu.Ex{"target_id": action.TargetId, "group_id": action.GroupId, "creator_id": action.CreatorId})
-}
-
-func (action *ActionKick) FromId(targetId, creatorId, groupId uint64) bool {
-	_ = Last(action.Db, TableKicks, goqu.Ex{"target_id": targetId, "group_id": groupId, "creator_id": creatorId}, goqu.I(TableKicks+".target_id"), action)
-	return action.IsEmpty()
+	return Update(TableKicks, action, goqu.Ex{"target_id": action.TargetId, "group_id": action.GroupId, "creator_id": action.CreatorId})
 }
 
 func (action ActionKick) Target() User {
-	user := User{Db: action.Db}
-	_ = user.FromId(action.TargetId)
+	user, _ := NewUserFromId(action.TargetId)
 	return user
 }
 
 func (action ActionKick) Creator() User {
-	user := User{Db: action.Db}
-	_ = user.FromId(action.CreatorId)
+	user, _ := NewUserFromId(action.CreatorId)
 	return user
 }
 
 func (action ActionKick) Group() Group {
-	group := Group{Db: action.Db}
-	_ = group.FromId(action.GroupId)
+	group, _ := NewGroupFromId(action.GroupId)
 	return group
 }

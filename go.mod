@@ -16,6 +16,7 @@ ignore (
 require (
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/fasthttp/websocket v1.5.12
+	github.com/fatih/color v1.18.0
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/gofiber/fiber/v3 v3.0.0-rc.2
 	github.com/gofiber/template/html/v2 v2.1.3
