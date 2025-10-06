@@ -1,10 +1,8 @@
 import * as esbuild from "esbuild";
-import { copy as copyPlugin } from "esbuild-plugin-copy";
 import { denoPlugin } from "@deno/esbuild-plugin";
-import { existsSync } from "@std/fs";
+import { existsSync, copy } from "@std/fs";
 import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
-import { dirname } from "@std/path/dirname";
 import { format, type TaskStateEnd } from "@m234/logger";
 import { limit1 } from "./tool/limit1.ts";
 
@@ -135,21 +133,6 @@ async function build(
     })();
 }
 
-function copy(from: string, to: string): Promise<void> {
-    return build({
-        ...options,
-        outdir: to,
-        entryPoints: [],
-        whenChange: [to],
-        plugins: [copyPlugin({
-            once: isWatch,
-            resolveFrom: "cwd",
-            assets: { to: to, from: from + "/**/*" },
-            copyOnStart: true,
-        })],
-    });
-}
-
 // deno-lint-ignore no-explicit-any
 type Call<Args extends (...args: any[]) => Promise<void>> = [
     fn: (...args: Parameters<Args>) => Promise<void>,
@@ -159,18 +142,20 @@ type Call<Args extends (...args: any[]) => Promise<void>> = [
 
 const slAlias = ["shoelace", "shoe", "sl"];
 
-const calls: (Call<typeof copy> | Call<typeof build>)[] = [
-    [copy, [
+const calls: [() => Promise<void>, string, string[]][] = [
+    [() => copy(
         "./node_modules/@shoelace-style/shoelace/dist/assets",
         `./${distFolder}/static/shoelace/assets`,
-    ], [...slAlias]],
+        {overwrite: true},
+    ), `./${distFolder}/static/shoelace/assets`, [...slAlias]],
 
-    [copy, [
+    [() => copy(
         `./client/src/assets`,
         `./${distFolder}/static/assets`,
-    ], ["assets"]],
+        {overwrite: true},
+    ), `./${distFolder}/static/assets`, ["assets"]],
 
-    [build, [{
+    [() => build({
         ...options,
         outdir: `./${distFolder}/static/js`,
         entryPoints: [`./client/src/ts/**/*`],
@@ -178,9 +163,9 @@ const calls: (Call<typeof copy> | Call<typeof build>)[] = [
             `./${distFolder}/static/js`,
         ],
         plugins: [denoPlugin()],
-    }], ["js", ...slAlias]],
+    }), `./${distFolder}/static/js`, ["js", ...slAlias]],
 
-    [build, [{
+    [() => build({
         ...options,
         outdir: `./${distFolder}/static/css`,
         entryPoints: [`./client/src/tailwindcss/**/*.css`],
@@ -192,7 +177,7 @@ const calls: (Call<typeof copy> | Call<typeof build>)[] = [
         plugins: [
             tailwindcssPlugin(),
         ],
-    }], ["css", ...slAlias]],
+    }), `./${distFolder}/static/css`, ["css", ...slAlias]],
 ];
 
 const existingGroups = Array.from(new Set(calls.flatMap((c) => c[2])));
@@ -239,16 +224,10 @@ if (existingGroupsUsed) {
     );
 }
 
-await Promise.allSettled(calls.map(([builder, builderArgs]) => {
-    const { outdir, outfile } = builderArgs.length === 1
-        ? builderArgs[0]
-        : { outdir: dirname(builderArgs[1]) };
-    const directory = outdir || dirname(outfile!);
-
+await Promise.allSettled(calls.map(([builder, directory]) => {
     return logClientComp.task({ text: "Bundling " + directory }).startRunner(
         limit1(async (): Promise<TaskStateEnd> => {
-            // deno-lint-ignore no-explicit-any
-            await builder(...builderArgs as any);
+            await builder();
             return "completed";
         }),
     );

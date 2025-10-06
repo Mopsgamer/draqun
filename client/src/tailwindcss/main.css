@@ -99,15 +99,17 @@ body {
     @apply h-svh bg-neutral-100 text-neutral-700;
 }
 
-code, pre {
-    @apply border-neutral-200 border bg-neutral-50 rounded-sm p-1;
+:is(code, pre) {
+    &:not(.swagger-ui &) {
+        @apply border-neutral-200 border bg-neutral-50 rounded-sm p-1;
+    }
 }
 
-pre {
+pre:not(.swagger-ui pre) {
     @apply overflow-auto;
 }
 
-table {
+table:not(.swagger-ui table) {
     @apply border-collapse;
     & > tbody {
         @apply border bg-neutral-50 rounded-sm;

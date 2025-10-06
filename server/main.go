@@ -3,9 +3,6 @@ package internal
 import (
 	"fmt"
 	"io/fs"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/fatih/color"
 	_ "github.com/go-sql-driver/mysql"
@@ -30,14 +27,6 @@ func Serve(embedFS fs.FS, clientEmbedded bool) {
 		fmt.Println(meta)
 		log.Fatal(err)
 	}
-
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
-
-	go func() {
-		<-sigs
-		fmt.Println(color.HiGreenString("INFO") + " Served!")
-	}()
 
 	app, err := NewApp(embedFS, clientEmbedded)
 	if err != nil {

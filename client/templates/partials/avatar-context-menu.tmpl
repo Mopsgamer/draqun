@@ -22,6 +22,7 @@
             </a>
             {{- end -}}
         {{- end -}}
+        {{- if not .IsDocsPage -}}
         <sl-menu-item class="theme-menu">
             <sl-icon slot="prefix" name="stars"></sl-icon>
             Theme
@@ -40,6 +41,7 @@
                 </sl-menu-item>
             </sl-menu>
         </sl-menu-item>
+        {{- end -}}
 
         <sl-divider></sl-divider>
 

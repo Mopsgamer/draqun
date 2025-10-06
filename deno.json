@@ -20,9 +20,9 @@
         "@std/path": "jsr:@std/path@^1.1.2",
         "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.1.14",
         "@types/semver": "npm:@types/semver@^7.7.1",
+        "@types/swagger-ui-dist": "npm:@types/swagger-ui-dist@^3.30.6",
         "dotenv": "npm:dotenv@^17.2.3",
         "esbuild": "npm:esbuild@^0.25.10",
-        "esbuild-plugin-copy": "npm:esbuild-plugin-copy@^2.1.1",
         "esbuild-plugin-tailwindcss": "npm:esbuild-plugin-tailwindcss@^2.1.0",
         "htmx-ext-debug": "npm:htmx-ext-debug@^2.0.1",
         "htmx-ext-ws": "npm:htmx-ext-ws@2.0.3",
@@ -31,6 +31,7 @@
         "mysql2": "npm:mysql2@^3.15.1",
         "p-limit": "npm:p-limit@^7.1.1",
         "semver": "npm:semver@^7.7.2",
+        "swagger-ui-dist": "npm:swagger-ui-dist@^5.29.3",
         "tailwindcss": "npm:tailwindcss@^4.1.14",
         "tree-kill": "npm:tree-kill@^1.2.2"
     },

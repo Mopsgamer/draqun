@@ -18,6 +18,10 @@ function isTheme(theme: unknown): theme is Theme {
  * If no theme is set, defaults to 'system'.
  */
 function getTheme(): Theme {
+    if (location.pathname === "/docs") {
+        return Theme.light;
+    }
+
     const theme = localStorage.getItem("theme") ?? Theme.system;
     if (!isTheme(theme)) {
         return Theme.system;

@@ -14,7 +14,7 @@
         <div id="real-body">
             {{- template "partials/header" .}} {{- if .CenterContent}}
             <main id="main" class="center-content">
-                {{- embed}}
+                {{- embed}} {{- template "partials/footer" .}}
             </main>
             {{- else}}
             <main id="main">
