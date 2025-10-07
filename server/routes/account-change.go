@@ -62,7 +62,7 @@ func routeAccountChange(router fiber.Router) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.EnableRefresh(ctx)
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
@@ -99,7 +99,7 @@ func routeAccountChange(router fiber.Router) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, htmx.Path(ctx))
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
@@ -131,7 +131,7 @@ func routeAccountChange(router fiber.Router) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, htmx.Path(ctx))
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
@@ -183,7 +183,7 @@ func routeAccountChange(router fiber.Router) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, htmx.Path(ctx))
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)

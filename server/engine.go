@@ -28,8 +28,7 @@ func NewAppHtmlEngine(embedFS fs.FS, clientEmbedded bool, directory string) *htm
 	}
 
 	engine.AddFuncMap(map[string]any{
-		"add": func(v ...int) int {
-			result := 0
+		"add": func(v ...uint) (result uint) {
 			for _, num := range v {
 				result += num
 			}

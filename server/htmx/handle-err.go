@@ -6,13 +6,14 @@ import (
 
 func HandleHTMXError(ctx fiber.Ctx, err error) error {
 	level, message := Danger, err.Error()
-	if ctx.Get("HX-Error-Wrap") == "false" {
-		return ctx.SendString(message)
-	}
 
 	if responseErr, ok := err.(Alert); ok {
 		level = responseErr.Level()
 		message = responseErr.Local()
+	}
+
+	if ctx.Get("HX-Error-Wrap") == "false" {
+		return ctx.SendString(message)
 	}
 
 	bind := fiber.Map{

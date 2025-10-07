@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql/driver"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/environment"
@@ -95,7 +96,7 @@ func (description Description) IsValid() bool {
 type MessageContent string
 
 func (messageContent MessageContent) IsValid() bool {
-	return len(messageContent) <= environment.ChatMessageMaxLength
+	return len(strings.TrimSpace(string(messageContent))) > 0 && len(messageContent) <= environment.ChatMessageMaxLength
 }
 
 type Avatar string

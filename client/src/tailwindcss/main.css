@@ -258,7 +258,7 @@ sl-card.group-card {
     }
 
     #send-message-error:not(:empty) {
-        @apply p-1 text-white;
+        @apply py-1 px-2.5 text-white font-bold;
     }
 
     .box {

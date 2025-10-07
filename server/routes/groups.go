@@ -70,7 +70,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					// )
 
 					htmx.Redirect(ctx, group.Url(ctx))
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
@@ -114,7 +114,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, htmx.Path(ctx))
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
@@ -153,7 +153,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 						session.PickMessages,
 					)
 
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
@@ -198,7 +198,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, group.Url(ctx))
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
@@ -281,7 +281,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, "/chat")
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
@@ -300,7 +300,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.EnableRefresh(ctx)
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)

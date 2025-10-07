@@ -94,7 +94,7 @@ func RouteAccount(app *fiber.App) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, htmx.Path(ctx))
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
@@ -141,9 +141,9 @@ func RouteAccount(app *fiber.App) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, htmx.Path(ctx))
-
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
+
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
@@ -183,7 +183,7 @@ func RouteAccount(app *fiber.App) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, htmx.Path(ctx))
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
