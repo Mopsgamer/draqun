@@ -12,7 +12,6 @@ import (
 )
 
 func GroupByIdFromCtx(ctx fiber.Ctx, groupIdUri string) (group model.Group, err error) {
-	err = nil
 	groupId := fiber.Params[uint64](ctx, groupIdUri)
 	group, err = model.NewGroupFromId(groupId)
 	if group.IsEmpty() {
@@ -25,7 +24,6 @@ func GroupByIdFromCtx(ctx fiber.Ctx, groupIdUri string) (group model.Group, err 
 }
 
 func GroupByNameFromCtx(ctx fiber.Ctx, groupNameUri string) (group model.Group, err error) {
-	err = nil
 	groupName := model.Name(fiber.Params[string](ctx, groupNameUri))
 	group, err = model.NewGroupFromName(groupName)
 	if group.IsEmpty() {

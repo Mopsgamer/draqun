@@ -73,7 +73,6 @@ func LoadMeta(embedFS fs.FS) {
 
 // LoadEnv environemnt variables from the '.env' file. Exits if any errors.
 func LoadEnv(embedFS fs.FS) (errEnv error) {
-	errEnv = nil
 	if err := godotenv.Load(); err != nil {
 		if os.IsNotExist(err) {
 			NoEnv = true
