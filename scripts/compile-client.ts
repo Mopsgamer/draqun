@@ -141,7 +141,7 @@ type Call<Args extends (...args: any[]) => Promise<void>> = [
 ];
 
 const slAlias = ["shoelace", "shoe", "sl"];
-const slAssets = slAlias.map(a => (a+"-assets"));
+const slAssets = slAlias.map((a) => (a + "-assets"));
 
 const calls: [() => Promise<void>, string, string[]][] = [
     [
