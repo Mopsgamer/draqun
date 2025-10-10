@@ -141,6 +141,7 @@ type Call<Args extends (...args: any[]) => Promise<void>> = [
 ];
 
 const slAlias = ["shoelace", "shoe", "sl"];
+const slAssets = slAlias.map(a => (a+"-assets"));
 
 const calls: [() => Promise<void>, string, string[]][] = [
     [
@@ -151,7 +152,7 @@ const calls: [() => Promise<void>, string, string[]][] = [
                 { overwrite: true },
             ),
         `./${distFolder}/static/shoelace/assets`,
-        [...slAlias],
+        [...slAssets, ...slAlias],
     ],
 
     [
