@@ -248,7 +248,12 @@ if (existingGroupsUsed) {
 await Promise.allSettled(calls.map(([builder, directory]) => {
     return logClientComp.task({ text: "Bundling " + directory }).startRunner(
         limit1(async (): Promise<TaskStateEnd> => {
-            await builder();
+            try {
+                await builder();
+            } catch (err) {
+                logClientComp.error(format(err));
+                return "failed"
+            }
             return "completed";
         }),
     );
