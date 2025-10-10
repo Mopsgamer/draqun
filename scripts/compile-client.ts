@@ -252,7 +252,7 @@ await Promise.allSettled(calls.map(([builder, directory]) => {
                 await builder();
             } catch (err) {
                 logClientComp.error(format(err));
-                return "failed"
+                return "failed";
             }
             return "completed";
         }),
