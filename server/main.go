@@ -34,7 +34,6 @@ func Serve(embedFS fs.FS, clientEmbedded bool) {
 	}
 
 	app.Hooks().OnListen(func(data fiber.ListenData) error {
-		fmt.Println(meta)
 		return nil
 	})
 
@@ -59,10 +58,10 @@ func Serve(embedFS fs.FS, clientEmbedded bool) {
 }
 
 func metaString(clientEmbedded bool) string {
-	cliembColor := color.RGB(0, 180, 100)
+	clientEmbeddedColor := color.RGB(0, 180, 100)
 	clientEmbeddedStatus := "client not embedded"
 	if clientEmbedded {
-		cliembColor = color.New(color.FgHiRed)
+		clientEmbeddedColor = color.New(color.FgHiRed)
 		clientEmbeddedStatus = "client embedded"
 	}
 
@@ -78,10 +77,14 @@ func metaString(clientEmbedded bool) string {
 		prefix + "\n" +
 		prefix + version + "\n" +
 		prefix + color.HiRedString(environment.BuildModeName) + "\n" +
-		prefix + cliembColor.Sprint(clientEmbeddedStatus) + "\n" +
-		prefix
+		prefix + clientEmbeddedColor.Sprint(clientEmbeddedStatus) + "\n" +
+		prefix + "\n" +
+		"╰──\n"
 }
 
 func link(link, text string) string {
+	if color.NoColor {
+		return text
+	}
 	return fmt.Sprintf("\x1b]8;;%s\x1b\\%s\x1b]8;;\x1b\\", link, text)
 }
