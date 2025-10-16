@@ -91,9 +91,13 @@ func (member Member) Roles() []Role {
 }
 
 func (member Member) Role() Role {
-	roleList := member.Roles()
 	group := member.Group()
 	everyone := group.Everyone()
+	if group.OwnerId == member.UserId {
+		return NewAllAccessRole(true, everyone)
+	}
+
+	roleList := member.Roles()
 	if len(roleList) == 0 {
 		return everyone
 	}

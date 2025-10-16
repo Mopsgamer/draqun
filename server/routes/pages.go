@@ -16,13 +16,13 @@ func RoutePages(app *fiber.App) {
 	app.Get(
 		"/terms",
 		func(ctx fiber.Ctx) error {
-			return htmx.TryRenderPage(ctx, "terms", MapPage(ctx, fiber.Map{"Title": "Terms", "CenterContent": true}), "partials/main")
+			return htmx.TryRenderPage(ctx, "terms", MapPage(ctx, fiber.Map{"Title": "Terms"}), "partials/main")
 		},
 	)
 	app.Get(
 		"/privacy",
 		func(ctx fiber.Ctx) error {
-			return htmx.TryRenderPage(ctx, "privacy", MapPage(ctx, fiber.Map{"Title": "Privacy", "CenterContent": true}), "partials/main")
+			return htmx.TryRenderPage(ctx, "privacy", MapPage(ctx, fiber.Map{"Title": "Privacy"}), "partials/main")
 		},
 	)
 	app.Get(

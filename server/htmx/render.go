@@ -12,7 +12,6 @@ func TryRenderPage(ctx fiber.Ctx, name string, bind fiber.Map, layouts ...string
 		"Title":         "500",
 		"StatusCode":    fiber.StatusInternalServerError,
 		"StatusMessage": fiber.ErrInternalServerError.Message,
-		"CenterContent": true,
 	})
 	if err != nil {
 		ctx.Render(

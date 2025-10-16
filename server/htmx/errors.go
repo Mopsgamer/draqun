@@ -18,8 +18,8 @@ var (
 		Danger,
 	)
 	AlertUseless = NewAlert(
-		errors.Join(fiber.ErrNotFound, errors.New("change: useless")),
-		"Change is not necessary.",
+		errors.Join(fiber.ErrNotFound, errors.New("action: useless")),
+		"This action is useless.",
 		Danger,
 	)
 

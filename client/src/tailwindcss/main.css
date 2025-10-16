@@ -61,7 +61,7 @@
         @apply relative flex flex-col h-full overflow-auto;
     }
 
-    #main:has(#centered-main) {
+    :is(main#main, main#app-content):has(.centered-main) {
         @apply flex flex-col size-full justify-center items-center;
     }
 

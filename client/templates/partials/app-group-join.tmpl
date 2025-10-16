@@ -1,10 +1,13 @@
 <main id="app-content">
-    <div class="centered-main gap-5">
+    <div class="centered-main gap-5 flex flex-col items-center">
         <sl-avatar shape="rounded" style="--size: 5rem">
             <sl-icon slot="icon" name="people-fill"></sl-icon>
         </sl-avatar>
-        Join to {{.Group.Moniker}} group?
-        <div class="aligned">
+        {{- with .Group.Description -}}
+        <div class="description">{{.}}</div>
+        {{- end -}}
+        <div class="question">Join to {{.Group.Moniker}} group?</div>
+        <div class="aligned answers" hx-target="#error-group-join">
             <sl-button
                 variant="success"
                 outline
@@ -18,5 +21,6 @@
                 Stay
             </sl-button>
         </div>
+        <div id="error-group-join"></div>
     </div>
 </main>

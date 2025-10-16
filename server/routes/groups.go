@@ -37,13 +37,16 @@ type GroupChange struct {
 func RouteGroups(app *fiber.App) fiber.Router {
 	return app.Group("/groups").
 		Put("/:group_id/join",
+			perms.UserByAuth(),
 			perms.GroupById("group_id"),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id")
 				member := fiber.Locals[model.Member](ctx, perms.LocalMember)
 				if member.IsEmpty() {
 					// never been a member
-					member = model.NewMember(group.Id, member.UserId, "")
+					user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+					member = model.NewMember(group.Id, user.Id, "")
 					if err := member.Insert(); err != nil {
 						return htmx.AlertDatabase.Join(err)
 					}

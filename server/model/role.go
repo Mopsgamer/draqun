@@ -149,6 +149,7 @@ func (role Role) IsEmpty() bool {
 }
 
 // permissions
+//
 // NOTE: Keep 'none' at the end and 'disallow' at the first places.
 var (
 	permSwitch   = []PermSwitch{PermSwitchDisallow, PermSwitchAllow, PermSwitchNone}
@@ -167,6 +168,7 @@ func (r *Role) Merge(roleList ...Role) {
 	}
 }
 
+// Enabled rights have priority over disabled rights.
 func mergePerm[T PermSwitch | PermMessages | PermMembers](list []T, perm1, perm2 T) T {
 	for _, perm := range list {
 		if perm1 == perm || perm2 == perm {
@@ -190,12 +192,12 @@ func NewRoleFromName(name Name, groupId uint64) (Role, error) {
 	return role, First(TableRoles, goqu.Ex{"name": name, "group_id": groupId}, &role)
 }
 
-const Everyone Name = "@everyone"
+const roleNameEveryone Name = "@everyone"
 
 func NewRoleEveryone(groupId uint64) Role {
 	return Role{
 		GroupId: groupId,
-		Name:    Everyone,
+		Name:    roleNameEveryone,
 		Moniker: "everyone",
 
 		PermMessages:    PermMessagesWrite,
@@ -204,6 +206,24 @@ func NewRoleEveryone(groupId uint64) Role {
 		PermGroupChange: PermSwitchDisallow,
 		PermAdmin:       PermSwitchDisallow,
 	}
+}
+
+func NewAllAccessRole(allow bool, role Role) Role {
+	if allow {
+		role.PermMessages = PermMessagesDelete
+		role.PermRoles = PermSwitchAllow
+		role.PermMembers = PermMembersDelete
+		role.PermGroupChange = PermSwitchAllow
+		role.PermAdmin = PermSwitchAllow
+		return role
+	}
+
+	role.PermMessages = PermMessagesHidden
+	role.PermRoles = PermSwitchDisallow
+	role.PermMembers = PermMembersRead
+	role.PermGroupChange = PermSwitchDisallow
+	role.PermAdmin = PermSwitchDisallow
+	return role
 }
 
 func (role *Role) Insert() error {

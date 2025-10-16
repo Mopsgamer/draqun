@@ -2,11 +2,20 @@ package model
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"golang.org/x/exp/constraints"
 )
+
+func wrapSqlError(err error, sql string, args []any) error {
+	if err != nil {
+		return errors.Join(err, errors.New("query: "+sql), errors.New("args: "+fmt.Sprintf("%#v", args)))
+	}
+	return nil
+}
 
 func First[T any](table string, ex goqu.Ex, item *T) (err error) {
 	sql, args, err := Goqu.From(table).Select(item).Where(ex).Prepared(true).ToSQL()
@@ -15,6 +24,7 @@ func First[T any](table string, ex goqu.Ex, item *T) (err error) {
 	}
 
 	err = Sqlx.QueryRowx(sql, args...).StructScan(item)
+	err = wrapSqlError(err, sql, args)
 	return
 }
 
@@ -25,6 +35,7 @@ func Last[T any](table string, ex goqu.Ex, key exp.IdentifierExpression, item *T
 	}
 
 	err = Sqlx.QueryRowx(sql, args...).StructScan(item)
+	err = wrapSqlError(err, sql, args)
 	return
 }
 
@@ -35,10 +46,7 @@ func insert[T any](table string, item *T) (result sql.Result, err error) {
 	}
 
 	result, err = Sqlx.Exec(sql, args...)
-	if err != nil {
-		return
-	}
-
+	err = wrapSqlError(err, sql, args)
 	return
 }
 
@@ -69,10 +77,7 @@ func Update[T any](table string, item T, ex goqu.Ex) (err error) {
 	}
 
 	_, err = Sqlx.Exec(sql, args...)
-	if err != nil {
-		return
-	}
-
+	err = wrapSqlError(err, sql, args)
 	return
 }
 
@@ -83,5 +88,6 @@ func Delete[T string | []any](table T, ex goqu.Ex) (err error) {
 	}
 
 	_, err = Sqlx.Exec(sql, args...)
+	err = wrapSqlError(err, sql, args)
 	return
 }

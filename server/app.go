@@ -90,7 +90,6 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 					"Title":         "404",
 					"StatusCode":    fiber.StatusNotFound,
 					"StatusMessage": fiber.ErrNotFound.Message,
-					"CenterContent": true,
 				}),
 				"partials/main",
 			)

@@ -12,7 +12,7 @@
         {{- template "partials/settings-dialog" . -}}
         {{- template "partials/new-group-dialog" . -}}
         {{- if not .Group.IsEmpty -}}
-            {{- template "partials/group-settings-dialog"  -}}
+            {{- template "partials/group-settings-dialog" . -}}
         {{- else -}}
             {{- $groupList := .User.GroupList -}}
             {{- $memberList := .User.MemberList -}}

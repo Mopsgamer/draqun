@@ -123,7 +123,7 @@ func (group Group) Owner() User {
 }
 
 func (group Group) Everyone() Role {
-	role, _ := NewRoleFromName(Everyone, group.Id)
+	role, _ := NewRoleFromName(roleNameEveryone, group.Id)
 	return role
 }
 

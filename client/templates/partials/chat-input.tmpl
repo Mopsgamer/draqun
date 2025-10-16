@@ -40,13 +40,13 @@
             <sl-breadcrumb-item href="/chat/groups/{{.Group.Id}}">
                 <sl-icon name="people" slot="prefix"></sl-icon>
                 <div class="name">{{- .Group.Moniker -}}</div>
-                {{- if or .Role.ChangeGroup}}
+                {{- if .Member.Role.PermGroupChange.Has -}}
                 <div class="group-actions" slot="suffix">
                     {{template "partials/group-actions" .Group}}
                 </div>
-                {{- end}}
+                {{- end -}}
             </sl-breadcrumb-item>
-            {{- end}}
+            {{- end -}}
         </sl-breadcrumb>
     </div>
 </div>
