@@ -34,7 +34,9 @@ function getTheme(): Theme {
  * Set the theme in localStorage and apply it to the document body.
  */
 function setTheme(theme: Theme): void {
-    localStorage.setItem("theme", theme);
+    if (location.pathname !== "/docs") {
+        localStorage.setItem("theme", theme);
+    }
 
     const target = document.documentElement;
     target.classList.remove(...themeList);
