@@ -52,7 +52,7 @@ func NewAppHtmlEngine(embedFS fs.FS, clientEmbedded bool, directory string) *htm
 			return before + after
 		},
 		"jsonTime": func(t time.Time) string {
-			return t.Format("2006-01-02T15:04:05.000Z")
+			return t.Format(time.RFC3339)
 		},
 		"hidePhone": func(phone model.Phone) string {
 			if len(phone) > 5 {
