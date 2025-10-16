@@ -15,275 +15,291 @@
     @apply flex flex-col gap-4;
 }
 
-#header {
-    @apply relative flex justify-between bg-neutral-100 p-4 shadow-lg z-20;
-    & > nav {
+@layer base {
+    #header {
+        @apply relative flex justify-between bg-neutral-100 p-4 shadow-lg z-20;
+    }
+
+    #header > nav {
         @apply flex items-center;
     }
-    sl-icon-button {
+
+    #header sl-icon-button {
         @apply text-3xl;
     }
-}
 
-#main {
-    @apply h-full overflow-auto;
-}
-
-#footer {
-    @apply relative flex flex-row flex-wrap justify-between bg-neutral-200 p-24 gap-12;
-    section {
-        @apply flex flex-col gap-4;
-        h1, h2, h3, h4, h5, h6 {
-            @apply m-0 border-none text-neutral-1000;
-        }
-        nav {
-            @apply flex flex-col gap-1 text-lg;
-            a {
-                @apply flex items-center gap-3;
-                &:hover {
-                    @apply text-primary-600;
-                }
-            }
-        }
+    #main {
+        @apply h-full overflow-auto;
     }
-}
 
-/* normal body contains modals. real body must not */
-#real-body {
-    @apply relative flex flex-col h-full overflow-auto;
-    .center-content {
+    #footer {
+        @apply relative flex flex-row flex-wrap justify-between bg-neutral-200 p-24 gap-12;
+    }
+
+    #footer section {
+        @apply flex flex-col gap-4;
+    }
+
+    #footer section :is(h1, h2, h3, h4, h5, h6) {
+        @apply m-0 border-none text-neutral-1000;
+    }
+
+    #footer section nav {
+        @apply flex flex-col gap-1 text-lg;
+    }
+
+    #footer section nav a {
+        @apply flex items-center gap-3;
+    }
+
+    #footer section nav a:hover {
+        @apply text-primary-600;
+    }
+
+    /* normal body contains modals. the real body must not */
+    #real-body {
+        @apply relative flex flex-col h-full overflow-auto;
+    }
+
+    #main:has(#centered-main) {
         @apply flex flex-col size-full justify-center items-center;
     }
-}
 
-/* content between header and footer */
-#app-content {
-    @apply relative bg-neutral-50 flex flex-col w-svw h-svh overflow-hidden;
-    &:has(#chat) {
+    /* content between header and footer */
+    #app-content {
+        @apply relative bg-neutral-50 flex flex-col w-svw h-svh overflow-hidden;
+    }
+
+    #app-content:has(#chat) {
         @apply flex-row;
     }
-}
 
-#chat-view, #members-view {
-    @apply relative flex flex-col size-full gap-1;
-}
+    #chat-view, #members-view {
+        @apply relative flex flex-col size-full gap-1;
+    }
 
-:is(#members-view) {
-    @apply hidden;
-    &.open {
+    #members-view {
+        @apply hidden;
+    }
+
+    #members-view.open {
         @apply flex;
     }
-}
 
-#chat-view {
-    @apply gap-2 hidden group-[:not(:has(.open))]:flex md:flex;
-}
+    #chat-view {
+        @apply gap-2 hidden group-[:not(:has(.open))]:flex md:flex;
+    }
 
-#members-view {
-    @apply p-3 md:w-56 text-2xl md:text-base bg-neutral-50 snap-y;
-}
+    #members-view {
+        @apply p-3 md:w-56 text-2xl md:text-base bg-neutral-50 snap-y;
+    }
 
-#members {
-    @apply flex flex-col gap-1;
-}
+    #members {
+        @apply flex flex-col gap-1;
+    }
 
-#chat {
-    @apply relative bg-neutral-100 snap-y flex flex-col size-full p-3 pb-6 overflow-y-auto overflow-x-hidden;
-}
+    #chat {
+        @apply relative bg-neutral-100 snap-y flex flex-col size-full p-3 pb-6 overflow-y-auto overflow-x-hidden;
+    }
 
-body:has(:not(:defined)) {
-    @apply hidden;
-}
+    body:has(:not(:defined)) {
+        @apply hidden;
+    }
 
-body {
-    @apply h-svh bg-neutral-100 text-neutral-700;
-}
+    body {
+        @apply h-svh bg-neutral-100 text-neutral-700;
+    }
 
-:is(code, pre) {
-    &:not(.swagger-ui &) {
+    :is(code, pre):not(.swagger-ui *) {
         @apply border-neutral-200 border bg-neutral-50 rounded-sm p-1;
     }
-}
 
-pre:not(.swagger-ui pre) {
-    @apply overflow-auto;
-}
-
-table:not(.swagger-ui table) {
-    @apply border-collapse;
-    & > tbody {
-        @apply border bg-neutral-50 rounded-sm;
+    pre:not(.swagger-ui *) {
+        @apply overflow-auto;
     }
-    th, td {
-        @apply p-2 border border-neutral-300 text-neutral-700;
+
+    table:not(.swagger-ui *) {
+        @apply border-collapse;
+        & > tbody {
+            @apply border bg-neutral-50 rounded-sm;
+        }
+        th, td {
+            @apply p-2 border border-neutral-300 text-neutral-700;
+        }
+        th {
+            @apply bg-neutral-200;
+        }
     }
-    th {
-        @apply bg-neutral-200;
+
+    form {
+        @apply section;
     }
-}
 
-form {
-    @apply section;
-}
+    h1, h2, h3, h4, h5, h6 {
+        @apply aligned relative p-2 border-neutral-200 font-bold;
+    }
 
-h1, h2, h3, h4, h5, h6 {
-    @apply aligned relative p-2 border-neutral-200 font-bold;
-}
-h1 {
-    @apply text-4xl mt-12 mb-6;
-}
-h2 {
-    @apply text-3xl mt-9 mb-5 border-b;
-}
-h3 {
-    @apply text-2xl mt-9 mb-4 border-b;
-}
-h4 {
-    @apply text-xl mt-7 mb-3 border-b;
-}
-h5 {
-    @apply text-lg mt-7 mb-2;
-}
-h6 {
-    @apply text-base mt-5 mb-1;
-}
+    h1 {
+        @apply text-4xl mt-12 mb-6;
+    }
 
-.note-header {
-    @apply text-neutral-500 p-2 font-semibold;
-}
+    h2 {
+        @apply text-3xl mt-9 mb-5 border-b;
+    }
 
-.dialog-footer {
-    @apply flex flex-col gap-2;
-    div {
+    h3 {
+        @apply text-2xl mt-9 mb-4 border-b;
+    }
+
+    h4 {
+        @apply text-xl mt-7 mb-3 border-b;
+    }
+
+    h5 {
+        @apply text-lg mt-7 mb-2;
+    }
+
+    h6 {
+        @apply text-base mt-5 mb-1;
+    }
+
+    .note-header {
+        @apply text-neutral-500 p-2 font-semibold;
+    }
+
+    .dialog-footer {
+        @apply flex flex-col gap-2;
+    }
+
+    .dialog-footer div {
         @apply aligned flex justify-end items-center gap-2;
     }
-}
 
-sl-carousel.group-card {
-    &::part(base) {
-        @apply min-h-44;
+    sl-card.group-card {
+        --padding: var(--spacing-3);
     }
-}
 
-sl-card.group-card {
-    --padding: var(--spacing-3);
-    &::part(base) {
-        @apply min-w-full max-w-full min-h-full max-h-full block overflow-hidden;
+    a > sl-card.group-card::part(base) {
+        @apply cursor-pointer;
     }
-    a > & {
-        &::part(base) {
-            @apply cursor-pointer;
-        }
-        &:hover::part(base) {
-            --sl-panel-background-color: var(--color-neutral-100);
-        }
+
+    a > sl-card.group-card:hover::part(base) {
+        --sl-panel-background-color: var(--color-neutral-100);
     }
-    .group-card-header {
+
+    sl-card.group-card .group-card-header {
         @apply aligned justify-between w-full overflow-hidden;
-        .name {
-            @apply font-semibold w-full;
-        }
-        .suffix {
-            @apply flex w-full justify-end items-center flex-col overflow-hidden;
-        }
     }
-    .group-actions {
+
+    sl-card.group-card .group-card-header .name {
+        @apply font-semibold w-full;
+    }
+
+    sl-card.group-card .group-card-header .suffix {
+        @apply flex w-full justify-end items-center flex-col overflow-hidden;
+    }
+
+    sl-card.group-card .group-actions {
         @apply aligned w-full justify-end;
     }
-}
 
-.moniker {
-    @apply limited max-w-52;
-}
+    .moniker {
+        @apply limited max-w-52;
+    }
 
-.message {
-    @apply relative flex flex-col max-w-full /*rounded-md*/ p-2 gap-1;
-    .header {
+    #chat .moniker {
+        @apply font-bold;
+    }
+
+    .message {
+        @apply relative flex flex-col max-w-full /*rounded-md*/ p-2 gap-1;
+    }
+
+    .message .header {
         @apply aligned justify-between top-0 right-0 left-0;
     }
-    .prefix, .suffix {
+
+    .message .prefix, .suffix {
         @apply aligned;
     }
-    .date {
+
+    .message .date {
         @apply text-neutral-500 invisible;
     }
-    .text {
+
+    .message .text {
         @apply aligned pl-10;
     }
-}
 
-.message:hover {
-    .date {
+    .message:hover .date {
         @apply visible;
     }
-}
 
-.message.same-date {
-    .header {
+    .message.same-date .header {
         @apply absolute;
     }
-    .prefix {
+
+    .message.same-date .prefix {
         @apply invisible;
     }
-}
 
-.message.join-start {
-    @apply rounded-t-none;
-    .prefix {
+    .message.join-start {
+        @apply rounded-t-none;
+    }
+
+    .message.join-start .prefix {
         @apply invisible;
     }
-}
 
-.message.join-end {
-    @apply rounded-b-none;
-}
-
-.message + .message:not(.join-start) {
-    @apply mt-2;
-}
-
-#new-message-input {
-    @apply z-20;
-}
-
-.chat-input {
-    @apply aligned flex-col w-full p-5 pb-9 pt-6 h-fit gap-2;
-    --sl-input-font-size-medium: var(--text-base);
-    --sl-input-filled-background-color: var(--color-neutral-200);
-    --sl-input-filled-background-color-focus: var(--color-neutral-0);
-    --sl-input-filled-background-color-hover: var(--color-neutral-300);
-
-    & > * {
-        @apply aligned flex-row w-full;
+    .message.join-end {
+        @apply rounded-b-none;
     }
 
-    #send-message-error:not(:empty) {
+    .message + .message:not(.join-start) {
+        @apply mt-2;
+    }
+
+    #new-message-input {
+        @apply z-20;
+    }
+
+    .chat-input {
+        @apply aligned flex-col w-full p-5 pb-9 pt-6 h-fit gap-2;
+        --sl-input-font-size-medium: var(--text-base);
+        --sl-input-filled-background-color: var(--color-neutral-200);
+        --sl-input-filled-background-color-focus: var(--color-neutral-0);
+        --sl-input-filled-background-color-hover: var(--color-neutral-300);
+    }
+
+    .chat-input #send-message-error:not(:empty) {
         @apply py-1 px-2.5 text-white font-bold;
     }
 
-    .box {
+    .chat-input .box {
         @apply flex flex-col w-full rounded-sm rounded-b-xl;
-        &:has(#send-message-error:not(:empty)) {
-            @apply bg-danger-500;
-        }
     }
 
-    .right {
+    .chat-input .box:has(#send-message-error:not(:empty)) {
+        @apply bg-danger-500;
+    }
+
+    .chat-input .right {
         @apply flex flex-col;
     }
 
-    .bottom {
+    .chat-input .bottom {
         @apply h-fit flex-wrap;
     }
 
-    sl-textarea::part(textarea) {
+    .chat-input sl-textarea::part(textarea) {
         @apply max-h-20 overflow-auto leading-5;
     }
-}
 
-.member {
-    @apply aligned bg-black/10 snap-center p-4 md:p-1.5 rounded-md select-none overflow-hidden;
-    .text {
+    .member {
+        @apply aligned bg-black/10 snap-center p-4 md:p-1.5 rounded-md select-none overflow-hidden;
+    }
+
+    .member .text {
         @apply aligned overflow-hidden w-full;
     }
 }

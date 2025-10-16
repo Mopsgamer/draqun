@@ -9,18 +9,13 @@
     </head>
 
     <body hx-ext="shoelace,debug">
-        {{- template "partials/login-dialog" .}} {{- template
-        "partials/signup-dialog" .}}
+        {{- template "partials/login-dialog" .}}
+        {{- template "partials/signup-dialog" .}}
         <div id="real-body">
-            {{- template "partials/header" .}} {{- if .CenterContent}}
-            <main id="main" class="center-content">
-                {{- embed}} {{- template "partials/footer" .}}
-            </main>
-            {{- else}}
+            {{- template "partials/header" .}}
             <main id="main">
                 {{- embed}} {{- template "partials/footer" .}}
             </main>
-            {{- end}}
         </div>
     </body>
 </html>

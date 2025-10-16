@@ -1,5 +1,6 @@
 <div class="chat-input">
     <form
+        class="aligned flex-row w-full"
         id="send-message-form"
         hx-trigger="submit, keydown[key=='Enter'&&ctrlKey] from:#new-message-input"
         hx-target="#send-message-error"
@@ -29,7 +30,7 @@
             </sl-button>
         </div>
     </form>
-    <div class="bottom">
+    <div class="bottom aligned flex-row w-full">
         <sl-breadcrumb class="ml-3">
             <sl-breadcrumb-item href="/chat">
                 <sl-icon name="house" slot="prefix"></sl-icon>
