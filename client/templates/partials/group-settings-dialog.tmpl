@@ -4,23 +4,23 @@
     label="Group settings dialog for {{.Group.Moniker}}"
 >
     <span slot="label" class="aligned">
-        <sl-icon name="people"></sl-icon>
+        <sl-icon name="people-fill"></sl-icon>
         Group settings - {{.Group.Moniker}}
     </span>
     <div>
         <h1 class="anchor-header">
-            <sl-icon name="person"></sl-icon>
+            <sl-icon name="person-fill"></sl-icon>
             General settings
         </h1>
         <sl-alert open variant="primary">
-            <sl-icon slot="icon" name="info-circle"></sl-icon>
+            <sl-icon slot="icon" name="info-circle-fill"></sl-icon>
             {{- "" -}} You can invite more people. Share the link {{- "" -}}
             <sl-copy-button id="copy-invite" hoist value="{{.Group.UrlJoin .Ctx}}">
                 {{- "" -}}
             </sl-copy-button>{{- "" -}}.{{- "" -}}
         </sl-alert>
         <h4 slot="header" class="aligned">
-            <sl-icon name="pen"></sl-icon>
+            <sl-icon name="pen-fill"></sl-icon>
             Group profile
         </h4>
         <form
@@ -57,7 +57,10 @@
                 {{if
                 .Group.Password}}value="{{.Group.Password}}"
                 {{end}}
-            ></sl-input>
+            >
+            <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
+            <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
+            </sl-input>
             <sl-textarea
                 label="Description"
                 id="change-group-description"
@@ -88,7 +91,7 @@
         {{/*TODO: delete group button*/}}
         <!-- <div>
             <h1 class="anchor-header">
-                <sl-icon name="exclamation-triangle"></sl-icon>
+                <sl-icon name="exclamation-triangle-fill"></sl-icon>
                 Danger zone
             </h1>
             <div class="dialog-footer">

@@ -61,8 +61,8 @@
         @apply relative flex flex-col h-full overflow-auto;
     }
 
-    :is(main#main, main#app-content):has(.centered-main) {
-        @apply flex flex-col size-full justify-center items-center;
+    .centered-main {
+        @apply flex flex-col w-full h-[100lvh] justify-center items-center;
     }
 
     /* content between header and footer */

@@ -44,7 +44,10 @@
             id="signup-password"
             name="password"
             required
-        ></sl-input>
+        >
+        <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
+        <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
+        </sl-input>
         <sl-input
             label="Confirm password"
             password-toggle
@@ -53,7 +56,10 @@
             autocomplete="off"
             name="confirm-password"
             required
-        ></sl-input>
+        >
+        <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
+        <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
+        </sl-input>
         <div id="signup-error"></div>
     </form>
     <div slot="footer" class="dialog-footer">

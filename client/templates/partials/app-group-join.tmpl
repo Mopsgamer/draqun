@@ -1,5 +1,5 @@
-<main id="app-content">
-    <div class="centered-main gap-5 flex flex-col items-center">
+<main id="app-content" class="centered-main">
+    <div class="gap-5 flex flex-col items-center">
         <sl-avatar shape="rounded" style="--size: 5rem">
             <sl-icon slot="icon" name="people-fill"></sl-icon>
         </sl-avatar>
@@ -13,11 +13,11 @@
                 outline
                 hx-put="/groups/{{.Group.Id}}/join"
             >
-                <sl-icon name="plus" slot="prefix"></sl-icon>
+                <sl-icon name="person-plus-fill" slot="prefix"></sl-icon>
                 Join
             </sl-button>
             <sl-button variant="danger" outline href="/chat">
-                <sl-icon name="house" slot="prefix"></sl-icon>
+                <sl-icon name="house-fill" slot="prefix"></sl-icon>
                 Stay
             </sl-button>
         </div>

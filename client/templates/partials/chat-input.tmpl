@@ -26,19 +26,19 @@
                 form="send-message-form"
                 type="submit"
             >
-                <sl-icon name="send"></sl-icon>
+                <sl-icon name="send-fill"></sl-icon>
             </sl-button>
         </div>
     </form>
     <div class="bottom aligned flex-row w-full">
         <sl-breadcrumb class="ml-3">
             <sl-breadcrumb-item href="/chat">
-                <sl-icon name="house" slot="prefix"></sl-icon>
+                <sl-icon name="house-fill" slot="prefix"></sl-icon>
                 {{.AppName}}
             </sl-breadcrumb-item>
             {{- if not .Group.IsEmpty -}}
             <sl-breadcrumb-item href="/chat/groups/{{.Group.Id}}">
-                <sl-icon name="people" slot="prefix"></sl-icon>
+                <sl-icon name="people-fill" slot="prefix"></sl-icon>
                 <div class="name">{{- .Group.Moniker -}}</div>
                 {{- if .Member.Role.PermGroupChange.Has -}}
                 <div class="group-actions" slot="suffix">

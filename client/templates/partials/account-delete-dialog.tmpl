@@ -1,6 +1,6 @@
 <sl-dialog label="Dialog" id="account-delete-dialog">
     <span slot="label" class="aligned">
-        <sl-icon name="exclamation-triangle"></sl-icon>
+        <sl-icon name="exclamation-triangle-fill"></sl-icon>
         Delete account
     </span>
     <form
@@ -21,6 +21,8 @@
             password-toggle
             autocomplete="password"
         >
+        <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
+        <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
         </sl-input>
         <sl-input
             label="Confirm name ({{.User.Name}})"

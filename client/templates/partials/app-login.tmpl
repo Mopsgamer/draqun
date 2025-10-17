@@ -12,11 +12,11 @@
         {{- template "partials/login-dialog" .}} {{- template
         "partials/signup-dialog" .}}
         <div id="real-body">
-            <main id="main">
+            <main id="main" class="centered-main">
                 <div class="text-3xl font-bold">
                     You're not logged in.
                 </div>
-                <div class="centered-main">
+                <div>
                     <sl-button
                         variant="text"
                         id="open-login-dialog-center"
@@ -26,7 +26,7 @@
                         Log In
                     </sl-button>
                     <sl-button variant="text" href="/">
-                        <sl-icon name="rocket"></sl-icon>
+                        <sl-icon name="rocket-fill"></sl-icon>
                         Landing page
                     </sl-button>
                 </div>

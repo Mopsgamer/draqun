@@ -2,13 +2,13 @@
 {{- $variant := .Variant -}}
 
 {{- if eq $variant "warning" -}}
-{{- $icon = "exclamation-triangle" -}}
+{{- $icon = "exclamation-triangle-fill" -}}
 {{- else if eq $variant "success" -}}
-{{- $icon = "check2-circle" -}}
+{{- $icon = "check-circle-fill" -}}
 {{- else if eq $variant "danger" -}}
-{{- $icon = "exclamation-octagon" -}}
+{{- $icon = "exclamation-octagon-fill" -}}
 {{- else if eq $variant "primary" -}}
-{{- $icon = "info" -}}
+{{- $icon = "info-circle-fill" -}}
 {{- end -}}
 <sl-alert open closable={{.Closable}} id={{.Id}} variant={{ $variant }}>
     <sl-icon slot="icon" name={{ $icon }}></sl-icon>
