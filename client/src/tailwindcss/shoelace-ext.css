@@ -5,35 +5,33 @@
     [slot=prefix] {
         margin-inline-end: var(--sl-spacing-x-small) !important;
     }
+
     [slot=suffix] {
         margin-inline-start: var(--sl-spacing-x-small) !important;
     }
+
+    sl-tooltip {
+        --max-width: 100svw;
+    }
+
+    sl-menu > sl-divider {
+        @apply border-b border-neutral-200;
+    }
+
+    sl-menu > sl-divider:is(:last-child, :first-child, sl-divider + *) {
+        @apply hidden;
+    }
+
+    sl-dialog::part(header) {
+        @apply shadow-md z-10;
+    }
+
+    sl-dialog.fullscreen-base::part(panel) {
+        @apply w-screen h-svh;
+        min-width: 100svw;
+        min-height: 100svh;
+        max-width: 100svw;
+        max-height: 100svh;
+    }
 }
 
-sl-tooltip {
-    --max-width: 100svw;
-}
-
-sl-menu > sl-divider {
-    @apply border-b border-neutral-200;
-}
-
-sl-menu > sl-divider:is(:last-child, :first-child, sl-divider + *) {
-    @apply hidden;
-}
-
-sl-button :not([variant=text]):is(.sl-theme-dark *)::part(base) {
-    @apply text-neutral-900;
-}
-
-sl-dialog::part(header) {
-    @apply shadow-md z-10;
-}
-
-sl-dialog.fullscreen-base::part(panel) {
-    @apply w-screen h-svh;
-    min-width: 100svw;
-    min-height: 100svh;
-    max-width: 100svw;
-    max-height: 100svh;
-}
