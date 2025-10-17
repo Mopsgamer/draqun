@@ -4,7 +4,6 @@ import (
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/log"
 )
 
 const (
@@ -81,7 +80,6 @@ func UseBind[T any]() fiber.Handler {
 			return err
 		}
 
-		log.Debug(string(ctx.BodyRaw()))
 		ctx.Locals(LocalForm, *request)
 		return ctx.Next()
 	}

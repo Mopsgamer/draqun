@@ -47,7 +47,7 @@ func MemberByAuthAndGroupIdFromCtx(ctx fiber.Ctx, groupIdUri string) error {
 		return err
 	}
 
-	member, err := model.NewMemberFromId(groupId, user.Id)
+	member, _ := model.NewMemberFromId(groupId, user.Id)
 	if member.IsEmpty() { // never been a member
 		return htmx.AlertGroupMemberNotFound
 	}
