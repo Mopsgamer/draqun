@@ -59,6 +59,29 @@ func MemberByAuthAndGroupIdFromCtx(ctx fiber.Ctx, groupIdUri string) error {
 	return nil
 }
 
+func MemberByAuthAndGroupNameFromCtx(ctx fiber.Ctx, groupNameUri string) error {
+	user, err := UserByAuthFromCtx(ctx)
+	if err != nil {
+		return err
+	}
+
+	group, err := GroupByNameFromCtx(ctx, groupNameUri)
+	if err != nil {
+		return err
+	}
+
+	member, _ := model.NewMemberFromId(group.Id, user.Id)
+	if member.IsEmpty() { // never been a member
+		return htmx.AlertGroupMemberNotFound
+	}
+
+	ctx.Locals(LocalMember, member)
+
+	role := member.Role()
+	ctx.Locals(LocalRights, role)
+	return nil
+}
+
 func checkCookieToken(value string) (token *jwt.Token, err error) {
 	if value == "" {
 		err = htmx.AlertUserUnauthorized

@@ -27,8 +27,6 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				return ctx.Redirect().To("/chat")
 			}
 
-			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
-			_ = member
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 			return htmx.TryRenderPage(ctx, "chat", MapPage(ctx, fiber.Map{"Title": group.Moniker}))
 		},
@@ -38,12 +36,13 @@ func routePagesChat(router fiber.Router) fiber.Router {
 		"/groups/join/:group_name",
 		perms.GroupByName("group_name"),
 		func(ctx fiber.Ctx) error {
-			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 			if !group.IsAvailable() || group.Mode == model.GroupModePrivate {
 				return ctx.Redirect().To("/chat")
 			}
 
+			perms.MemberByAuthAndGroupNameFromCtx(ctx, "group_name")
+			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
 			if member.IsAvailable() {
 				return ctx.Redirect().To(group.Url(ctx))
 			}
