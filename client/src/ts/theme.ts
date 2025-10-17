@@ -50,7 +50,9 @@ function setTheme(theme: Theme): void {
 }
 
 function updateThemeMenuElements(): void {
-    const menuList = Array.from(document.querySelectorAll<SlMenu | SlSelect>(".theme-menu"));
+    const menuList = Array.from(
+        document.querySelectorAll<SlMenu | SlSelect>(".theme-menu"),
+    );
     for (const menu of menuList) {
         if (menu instanceof SlSelect) {
             menu.value = getTheme();
@@ -82,9 +84,9 @@ function initThemeMenuElements(): void {
     for (const menu of menuList) {
         if (menu instanceof SlSelect) {
             menu.addEventListener("sl-change", () => {
-                const theme = menu.value as Theme
-                setTheme(theme)
-            })
+                const theme = menu.value as Theme;
+                setTheme(theme);
+            });
             continue;
         }
         if (menu instanceof SlMenu) {
