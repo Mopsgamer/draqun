@@ -1,4 +1,4 @@
-import type { SlMenu, SlMenuItem } from "@shoelace-style/shoelace";
+import { SlMenu, type SlMenuItem, SlSelect } from "@shoelace-style/shoelace";
 import { domLoaded } from "./lib.ts";
 
 enum Theme {
@@ -50,45 +50,65 @@ function setTheme(theme: Theme): void {
 }
 
 function updateThemeMenuElements(): void {
-    const menuList = Array.from(document.querySelectorAll(".theme-menu"));
-    const allItemList = menuList.flatMap(
-        (menu) =>
-            Array.from(
-                menu.querySelectorAll<SlMenuItem>(
-                    "sl-menu-item[type=checkbox][value]",
-                ),
-            ),
-    );
+    const menuList = Array.from(document.querySelectorAll<SlMenu | SlSelect>(".theme-menu"));
+    for (const menu of menuList) {
+        if (menu instanceof SlSelect) {
+            menu.value = getTheme();
+            continue;
+        }
+        if (menu instanceof SlMenu) {
+            const allItemList = menuList.flatMap(
+                (menu) => [
+                    ...menu.querySelectorAll<SlMenuItem>(
+                        "sl-menu-item[type=checkbox][value]",
+                    ),
+                ],
+            );
 
-    const theme = getTheme();
-    for (const child of allItemList) {
-        child.checked = child.value === theme;
+            const theme = getTheme();
+            for (const child of allItemList) {
+                child.checked = child.value === theme;
+            }
+            continue;
+        }
     }
 }
 
 function initThemeMenuElements(): void {
-    const menuList = Array.from(document.querySelectorAll(".theme-menu"));
+    const menuList = Array.from(
+        document.querySelectorAll<SlMenu | SlSelect>(".theme-menu"),
+    );
 
     for (const menu of menuList) {
-        (menu as SlMenu).addEventListener("sl-select", (event) => {
-            const item = event.detail.item as SlMenuItem;
-            if (item.type !== "checkbox") {
-                return;
-            }
+        if (menu instanceof SlSelect) {
+            menu.addEventListener("sl-change", () => {
+                const theme = menu.value as Theme
+                setTheme(theme)
+            })
+            continue;
+        }
+        if (menu instanceof SlMenu) {
+            menu.addEventListener("sl-select", (event) => {
+                const item = event.detail.item;
+                if (item.type !== "checkbox") {
+                    return;
+                }
 
-            const theme = item.value;
-            if (!isTheme(theme)) {
-                console.error(
-                    `Unknown theme ${theme}, can not change: %o.`,
-                    item,
-                );
-                item.checked = !item.checked;
-                return;
-            }
+                const theme = item.value;
+                if (!isTheme(theme)) {
+                    console.error(
+                        `Unknown theme ${theme}, can not change: %o.`,
+                        item,
+                    );
+                    item.checked = !item.checked;
+                    return;
+                }
 
-            setTheme(theme);
-            updateThemeMenuElements();
-        });
+                setTheme(theme);
+                updateThemeMenuElements();
+            });
+            continue;
+        }
     }
 }
 

@@ -175,7 +175,7 @@
         @apply aligned flex justify-end items-center gap-2;
     }
 
-    sl-card.group-card {
+    sl-card.group-card .group-card-header {
         --padding: var(--spacing-3);
     }
 
