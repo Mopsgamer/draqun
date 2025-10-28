@@ -1,4 +1,4 @@
-import { SlMenu, type SlMenuItem, SlSelect } from "@shoelace-style/shoelace";
+import { SlMenuItem, SlSelect } from "@shoelace-style/shoelace";
 import { domLoaded } from "./lib.ts";
 
 enum Theme {
@@ -51,14 +51,14 @@ function setTheme(theme: Theme): void {
 
 function updateThemeMenuElements(): void {
     const menuList = Array.from(
-        document.querySelectorAll<SlMenu | SlSelect>(".theme-menu"),
+        document.querySelectorAll<SlMenuItem | SlSelect>(".theme-menu"),
     );
     for (const menu of menuList) {
         if (menu instanceof SlSelect) {
             menu.value = getTheme();
             continue;
         }
-        if (menu instanceof SlMenu) {
+        if (menu instanceof SlMenuItem) {
             const allItemList = menuList.flatMap(
                 (menu) => [
                     ...menu.querySelectorAll<SlMenuItem>(
@@ -78,7 +78,7 @@ function updateThemeMenuElements(): void {
 
 function initThemeMenuElements(): void {
     const menuList = Array.from(
-        document.querySelectorAll<SlMenu | SlSelect>(".theme-menu"),
+        document.querySelectorAll<SlMenuItem | SlSelect>(".theme-menu"),
     );
 
     for (const menu of menuList) {
@@ -89,7 +89,7 @@ function initThemeMenuElements(): void {
             });
             continue;
         }
-        if (menu instanceof SlMenu) {
+        if (menu instanceof SlMenuItem) {
             menu.addEventListener("sl-select", (event) => {
                 const item = event.detail.item;
                 if (item.type !== "checkbox") {
