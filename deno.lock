@@ -23,7 +23,7 @@
     "npm:esbuild@~0.25.11": "0.25.11",
     "npm:esbuild@~0.25.5": "0.25.11",
     "npm:htmx-ext-debug@^2.0.2": "2.0.2",
-    "npm:htmx-ext-ws@2.0.3": "2.0.3",
+    "npm:htmx-ext-ws@2.0.4": "2.0.4",
     "npm:htmx.org@^2.0.8": "2.0.8",
     "npm:is-ci@^4.1.0": "4.1.0",
     "npm:is-interactive@2": "2.0.0",
@@ -757,17 +757,14 @@
     "htmx-ext-debug@2.0.2": {
       "integrity": "sha512-G3QCwvvxtvknrM1meIseCtGzNpGKNs5EoqymSeQyXWqII0PfUGavmDo5h4x/efq5kkMe14Yb3YKnOVxuLxDOdA==",
       "dependencies": [
-        "htmx.org@2.0.8"
+        "htmx.org"
       ]
     },
-    "htmx-ext-ws@2.0.3": {
-      "integrity": "sha512-782KDh1EHS1iJk9SWXlbNN8DkwHR3ujt8lFnsuQ+o2uBwnZM8WeZOkv1WOER7xXhpZJe4u9oLPhQg5RgCuRAHA==",
+    "htmx-ext-ws@2.0.4": {
+      "integrity": "sha512-LnOpFRL/2hInhdKl/9N0OJsb4GYQ5/teUdTHNZYY9ytYdxYEqjfLEe0MWgF3ODjfwGJRb4E95igAbU66te48ZA==",
       "dependencies": [
-        "htmx.org@2.0.7"
+        "htmx.org"
       ]
-    },
-    "htmx.org@2.0.7": {
-      "integrity": "sha512-YiJqF3U5KyO28VC5mPfehKJPF+n1Gni+cupK+D69TF0nm7wY6AXn3a4mPWIikfAXtl1u1F1+ZhSCS7KT8pVmqA=="
     },
     "htmx.org@2.0.8": {
       "integrity": "sha512-fm297iru0iWsNJlBrjvtN7V9zjaxd+69Oqjh4F/Vq9Wwi2kFisLcrLCiv5oBX0KLfOX/zG8AUo9ROMU5XUB44Q=="
@@ -1206,7 +1203,7 @@
       "npm:esbuild-plugin-tailwindcss@^2.1.0",
       "npm:esbuild@~0.25.11",
       "npm:htmx-ext-debug@^2.0.2",
-      "npm:htmx-ext-ws@2.0.3",
+      "npm:htmx-ext-ws@2.0.4",
       "npm:htmx.org@^2.0.8",
       "npm:is-ci@^4.1.0",
       "npm:mysql2@^3.15.3",
