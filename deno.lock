@@ -21,6 +21,7 @@
     "npm:dotenv@^17.2.3": "17.2.3",
     "npm:esbuild-plugin-tailwindcss@^2.1.0": "2.1.0_postcss@8.5.6",
     "npm:esbuild@~0.25.11": "0.25.11",
+    "npm:esbuild@~0.25.5": "0.25.11",
     "npm:htmx-ext-debug@^2.0.2": "2.0.2",
     "npm:htmx-ext-ws@2.0.3": "2.0.3",
     "npm:htmx.org@^2.0.8": "2.0.8",
@@ -42,7 +43,8 @@
       "integrity": "04ddd0fca9416d8a2866263928a53b9d5ed08dfca064d64504a0aaf9800c709e",
       "dependencies": [
         "jsr:@deno/loader",
-        "jsr:@std/path@^1.1.1"
+        "jsr:@std/path@^1.1.1",
+        "npm:esbuild@~0.25.5"
       ]
     },
     "@deno/loader@0.3.6": {
