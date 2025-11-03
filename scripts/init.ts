@@ -36,13 +36,19 @@ async function initMysqlTables(): Promise<void> {
     });
 
     const connection = await con;
+    using _ = {
+        [Symbol.dispose]() {
+            void connection.end();
+        },
+    };
     const decoder = new TextDecoder("utf-8");
 
-    if (
-        (await logInitDb.task({ text: "Connecting" })
-            .startRunner(printErrors(logInitDb, () => connection.connect())))
-            .state === "failed"
-    ) {
+    const taskConnect = logInitDb.task({ text: "Connecting", indent: 1 });
+    await taskConnect.startRunner(printErrors(logInitDb, async () => {
+        // connect() actually can return a connection instead of a void.
+        await connection.connect();
+    }));
+    if (taskConnect.state === "failed") {
         return;
     }
     logInitDb.warn(
@@ -61,8 +67,6 @@ async function initMysqlTables(): Promise<void> {
             logInitDb.warn(
                 "If the initialization fails because of references, we are supposed to change the order.",
             );
-            await logInitDb.task({ text: "Disconnecting from the database" })
-                .startRunner(printErrors(logInitDb, () => connection.end()));
             return;
         }
     }
@@ -70,8 +74,6 @@ async function initMysqlTables(): Promise<void> {
     logInitDb.success(
         "All queries have been executed.",
     );
-    await logInitDb.task({ text: "Disconnecting from the database" })
-        .startRunner(printErrors(logInitDb, () => connection.end()));
 }
 
 function initEnvFile(path: string): void {

@@ -10,7 +10,24 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceRoot}/lite.go",
-            "args": ["-tags", "lite"]
+            "args": ["-tags", "lite"],
+            "presentation": {
+                "hidden": false,
+                "group": "go",
+                "order": 1
+            }
+        },
+        {
+            "name": "Deno task init",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "deno",
+            "program": "${workspaceRoot}/scripts/init.ts",
+            "presentation": {
+                "hidden": false,
+                "group": "scripts",
+                "order": 1
+            }
         }
     ]
 }
