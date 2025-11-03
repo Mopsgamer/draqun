@@ -1,6 +1,7 @@
 package model
 
 import (
+	"crypto/sha256"
 	"database/sql/driver"
 	"regexp"
 	"strings"
@@ -41,7 +42,8 @@ func (password Password) IsValid() bool {
 }
 
 func (password Password) Hash() (PasswordHashed, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	sum := sha256.Sum256([]byte(password))
+	hash, err := bcrypt.GenerateFromPassword(sum[:], bcrypt.DefaultCost)
 	return PasswordHashed(hash), err
 }
 
@@ -52,7 +54,8 @@ func (passwordHashed PasswordHashed) IsValid() bool {
 }
 
 func (passwordHashed PasswordHashed) Compare(password Password) error {
-	return bcrypt.CompareHashAndPassword([]byte(passwordHashed), []byte(password))
+	sum := sha256.Sum256([]byte(password))
+	return bcrypt.CompareHashAndPassword([]byte(passwordHashed), sum[:])
 }
 
 type OptionalPassword Password
