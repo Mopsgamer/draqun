@@ -40,7 +40,7 @@ async function initMysqlTables(): Promise<void> {
 
     if (
         (await logInitDb.task({ text: "Connecting" })
-            .startRunner(printErrors(logInitDb, connection.connect)))
+            .startRunner(printErrors(logInitDb, () => connection.connect())))
             .state === "failed"
     ) {
         return;
@@ -62,7 +62,7 @@ async function initMysqlTables(): Promise<void> {
                 "If the initialization fails because of references, we are supposed to change the order.",
             );
             await logInitDb.task({ text: "Disconnecting from the database" })
-                .startRunner(printErrors(logInitDb, connection.end));
+                .startRunner(printErrors(logInitDb, () => connection.end()));
             return;
         }
     }
@@ -71,7 +71,7 @@ async function initMysqlTables(): Promise<void> {
         "All queries have been executed.",
     );
     await logInitDb.task({ text: "Disconnecting from the database" })
-        .startRunner(printErrors(logInitDb, connection.end));
+        .startRunner(printErrors(logInitDb, () => connection.end()));
 }
 
 function initEnvFile(path: string): void {
