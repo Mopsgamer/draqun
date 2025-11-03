@@ -1,6 +1,7 @@
 import * as esbuild from "esbuild";
 import { denoPlugin } from "@deno/esbuild-plugin";
-import { copy, existsSync } from "@std/fs";
+import { existsSync } from "@std/fs";
+import { cp } from "node:fs/promises";
 import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { format, printErrors } from "@m234/logger";
@@ -146,10 +147,10 @@ const slAssets = slAlias.map((a) => (a + "-assets"));
 const calls: [() => Promise<void>, string, string[]][] = [
     [
         () =>
-            copy(
+            cp(
                 "./node_modules/@shoelace-style/shoelace/dist/assets",
                 `./${distFolder}/static/shoelace/assets`,
-                { overwrite: true },
+                { recursive: true },
             ),
         `./${distFolder}/static/shoelace/assets`,
         [...slAssets, ...slAlias],
@@ -157,10 +158,10 @@ const calls: [() => Promise<void>, string, string[]][] = [
 
     [
         () =>
-            copy(
+            cp(
                 `./client/src/assets`,
                 `./${distFolder}/static/assets`,
-                { overwrite: true },
+                { recursive: true },
             ),
         `./${distFolder}/static/assets`,
         ["assets"],
