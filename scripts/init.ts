@@ -9,18 +9,9 @@ import {
     logInitFiles,
     taskDotenv,
 } from "./tool/constants.ts";
-import { format } from "@m234/logger";
+import { printErrors } from "@m234/logger";
 
 taskDotenv(logInitFiles);
-
-function logError(e: unknown) {
-    if (e instanceof Error) {
-        logInitDb.error(e.message);
-    } else {
-        logInitDb.error(format(e));
-    }
-    throw e;
-}
 
 async function initMysqlTables(): Promise<void> {
     const sqlFileList = [
@@ -43,23 +34,14 @@ async function initMysqlTables(): Promise<void> {
         host: Deno.env.get(envKeys.DB_HOST),
         port: Number(Deno.env.get(envKeys.DB_PORT)),
     });
-    con.catch(logError);
+
     const connection = await con;
     const decoder = new TextDecoder("utf-8");
-    const connect = async (): Promise<void> => {
-        await connection.connect().catch(logError);
-    };
-    const execQuery = async (sql: string): Promise<void> => {
-        await connection.query(sql).catch(logError);
-    };
-    const disconnect = async (): Promise<void> => {
-        await connection.end().catch(logError);
-    };
 
     if (
-        (await logInitDb.task({ text: "Connecting" }).startRunner(() =>
-            connect().catch(logError)
-        )).state === "failed"
+        (await logInitDb.task({ text: "Connecting" })
+            .startRunner(printErrors(logInitDb, connection.connect)))
+            .state === "failed"
     ) {
         return;
     }
@@ -71,16 +53,16 @@ async function initMysqlTables(): Promise<void> {
             text: "Executing " + sqlFile,
             indent: 1,
         })
-            .startRunner(async () => {
+            .startRunner(printErrors(logInitDb, async () => {
                 const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
-                await execQuery(sqlString);
-            });
+                await connection.query(sqlString);
+            }));
         if (execution.state === "failed") {
             logInitDb.warn(
                 "If the initialization fails because of references, we are supposed to change the order.",
             );
             await logInitDb.task({ text: "Disconnecting from the database" })
-                .startRunner(disconnect);
+                .startRunner(printErrors(logInitDb, connection.end));
             return;
         }
     }
@@ -89,7 +71,7 @@ async function initMysqlTables(): Promise<void> {
         "All queries have been executed.",
     );
     await logInitDb.task({ text: "Disconnecting from the database" })
-        .startRunner(disconnect);
+        .startRunner(printErrors(logInitDb, connection.end));
 }
 
 function initEnvFile(path: string): void {
@@ -163,13 +145,11 @@ function initEnvFile(path: string): void {
 
 if (!Deno.args.includes("noenv")) {
     const path = ".env";
-    logInitFiles.task({ text: `Initializing '${path}'` }).startRunner(() => {
-        initEnvFile(path);
-    });
+    logInitFiles.task({ text: `Initializing '${path}'` })
+        .startRunner(printErrors(logInitFiles, () => initEnvFile(path)));
 }
 
 if (!Deno.args.includes("nodb")) {
     await logInitDb.task({ text: "Initializing DB" })
-        .startRunner(initMysqlTables)
-        .catch(() => {});
+        .startRunner(printErrors(logInitDb, initMysqlTables));
 }

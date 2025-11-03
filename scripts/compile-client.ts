@@ -3,7 +3,7 @@ import { denoPlugin } from "@deno/esbuild-plugin";
 import { copy, existsSync } from "@std/fs";
 import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
-import { format, type TaskStateEnd } from "@m234/logger";
+import { format, printErrors } from "@m234/logger";
 import { limit1 } from "./tool/limit1.ts";
 
 taskDotenv(logClientComp);
@@ -246,17 +246,12 @@ if (existingGroupsUsed) {
 }
 
 await Promise.allSettled(calls.map(([builder, directory]) => {
-    return logClientComp.task({ text: "Bundling " + directory }).startRunner(
-        limit1(async (): Promise<TaskStateEnd> => {
-            try {
-                await builder();
-            } catch (err) {
-                logClientComp.error(format(err));
-                return "failed";
-            }
-            return "completed";
-        }),
-    );
+    const text = "Bundling " + directory;
+    return logClientComp.task({ text })
+        .startRunner(printErrors(
+            logClientComp,
+            limit1(builder),
+        ));
 }));
 
 if (isWatch) {
