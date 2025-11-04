@@ -5,7 +5,7 @@
     @import "../../../node_modules/@shoelace-style/shoelace/dist/themes/dark.css";
 }
 
-.sl-theme-dark {
+.sl-theme-dark, sl-button[variant=default]:hover {
     --sl-color-primary-50: hsl(166, 76%, 97%);
     --sl-color-primary-100: hsl(168, 86%, 89%);
     --sl-color-primary-200: hsl(168, 86%, 78%);
