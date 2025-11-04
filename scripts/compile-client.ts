@@ -5,7 +5,6 @@ import { cp } from "node:fs/promises";
 import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { format, printErrors } from "@m234/logger";
-import { limit1 } from "./tool/limit1.ts";
 
 taskDotenv(logClientComp);
 
@@ -251,7 +250,7 @@ await Promise.allSettled(calls.map(([builder, directory]) => {
     return logClientComp.task({ text })
         .startRunner(printErrors(
             logClientComp,
-            limit1(builder),
+            () => builder(),
         ));
 }));
 
