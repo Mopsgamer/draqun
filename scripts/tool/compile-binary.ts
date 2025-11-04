@@ -15,6 +15,15 @@ export function binaryInfo(os: string, arch: string): BinaryInfo {
     return { fileName, filePath };
 }
 
+export function machineInfo(): [os: string, arch: string] {
+    const { stdout } = new Deno.Command("go", {
+        args: ["env", "GOOS", "GOARCH"],
+    }).outputSync();
+    const output = new TextDecoder().decode(stdout);
+    const [os, arch] = output.trim().split("\n");
+    return [os, arch];
+}
+
 export async function compile(
     os: string,
     arch: string,
