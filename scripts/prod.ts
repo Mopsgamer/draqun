@@ -1,6 +1,6 @@
 import { printErrors, type TaskStateEnd } from "@m234/logger";
 import { binaryInfo, compile, machineInfo } from "./tool/compile-binary.ts";
-import { logProd, distFolder } from "./tool/constants.ts";
+import { distFolder, logProd } from "./tool/constants.ts";
 import kill from "tree-kill";
 import { compileDist } from "./tool/compile-dist.ts";
 import { existsSync } from "@std/fs/exists";
