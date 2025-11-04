@@ -6,7 +6,7 @@
         "init": "deno run -A scripts/init.ts",
         "dev": "deno run -A scripts/dev.ts",
         "prod": "deno run -A scripts/prod.ts",
-        "prepare": "deno lint & deno fmt",
+        "prepare": "deno lint & deno fmt & deno check",
         "compile:client": "deno run -A scripts/compile-client.ts",
         "compile:server": "deno run -A scripts/compile-server.ts",
         "compile:server:cross": "deno run -A scripts/compile-server-cross.ts",
