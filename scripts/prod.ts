@@ -1,10 +1,20 @@
 import { printErrors, type TaskStateEnd } from "@m234/logger";
-import { binaryInfo, machineInfo } from "./tool/compile-binary.ts";
-import { logProd } from "./tool/constants.ts";
+import { binaryInfo, compile, machineInfo } from "./tool/compile-binary.ts";
+import { logProd, distFolder } from "./tool/constants.ts";
 import kill from "tree-kill";
+import { compileDist } from "./tool/compile-dist.ts";
+import { existsSync } from "@std/fs/exists";
 
 const [os, arch] = machineInfo();
 const { filePath } = binaryInfo(os, arch);
+
+if (!existsSync(distFolder) || !existsSync(distFolder + "/static")) {
+    await compileDist(true);
+}
+
+if (!await compile(os, arch)) {
+    Deno.exit(1);
+}
 
 let pid = new Deno.Command(filePath, {
     stdout: "inherit",
@@ -14,7 +24,7 @@ let pid = new Deno.Command(filePath, {
 setInterval(() => {
     logProd.task({ text: "Refreshing" })
         .startRunner(printErrors(logProd, start));
-}, 60 * 1000);
+}, 3 * 60 * 1000);
 
 async function start(): Promise<TaskStateEnd> {
     const fetch = await new Deno.Command("git", {
@@ -30,6 +40,12 @@ async function start(): Promise<TaskStateEnd> {
         stdout: "piped",
         stderr: "piped",
     }).output();
+
+    await compileDist(true);
+    if (!await compile(os, arch)) {
+        logProd.warn("Compilation failed, keeping the old version running.");
+        return "aborted";
+    }
 
     if (pid > 0) kill(pid);
 
