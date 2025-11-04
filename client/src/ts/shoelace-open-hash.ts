@@ -1,4 +1,4 @@
-import { SlDialog, SlDrawer } from "@shoelace-style/shoelace";
+import { SlDialog, type SlDrawer } from "@shoelace-style/shoelace";
 import { domLoaded } from "./lib.ts";
 
 function removeHash() {
@@ -77,9 +77,9 @@ document.addEventListener("click", (e) => {
     const a = e.target.closest('a[href^="#"]');
     if (!a) return;
 
-    const dialog = document.getElementById(a.getAttribute('href')!.slice(1));
+    const dialog = document.getElementById(a.getAttribute("href")!.slice(1));
     if (!(dialog instanceof SlDialog)) {
-        console.error('Expected <sl-dialog>, got %o', dialog)
+        console.error("Expected <sl-dialog>, got %o", dialog);
         return;
     }
     dialog.open = true;
