@@ -1,4 +1,4 @@
-import { SlDialog, type SlDrawer } from "@shoelace-style/shoelace";
+import type { SlDialog, SlDrawer } from "@shoelace-style/shoelace";
 import { domLoaded } from "./lib.ts";
 
 function removeHash() {
