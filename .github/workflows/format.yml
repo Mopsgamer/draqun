@@ -40,7 +40,7 @@ jobs:
                   deno install --allow-scripts
                   deno lint --fix
                   deno fmt
-            - name: Checking Go
+            - name: Check Go
               run: |
                   go fmt ./...
             - name: Push formatting changes (if any)
