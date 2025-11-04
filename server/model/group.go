@@ -22,8 +22,6 @@ func (gm GroupMode) IsValid() bool {
 }
 
 type Group struct {
-	Db *DB `db:"-"`
-
 	Id          uint64                 `db:"id"`
 	CreatorId   uint64                 `db:"creator_id"`
 	OwnerId     uint64                 `db:"owner_id"`
@@ -40,7 +38,6 @@ type Group struct {
 var _ Model = (*Group)(nil)
 
 func NewGroup(
-	db *DB,
 	creatorId uint64,
 	moniker Moniker,
 	name Name,
@@ -50,8 +47,8 @@ func NewGroup(
 	avatar Avatar,
 ) Group {
 	return Group{
-		Db:          db,
 		CreatorId:   creatorId,
+		OwnerId:     creatorId,
 		Moniker:     moniker,
 		Name:        name,
 		Mode:        mode,
@@ -63,16 +60,14 @@ func NewGroup(
 	}
 }
 
-func NewGroupFromId(db *DB, id uint64) (Group, error) {
-	group := Group{Db: db}
-	err := group.FromId(id)
-	return group, err
+func NewGroupFromId(id uint64) (Group, error) {
+	group := Group{}
+	return group, First(TableGroups, goqu.Ex{"id": id}, &group)
 }
 
-func NewGroupFromName(db *DB, name Name) (Group, error) {
-	group := Group{Db: db}
-	err := group.FromName(name)
-	return group, err
+func NewGroupFromName(name Name) (Group, error) {
+	group := Group{}
+	return group, First(TableGroups, goqu.Ex{"name": name}, &group)
 }
 
 func (group Group) Validate() htmx.Alert {
@@ -105,51 +100,47 @@ func (group Group) IsEmpty() bool {
 	return group.Id == 0 || group.Name == ""
 }
 
+func (group Group) IsAvailable() bool {
+	return !group.IsEmpty() && !bool(group.IsDeleted)
+}
+
 func (group *Group) Insert() error {
-	return InsertId(group.Db, TableGroups, group, &group.Id)
+	return InsertId(TableGroups, group, &group.Id)
 }
 
 func (group Group) Update() error {
-	return Update(group.Db, TableGroups, group, goqu.Ex{"id": group.Id})
-}
-
-func (group *Group) FromId(id uint64) error {
-	return First(group.Db, TableGroups, goqu.Ex{"id": id}, group)
-}
-
-func (group *Group) FromName(name Name) error {
-	return First(group.Db, TableGroups, goqu.Ex{"name": name}, group)
+	return Update(TableGroups, group, goqu.Ex{"id": group.Id})
 }
 
 func (group Group) Creator() User {
-	user := User{Db: group.Db}
-	_ = user.FromId(group.CreatorId)
+	user, _ := NewUserFromId(group.CreatorId)
 	return user
 }
 
 func (group Group) Owner() User {
-	user := User{Db: group.Db}
-	_ = user.FromId(group.OwnerId)
+	user, _ := NewUserFromId(group.OwnerId)
 	return user
 }
 
 func (group Group) Everyone() Role {
-	role := NewRoleEveryone(group.Db, group.Id)
-	_ = role.FromName(role.Name, role.GroupId)
+	role, _ := NewRoleFromName(roleNameEveryone, group.Id)
 	return role
 }
 
 func (group Group) MembersCount() uint64 {
 	count := uint64(0)
-	sql, args, err := goqu.Select(goqu.COUNT("*")).From(TableMembers).
-		Where(goqu.Ex{TableMembers + ".group_id": group.Id, TableMembers + ".is_deleted": types.BitBool(false)}).
+	sql, args, err := Goqu.Select(goqu.COUNT("*")).From(TableMembers).
+		Where(goqu.And(
+			goqu.C("group_id").Eq(group.Id),
+			goqu.C("is_deleted").Eq([]byte{0}),
+		)).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return count
 	}
 
-	err = group.Db.Sqlx.Get(&count, sql, args...)
+	err = Sqlx.Get(&count, sql, args...)
 	if err != nil {
 		handleErr(err)
 	}
@@ -161,8 +152,8 @@ func (group Group) UsersPage(page, limit uint) []User {
 	userList := []User{}
 	from := (page - 1) * limit
 
-	sql, args, err := group.Db.Goqu.Select(TableUsers+".*").From(TableMembers).
-		LeftJoin(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(TableMembers+".user_id"))).
+	sql, args, err := Goqu.Select(TableUsers+".*").From(TableMembers).
+		LeftJoin(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(goqu.I(TableMembers+".user_id")))).
 		Where(goqu.Ex{TableMembers + ".group_id": group.Id}).
 		Order(goqu.I(TableMembers + ".user_id").Asc()).
 		Limit(limit).Offset(from).
@@ -172,7 +163,7 @@ func (group Group) UsersPage(page, limit uint) []User {
 		return userList
 	}
 
-	err = group.Db.Sqlx.Select(&userList, sql, args...)
+	err = Sqlx.Select(&userList, sql, args...)
 	if err != nil {
 		handleErr(err)
 	}
@@ -183,14 +174,14 @@ func (group Group) UsersPage(page, limit uint) []User {
 func (group Group) MessageFirst() *Message {
 	message := new(Message)
 
-	sql, args, err := group.Db.Goqu.From(TableMessages).Where(goqu.C("group_id").Eq(group.Id)).Order(goqu.C("id").Asc()).Limit(1).
+	sql, args, err := Goqu.From(TableMessages).Where(goqu.C("group_id").Eq(group.Id)).Order(goqu.C("id").Asc()).Limit(1).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return message
 	}
 
-	err = group.Db.Sqlx.QueryRowx(sql, args...).StructScan(&message)
+	err = Sqlx.QueryRowx(sql, args...).StructScan(&message)
 	if err != nil {
 		handleErr(err)
 	}
@@ -201,14 +192,14 @@ func (group Group) MessageFirst() *Message {
 func (group Group) MessageLast() *Message {
 	message := new(Message)
 
-	sql, args, err := group.Db.Goqu.From(TableMessages).Where(goqu.C("group_id").Eq(group.Id)).Order(goqu.C("id").Desc()).Limit(1).
+	sql, args, err := Goqu.From(TableMessages).Where(goqu.C("group_id").Eq(group.Id)).Order(goqu.C("id").Desc()).Limit(1).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return message
 	}
 
-	err = group.Db.Sqlx.QueryRowx(sql, args...).StructScan(&message)
+	err = Sqlx.QueryRowx(sql, args...).StructScan(&message)
 	if err != nil {
 		handleErr(err)
 		return message
@@ -221,18 +212,18 @@ func (group Group) MessagesPage(page, limit uint) []Message {
 	messageList := []Message{}
 	from := (page - 1) * limit
 
-	subquery := group.Db.Goqu.From(TableMessages).
+	subquery := Goqu.From(TableMessages).
 		Where(goqu.Ex{"group_id": group.Id}).
 		Order(goqu.I("id").Desc()).
 		Limit(limit).Offset(from)
-	sql, args, err := group.Db.Goqu.From(subquery).Order(goqu.I("id").Asc()).
+	sql, args, err := Goqu.From(subquery).Order(goqu.I("id").Asc()).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return messageList
 	}
 
-	err = group.Db.Sqlx.Select(&messageList, sql, args...)
+	err = Sqlx.Select(&messageList, sql, args...)
 	if err != nil {
 		handleErr(err)
 	}
@@ -244,9 +235,9 @@ func (group Group) ActionListPage(page uint, limit uint) []Action {
 	actions := []Action{}
 	from := (page - 1) * limit
 	filter := goqu.Ex{"group_id": group.Id}
-	sql, args, err := group.Db.Goqu.From(TableBans).UnionAll(
-		group.Db.Goqu.From(TableKicks).UnionAll(
-			group.Db.Goqu.From(TableMemberships).Where(filter),
+	sql, args, err := Goqu.From(TableBans).UnionAll(
+		Goqu.From(TableKicks).UnionAll(
+			Goqu.From(TableMemberships).Where(filter),
 		).Where(filter),
 	).Where(filter).
 		Limit(limit).Offset(from).
@@ -256,7 +247,7 @@ func (group Group) ActionListPage(page uint, limit uint) []Action {
 		return actions
 	}
 
-	err = group.Db.Sqlx.Select(&actions, sql, args...)
+	err = Sqlx.Select(&actions, sql, args...)
 	if err != nil {
 		handleErr(err)
 	}

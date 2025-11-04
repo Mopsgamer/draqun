@@ -2,54 +2,61 @@ package model
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
-	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/doug-martin/goqu/v9/exp"
 	"golang.org/x/exp/constraints"
 )
 
-func First[T any](db *DB, table string, ex goqu.Ex, item *T) (err error) {
-	sql, args, err := db.Goqu.From(table).Select(item).Where(ex).Prepared(true).ToSQL()
+func wrapSqlError(err error, sql string, args []any) error {
+	if err != nil {
+		return errors.Join(err, errors.New("query: "+sql), errors.New("args: "+fmt.Sprintf("%#v", args)))
+	}
+	return nil
+}
+
+func First[T any](table string, ex goqu.Ex, item *T) (err error) {
+	sql, args, err := Goqu.From(table).Select(item).Where(ex).Prepared(true).ToSQL()
 	if err != nil {
 		return err
 	}
 
-	err = db.Sqlx.QueryRowx(sql, args...).StructScan(item)
+	err = Sqlx.QueryRowx(sql, args...).StructScan(item)
+	err = wrapSqlError(err, sql, args)
 	return
 }
 
-func Last[T any](db *DB, table string, ex goqu.Ex, key exp.IdentifierExpression, item *T) (err error) {
-	sql, args, err := db.Goqu.From(table).Select(item).Where(ex).Order(key.Desc()).Limit(1).Prepared(true).ToSQL()
+func Last[T any](table string, ex goqu.Ex, key exp.IdentifierExpression, item *T) (err error) {
+	sql, args, err := Goqu.From(table).Select(item).Where(ex).Order(key.Desc()).Limit(1).Prepared(true).ToSQL()
 	if err != nil {
 		return
 	}
 
-	err = db.Sqlx.QueryRowx(sql, args...).StructScan(item)
+	err = Sqlx.QueryRowx(sql, args...).StructScan(item)
+	err = wrapSqlError(err, sql, args)
 	return
 }
 
-func insert[T any](db *DB, table string, item *T) (result sql.Result, err error) {
-	sql, args, err := db.Goqu.Insert(table).Rows(item).Prepared(true).ToSQL()
+func insert[T any](table string, item *T) (result sql.Result, err error) {
+	sql, args, err := Goqu.Insert(table).Rows(item).Prepared(true).ToSQL()
 	if err != nil {
 		return
 	}
 
-	result, err = db.Sqlx.Exec(sql, args...)
-	if err != nil {
-		return
-	}
-
+	result, err = Sqlx.Exec(sql, args...)
+	err = wrapSqlError(err, sql, args)
 	return
 }
 
-func Insert[T any](db *DB, table string, item *T) (err error) {
-	_, err = insert(db, table, item)
+func Insert[T any](table string, item *T) (err error) {
+	_, err = insert(table, item)
 	return
 }
 
-func InsertId[T any, Id constraints.Integer](db *DB, table string, item *T, itemId *Id) (err error) {
-	result, err := insert(db, table, item)
+func InsertId[T any, Id constraints.Integer](table string, item *T, itemId *Id) (err error) {
+	result, err := insert(table, item)
 	if err != nil {
 		return
 	}
@@ -63,26 +70,24 @@ func InsertId[T any, Id constraints.Integer](db *DB, table string, item *T, item
 	return
 }
 
-func Update[T any](db *DB, table string, item T, ex goqu.Ex) (err error) {
-	sql, args, err := db.Goqu.Update(table).Set(item).Where(ex).Prepared(true).ToSQL()
+func Update[T any](table string, item T, ex goqu.Ex) (err error) {
+	sql, args, err := Goqu.Update(table).Set(item).Where(ex).Prepared(true).ToSQL()
 	if err != nil {
 		return
 	}
 
-	_, err = db.Sqlx.Exec(sql, args...)
-	if err != nil {
-		return
-	}
-
+	_, err = Sqlx.Exec(sql, args...)
+	err = wrapSqlError(err, sql, args)
 	return
 }
 
-func Delete[T string | []any](db *DB, table T, ex goqu.Ex) (err error) {
-	sql, args, err := db.Goqu.From(table).Delete().Where(ex).Prepared(true).ToSQL()
+func Delete[T string | []any](table T, ex goqu.Ex) (err error) {
+	sql, args, err := Goqu.From(table).Delete().Where(ex).Prepared(true).ToSQL()
 	if err != nil {
 		return
 	}
 
-	_, err = db.Sqlx.Exec(sql, args...)
+	_, err = Sqlx.Exec(sql, args...)
+	err = wrapSqlError(err, sql, args)
 	return
 }

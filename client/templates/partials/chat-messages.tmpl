@@ -1,6 +1,6 @@
-{{$this := .}} {{- range $i, $messageCache := $this.MessageList -}} {{$message
-:= $messageCache.Message}} {{$author := $messageCache.Author}} {{- if and (eq $i
-0) (eq (len $this.MessageList) $this.MessagesPagination) -}}
+{{- $this := . -}}
+{{- range $i, $message := $this.MessageList -}}
+{{- if and (eq $i 0) (eq (len $this.MessageList) $this.MessagesPagination) -}}
 <div
     class="load-scroll"
     hx-trigger="intersect once"
@@ -14,14 +14,14 @@
     id="message-{{$message.Id}}"
     class="message"
     data-message="{{$message.Id}}"
-    data-is-self="{{eq $author.Id $this.User.Id}}"
-    data-author="{{$author.Id}}"
-    data-created-at="{{- jsonTime $message.CreatedAt}}"
+    data-is-self="{{eq $message.AuthorId $this.User.Id}}"
+    data-author="{{$message.AuthorId}}"
+    data-created-at="{{- jsonTime $message.CreatedAt.Value}}"
 >
     <div class="header">
         <div class="prefix">
             <sl-avatar class="avatar" style="--size: 2rem"></sl-avatar>
-            <span class="nickname">{{$author.Moniker}}</span>
+            <span class="moniker">{{$message.Author.Moniker}}</span>
         </div>
         <div class="suffix">
             <sl-format-date
@@ -31,7 +31,7 @@
                 year="numeric"
                 month="long"
                 day="numeric"
-                date="{{$message.CreatedAt}}"
+                date="{{jsonTime $message.CreatedAt.Value}}"
             ></sl-format-date>
         </div>
     </div>

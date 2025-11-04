@@ -1,13 +1,13 @@
 <sl-dialog label="Dialog" id="account-delete-dialog">
     <span slot="label" class="aligned">
-        <sl-icon name="exclamation-triangle"></sl-icon>
+        <sl-icon name="exclamation-triangle-fill"></sl-icon>
         Delete account
     </span>
     <form
         autocomplete="off"
         id="account-delete-form"
         name="account-delete-form"
-        hx-delete="/account/delete"
+        hx-delete="/account"
         hx-swap="innerHTML"
         hx-target="#account-delete-error"
     >
@@ -21,11 +21,13 @@
             password-toggle
             autocomplete="password"
         >
+        <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
+        <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
         </sl-input>
         <sl-input
-            label="Confirm username"
-            id="account-delete-current-username"
-            name="confirm-username"
+            label="Confirm name ({{.User.Name}})"
+            id="account-delete-confirm-name"
+            name="confirm-name"
             required
             type="text"
             autocomplete="off"
@@ -36,7 +38,7 @@
     <div slot="footer" class="dialog-footer">
         <div>
             <sl-button form="account-delete-form" variant="danger" type="submit"
-            >Delete account permanently</sl-button>
+            >Delete account</sl-button>
         </div>
     </div>
 </sl-dialog>

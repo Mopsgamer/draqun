@@ -5,19 +5,72 @@
     @import "../../../node_modules/@shoelace-style/shoelace/dist/themes/dark.css";
 }
 
+.sl-theme-dark, sl-button[variant=default]:hover {
+    --sl-color-primary-50: hsl(166, 76%, 97%);
+    --sl-color-primary-100: hsl(168, 86%, 89%);
+    --sl-color-primary-200: hsl(168, 86%, 78%);
+    --sl-color-primary-300: hsl(171, 81%, 60%);
+    --sl-color-primary-400: hsl(173, 100%, 42%);
+    --sl-color-primary-500: hsl(174, 100%, 37%);
+    --sl-color-primary-600: hsl(175, 100%, 29%);
+    --sl-color-primary-700: hsl(176, 100%, 24%);
+    --sl-color-primary-800: hsl(177, 100%, 19%);
+    --sl-color-primary-900: hsl(176, 76%, 18%);
+    --sl-color-primary-950: hsl(179, 92%, 10%);
+}
 
-.sl-theme-light {
-    --sl-color-primary-50: oklch(0.984 0.014 180.72);
-    --sl-color-primary-100: oklch(0.953 0.051 180.801);
-    --sl-color-primary-200: oklch(0.91 0.096 180.426);
-    --sl-color-primary-300: oklch(0.855 0.138 181.071);
-    --sl-color-primary-400: oklch(0.777 0.152 181.912);
-    --sl-color-primary-500: oklch(0.704 0.14 182.503);
-    --sl-color-primary-600: oklch(0.6 0.118 184.704);
-    --sl-color-primary-700: oklch(0.511 0.096 186.391);
-    --sl-color-primary-800: oklch(0.437 0.078 188.216);
-    --sl-color-primary-900: oklch(0.386 0.063 188.416);
-    --sl-color-primary-950: oklch(0.277 0.046 192.524);
+.sl-theme-dark :is(sl-button:not([variant=default]:not(:hover)), sl-icon-button, a:hover) {
+    --sl-color-neutral-0: var(--sl-color-neutral-900);
+}
+
+html, .sl-theme-dark :is(sl-button:not([variant=default]:not(:hover)), sl-icon-button, a:hover) {
+    --sl-color-primary-50: hsl(179, 92%, 10%);
+    --sl-color-primary-100: hsl(176, 76%, 18%);
+    --sl-color-primary-200: hsl(177, 100%, 19%);
+    --sl-color-primary-300: hsl(176, 100%, 24%);
+    --sl-color-primary-400: hsl(175, 100%, 29%);
+    --sl-color-primary-500: hsl(174, 100%, 37%);
+    --sl-color-primary-600: hsl(173, 100%, 42%);
+    --sl-color-primary-700: hsl(171, 81%, 60%);
+    --sl-color-primary-800: hsl(168, 86%, 78%);
+    --sl-color-primary-900: hsl(168, 86%, 89%);
+    --sl-color-primary-950: hsl(166, 76%, 97%);
+
+    --sl-color-success-50: hsl(149, 92%, 10%);
+    --sl-color-success-100: hsl(146, 76%, 18%);
+    --sl-color-success-200: hsl(147, 100%, 19%);
+    --sl-color-success-300: hsl(146, 100%, 24%);
+    --sl-color-success-400: hsl(145, 100%, 29%);
+    --sl-color-success-500: hsl(144, 100%, 37%);
+    --sl-color-success-600: hsl(143, 100%, 42%);
+    --sl-color-success-700: hsl(141, 81%, 60%);
+    --sl-color-success-800: hsl(138, 86%, 78%);
+    --sl-color-success-900: hsl(138, 86%, 89%);
+    --sl-color-success-950: hsl(136, 76%, 97%);
+
+    --sl-color-warning-50: hsl(39, 92%, 10%);
+    --sl-color-warning-100: hsl(36, 76%, 18%);
+    --sl-color-warning-200: hsl(37, 100%, 19%);
+    --sl-color-warning-300: hsl(36, 100%, 24%);
+    --sl-color-warning-400: hsl(35, 100%, 29%);
+    --sl-color-warning-500: hsl(34, 100%, 37%);
+    --sl-color-warning-600: hsl(33, 100%, 42%);
+    --sl-color-warning-700: hsl(31, 81%, 60%);
+    --sl-color-warning-800: hsl(28, 86%, 78%);
+    --sl-color-warning-900: hsl(28, 86%, 89%);
+    --sl-color-warning-950: hsl(26, 76%, 97%);
+
+    --sl-color-danger-50: hsl(0, 92%, 10%);
+    --sl-color-danger-100: hsl(0, 76%, 18%);
+    --sl-color-danger-200: hsl(0, 100%, 19%);
+    --sl-color-danger-300: hsl(0, 100%, 24%);
+    --sl-color-danger-400: hsl(0, 100%, 29%);
+    --sl-color-danger-500: hsl(0, 100%, 37%);
+    --sl-color-danger-600: hsl(0, 100%, 42%);
+    --sl-color-danger-700: hsl(0, 81%, 60%);
+    --sl-color-danger-800: hsl(0, 86%, 78%);
+    --sl-color-danger-900: hsl(0, 86%, 89%);
+    --sl-color-danger-950: hsl(0, 76%, 97%);
 }
 
 @theme {

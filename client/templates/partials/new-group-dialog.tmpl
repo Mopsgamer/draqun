@@ -1,7 +1,7 @@
 {{- if not .User.IsEmpty -}}
 <sl-dialog label="Dialog" id="new-group-dialog">
     <span slot="label" class="aligned">
-        <sl-icon name="people"></sl-icon>
+        <sl-icon name="people-fill"></sl-icon>
         Create new group
     </span>
     <form
@@ -22,7 +22,7 @@
         <sl-input
             label="Name"
             type="text"
-            autocomplete="username"
+            autocomplete="off"
             id="new-group-name"
             name="name"
             required
@@ -31,10 +31,13 @@
             label="Password"
             password-toggle
             type="password"
-            autocomplete="new-password"
+            autocomplete="off"
             id="new-group-password"
             name="password"
-        ></sl-input>
+        >
+        <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
+        <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
+        </sl-input>
         <sl-textarea
             label="Description"
             id="new-group-description"

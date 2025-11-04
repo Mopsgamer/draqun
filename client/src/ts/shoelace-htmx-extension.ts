@@ -1,29 +1,23 @@
 import htmx from "htmx.org";
-import type HTMX from "htmx.org";
-import { SlButton } from "@shoelace-style/shoelace";
 import { getFormPropData } from "./lib.ts";
+import { SlButton, SlMenuItem } from "@shoelace-style/shoelace";
 
-const onEvent: HTMX.HtmxExtension["onEvent"] = function (name, event) {
+const onEvent: htmx.HtmxExtension["onEvent"] = function (name, event): boolean {
     if (name === "htmx:beforeRequest" || name === "htmx:afterRequest") {
-        const form = event.target;
-        let button: SlButton | undefined;
-        if (form instanceof SlButton) {
-            button = form;
-        } else if (form instanceof HTMLFormElement) {
-            button = document.querySelector<SlButton>(
-                `sl-button[form=${form.id}][type=submit]`,
-            ) ?? undefined;
-            button ??= form.querySelector<SlButton>(`sl-button[type=submit]`) ??
-                undefined;
-        }
-
-        if (!button) {
-            return true;
-        }
-
         const enable = name === "htmx:beforeRequest";
-        button.loading = enable;
-        button.disabled = enable;
+
+        let form = event.target || {} as object;
+        if (event.target instanceof HTMLFormElement) {
+            form = (event.target.querySelector("sl-button[type=submit]") ||
+                document.querySelector(
+                    "sl-button[form=" + event.target.id + "][type=submit]",
+                ) || {}) as object;
+        }
+
+        if (form instanceof SlButton || form instanceof SlMenuItem) {
+            form.loading = enable;
+            form.disabled = enable;
+        }
         return true;
     }
     if (name !== "htmx:configRequest") {
@@ -34,14 +28,15 @@ const onEvent: HTMX.HtmxExtension["onEvent"] = function (name, event) {
         console.groupEnd();
         return true;
     }
-    const { detail } = event;
-    const form = detail.elt;
+    const form = event.detail.elt;
     if (!(form instanceof HTMLFormElement)) {
         console.groupEnd();
         return true;
     }
 
-    Object.assign(detail.parameters, getFormPropData(form));
+    const formData = getFormPropData(form);
+    Object.assign(event.detail.formData, formData);
+    console.log("configRequest details: %o", event.detail);
 
     // Prevent form submission if one or more fields are invalid.
     // form is always a form as per the main if statement
@@ -54,6 +49,6 @@ const onEvent: HTMX.HtmxExtension["onEvent"] = function (name, event) {
     return true;
 };
 
-(htmx as unknown as typeof HTMX.default).defineExtension("shoelace", {
+(htmx as unknown as typeof htmx.default).defineExtension("shoelace", {
     onEvent,
 });

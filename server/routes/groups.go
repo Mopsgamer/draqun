@@ -34,16 +34,19 @@ type GroupChange struct {
 	Avatar      model.Avatar           `form:"avatar"`
 }
 
-func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
+func RouteGroups(app *fiber.App) fiber.Router {
 	return app.Group("/groups").
 		Put("/:group_id/join",
-			perms.GroupById(db, "group_id"),
+			perms.UserByAuth(),
+			perms.GroupById("group_id"),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id")
 				member := fiber.Locals[model.Member](ctx, perms.LocalMember)
 				if member.IsEmpty() {
 					// never been a member
-					member = model.NewMember(db, group.Id, member.UserId, "")
+					user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+					member = model.NewMember(group.Id, user.Id, "")
 					if err := member.Insert(); err != nil {
 						return htmx.AlertDatabase.Join(err)
 					}
@@ -70,14 +73,14 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 					// )
 
 					htmx.Redirect(ctx, group.Url(ctx))
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
 		Put("/:group_id/change",
-			perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role model.Role) bool {
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermGroupChange.Has()
 			}),
 			perms.UseBind[GroupChange](),
@@ -113,15 +116,15 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.EnableRefresh(ctx)
-					return ctx.SendStatus(fiber.StatusOK)
+					htmx.Redirect(ctx, htmx.Path(ctx))
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
 		Post("/:group_id/messages/create",
-			perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role model.Role) bool {
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermMessages.CanWriteMessages()
 			}),
 			perms.UseBind[MessageCreate](),
@@ -130,7 +133,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 
-				message := model.NewMessageFilled(db, group.Id, user.Id, request.Content)
+				message := model.NewMessageFilled(group.Id, user.Id, request.Content)
 				if err := message.Validate(); err != nil {
 					return err
 				}
@@ -140,10 +143,8 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					buf, err := render.RenderBuffer(app, "partials/chat-messages", &fiber.Map{
+					buf, err := render.RenderBuffer(app, "partials/chat-messages", fiber.Map{
 						"MessageList": []model.Message{message},
-						"Group":       group,
-						"User":        user,
 					})
 					if err != nil {
 						return err
@@ -155,26 +156,20 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 						session.PickMessages,
 					)
 
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
-
-				// controller_ws.UserSessionMap.Push(
-				// 		filter,
-				// 		...,
-				// 		controller_ws.SubForMessages,
-				// 	)
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
 		Post("/create",
-			perms.UserByAuth(db),
+			perms.UserByAuth(),
 			perms.UseBind[GroupCreate](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[GroupCreate](ctx, perms.LocalForm)
-				g, _ := model.NewGroupFromName(db, request.Name)
-				if !g.IsEmpty() {
-					return htmx.AlertGroupExsistsName
+				existingGroup, _ := model.NewGroupFromName(request.Name)
+				if !existingGroup.IsEmpty() {
+					return htmx.AlertGroupExistsName
 				}
 
 				hash, err := request.Password.Hash()
@@ -183,7 +178,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 				}
 
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
-				group := model.NewGroup(db, user.Id, request.Nick, request.Name, request.Mode, hash, request.Description, request.Avatar)
+				group := model.NewGroup(user.Id, request.Nick, request.Name, request.Mode, hash, request.Description, request.Avatar)
 				if err := group.Validate(); err != nil {
 					return err
 				}
@@ -194,26 +189,26 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 
 				ctx.Locals(perms.LocalGroup, group)
 
-				member := model.NewMember(db, group.Id, user.Id, "")
+				member := model.NewMember(group.Id, user.Id, "")
 				if err := member.Insert(); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
 
-				everyone := model.NewRoleEveryone(db, group.Id)
+				everyone := model.NewRoleEveryone(group.Id)
 				if err := everyone.Insert(); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, group.Url(ctx))
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
 		Get("/:group_id/messages/page/:messages_page",
-			perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role model.Role) bool {
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermMessages.CanReadMessages()
 			}),
 			func(ctx fiber.Ctx) error {
@@ -236,8 +231,8 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 			},
 		).
 		Get("/:group_id/members/page/:members_page",
-			perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role model.Role) bool {
-				return role.PermMessages.CanDeleteMessages()
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermMembers.CanSee()
 			}),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
@@ -260,7 +255,7 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 			},
 		).
 		Delete("/:group_id/leave",
-			perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role model.Role) bool {
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return true
 			}),
 			func(ctx fiber.Ctx) error {
@@ -289,14 +284,14 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, "/chat")
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
 		Delete("/:group_id",
-			perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role model.Role) bool {
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermGroupChange.Has()
 			}),
 			func(ctx fiber.Ctx) error {
@@ -308,21 +303,17 @@ func RouteGroups(app *fiber.App, db *model.DB) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.EnableRefresh(ctx)
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
-		Get("/:group_id",
-			perms.MemberByAuthAndGroupId(db, "group_id", func(ctx fiber.Ctx, role model.Role) bool {
+		Get("/ws/:group_id/",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermMessages.CanReadMessages()
 			}),
 			func(ctx fiber.Ctx) error {
-				if !websocket.IsWebSocketUpgrade(ctx) || !htmx.IsHtmx(ctx) {
-					return ctx.Next()
-				}
-
 				ctxWs := session.New(ctx)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 

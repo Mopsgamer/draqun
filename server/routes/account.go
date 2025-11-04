@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"database/sql"
-	"errors"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/environment"
@@ -14,7 +12,7 @@ import (
 
 type UserDelete struct {
 	CurrentPassword model.Password `form:"current-password"`
-	ConfirmUsername model.Name     `form:"confirm-username"`
+	ConfirmUsername model.Name     `form:"confirm-name"`
 }
 
 type UserLogin struct {
@@ -23,16 +21,16 @@ type UserLogin struct {
 }
 
 type UserSignUp struct {
-	*UserLogin
-	Nickname        model.Moniker  `form:"nickname"`
-	Username        model.Name     `form:"username"`
+	UserLogin
+	Moniker         model.Moniker  `form:"moniker"`
+	Name            model.Name     `form:"name"`
 	Phone           model.Phone    `form:"phone"`
 	ConfirmPassword model.Password `form:"confirm-password"`
 }
 
-func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
+func RouteAccount(app *fiber.App) fiber.Router {
 	group := app.Group("/account")
-	routeAccountChange(group, db)
+	routeAccountChange(group)
 	return group.
 		Put("/logout",
 			func(ctx fiber.Ctx) error {
@@ -50,19 +48,19 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
-		Post("/create",
+		Post("/",
 			perms.UseBind[UserSignUp](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserSignUp](ctx, perms.LocalForm)
 
-				u, _ := model.NewUserFromName(db, request.Username)
-				if !u.IsEmpty() {
-					return htmx.AlertUserExsistsNickname
+				existingUser, _ := model.NewUserFromName(request.Name)
+				if !existingUser.IsEmpty() {
+					return htmx.AlertUserExistsNickname
 				}
 
-				u, _ = model.NewUserFromEmail(db, request.Email)
-				if !u.IsEmpty() {
-					return htmx.AlertUserExsistsEmail
+				existingUser, _ = model.NewUserFromEmail(request.Email)
+				if !existingUser.IsEmpty() {
+					return htmx.AlertUserExistsEmail
 				}
 
 				if request.ConfirmPassword != request.Password {
@@ -74,7 +72,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 					return err
 				}
 
-				user := model.NewUser(db, request.Nickname, request.Username, request.Email, request.Phone, hash, "")
+				user := model.NewUser(request.Moniker, request.Name, request.Email, request.Phone, hash, "")
 				if err := user.Validate(); err != nil {
 					return err
 				}
@@ -96,7 +94,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, htmx.Path(ctx))
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
@@ -107,9 +105,9 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserLogin](ctx, perms.LocalForm)
 
-				user, err := model.NewUserFromEmail(db, request.Email)
+				user, err := model.NewUserFromEmail(request.Email)
 				if err != nil {
-					if errors.Is(err, sql.ErrNoRows) {
+					if user.IsEmpty() {
 						return htmx.AlertUserNotFound
 					}
 					return htmx.AlertDatabase.Join(err)
@@ -134,16 +132,23 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 					Expires: time.Now().Add(environment.UserAuthTokenExpiration),
 				})
 
+				if user.IsDeleted {
+					user.IsDeleted = false
+					if err := user.Update(); err != nil {
+						return err
+					}
+				}
+
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, htmx.Path(ctx))
-
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
+
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
-		Delete("/delete",
-			perms.UserByAuth(db),
+		Delete("/",
+			perms.UserByAuth(),
 			perms.UseBind[UserDelete](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserDelete](ctx, perms.LocalForm)
@@ -178,7 +183,7 @@ func RouteAccount(app *fiber.App, db *model.DB) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, htmx.Path(ctx))
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)

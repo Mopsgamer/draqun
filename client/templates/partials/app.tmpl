@@ -11,12 +11,12 @@
     <body hx-ext="shoelace,debug">
         {{- template "partials/settings-dialog" . -}}
         {{- template "partials/new-group-dialog" . -}}
-        {{- $this := . -}}
-        {{- if not $this.Group.IsEmpty -}}
-            {{- template "partials/group-settings-dialog" $this -}}
+        {{- if not .Group.IsEmpty -}}
+            {{- template "partials/group-settings-dialog" . -}}
         {{- else -}}
-            {{- $groupList = $this.User.GroupList -}}
-            {{- $memberList = $this.User.MemberList -}}
+            {{- $groupList := .User.GroupList -}}
+            {{- $memberList := .User.MemberList -}}
+            {{- $this := . -}}
             {{- range $i, $member := $memberList -}}
                 {{- $group := index $groupList $i -}}
                 {{- $rights := $member.Role -}}
@@ -24,7 +24,7 @@
                     (not $member.IsEmpty)
                     $rights.PermGroupChange.Has
                 ) -}}
-                    {{- template "partials/group-settings-dialog" (newMap "Group" $group) -}}
+                    {{- template "partials/group-settings-dialog" $this -}}
                 {{- end -}}
             {{- end -}}
         {{- end -}}

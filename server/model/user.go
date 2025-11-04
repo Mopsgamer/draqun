@@ -9,8 +9,6 @@ import (
 )
 
 type User struct {
-	Db *DB `db:"-"`
-
 	Id         uint64         `db:"id"`
 	Moniker    Moniker        `db:"moniker"` // Nick is customizable name. Can contain emojis and special characters.
 	Name       Name           `db:"name"`    // Name is a simple identificator, which can be used to create friend links.
@@ -26,7 +24,6 @@ type User struct {
 var _ Model = (*User)(nil)
 
 func NewUser(
-	db *DB,
 	moniker Moniker,
 	name Name,
 	email Email,
@@ -35,7 +32,6 @@ func NewUser(
 	avatar Avatar,
 ) User {
 	return User{
-		Db:         db,
 		Moniker:    moniker,
 		Name:       name,
 		Email:      email,
@@ -47,22 +43,19 @@ func NewUser(
 	}
 }
 
-func NewUserFromId(db *DB, userId uint64) (User, error) {
-	user := User{Db: db}
-	err := user.FromId(userId)
-	return user, err
+func NewUserFromId(userId uint64) (User, error) {
+	user := User{}
+	return user, First(TableUsers, goqu.Ex{"id": userId}, &user)
 }
 
-func NewUserFromEmail(db *DB, email Email) (User, error) {
-	user := User{Db: db}
-	err := user.FromEmail(email)
-	return user, err
+func NewUserFromEmail(email Email) (User, error) {
+	user := User{}
+	return user, First(TableUsers, goqu.Ex{"email": email}, &user)
 }
 
-func NewUserFromName(db *DB, name Name) (User, error) {
-	user := User{Db: db}
-	err := user.FromName(name)
-	return user, err
+func NewUserFromName(name Name) (User, error) {
+	user := User{}
+	return user, First(TableUsers, goqu.Ex{"name": name}, &user)
 }
 
 func (user User) Validate() htmx.Alert {
@@ -98,30 +91,18 @@ func (user User) IsEmpty() bool {
 }
 
 func (user *User) Insert() error {
-	return InsertId(user.Db, TableUsers, user, &user.Id)
+	return InsertId(TableUsers, user, &user.Id)
 }
 
 func (user User) Update() error {
-	return Update(user.Db, TableUsers, user, goqu.Ex{"id": user.Id})
+	return Update(TableUsers, user, goqu.Ex{"id": user.Id})
 }
 
-func (user *User) FromId(userId uint64) error {
-	return First(user.Db, TableUsers, goqu.Ex{"id": userId}, user)
-}
-
-func (user *User) FromEmail(email Email) error {
-	return First(user.Db, TableUsers, goqu.Ex{"email": email}, user)
-}
-
-func (user *User) FromName(name Name) error {
-	return First(user.Db, TableUsers, goqu.Ex{"name": name}, user)
-}
-
-func (user *User) GroupListCreator() []Group {
+func (user User) GroupListCreator() []Group {
 	groupList := []Group{}
 
-	sql, args, err := user.Db.Goqu.Select(TableGroups+".*").From(TableGroups).
-		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
+	sql, args, err := Goqu.Select(TableGroups+".*").From(TableGroups).
+		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id, TableGroups + ".creator_id": TableMembers + ".user_id"}).
 		Prepared(true).ToSQL()
 	if err != nil {
@@ -129,7 +110,7 @@ func (user *User) GroupListCreator() []Group {
 		return groupList
 	}
 
-	err = user.Db.Sqlx.Select(&groupList, sql, args...)
+	err = Sqlx.Select(&groupList, sql, args...)
 	if err != nil {
 		handleErr(err)
 		return groupList
@@ -138,11 +119,11 @@ func (user *User) GroupListCreator() []Group {
 	return groupList
 }
 
-func (user *User) GroupListOwner() []Group {
+func (user User) GroupListOwner() []Group {
 	groupList := []Group{}
 
-	sql, args, err := user.Db.Goqu.Select(TableGroups+".*").From(TableGroups).
-		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
+	sql, args, err := Goqu.Select(TableGroups+".*").From(TableGroups).
+		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id, TableGroups + ".owner_id": TableMembers + ".user_id"}).
 		Prepared(true).ToSQL()
 	if err != nil {
@@ -150,7 +131,7 @@ func (user *User) GroupListOwner() []Group {
 		return groupList
 	}
 
-	err = user.Db.Sqlx.Select(&groupList, sql, args...)
+	err = Sqlx.Select(&groupList, sql, args...)
 	if err != nil {
 		handleErr(err)
 		return groupList
@@ -159,20 +140,19 @@ func (user *User) GroupListOwner() []Group {
 	return groupList
 }
 
-func (user *User) GroupList() []Group {
+func (user User) GroupList() []Group {
 	groupList := []Group{}
 
-	sql, args, err := user.Db.Goqu.Select(TableGroups+".*").From(TableGroups).
-		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
+	sql, args, err := Goqu.Select(TableGroups+".*").From(TableGroups).
+		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id}).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return groupList
-
 	}
 
-	err = user.Db.Sqlx.Select(&groupList, sql, args...)
+	err = Sqlx.Select(&groupList, sql, args...)
 	if err != nil {
 		handleErr(err)
 		return groupList
@@ -181,11 +161,11 @@ func (user *User) GroupList() []Group {
 	return groupList
 }
 
-func (user *User) MemberList() []Member {
+func (user User) MemberList() []Member {
 	memberList := []Member{}
 
-	sql, args, err := user.Db.Goqu.Select(TableMembers+".*").From(TableGroups).
-		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(TableMembers+".group_id"))).
+	sql, args, err := Goqu.Select(TableMembers+".*").From(TableGroups).
+		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
 		Where(goqu.Ex{TableMembers + ".user_id": user.Id}).
 		Prepared(true).ToSQL()
 	if err != nil {
@@ -194,7 +174,7 @@ func (user *User) MemberList() []Member {
 
 	}
 
-	err = user.Db.Sqlx.Select(&memberList, sql, args...)
+	err = Sqlx.Select(&memberList, sql, args...)
 	if err != nil {
 		handleErr(err)
 		return memberList

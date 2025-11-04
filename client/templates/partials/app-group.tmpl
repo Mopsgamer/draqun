@@ -13,7 +13,7 @@
     </div>
     <div id="members-view">
         <div class="aligned" slot="label">
-            Members - {{.Group.MemberCount}}
+            Members - {{.Group.MembersCount}}
         </div>
         <div id="members">
             <div
@@ -29,7 +29,7 @@
         id="ws-chat"
         class="collapse"
         hx-ext="ws"
-        ws-connect="/groups/{{.Group.Id}}"
+        ws-connect="/groups/ws/{{.Group.Id}}"
         hx-trigger="every 1.6s"
         ws-send=""
     >

@@ -1,7 +1,10 @@
 package model
 
 import (
+	"crypto/sha256"
+	"database/sql/driver"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/environment"
@@ -39,7 +42,8 @@ func (password Password) IsValid() bool {
 }
 
 func (password Password) Hash() (PasswordHashed, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	sum := sha256.Sum256([]byte(password))
+	hash, err := bcrypt.GenerateFromPassword(sum[:], bcrypt.DefaultCost)
 	return PasswordHashed(hash), err
 }
 
@@ -50,7 +54,8 @@ func (passwordHashed PasswordHashed) IsValid() bool {
 }
 
 func (passwordHashed PasswordHashed) Compare(password Password) error {
-	return bcrypt.CompareHashAndPassword([]byte(passwordHashed), []byte(password))
+	sum := sha256.Sum256([]byte(password))
+	return bcrypt.CompareHashAndPassword([]byte(passwordHashed), sum[:])
 }
 
 type OptionalPassword Password
@@ -60,6 +65,9 @@ func (password OptionalPassword) IsValid() bool {
 }
 
 func (password OptionalPassword) Hash() (OptionalPasswordHashed, error) {
+	if len(password) == 0 {
+		return "", nil
+	}
 	hash, err := Password(password).Hash()
 	return OptionalPasswordHashed(hash), err
 }
@@ -91,7 +99,7 @@ func (description Description) IsValid() bool {
 type MessageContent string
 
 func (messageContent MessageContent) IsValid() bool {
-	return len(messageContent) <= environment.ChatMessageMaxLength
+	return len(strings.TrimSpace(string(messageContent))) > 0 && len(messageContent) <= environment.ChatMessageMaxLength
 }
 
 type Avatar string
@@ -108,12 +116,29 @@ func (color Color) IsValid() bool {
 
 type TimePast time.Time
 
+func (tp TimePast) Value() (driver.Value, error) {
+	t := time.Time(tp)
+	if t.IsZero() {
+		// return nil if you want SQL NULL for zero time
+		return nil, nil
+	}
+	return t, nil
+}
+
 func (tp TimePast) IsValid() bool {
 	now := time.Now()
 	return time.Time(tp).Before(now) || now.Equal(time.Time(tp))
 }
 
 type TimeFuture time.Time
+
+func (tp TimeFuture) Value() (driver.Value, error) {
+	t := time.Time(tp)
+	if t.IsZero() {
+		return nil, nil
+	}
+	return t, nil
+}
 
 func (tf TimeFuture) IsValid() bool {
 	now := time.Now()

@@ -1,56 +1,90 @@
 package internal
 
 import (
+	"fmt"
 	"io/fs"
-	"os"
-	"os/signal"
-	"syscall"
 
+	"github.com/fatih/color"
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/Mopsgamer/draqun/server/environment"
+	"github.com/Mopsgamer/draqun/server/model"
+	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 )
 
 func Serve(embedFS fs.FS, clientEmbedded bool) {
+	environment.LoadMeta(embedFS)
+	meta := metaString(clientEmbedded)
+
+	err := environment.LoadEnv(embedFS)
+	if err != nil {
+		fmt.Println(meta)
+		log.Fatal(err)
+	}
+	model.LoadDB()
+	if err != nil {
+		fmt.Println(meta)
+		log.Fatal(err)
+	}
+
+	app, err := NewApp(embedFS, clientEmbedded)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	app.Hooks().OnListen(func(data fiber.ListenData) error {
+		return nil
+	})
+
+	err = app.Listen(":" + environment.Port) // normal
+	if err == nil {
+		return
+	}
+
+	if environment.BuildModeValue == environment.BuildModeProduction {
+		log.Fatal(err)
+	}
+
+	switch environment.Port {
+	case "3000":
+		environment.Port = "8080"
+	case "8080":
+		environment.Port = "3000"
+	default:
+		environment.Port = "0"
+	}
+	log.Fatal(app.Listen(":" + environment.Port)) // fallback
+}
+
+func metaString(clientEmbedded bool) string {
+	clientEmbeddedColor := color.RGB(0, 180, 100)
 	clientEmbeddedStatus := "client not embedded"
 	if clientEmbedded {
+		clientEmbeddedColor = color.New(color.FgHiRed)
 		clientEmbeddedStatus = "client embedded"
 	}
 
-	environment.LoadMeta(embedFS)
-	log.Infof("Server version: v%s (%s %s), %s, %s", environment.DenoJson.Version, environment.GitJson.Branch, environment.GitJson.Hash, clientEmbeddedStatus, environment.BuildModeName)
-	environment.LoadEnv(embedFS)
+	hashColor := color.New(color.Faint)
+	branchColor := color.RGB(100, 0, 180)
+	version := branchColor.Sprint(link(environment.GitHubBranch, environment.GitJson.Branch)) + " " +
+		"v" + environment.DenoJson.Version + " " +
+		hashColor.Sprint(link(environment.GitHubCommit, environment.GitJson.Hash))
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
+	prefix := "│  "
+	title := environment.AppName + " ─ "
+	return "╭── " + color.New(color.Italic).Sprint(title) + "\n" +
+		prefix + "\n" +
+		prefix + version + "\n" +
+		prefix + color.HiRedString(environment.BuildModeName) + "\n" +
+		prefix + clientEmbeddedColor.Sprint(clientEmbeddedStatus) + "\n" +
+		prefix + "\n" +
+		"╰──\n"
+}
 
-	go func() {
-		<-sigs
-		log.Info("Served!")
-		os.Exit(0)
-	}()
-
-	if app, err := NewApp(embedFS, clientEmbedded); err == nil {
-		err = app.Listen(":" + environment.Port) // normal
-
-		if err == nil {
-			return
-		}
-
-		if environment.BuildModeValue == environment.BuildModeProduction {
-			log.Fatal(err)
-			return
-		}
-
-		switch environment.Port {
-		case "3000":
-			environment.Port = "8080"
-		case "8080":
-			environment.Port = "3000"
-		default:
-			environment.Port = "0"
-		}
-		log.Fatal(app.Listen(":" + environment.Port)) // fallback
+func link(link, text string) string {
+	if color.NoColor {
+		return text
 	}
+	return fmt.Sprintf("\x1b]8;;%s\x1b\\%s\x1b]8;;\x1b\\", link, text)
 }

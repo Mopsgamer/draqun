@@ -2,6 +2,7 @@ package environment
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"io/fs"
 	"os"
@@ -36,9 +37,11 @@ var (
 
 	Port string
 
-	DenoJson DenoConfig
-	GitJson  GitInfo
-	GoMod    modfile.File
+	GitHubCommit = ""
+	GitHubBranch = ""
+	DenoJson     DenoConfig
+	GitJson      GitInfo
+	GoMod        modfile.File
 
 	DBUser     string
 	DBPassword string
@@ -60,24 +63,27 @@ type GitInfo struct {
 }
 
 func LoadMeta(embedFS fs.FS) {
-	DenoJson = getJson[DenoConfig](embedFS, "deno.json")
-	GitJson = getJson[GitInfo](embedFS, DistFolder+"/git.json")
-	GoMod = getGoMod(embedFS)
+	DenoJson, _ = getJson[DenoConfig](embedFS, "deno.json")
+	GitJson, _ = getJson[GitInfo](embedFS, DistFolder+"/git.json")
+	GoMod, _ = getGoMod(embedFS)
+
+	GitHubCommit = GitHubRepo + "/commit/" + GitJson.HashLong
+	GitHubBranch = GitHubRepo + "/tree/" + GitJson.Branch
 }
 
 // LoadEnv environemnt variables from the '.env' file. Exits if any errors.
-func LoadEnv(embedFS fs.FS) {
+func LoadEnv(embedFS fs.FS) (errEnv error) {
 	if err := godotenv.Load(); err != nil {
 		if os.IsNotExist(err) {
 			NoEnv = true
 		} else {
-			log.Error(err)
+			errEnv = err
 		}
 	}
 
 	JWTKey = getenvString("JWT_KEY", "")
 	if len(JWTKey) < 8 {
-		log.Fatal("JWT_KEY must be at least 8 characters long.")
+		return errors.New("JWT_KEY must be at least 8 characters long")
 	}
 	UserAuthTokenExpiration = time.Duration(getenvInt("USER_AUTH_TOKEN_EXPIRATION", 180)) * time.Minute
 	ChatMessageMaxLength = int(getenvInt("CHAT_MESSAGE_MAX_LENGTH", 8000))
@@ -89,6 +95,7 @@ func LoadEnv(embedFS fs.FS) {
 	DBPassword = getenvString("DB_PASSWORD", "")
 	DBPort = getenvString("DB_PORT", "3306")
 	DBUser = getenvString("DB_USER", "admin")
+	return errEnv
 }
 
 func getenvString(key string, or string) string {
@@ -118,42 +125,41 @@ func getenvInt(key string, or int64) int64 {
 // 	return val == "1" || val == "true" || val == "y" || val == "yes"
 // }
 
-func getJson[T any](embedFS fs.FS, file string) T {
+func getJson[T any](embedFS fs.FS, file string) (val T, err error) {
 	fsFile, err := embedFS.Open(file)
 	if err != nil {
-		log.Fatal(err)
+		return val, err
 	}
 
 	buf, err := io.ReadAll(fsFile)
 	if err != nil {
-		log.Fatal(err)
+		return val, err
 	}
 
-	val := new(T)
-	err = json.Unmarshal(buf, val)
+	err = json.Unmarshal(buf, &val)
 	if err != nil {
-		log.Fatal(err)
+		return val, err
 	}
 
-	return *val
+	return val, nil
 }
 
-func getGoMod(embedFS fs.FS) modfile.File {
+func getGoMod(embedFS fs.FS) (val modfile.File, err error) {
 	file := "go.mod"
 	fsFile, err := embedFS.Open(file)
 	if err != nil {
-		log.Fatal(err)
+		return val, err
 	}
 
 	buf, err := io.ReadAll(fsFile)
 	if err != nil {
-		log.Fatal(err)
+		return val, err
 	}
 
 	gomod, err := modfile.Parse(file, buf, nil)
 	if err != nil {
-		log.Fatal(err)
+		return val, err
 	}
 
-	return *gomod
+	return *gomod, nil
 }

@@ -1,5 +1,5 @@
 import "./theme.ts";
-import { setBasePath } from "@shoelace-style/shoelace";
+import { registerIconLibrary, setBasePath } from "@shoelace-style/shoelace";
 
 import htmx from "htmx.org";
 import type HTMX from "htmx.org";
@@ -12,8 +12,15 @@ declare namespace globalThis {
 }
 globalThis.htmx = htmx as unknown as typeof HTMX.default;
 
+(htmx as unknown as typeof htmx.default).config
+    .methodsThatUseUrlParams.length = 0;
+
 import("htmx-ext-debug");
 
 setBasePath("/static/shoelace");
+registerIconLibrary("draqun", {
+    resolver: (name) => `/static/assets/icons/${name}.svg`,
+    mutator: (svg) => svg.setAttribute("fill", "currentColor"),
+});
 
 domLoaded.then(() => initAnchorHeadersFor(document.body));

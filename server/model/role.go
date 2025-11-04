@@ -64,8 +64,8 @@ const (
 	PermMembersNone   PermMembers = ""
 	PermMembersRead   PermMembers = "read"   // Can see all information about all users.
 	PermMembersInvite PermMembers = "invite" // Can invite new users.
-	PermMembersWrite  PermMembers = "write"  // Can invite new users and change other people's nicknames.
-	PermMembersDelete PermMembers = "delete" // Can invite, change nicknames, kick and ban people.
+	PermMembersWrite  PermMembers = "write"  // Can invite new users and change other people's monikers.
+	PermMembersDelete PermMembers = "delete" // Can invite, change monikers, kick and ban people.
 )
 
 func (perm PermMembers) IsValid() bool {
@@ -76,9 +76,29 @@ func (perm PermMembers) IsValid() bool {
 		perm == PermMembersDelete
 }
 
-type Role struct {
-	Db *DB `db:"-"`
+func (perm PermMembers) CanSee() bool {
+	return perm == PermMembersRead ||
+		perm == PermMembersInvite ||
+		perm == PermMembersWrite ||
+		perm == PermMembersDelete
+}
 
+func (perm PermMembers) CanInvite() bool {
+	return perm == PermMembersInvite ||
+		perm == PermMembersWrite ||
+		perm == PermMembersDelete
+}
+
+func (perm PermMembers) CanManage() bool {
+	return perm == PermMembersWrite ||
+		perm == PermMembersDelete
+}
+
+func (perm PermMembers) CanKickBan() bool {
+	return perm == PermMembersDelete
+}
+
+type Role struct {
 	Id      uint32  `db:"id"`
 	GroupId uint64  `db:"group_id"`
 	Name    Name    `db:"name"`
@@ -129,6 +149,7 @@ func (role Role) IsEmpty() bool {
 }
 
 // permissions
+//
 // NOTE: Keep 'none' at the end and 'disallow' at the first places.
 var (
 	permSwitch   = []PermSwitch{PermSwitchDisallow, PermSwitchAllow, PermSwitchNone}
@@ -147,6 +168,7 @@ func (r *Role) Merge(roleList ...Role) {
 	}
 }
 
+// Enabled rights have priority over disabled rights.
 func mergePerm[T PermSwitch | PermMessages | PermMembers](list []T, perm1, perm2 T) T {
 	for _, perm := range list {
 		if perm1 == perm || perm2 == perm {
@@ -160,18 +182,25 @@ func mergePerm[T PermSwitch | PermMessages | PermMembers](list []T, perm1, perm2
 	panic("unexpected perm msg value: " + string(perm1) + " or " + string(perm2) + ". available values: " + strings.Join(listStr, ",") + ".")
 }
 
-func NewRole(db *DB) Role {
-	return Role{Db: db}
+func NewRoleFromId(id uint32, groupId uint64) (Role, error) {
+	role := Role{}
+	return role, First(TableRoles, goqu.Ex{"id": id, "group_id": groupId}, &role)
 }
 
-func NewRoleEveryone(db *DB, groupId uint64) Role {
+func NewRoleFromName(name Name, groupId uint64) (Role, error) {
+	role := Role{}
+	return role, First(TableRoles, goqu.Ex{"name": name, "group_id": groupId}, &role)
+}
+
+const roleNameEveryone Name = "@everyone"
+
+func NewRoleEveryone(groupId uint64) Role {
 	return Role{
-		Db:      db,
 		GroupId: groupId,
-		Name:    "@everyone",
+		Name:    roleNameEveryone,
 		Moniker: "everyone",
 
-		PermMessages:    PermMessagesRead,
+		PermMessages:    PermMessagesWrite,
 		PermRoles:       PermSwitchDisallow,
 		PermMembers:     PermMembersRead,
 		PermGroupChange: PermSwitchDisallow,
@@ -179,22 +208,32 @@ func NewRoleEveryone(db *DB, groupId uint64) Role {
 	}
 }
 
+func NewAllAccessRole(allow bool, role Role) Role {
+	if allow {
+		role.PermMessages = PermMessagesDelete
+		role.PermRoles = PermSwitchAllow
+		role.PermMembers = PermMembersDelete
+		role.PermGroupChange = PermSwitchAllow
+		role.PermAdmin = PermSwitchAllow
+		return role
+	}
+
+	role.PermMessages = PermMessagesHidden
+	role.PermRoles = PermSwitchDisallow
+	role.PermMembers = PermMembersRead
+	role.PermGroupChange = PermSwitchDisallow
+	role.PermAdmin = PermSwitchDisallow
+	return role
+}
+
 func (role *Role) Insert() error {
-	return InsertId(role.Db, TableRoles, role, &role.Id)
+	return InsertId(TableRoles, role, &role.Id)
 }
 
 func (role Role) Update() error {
-	return Update(role.Db, TableRoles, role, goqu.Ex{"id": role.Id, "group_id": role.GroupId})
+	return Update(TableRoles, role, goqu.Ex{"id": role.Id, "group_id": role.GroupId})
 }
 
 func (role Role) Delete() error {
-	return Delete(role.Db, TableRoles, goqu.Ex{"id": role.Id, "group_id": role.GroupId})
-}
-
-func (role *Role) FromId(id uint32, groupId uint64) error {
-	return First(role.Db, TableRoles, goqu.Ex{"id": id, "group_id": groupId}, role)
-}
-
-func (role *Role) FromName(name Name, groupId uint64) error {
-	return First(role.Db, TableRoles, goqu.Ex{"name": name, "group_id": groupId}, role)
+	return Delete(TableRoles, goqu.Ex{"id": role.Id, "group_id": role.GroupId})
 }

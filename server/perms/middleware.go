@@ -17,46 +17,59 @@ const (
 
 type RightsChecker func(ctx fiber.Ctx, role model.Role) bool
 
-func GroupById(db *model.DB, groupIdUri string) fiber.Handler {
+func GroupById(groupIdUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		_, err := GroupByIdFromCtx(ctx, db, groupIdUri)
+		group, err := GroupByIdFromCtx(ctx, groupIdUri)
 		if err != nil {
 			return err
+		}
+
+		if !group.IsAvailable() {
+			return htmx.AlertGroupNotFound
 		}
 
 		return ctx.Next()
 	}
 }
 
-func GroupByName(db *model.DB, groupNameUri string) fiber.Handler {
+func GroupByName(groupNameUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		_, err := GroupByIdFromCtx(ctx, db, groupNameUri)
+		group, err := GroupByNameFromCtx(ctx, groupNameUri)
 		if err != nil {
 			return err
+		}
+
+		if !group.IsAvailable() {
+			return htmx.AlertGroupNotFound
 		}
 
 		return ctx.Next()
 	}
 }
 
-func MemberByAuthAndGroupId(db *model.DB, groupIdUri string, rights RightsChecker) fiber.Handler {
+func MemberByAuthAndGroupId(groupIdUri string, rights RightsChecker) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		err := MemberByAuthAndGroupIdFromCtx(ctx, db, groupIdUri)
+		err := MemberByAuthAndGroupIdFromCtx(ctx, groupIdUri)
 		if err != nil {
 			return err
 		}
 
-		member := fiber.Locals[model.Member](ctx, LocalRights)
+		member := fiber.Locals[model.Member](ctx, LocalMember)
+		if !member.IsAvailable() {
+			return htmx.AlertGroupMemberNotFound
+		}
+
+		group := fiber.Locals[model.Group](ctx, LocalGroup)
 		role := fiber.Locals[model.Role](ctx, LocalRights)
-		if role.PermAdmin.Has() {
+		if role.PermAdmin.Has() || member.UserId == group.OwnerId {
 			return ctx.Next()
 		}
 
-		if member.IsAvailable() && (rights == nil || rights(ctx, role)) {
-			return ctx.Next()
+		if rights == nil || !rights(ctx, role) {
+			return htmx.AlertGroupMemberNotAllowed
 		}
 
-		return htmx.AlertGroupMemberNotAllowed
+		return ctx.Next()
 	}
 }
 
@@ -72,9 +85,9 @@ func UseBind[T any]() fiber.Handler {
 	}
 }
 
-func UserByAuth(db *model.DB) fiber.Handler {
+func UserByAuth() fiber.Handler {
 	return func(ctx fiber.Ctx) error {
-		_, err := UserByAuthFromCtx(ctx, db)
+		_, err := UserByAuthFromCtx(ctx)
 		if err != nil {
 			return err
 		}

@@ -1,0 +1,364 @@
+openapi: 3.1.1
+info:
+    title: Draqun API Docs
+    version: 1.0.0
+    description: |
+        API documentation including HTMX endpoints.
+
+        **HTMX Support:**
+        If the request includes the `HX-Request` header, the response will be formatted for HTMX (HTML partials, redirects, etc).
+tags:
+    - name: Group
+      description: Endpoints for group management and messaging
+    - name: Account
+      description: Endpoints for user account management
+servers:
+    - url: http://localhost:3000
+paths:
+    /groups/{group_id}/join:
+        put:
+            tags:
+                - Group
+            summary: Join a group
+            parameters:
+                - name: group_id
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                "200":
+                    description: Joined group
+    /groups/{group_id}/change:
+        put:
+            tags:
+                - Group
+            summary: Change group details
+            parameters:
+                - name: group_id
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: "#/components/schemas/GroupChange"
+            responses:
+                "200":
+                    description: Group changed
+    /groups/{group_id}/messages/create:
+        post:
+            tags:
+                - Group
+            summary: Create a message in a group
+            parameters:
+                - name: group_id
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: "#/components/schemas/MessageCreate"
+            responses:
+                "200":
+                    description: Message created
+    /groups/create:
+        post:
+            tags:
+                - Group
+            summary: Create a new group
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: "#/components/schemas/GroupCreate"
+            responses:
+                "200":
+                    description: Group created
+    /groups/{group_id}/messages/page/{messages_page}:
+        get:
+            tags:
+                - Group
+            summary: Get paginated messages
+            parameters:
+                - name: group_id
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+                - name: messages_page
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                "200":
+                    description: Message list
+    /groups/{group_id}/members/page/{members_page}:
+        get:
+            tags:
+                - Group
+            summary: Get paginated members
+            parameters:
+                - name: group_id
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+                - name: members_page
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                "200":
+                    description: Member list
+    /groups/{group_id}/leave:
+        delete:
+            tags:
+                - Group
+            summary: Leave a group
+            parameters:
+                - name: group_id
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                "200":
+                    description: Left group
+    /groups/{group_id}:
+        delete:
+            tags:
+                - Group
+            summary: Delete a group
+            parameters:
+                - name: group_id
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                "200":
+                    description: Group deleted
+    /groups/ws/{group_id}/:
+        get:
+            tags:
+                - Group
+            summary: WebSocket for group messages
+            parameters:
+                - name: group_id
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                "101":
+                    description: Switching Protocols
+    /account/logout:
+        put:
+            tags:
+                - Account
+            summary: Log out
+            responses:
+                "200":
+                    description: Logged out
+    /account:
+        post:
+            tags:
+                - Account
+            summary: Sign up
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: "#/components/schemas/UserSignUp"
+            responses:
+                "200":
+                    description: Signed up
+        delete:
+            tags:
+                - Account
+            summary: Delete account
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: "#/components/schemas/UserDelete"
+            responses:
+                "200":
+                    description: Account deleted
+    /account/login:
+        post:
+            tags:
+                - Account
+            summary: Log in
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: "#/components/schemas/UserLogin"
+            responses:
+                "200":
+                    description: Logged in
+    /account/change/name:
+        put:
+            tags:
+                - Account
+            summary: Change nickname and name
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: "#/components/schemas/UserChangeName"
+            responses:
+                "200":
+                    description: Name changed
+    /account/change/email:
+        put:
+            tags:
+                - Account
+            summary: Change email
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: "#/components/schemas/UserChangeEmail"
+            responses:
+                "200":
+                    description: Email changed
+    /account/change/phone:
+        put:
+            tags:
+                - Account
+            summary: Change phone
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: "#/components/schemas/UserChangePhone"
+            responses:
+                "200":
+                    description: Phone changed
+    /account/change/password:
+        put:
+            tags:
+                - Account
+            summary: Change password
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: "#/components/schemas/UserChangePassword"
+            responses:
+                "200":
+                    description: Password changed
+components:
+    parameters:
+        HX-Request:
+            name: HX-Request
+            in: header
+            description: If present, response will be formatted for HTMX (HTML partials, redirects, etc).
+            required: false
+            schema:
+                type: string
+    schemas:
+        GroupCreate:
+            type: object
+            properties:
+                name:
+                    type: string
+                nick:
+                    type: string
+                password:
+                    type: string
+                mode:
+                    type: string
+                description:
+                    type: string
+                avatar:
+                    type: string
+        GroupChange:
+            type: object
+            properties:
+                name:
+                    type: string
+                nick:
+                    type: string
+                password:
+                    type: string
+                mode:
+                    type: string
+                description:
+                    type: string
+                avatar:
+                    type: string
+        MessageCreate:
+            type: object
+            properties:
+                content:
+                    type: string
+        UserSignUp:
+            type: object
+            properties:
+                email:
+                    type: string
+                password:
+                    type: string
+                moniker:
+                    type: string
+                name:
+                    type: string
+                phone:
+                    type: string
+                confirm-password:
+                    type: string
+        UserLogin:
+            type: object
+            properties:
+                email:
+                    type: string
+                password:
+                    type: string
+        UserDelete:
+            type: object
+            properties:
+                current-password:
+                    type: string
+                confirm-name:
+                    type: string
+        UserChangeName:
+            type: object
+            properties:
+                new-moniker:
+                    type: string
+                new-name:
+                    type: string
+        UserChangeEmail:
+            type: object
+            properties:
+                current-password:
+                    type: string
+                new-email:
+                    type: string
+        UserChangePhone:
+            type: object
+            properties:
+                current-password:
+                    type: string
+                new-phone:
+                    type: string
+        UserChangePassword:
+            type: object
+            properties:
+                current-password:
+                    type: string
+                new-password:
+                    type: string
+                confirm-password:
+                    type: string

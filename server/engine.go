@@ -14,7 +14,7 @@ import (
 )
 
 // Initialize the view engine.
-func NewAppHtmlEngine(db *model.DB, embedFS fs.FS, clientEmbedded bool, directory string) *html.Engine {
+func NewAppHtmlEngine(embedFS fs.FS, clientEmbedded bool, directory string) *html.Engine {
 	var engine *html.Engine
 	if !clientEmbedded {
 		engine = html.New(directory, environment.TemplateExt)
@@ -28,8 +28,7 @@ func NewAppHtmlEngine(db *model.DB, embedFS fs.FS, clientEmbedded bool, director
 	}
 
 	engine.AddFuncMap(map[string]any{
-		"add": func(v ...int) int {
-			result := 0
+		"add": func(v ...uint) (result uint) {
 			for _, num := range v {
 				result += num
 			}
@@ -53,7 +52,7 @@ func NewAppHtmlEngine(db *model.DB, embedFS fs.FS, clientEmbedded bool, director
 			return before + after
 		},
 		"jsonTime": func(t time.Time) string {
-			return t.Format("2006-01-02T15:04:05.000Z")
+			return t.Format(time.RFC3339)
 		},
 		"hidePhone": func(phone model.Phone) string {
 			if len(phone) > 5 {

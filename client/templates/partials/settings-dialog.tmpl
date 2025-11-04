@@ -1,7 +1,8 @@
 <sl-dialog label="Settings dialog" id="settings-dialog" class="fullscreen-base">
     <span slot="label" class="aligned">
-        <sl-icon name="gear"></sl-icon>
+        <sl-icon name="gear-fill"></sl-icon>
         Settings
     </span>
-    {{- template "partials/settings-account" .}}
+    {{- template "partials/settings-account" . -}}
+    {{- template "partials/settings-appearance" . -}}
 </sl-dialog>

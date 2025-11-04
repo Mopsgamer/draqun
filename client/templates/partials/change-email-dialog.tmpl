@@ -1,6 +1,6 @@
 <sl-dialog label="Dialog" id="change-email-dialog">
     <span slot="label" class="aligned">
-        <sl-icon name="mailbox"></sl-icon>
+        <sl-icon name="mailbox2-flag"></sl-icon>
         Change email
     </span>
     <form
@@ -14,18 +14,21 @@
             autofocus
             label="Current password"
             type="password"
-            autocomplete="current-password"
+            autocomplete="password"
             id="change-email-current-password"
             name="current-password"
             required
             password-toggle
         >
+        <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
+        <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
         </sl-input>
 
         <sl-input
             label="New email"
             type="text"
             id="new-email"
+            autocomplete="off"
             name="new-email"
             inputmode="email"
             required

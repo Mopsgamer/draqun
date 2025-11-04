@@ -1,19 +1,19 @@
 <header id="header">
     <nav>
         <sl-dropdown class="aligned" id="page-nav">
-            <sl-icon-button src="/static/assets/logo.svg" slot="trigger"></sl-icon-button>
+            <sl-icon-button library="draqun" name="logo" slot="trigger"></sl-icon-button>
             <sl-menu>
                 {{if not .IsHomePage}}
                 <a href="/">
                     <sl-menu-item>
-                        <sl-icon name="house-heart" slot="prefix"></sl-icon>
-                        Home
+                        <sl-icon name="rocket-fill" slot="prefix"></sl-icon>
+                        Landing page
                     </sl-menu-item>
                 </a>
                 {{end}}
                 <a href="/chat">
                     <sl-menu-item>
-                        <sl-icon src="/static/assets/logo.svg" slot="prefix"></sl-icon>
+                        <sl-icon library="draqun" name="logo" slot="prefix"></sl-icon>
                         Open {{.AppName}}
                     </sl-menu-item>
                 </a>

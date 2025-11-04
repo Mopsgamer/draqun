@@ -1,6 +1,9 @@
 package routes
 
 import (
+	"time"
+
+	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/perms"
@@ -8,8 +11,8 @@ import (
 )
 
 type UserChangeName struct {
-	NewNickname model.Moniker `form:"new-nickname"`
-	NewName     model.Name    `form:"new-username"`
+	NewNickname model.Moniker `form:"new-moniker"`
+	NewName     model.Name    `form:"new-name"`
 }
 
 type UserChangeEmail struct {
@@ -28,10 +31,10 @@ type UserChangePassword struct {
 	ConfirmPassword model.Password `form:"confirm-password"`
 }
 
-func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
+func routeAccountChange(router fiber.Router) fiber.Router {
 	return router.Group("/change").
 		Put("/name",
-			perms.UserByAuth(db),
+			perms.UserByAuth(),
 			perms.UseBind[UserChangeName](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserChangeName](ctx, perms.LocalForm)
@@ -42,9 +45,9 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 					return htmx.AlertUseless
 				}
 
-				_, err := model.NewUserFromName(db, request.NewName)
-				if err != nil {
-					return htmx.AlertUserExsistsName
+				existingUser, _ := model.NewUserFromName(request.NewName)
+				if !existingUser.IsEmpty() {
+					return htmx.AlertUserExistsName
 				}
 
 				user.Moniker = request.NewNickname
@@ -59,14 +62,14 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.EnableRefresh(ctx)
-					return ctx.SendStatus(fiber.StatusOK)
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
 		Put("/email",
-			perms.UserByAuth(db),
+			perms.UserByAuth(),
 			perms.UseBind[UserChangeEmail](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserChangeEmail](ctx, perms.LocalForm)
@@ -76,9 +79,9 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 					return htmx.AlertUseless
 				}
 
-				_, err := model.NewUserFromEmail(db, request.NewEmail)
-				if err != nil {
-					return htmx.AlertUserExsistsEmail
+				existingUser, _ := model.NewUserFromEmail(request.NewEmail)
+				if !existingUser.IsEmpty() {
+					return htmx.AlertUserExistsEmail
 				}
 
 				if err := user.Password.Compare(request.CurrentPassword); err != nil {
@@ -95,15 +98,15 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.EnableRefresh(ctx)
-					return ctx.SendStatus(fiber.StatusOK)
+					htmx.Redirect(ctx, htmx.Path(ctx))
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
 		Put("/phone",
-			perms.UserByAuth(db),
+			perms.UserByAuth(),
 			perms.UseBind[UserChangePhone](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserChangePhone](ctx, perms.LocalForm)
@@ -127,15 +130,15 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.EnableRefresh(ctx)
-					return ctx.SendStatus(fiber.StatusOK)
+					htmx.Redirect(ctx, htmx.Path(ctx))
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
 		Put("/password",
-			perms.UserByAuth(db),
+			perms.UserByAuth(),
 			perms.UseBind[UserChangePassword](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[UserChangePassword](ctx, perms.LocalForm)
@@ -145,7 +148,7 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 					return htmx.AlertUserPassword.Join(err)
 				}
 
-				if err := user.Password.Compare(request.NewPassword); err != nil {
+				if err := user.Password.Compare(request.NewPassword); err == nil {
 					return htmx.AlertUseless.Join(err)
 				}
 
@@ -167,9 +170,20 @@ func routeAccountChange(router fiber.Router, db *model.DB) fiber.Router {
 					return htmx.AlertDatabase.Join(err)
 				}
 
+				token, err := user.GenerateToken()
+				if err != nil {
+					return err
+				}
+
+				ctx.Cookie(&fiber.Cookie{
+					Name:    fiber.HeaderAuthorization,
+					Value:   token,
+					Expires: time.Now().Add(environment.UserAuthTokenExpiration),
+				})
+
 				if htmx.IsHtmx(ctx) {
-					htmx.EnableRefresh(ctx)
-					return ctx.SendStatus(fiber.StatusOK)
+					htmx.Redirect(ctx, htmx.Path(ctx))
+					return nil
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)

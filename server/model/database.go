@@ -7,14 +7,12 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 	"github.com/jmoiron/sqlx"
-
-	"github.com/gofiber/fiber/v3/log"
 )
 
-type DB struct {
-	Goqu *goqu.Database
-	Sqlx *sqlx.DB
-}
+var Goqu *goqu.Database
+var Sqlx *sqlx.DB
+
+type DB = sqlx.DB
 
 // SQL table name.
 const (
@@ -30,7 +28,7 @@ const (
 )
 
 // Initialize the DB wrapper.
-func InitDB() (*DB, error) {
+func LoadDB() error {
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		environment.DBUser,
 		environment.DBPassword,
@@ -39,16 +37,15 @@ func InitDB() (*DB, error) {
 		environment.DBName,
 	)
 
-	connection, err := sqlx.Open("mysql", connectionString)
+	var err error
+	Sqlx, err = sqlx.Open("mysql", connectionString)
 	if err != nil {
-		return nil, err
+		return err
+	}
+	if err := Sqlx.Ping(); err != nil {
+		return err
 	}
 
-	if err := connection.Ping(); err != nil {
-		return nil, err
-	}
-
-	goquConnection := goqu.New("mysql", connection)
-	log.Info("Database connected successfully. Hope she is set up manually or by 'deno task init'.")
-	return &DB{Goqu: goquConnection, Sqlx: connection}, nil
+	Goqu = goqu.New("mysql", Sqlx)
+	return nil
 }

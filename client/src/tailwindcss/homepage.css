@@ -1,68 +1,58 @@
 @import "./main.css";
 
-.super-sect, .super-sect-1, .super-sect-2 {
-    @apply relative text-center px-5 py-12 gap-5 flex justify-around items-center overflow-hidden;
-    .text {
-        @apply text-balance font-bold relative w-3/4;
-    }
-    .title {
-        @apply text-3xl font-semibold mb-4;
-    }
-    .description {
-        @apply text-xl font-normal m-6;
-    }
-}
-
 .super-sect {
-    @apply bg-[url(/static/assets/image-mesh-gradient.png)] bg-cover;
-    & > * {
-        @apply duration-1200 delay-300;
-        @apply motion-safe:opacity-100;
-    }
-    &:not(.appeared) > * {
-        @apply motion-safe:opacity-0;
-    }
-    .title {
-        @apply text-7xl;
-    }
-    .title, .description {
-        @apply drop-shadow-sm;
-    }
+    @apply relative text-center px-5 py-12 gap-5 flex justify-around items-center overflow-hidden;
 }
 
-.super-sect-1, .super-sect-2 {
-    & > * {
-        @apply duration-1200 delay-300;
-        @apply motion-safe:opacity-100;
-    }
-    &:not(.appeared) > * {
-        @apply motion-safe:opacity-0;
-    }
-    sl-icon {
-        @apply text-7xl w-1/4 drop-shadow-lg;
-    }
+.super-sect > * {
+    @apply duration-1200 delay-300;
+    @apply motion-safe:opacity-100;
+}
+
+.super-sect:not(.appeared) > * {
+    @apply motion-safe:opacity-0;
+}
+
+.super-sect .text {
+    @apply text-balance font-bold relative w-3/4;
+}
+
+.super-sect .title {
+    @apply text-3xl font-semibold mb-4;
+}
+
+.super-sect .description {
+    @apply text-xl font-normal m-6;
+}
+
+.super-sect-main {
+    @apply bg-[url(/static/assets/image-mesh-gradient.png)] bg-cover;
+}
+
+.super-sect-main .title {
+    @apply text-7xl;
+}
+
+.super-sect-main :is(.title, .description) {
+    @apply drop-shadow-sm;
+}
+
+:is(.super-sect-1, .super-sect-2) sl-icon {
+    @apply text-7xl w-1/4 drop-shadow-lg;
+}
+
+:is(.super-sect-1, .super-sect-2):not(.appeared) sl-icon {
+    @apply motion-safe:translate-x-24;
+}
+
+:is(.super-sect-1, .super-sect-2):not(.appeared) .text {
+    @apply motion-safe:-translate-x-24;
 }
 
 .super-sect-1 {
     @apply bg-neutral-100;
-    &:not(.appeared) {
-        sl-icon {
-            @apply motion-safe:-translate-x-24;
-        }
-        .text {
-            @apply motion-safe:translate-x-24;
-        }
-    }
 }
 
 .super-sect-2 {
     @apply bg-neutral-300;
-    &:not(.appeared) {
-        sl-icon {
-            @apply motion-safe:translate-x-24;
-        }
-        .text {
-            @apply motion-safe:-translate-x-24;
-        }
-    }
 }

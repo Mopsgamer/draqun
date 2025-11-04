@@ -1,12 +1,10 @@
 import * as esbuild from "esbuild";
-import { copy as copyPlugin } from "esbuild-plugin-copy";
 import { denoPlugin } from "@deno/esbuild-plugin";
 import { existsSync } from "@std/fs";
+import { cp } from "node:fs/promises";
 import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
-import { dirname } from "@std/path/dirname";
-import { format, type TaskStateEnd } from "@m234/logger";
-import { limit1 } from "./tool/limit1.ts";
+import { format, printErrors } from "@m234/logger";
 
 taskDotenv(logClientComp);
 
@@ -135,21 +133,6 @@ async function build(
     })();
 }
 
-function copy(from: string, to: string): Promise<void> {
-    return build({
-        ...options,
-        outdir: to,
-        entryPoints: [],
-        whenChange: [to],
-        plugins: [copyPlugin({
-            once: isWatch,
-            resolveFrom: "cwd",
-            assets: { to: to, from: from + "/**/*" },
-            copyOnStart: true,
-        })],
-    });
-}
-
 // deno-lint-ignore no-explicit-any
 type Call<Args extends (...args: any[]) => Promise<void>> = [
     fn: (...args: Parameters<Args>) => Promise<void>,
@@ -158,41 +141,64 @@ type Call<Args extends (...args: any[]) => Promise<void>> = [
 ];
 
 const slAlias = ["shoelace", "shoe", "sl"];
+const slAssets = slAlias.map((a) => (a + "-assets"));
 
-const calls: (Call<typeof copy> | Call<typeof build>)[] = [
-    [copy, [
-        "./node_modules/@shoelace-style/shoelace/dist/assets",
+const calls: [() => Promise<void>, string, string[]][] = [
+    [
+        () =>
+            cp(
+                "./node_modules/@shoelace-style/shoelace/dist/assets",
+                `./${distFolder}/static/shoelace/assets`,
+                { recursive: true },
+            ),
         `./${distFolder}/static/shoelace/assets`,
-    ], [...slAlias]],
+        [...slAssets, ...slAlias],
+    ],
 
-    [copy, [
-        `./client/src/assets`,
+    [
+        () =>
+            cp(
+                `./client/src/assets`,
+                `./${distFolder}/static/assets`,
+                { recursive: true },
+            ),
         `./${distFolder}/static/assets`,
-    ], ["assets"]],
+        ["assets"],
+    ],
 
-    [build, [{
-        ...options,
-        outdir: `./${distFolder}/static/js`,
-        entryPoints: [`./client/src/ts/**/*`],
-        whenChange: [
-            `./${distFolder}/static/js`,
-        ],
-        plugins: [denoPlugin()],
-    }], ["js", ...slAlias]],
+    [
+        () =>
+            build({
+                ...options,
+                outdir: `./${distFolder}/static/js`,
+                entryPoints: [`./client/src/ts/**/*`],
+                whenChange: [
+                    `./${distFolder}/static/js`,
+                ],
+                plugins: [denoPlugin()],
+            }),
+        `./${distFolder}/static/js`,
+        ["js", ...slAlias],
+    ],
 
-    [build, [{
-        ...options,
-        outdir: `./${distFolder}/static/css`,
-        entryPoints: [`./client/src/tailwindcss/**/*.css`],
-        whenChange: [
-            `./client/templates`,
-            `./client/src/tailwindcss`,
-        ],
-        external: ["/static/assets/*"],
-        plugins: [
-            tailwindcssPlugin(),
-        ],
-    }], ["css", ...slAlias]],
+    [
+        () =>
+            build({
+                ...options,
+                outdir: `./${distFolder}/static/css`,
+                entryPoints: [`./client/src/tailwindcss/**/*.css`],
+                whenChange: [
+                    `./client/templates`,
+                    `./client/src/tailwindcss`,
+                ],
+                external: ["/static/assets/*"],
+                plugins: [
+                    tailwindcssPlugin(),
+                ],
+            }),
+        `./${distFolder}/static/css`,
+        ["css", ...slAlias],
+    ],
 ];
 
 const existingGroups = Array.from(new Set(calls.flatMap((c) => c[2])));
@@ -239,19 +245,13 @@ if (existingGroupsUsed) {
     );
 }
 
-await Promise.allSettled(calls.map(([builder, builderArgs]) => {
-    const { outdir, outfile } = builderArgs.length === 1
-        ? builderArgs[0]
-        : { outdir: dirname(builderArgs[1]) };
-    const directory = outdir || dirname(outfile!);
-
-    return logClientComp.task({ text: "Bundling " + directory }).startRunner(
-        limit1(async (): Promise<TaskStateEnd> => {
-            // deno-lint-ignore no-explicit-any
-            await builder(...builderArgs as any);
-            return "completed";
-        }),
-    );
+await Promise.allSettled(calls.map(([builder, directory]) => {
+    const text = "Bundling " + directory;
+    return logClientComp.task({ text })
+        .startRunner(printErrors(
+            logClientComp,
+            () => builder(),
+        ));
 }));
 
 if (isWatch) {
