@@ -5,7 +5,7 @@ import { logDevelopment, taskDotenv } from "./tool/constants.ts";
 
 taskDotenv(logDevelopment);
 
-const paths = ["server/", "lite.go"];
+const paths = ["server/", "client-lite.go", "main.go"];
 if (existsSync(".env")) paths.push(".env");
 const serverCommand = new Deno.Command("go", {
     args: ["run", "-tags", "lite", "."],
