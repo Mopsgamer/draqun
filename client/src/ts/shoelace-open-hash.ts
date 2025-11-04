@@ -37,6 +37,12 @@ function openDialogFromHash() {
         return;
     }
 
+    if (!openDialog(id)) {
+        cleanHash();
+    }
+}
+
+function openDialog(id: string) {
     let foundDialogFromHash = false;
     const selector = "sl-dialog, sl-drawer";
     type SlOpenable = SlDialog | SlDrawer;
@@ -65,22 +71,18 @@ function openDialogFromHash() {
         }, { once: true });
     }
 
-    if (!foundDialogFromHash) {
-        cleanHash();
-    }
+    return foundDialogFromHash;
 }
 
 document.addEventListener("hashchange", () => openDialogFromHash());
 domLoaded.then(() => openDialogFromHash());
 document.addEventListener("click", (e) => {
     if (!(e.target instanceof Element)) return;
-    const a = e.target.closest('a[href^="#"]');
+    const a = e.target.closest(
+        ':is(a, sl-button, sl-sl-icon-button)[href^="#"]',
+    );
     if (!a) return;
 
-    const dialog = document.getElementById(a.getAttribute("href")!.slice(1));
-    if (!(dialog instanceof SlDialog)) {
-        console.error("Expected <sl-dialog>, got %o", dialog);
-        return;
-    }
-    dialog.open = true;
+    const dialogId = a.getAttribute("href")!.slice(1);
+    openDialog(dialogId);
 });
