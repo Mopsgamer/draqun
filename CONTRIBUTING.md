@@ -45,6 +45,12 @@ deno task compile:client watch
 deno task dev
 ```
 
+Before committing your changes, make sure to run the prepare task to format:
+
+```bash
+deno task prepare
+```
+
 ### Resources
 
 - <https://shoelace.style>
