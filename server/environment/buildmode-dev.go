@@ -2,5 +2,5 @@
 
 package environment
 
-const BuildModeValue BuildMode = BuildModeDevelopment
-const BuildModeName string = "development"
+const BuildEnvironment BuildMode = BuildModeDevelopment
+const BuildEnvironmentName string = "Development"

@@ -23,7 +23,7 @@ func NewAppHtmlEngine(embedFS fs.FS, clientEmbedded bool, directory string) *htm
 		engine = html.NewFileSystem(http.FS(embedTemplates), environment.TemplateExt)
 	}
 
-	if environment.BuildModeValue == environment.BuildModeDevelopment {
+	if environment.BuildEnvironment == environment.BuildModeDevelopment {
 		engine.Reload(true)
 	}
 

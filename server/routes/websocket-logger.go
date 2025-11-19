@@ -12,7 +12,7 @@ import (
 var prevWsMessage = ""
 
 func logWS(start time.Time, err error, ws *session.ControllerWs) {
-	if environment.BuildModeValue == environment.BuildModeProduction {
+	if environment.BuildEnvironment == environment.BuildModeProduction {
 		return
 	}
 
