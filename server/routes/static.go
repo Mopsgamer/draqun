@@ -16,7 +16,7 @@ func RouteStatic(embedFS fs.FS, clientEmbedded bool, app *fiber.App) {
 
 func staticHandler(embedFS fs.FS, clientEmbedded bool, dir string) fiber.Handler {
 	cacheDuration := time.Duration(-1)
-	if environment.BuildModeValue == environment.BuildModeProduction {
+	if environment.BuildEnvironment == environment.BuildModeProduction {
 		cacheDuration = time.Minute
 	}
 	cfg := static.Config{
