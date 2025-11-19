@@ -18,7 +18,7 @@ require (
 	github.com/fasthttp/websocket v1.5.12
 	github.com/fatih/color v1.18.0
 	github.com/go-sql-driver/mysql v1.9.3
-	github.com/gofiber/fiber/v3 v3.0.0-rc.2.0.20251119110428-4458a5f951a2
+	github.com/gofiber/fiber/v3 v3.0.0-rc.3
 	github.com/gofiber/template/html/v2 v2.1.3
 	github.com/gofiber/utils/v2 v2.0.0-rc.2
 	github.com/golang-jwt/jwt/v5 v5.3.0
