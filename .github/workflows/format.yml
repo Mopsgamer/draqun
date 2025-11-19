@@ -43,6 +43,7 @@ jobs:
             - name: Check Go
               run: |
                   go fmt ./...
+                  go mod tidy
             - name: Push formatting changes (if any)
               run: |
                   git diff --quiet || (
