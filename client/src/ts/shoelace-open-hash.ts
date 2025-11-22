@@ -1,7 +1,7 @@
 import type { SlDialog, SlDrawer } from "@shoelace-style/shoelace";
 import { domLoaded } from "./lib.ts";
 
-function removeHash() {
+function removeHash(): void {
     let scrollV, scrollH;
 
     if ("pushState" in history) {
@@ -23,14 +23,14 @@ function removeHash() {
     }
 }
 
-function cleanHash() {
+function cleanHash(): void {
     if (location.hash !== "") {
         return;
     }
     removeHash();
 }
 
-function openDialogFromHash() {
+function openDialogFromHash(): void {
     const id = /(?<=#)[a-zA-Z\d_-]+/.exec(location.hash)?.[0];
     if (!id) {
         cleanHash();
@@ -42,7 +42,7 @@ function openDialogFromHash() {
     }
 }
 
-function openDialog(id: string) {
+function openDialog(id: string): boolean {
     let foundDialogFromHash = false;
     const selector = "sl-dialog, sl-drawer";
     type SlOpenable = SlDialog | SlDrawer;

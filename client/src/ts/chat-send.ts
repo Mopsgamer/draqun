@@ -9,8 +9,8 @@ domLoaded.then(() => {
 
     form.addEventListener(
         "htmx:afterRequest",
-        function (this: typeof form) {
-            this.reset();
+        () => {
+            form.reset();
         },
     );
 

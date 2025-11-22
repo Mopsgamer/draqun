@@ -38,7 +38,10 @@ export function findLastMessageVisibleDate(): Element | undefined {
     );
 }
 
-export function getFormPropData(form: HTMLFormElement, capital = false) {
+export function getFormPropData(
+    form: HTMLFormElement,
+    capital = false,
+): Record<string, string | number | boolean> {
     const data: Record<string, string | number | boolean> = {};
     for (
         const slElement of getFormControls(

@@ -45,8 +45,19 @@
     "fmt": {
         "indentWidth": 4
     },
+    "lint": {
+        "rules": {
+            "include": [
+                "default-param-last",
+                "explicit-function-return-type",
+                "no-import-prefix",
+                "no-useless-rename"
+            ]
+        }
+    },
     "compilerOptions": {
         "lib": [
+            "esnext",
             "dom",
             "dom.iterable",
             "dom.asynciterable",

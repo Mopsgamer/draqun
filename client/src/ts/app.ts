@@ -7,7 +7,10 @@ import { domLoaded } from "./lib.ts";
 
 import("htmx-ext-ws");
 
-function closeAllBut(element: HTMLElement, secondaryViewList: HTMLElement[]) {
+function closeAllBut(
+    element: HTMLElement,
+    secondaryViewList: HTMLElement[],
+): void {
     element.classList.toggle("open");
     for (const secondary of secondaryViewList) {
         if (secondary !== element) {

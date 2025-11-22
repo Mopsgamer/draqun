@@ -12,12 +12,12 @@ const serverCommand = new Deno.Command("go", {
 });
 let goRunProcess: Deno.ChildProcess | undefined = undefined;
 
-async function start() {
+async function start(): Promise<void> {
     await writeGitJson();
     goRunProcess = serverCommand.spawn();
 }
 
-async function watchAndRestart() {
+async function watchAndRestart(): Promise<void> {
     const watcher = Deno.watchFs(paths, { recursive: true });
     await start();
     for await (const event of watcher) {
@@ -33,7 +33,7 @@ async function watchAndRestart() {
     }
 }
 
-function tryToKill() {
+function tryToKill(): void {
     if (goRunProcess == undefined) {
         return;
     }

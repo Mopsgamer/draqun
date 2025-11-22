@@ -79,7 +79,7 @@ async function build(
     delete safeOptions.whenChange;
     const ctx = await esbuild.context(safeOptions as esbuild.BuildOptions);
 
-    async function rebuild() {
+    async function rebuild(): Promise<void> {
         try {
             await ctx.rebuild();
         } catch (error) {
