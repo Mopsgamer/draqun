@@ -5,7 +5,7 @@ const superSectionList = document.querySelectorAll(
 );
 for (const superSection of superSectionList) {
     superSection.setAttribute("hx-trigger", "intersect");
-    superSection.addEventListener("htmx:trigger", function () {
+    superSection.addEventListener("htmx:trigger", () => {
         superSection.classList.add("appeared");
     });
 }

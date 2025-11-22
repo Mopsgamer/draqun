@@ -37,8 +37,8 @@ async function initMysqlTables(): Promise<void> {
 
     const connection = await con;
     using _ = {
-        [Symbol.dispose]() {
-            void connection.end();
+        [Symbol.dispose](): void {
+            connection.end();
         },
     };
     const decoder = new TextDecoder("utf-8");

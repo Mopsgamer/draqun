@@ -18,7 +18,7 @@ jobs:
             actions: write
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
               with:
                   ref: ${{ github.head_ref }}
                   token: ${{ secrets.GITHUB_TOKEN }}
@@ -46,6 +46,4 @@ jobs:
                   go mod tidy
             - name: Push formatting changes (if any)
               run: |
-                  git diff --quiet || (
-                    git commit -a -m "style: code formatting" &&
-                    git push)
+                  git diff --quiet
