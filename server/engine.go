@@ -10,7 +10,7 @@ import (
 	"github.com/Mopsgamer/draqun/server/model"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/template/html/v2"
+	"github.com/gofiber/template/html/v3"
 )
 
 // Initialize the view engine.
