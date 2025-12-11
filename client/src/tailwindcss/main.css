@@ -228,7 +228,72 @@
     }
 
     .message .text {
-        @apply aligned pl-10;
+        @apply flex flex-col gap-1 pl-10;
+    }
+
+    /* Markdown styles within message text */
+    .message .text p {
+        @apply m-0;
+    }
+
+    .message .text p + p {
+        @apply mt-1;
+    }
+
+    .message .text code:not(pre code) {
+        @apply bg-neutral-200 text-primary-700 px-1 py-0.5 rounded-sm text-sm font-mono;
+    }
+
+    .message .text pre {
+        @apply bg-neutral-200 p-2 rounded-md overflow-x-auto my-1 max-w-full;
+    }
+
+    .message .text pre code {
+        @apply bg-transparent p-0 text-sm font-mono;
+    }
+
+    .message .text a {
+        @apply text-primary-600 underline hover:text-primary-700;
+    }
+
+    .message .text ul, .message .text ol {
+        @apply pl-5 my-1;
+    }
+
+    .message .text ul {
+        @apply list-disc;
+    }
+
+    .message .text ol {
+        @apply list-decimal;
+    }
+
+    .message .text li {
+        @apply my-0.5;
+    }
+
+    .message .text blockquote {
+        @apply border-l-4 border-neutral-300 pl-3 my-1 text-neutral-600 italic;
+    }
+
+    .message .text strong, .message .text b {
+        @apply font-bold;
+    }
+
+    .message .text em, .message .text i {
+        @apply italic;
+    }
+
+    .message .text del, .message .text s {
+        @apply line-through;
+    }
+
+    .message .text hr {
+        @apply border-neutral-200 my-2;
+    }
+
+    .message .text :is(h1, h2, h3, h4, h5, h6) {
+        @apply font-bold p-0 m-0 border-none;
     }
 
     .message:hover .date {
