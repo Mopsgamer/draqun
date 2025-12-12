@@ -1,5 +1,6 @@
 import "./main.ts";
 
+import "./chat-markdown.ts";
 import "./chat-mutate.ts";
 import "./chat-send.ts";
 import "./chat-mutate.ts";
