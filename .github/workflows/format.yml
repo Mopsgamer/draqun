@@ -30,11 +30,11 @@ jobs:
                   git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
             - uses: denoland/setup-deno@v2
               with:
-                  deno-version: ^v2.5
+                  deno-version: ^v2.6
                   cache: true
             - uses: actions/setup-go@v5
               with:
-                  go-version: "1.25.x"
+                  go-version: "1.26.x"
             - name: Check Deno
               run: |
                   deno install --allow-scripts
