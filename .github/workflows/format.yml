@@ -35,15 +35,20 @@ jobs:
             - uses: actions/setup-go@v5
               with:
                   go-version: "1.26.x"
-            - name: Check Deno
+            - name: Install Deno dependencies
               run: |
-                  deno install --allow-scripts
+                  deno install
+            - name: Lint Deno
+              run: |
                   deno lint --fix
+            - name: Format Deno
+              run: |
                   deno fmt
             - name: Check Go
               run: |
                   go fmt ./...
                   go mod tidy
-            - name: Push formatting changes (if any)
+            - name: Should be no changes
               run: |
+                  git diff
                   git diff --quiet

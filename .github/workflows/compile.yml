@@ -22,7 +22,7 @@ jobs:
                   cache: true
             - name: Install deno dependencies
               run: |
-                  deno install --allow-scripts
+                  deno install
             - name: Compile client
               run: |
                   deno task compile:client

@@ -63,5 +63,10 @@
             "dom.asynciterable",
             "deno.ns"
         ]
-    }
+    },
+    "allowScripts": [
+        "npm:@scarf/scarf@1.4.0",
+        "npm:esbuild@0.25.12",
+        "npm:esbuild@0.27.3"
+    ]
 }

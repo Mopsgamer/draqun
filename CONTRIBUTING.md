@@ -17,7 +17,7 @@
    [web-based GitHub editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor).
 4. Open terminal. You can use built-in
    [VSC terminal](https://code.visualstudio.com/docs/terminal/getting-started).
-5. Run `deno install --allow-scripts` to install required client dependencies.
+5. Run `deno install` to install required client dependencies.
 6. Run `go mod download` to install required server dependencies (optional).
 7. Run `deno task init` to create `.env` file and initialize the database.
    `noenv` and `nodb` options are available.
