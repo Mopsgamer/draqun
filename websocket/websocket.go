@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"runtime/debug"
+	"slices"
 	"sync"
 	"time"
 
@@ -105,12 +106,7 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
 				return true
 			}
 			origin := utils.UnsafeString(fctx.Request.Header.Peek("Origin"))
-			for i := range cfg.Origins {
-				if cfg.Origins[i] == origin {
-					return true
-				}
-			}
-			return false
+			return slices.Contains(cfg.Origins, origin)
 		},
 	}
 	return func(c fiber.Ctx) error {
@@ -140,7 +136,7 @@ type Conn struct {
 
 // Conn pool
 var poolConn = sync.Pool{
-	New: func() interface{} {
+	New: func() any {
 		return new(Conn)
 	},
 }

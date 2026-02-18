@@ -6,8 +6,8 @@
    - MySQL `8||9`.
      - Recommended db name: `mysql`.
      - Recommended user: `admin`.
-   - [Go](https://go.dev/doc/install) `^1.25`
-   - [Deno](https://deno.com/) `^2.5`
+   - [Go](https://go.dev/doc/install) `^1.26`
+   - [Deno](https://deno.com/) `^2.6`
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
    and
    [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
@@ -17,7 +17,7 @@
    [web-based GitHub editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor).
 4. Open terminal. You can use built-in
    [VSC terminal](https://code.visualstudio.com/docs/terminal/getting-started).
-5. Run `deno install --allow-scripts` to install required client dependencies.
+5. Run `deno install` to install required client dependencies.
 6. Run `go mod download` to install required server dependencies (optional).
 7. Run `deno task init` to create `.env` file and initialize the database.
    `noenv` and `nodb` options are available.
