@@ -65,7 +65,7 @@ jobs:
                   deno task release --dry-run ${{ github.event.inputs.release_type }}
             - uses: actions/setup-go@v6
               with:
-                  go-version: "1.26.x"
+                  go-version-file: go.mod
             - name: Build binaries
               run: |
                   deno task compile:server:cross
