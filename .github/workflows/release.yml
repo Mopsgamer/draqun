@@ -63,7 +63,7 @@ jobs:
             - name: Dry run
               run: |
                   deno task release --dry-run ${{ github.event.inputs.release_type }}
-            - uses: actions/setup-go@v5
+            - uses: actions/setup-go@v6
               with:
                   go-version: "1.26.x"
             - name: Build binaries
