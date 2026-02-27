@@ -1,18 +1,12 @@
 name: Format & Lint
 
 on:
-    pull_request:
-        types:
-            - opened
-            - synchronize
-            - ready_for_review
     workflow_dispatch:
 
 jobs:
     apply:
         env:
             GOCACHE: ${{ github.workspace }}/dist/cache
-        if: github.event.pull_request.draft == false
         permissions:
             contents: write
             actions: write

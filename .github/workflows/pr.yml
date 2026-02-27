@@ -1,0 +1,97 @@
+name: PR
+
+on:
+    pull_request:
+        types:
+            - opened
+            - synchronize
+            - ready_for_review
+    workflow_dispatch:
+
+jobs:
+    govulncheck:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  persist-credentials: false
+            - uses: actions/setup-go@v6
+              with:
+                  go-version-file: go.mod
+            - run: |
+                  go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+    format:
+        env:
+            GOCACHE: ${{ github.workspace }}/dist/cache
+        if: github.event.pull_request.draft == false
+        permissions:
+            contents: write
+            actions: write
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  ref: ${{ github.head_ref }}
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  repository: ${{ github.repository }}
+            - name: Set Git origin
+              run: |
+                  git config --global user.name "github-actions"
+                  git config --global user.email "github-actions@github.com"
+                  git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+            - uses: denoland/setup-deno@v2
+              with:
+                  deno-version: ^v2.6
+                  cache: true
+            - uses: actions/setup-go@v6
+              with:
+                  go-version-file: go.mod
+            - name: Install Deno dependencies
+              run: |
+                  deno install
+            - name: Lint Deno
+              run: |
+                  deno lint --fix
+            - name: Format Deno
+              run: |
+                  deno fmt
+            - name: Check Go
+              run: |
+                  go fmt ./...
+                  go mod tidy
+            - name: Should be no changes
+              run: |
+                  git diff
+                  git diff --quiet
+    cross-compile:
+        needs:
+            - format
+            - govulncheck
+        env:
+            GOCACHE: ${{ github.workspace }}/dist/cache
+        if: github.event.pull_request.draft == false
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: denoland/setup-deno@v2
+              with:
+                  deno-version: ^v2.6
+                  cache: true
+            - name: Install deno dependencies
+              run: |
+                  deno install
+            - name: Compile client
+              run: |
+                  deno task compile:client
+            - uses: actions/setup-go@v6
+              with:
+                  go-version-file: go.mod
+            - name: Build binaries
+              run: |
+                  deno task compile:server:cross
+                  deno task compile:server:cross dev
+            - name: Upload server binaries
+              uses: nanoufo/action-upload-artifacts-and-release-assets@v2
+              with:
+                  path: |
+                      dist/server-*
