@@ -1,33 +1,36 @@
 import { logServerComp, taskDotenv } from "./tool/constants.ts";
 import { binaryInfo, compile } from "./tool/compile-binary.ts";
-import { limit1 } from "./tool/limit1.ts";
-import type { Task, TaskStateEnd } from "@m234/logger";
 import { taskGitJson } from "./tool/generate-git.ts";
 
 taskDotenv(logServerComp);
 await taskGitJson(logServerComp);
 
-const osList = ["windows", "linux", "darwin"];
-const archList = ["amd64", "arm64"];
+const osList = ["windows", "linux", "darwin"] as const;
+const archList = ["amd64", "arm64"] as const;
 
-let success = true;
-const queue: Promise<Task>[] = [];
+const targets: [os: string, arch: string][] = [];
 for (const os of osList) {
     for (const arch of archList) {
-        const { filePath } = binaryInfo(os, arch);
-        queue.push(
-            logServerComp.task({
-                text: `Compiling ${filePath}`,
-            }).startRunner(limit1(async (): Promise<TaskStateEnd> => {
-                const result = await compile(os, arch);
-                success &&= result;
-                return result ? "completed" : "failed";
-            })),
-        );
+        targets.push([os, arch]);
     }
 }
 
-await Promise.allSettled(queue);
+let success = true;
+logServerComp.info("Plan:");
+for (const [os, arch] of targets) {
+    const { filePath } = binaryInfo(os, arch);
+    await logServerComp.info("\t" + filePath);
+}
+for (const [os, arch] of targets) {
+    const { filePath } = binaryInfo(os, arch);
+    const task = logServerComp.task({
+        text: `Compiling ${filePath}`,
+    });
+    task.start();
+    const result = await compile(os, arch);
+    success &&= result;
+    task.end(result ? "completed" : "failed");
+}
 
 if (!success) {
     Deno.exit(1);

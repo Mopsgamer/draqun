@@ -2,13 +2,30 @@ import dotenv from "dotenv";
 import { Logger } from "@m234/logger";
 import { ensureDir } from "@std/fs/ensure-dir";
 
-export const logDevelopment = new Logger({ prefix: "development" });
-export const logRelease = new Logger({ prefix: "release" });
-export const logProd = new Logger({ prefix: "prod" });
-export const logServerComp = new Logger({ prefix: "server-compilation" });
-export const logClientComp = new Logger({ prefix: "client-compilation" });
-export const logInitDb = new Logger({ prefix: "init-database" });
-export const logInitFiles = new Logger({ prefix: "init-files" });
+const defaultTaskOptions = { suffixDuration: true };
+
+export const logDevelopment = new Logger({
+    prefix: "development",
+    defaultTaskOptions,
+});
+export const logRelease = new Logger({ prefix: "release", defaultTaskOptions });
+export const logProd = new Logger({ prefix: "prod", defaultTaskOptions });
+export const logServerComp = new Logger({
+    prefix: "server-compilation",
+    defaultTaskOptions,
+});
+export const logClientComp = new Logger({
+    prefix: "client-compilation",
+    defaultTaskOptions,
+});
+export const logInitDb = new Logger({
+    prefix: "init-database",
+    defaultTaskOptions,
+});
+export const logInitFiles = new Logger({
+    prefix: "init-files",
+    defaultTaskOptions,
+});
 
 export function taskDotenv(
     logger: Logger,
