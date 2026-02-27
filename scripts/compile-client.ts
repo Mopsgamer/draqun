@@ -4,7 +4,7 @@ import { existsSync } from "@std/fs";
 import { cp } from "node:fs/promises";
 import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
-import { format, printErrors } from "@m234/logger";
+import { format } from "@m234/logger";
 
 taskDotenv(logClientComp);
 
@@ -248,10 +248,7 @@ if (existingGroupsUsed) {
 await Promise.allSettled(calls.map(([builder, directory]) => {
     const text = "Bundling " + directory;
     return logClientComp.task({ text })
-        .startRunner(printErrors(
-            logClientComp,
-            () => builder(),
-        ));
+        .startRunner(builder);
 }));
 
 if (isWatch) {

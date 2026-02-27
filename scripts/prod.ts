@@ -1,4 +1,4 @@
-import { printErrors, type TaskStateEnd } from "@m234/logger";
+import type { TaskStateEnd } from "@m234/logger";
 import { binaryInfo, compile, machineInfo } from "./tool/compile-binary.ts";
 import { distFolder, logProd } from "./tool/constants.ts";
 import kill from "tree-kill";
@@ -23,7 +23,7 @@ let pid = new Deno.Command(filePath, {
 
 setInterval(() => {
     logProd.task({ text: "Refreshing" })
-        .startRunner(printErrors(logProd, start));
+        .startRunner(start);
 }, 3 * 60 * 1000);
 
 async function start(): Promise<TaskStateEnd> {

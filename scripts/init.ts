@@ -9,7 +9,6 @@ import {
     logInitFiles,
     taskDotenv,
 } from "./tool/constants.ts";
-import { printErrors } from "@m234/logger";
 
 taskDotenv(logInitFiles);
 
@@ -44,10 +43,10 @@ async function initMysqlTables(): Promise<void> {
     const decoder = new TextDecoder("utf-8");
 
     const taskConnect = logInitDb.task({ text: "Connecting", indent: 1 });
-    await taskConnect.startRunner(printErrors(logInitDb, async () => {
+    await taskConnect.startRunner(async () => {
         // connect() actually can return a connection instead of a void.
         await connection.connect();
-    }));
+    });
     if (taskConnect.state === "failed") {
         return;
     }
@@ -59,10 +58,10 @@ async function initMysqlTables(): Promise<void> {
             text: "Executing " + sqlFile,
             indent: 1,
         })
-            .startRunner(printErrors(logInitDb, async () => {
+            .startRunner(async () => {
                 const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
                 await connection.query(sqlString);
-            }));
+            });
         if (execution.state === "failed") {
             logInitDb.warn(
                 "If the initialization fails because of references, we are supposed to change the order.",
@@ -148,10 +147,10 @@ function initEnvFile(path: string): void {
 if (!Deno.args.includes("noenv")) {
     const path = ".env";
     logInitFiles.task({ text: `Initializing '${path}'` })
-        .startRunner(printErrors(logInitFiles, () => initEnvFile(path)));
+        .startRunner(() => initEnvFile(path));
 }
 
 if (!Deno.args.includes("nodb")) {
     await logInitDb.task({ text: "Initializing DB" })
-        .startRunner(printErrors(logInitDb, initMysqlTables));
+        .startRunner(initMysqlTables);
 }
