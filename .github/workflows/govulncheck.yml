@@ -5,6 +5,11 @@ on:
     pull_request:
     schedule: # daily at 10:22 UTC
         - cron: "22 10 * * *"
+    workflow_run:
+        workflows:
+            - PR
+        types:
+            - completed
     workflow_dispatch:
 
 permissions:
