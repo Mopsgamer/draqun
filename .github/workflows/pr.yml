@@ -9,6 +9,17 @@ on:
     workflow_dispatch:
 
 jobs:
+    govulncheck:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  persist-credentials: false
+            - uses: actions/setup-go@v6
+              with:
+                  go-version-file: go.mod
+            - run: |
+                  go run golang.org/x/vuln/cmd/govulncheck@latest ./...
     format:
         env:
             GOCACHE: ${{ github.workspace }}/dist/cache
@@ -53,7 +64,9 @@ jobs:
                   git diff
                   git diff --quiet
     cross-compile:
-        needs: format
+        needs:
+            - format
+            - govulncheck
         env:
             GOCACHE: ${{ github.workspace }}/dist/cache
         if: github.event.pull_request.draft == false
