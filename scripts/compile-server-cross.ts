@@ -8,18 +8,18 @@ await taskGitJson(logServerComp);
 const osList = ["windows", "linux", "darwin"] as const;
 const archList = ["amd64", "arm64"] as const;
 
-const targets: [os: string, arch: string][] = []
+const targets: [os: string, arch: string][] = [];
 for (const os of osList) {
     for (const arch of archList) {
-        targets.push([os, arch])
+        targets.push([os, arch]);
     }
 }
 
 let success = true;
-logServerComp.info("Plan:")
+logServerComp.info("Plan:");
 for (const [os, arch] of targets) {
     const { filePath } = binaryInfo(os, arch);
-    await logServerComp.info("\t" + filePath)
+    await logServerComp.info("\t" + filePath);
 }
 for (const [os, arch] of targets) {
     const { filePath } = binaryInfo(os, arch);
