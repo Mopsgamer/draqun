@@ -31,8 +31,6 @@ export async function compile(
     const { filePath } = binaryInfo(os, arch);
 
     const env = {
-        GOOS: os,
-        GOARCH: arch,
         GOCACHE: resolve(`${distFolder}/cache`),
         ...Deno.env.toObject(),
     };
@@ -54,7 +52,11 @@ export async function compile(
             filePath,
             ".",
         ],
-        env,
+        env: {
+            ...env,
+            GOOS: os,
+            GOARCH: arch,
+        },
         stdout: "inherit",
         stderr: "inherit",
     }).output()).success;
