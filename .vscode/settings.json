@@ -10,7 +10,8 @@
         "ui.semanticTokens": true,
         "build.standaloneTags": [
             "lite",
-            "prod"
+            "prod",
+            "ignore"
         ]
     },
     "[go]": {

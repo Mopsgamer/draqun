@@ -1,4 +1,4 @@
-name: govulncheck
+name: Vulnerabilities
 
 on:
     push:
@@ -13,6 +13,7 @@ permissions:
 
 jobs:
     govulncheck:
+        name: Vulnerabilities
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v6

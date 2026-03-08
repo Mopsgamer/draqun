@@ -1,3 +1,4 @@
+//go:generate go run scripts/gen_git.go
 package main
 
 import (
