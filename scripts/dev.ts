@@ -1,19 +1,23 @@
 import kill from "tree-kill";
 import { existsSync } from "@std/fs";
-import { writeGitJson } from "./tool/generate-git.ts";
 import { logDevelopment, taskDotenv } from "./tool/constants.ts";
 
 taskDotenv(logDevelopment);
 
-const paths = ["server/", "client-lite.go", "main.go"];
+const paths = ["server/", "client-lite.go", "main.go", ".git/ORIG_HEAD"];
 if (existsSync(".env")) paths.push(".env");
+const generateCommand = new Deno.Command("go", {
+    args: ["generate", "./..."],
+});
 const serverCommand = new Deno.Command("go", {
     args: ["run", "-tags", "lite", "."],
 });
 let goRunProcess: Deno.ChildProcess | undefined = undefined;
 
 async function start(): Promise<void> {
-    await writeGitJson();
+    goRunProcess = generateCommand.spawn();
+    const { success } = await goRunProcess.output();
+    if (!success) return;
     goRunProcess = serverCommand.spawn();
 }
 

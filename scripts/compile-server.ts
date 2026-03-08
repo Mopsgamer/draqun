@@ -1,9 +1,7 @@
 import { binaryInfo, compile, machineInfo } from "./tool/compile-binary.ts";
 import { logServerComp, taskDotenv } from "./tool/constants.ts";
-import { taskGitJson } from "./tool/generate-git.ts";
 
 taskDotenv(logServerComp);
-await taskGitJson(logServerComp);
 
 const [os, arch] = machineInfo();
 const { filePath } = binaryInfo(os, arch);

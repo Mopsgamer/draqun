@@ -1,9 +1,7 @@
 import { logServerComp, taskDotenv } from "./tool/constants.ts";
 import { binaryInfo, compile } from "./tool/compile-binary.ts";
-import { taskGitJson } from "./tool/generate-git.ts";
 
 taskDotenv(logServerComp);
-await taskGitJson(logServerComp);
 
 const osList = ["windows", "linux", "darwin"] as const;
 const archList = ["amd64", "arm64"] as const;

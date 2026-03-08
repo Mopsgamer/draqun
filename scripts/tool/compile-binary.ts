@@ -30,7 +30,22 @@ export async function compile(
 ): Promise<boolean> {
     const { filePath } = binaryInfo(os, arch);
 
-    const { success } = await new Deno.Command("go", {
+    const env = {
+        GOOS: os,
+        GOARCH: arch,
+        GOCACHE: resolve(`${distFolder}/cache`),
+        ...Deno.env.toObject(),
+    };
+
+    return (await new Deno.Command("go", {
+        args: [
+            "generate",
+            "./...",
+        ],
+        env,
+        stdout: "inherit",
+        stderr: "inherit",
+    }).output()).success && (await new Deno.Command("go", {
         args: [
             "build",
             "-tags",
@@ -39,15 +54,8 @@ export async function compile(
             filePath,
             ".",
         ],
-        env: {
-            GOOS: os,
-            GOARCH: arch,
-            GOCACHE: resolve(`${distFolder}/cache`),
-            ...Deno.env.toObject(),
-        },
+        env,
         stdout: "inherit",
         stderr: "inherit",
-    }).output();
-
-    return success;
+    }).output()).success;
 }
