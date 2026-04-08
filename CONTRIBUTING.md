@@ -7,7 +7,7 @@
      - Recommended db name: `mysql`.
      - Recommended user: `admin`.
    - [Go](https://go.dev/doc/install) `^1.26`
-   - [Deno](https://deno.com/) `^2.6`
+   - [Deno](https://deno.com/) `^2.7.11`
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
    and
    [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
