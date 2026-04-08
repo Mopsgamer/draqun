@@ -1,7 +1,7 @@
 name: Release
 
 env:
-    DENO_VERSION: ^v2.6
+    DENO_VERSION: ^v2.7
 
 on:
     workflow_dispatch:

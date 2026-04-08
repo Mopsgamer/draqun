@@ -1,7 +1,7 @@
 name: PR
 
 env:
-    DENO_VERSION: ^v2.6
+    DENO_VERSION: ^v2.7
 
 on:
     pull_request:
@@ -53,7 +53,7 @@ jobs:
               with:
                   deno-version: ${{ env.DENO_VERSION }}
                   cache: true
-            - run: deno fmt --check
+            - run: deno lint
     fmt-deno:
         name: Deno Format
         if: github.event.pull_request.draft == false
