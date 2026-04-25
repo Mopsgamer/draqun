@@ -24,13 +24,7 @@ const options: esbuild.BuildOptions = {
 	minifyWhitespace: minify,
 	platform: "browser",
 	format: "esm",
-	target: [
-		"esnext",
-		"chrome67",
-		"edge79",
-		"firefox68",
-		"safari14",
-	],
+	target: "esnext",
 };
 
 let buildCalls = 0;
