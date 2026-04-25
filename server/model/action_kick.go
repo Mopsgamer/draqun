@@ -6,6 +6,7 @@ import (
 )
 
 type ActionKick struct {
+	checkEmpty
 	TargetId    uint64      `db:"target_id"`  // The user being banned.
 	CreatorId   uint64      `db:"creator_id"` // The user who created the ban.
 	GroupId     uint64      `db:"group_id"`   // The group from which the user is kicked.
@@ -33,10 +34,6 @@ func (action ActionKick) Validate() htmx.Alert {
 	}
 
 	return nil
-}
-
-func (action ActionKick) IsEmpty() bool {
-	return action.TargetId == 0 || action.CreatorId == 0 || action.GroupId == 0
 }
 
 func (action *ActionKick) Insert() error {

@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import mysql from "mysql2/promise";
+import { DatabaseSync } from "node:sqlite"; // Deno 2.x native
 import { existsSync } from "@std/fs";
 import {
     decoder,
@@ -12,7 +12,7 @@ import {
 
 taskDotenv(logInitFiles);
 
-async function initMysqlTables(): Promise<void> {
+function initSqliteTables(): void {
     const sqlFileList = [
         "./scripts/queries/create_users.sql",
         "./scripts/queries/create_groups.sql",
@@ -26,52 +26,61 @@ async function initMysqlTables(): Promise<void> {
     ];
     logInitDb.info("You can pass 'nodb' to ignore DB initialization step.");
 
-    const con = mysql.createConnection({
-        password: Deno.env.get(envKeys.DB_PASSWORD),
-        database: Deno.env.get(envKeys.DB_NAME),
-        user: Deno.env.get(envKeys.DB_USER),
-        host: Deno.env.get(envKeys.DB_HOST),
-        port: Number(Deno.env.get(envKeys.DB_PORT)),
+    // SQLite uses a local file instead of a network connection
+    const dbPath = "app_data.db";
+
+    const taskConnect = logInitDb.task({
+        text: "Opening SQLite file",
+        indent: 1,
     });
 
-    const connection = await con;
-    using _ = {
-        [Symbol.dispose](): void {
-            connection.end();
-        },
-    };
-    const decoder = new TextDecoder("utf-8");
-
-    const taskConnect = logInitDb.task({ text: "Connecting", indent: 1 });
-    await taskConnect.startRunner(async () => {
-        // connect() actually can return a connection instead of a void.
-        await connection.connect();
+    // We use DatabaseSync for the initialization script because it's simpler for local file I/O
+    let db: DatabaseSync;
+    taskConnect.startRunner(() => {
+        db = new DatabaseSync(dbPath);
     });
+
     if (taskConnect.state === "failed") {
         return;
     }
+
+    // Ensure the file is closed when the script finishes
+    using _ = {
+        [Symbol.dispose](): void {
+            db.close();
+        },
+    };
+
     logInitDb.warn(
-        "If you are trying to reinitialize the database, this script will not not change existing tables. Delete and reinitialize or change them manually.",
+        "Rerunning 'init' won't change existing tables. Delete 'app_data.db' if you need a full reset.",
     );
+
     for (const sqlFile of sqlFileList) {
-        const execution = await logInitDb.task({
+        const execution = logInitDb.task({
             text: "Executing " + sqlFile,
             indent: 1,
         })
-            .startRunner(async () => {
+            .startRunner(() => {
                 const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
-                await connection.query(sqlString);
+                // db.exec runs the entire file content at once
+                try {
+                    db.exec(sqlString);
+                } catch (error) {
+                    logInitDb.error((error as Error).message);
+                    return "failed";
+                }
             });
+
         if (execution.state === "failed") {
             logInitDb.warn(
-                "If the initialization fails because of references, we are supposed to change the order.",
+                "If the initialization fails because of references, check the execution order of your .sql files.",
             );
             return;
         }
     }
 
     logInitDb.success(
-        "All queries have been executed.",
+        "All queries have been executed against app_data.db.",
     );
 }
 
@@ -99,22 +108,9 @@ function initEnvFile(path: string): void {
         comment: "application port",
     });
 
-    defaultEnv.set(envKeys.DB_PASSWORD, { comment: "connection password" });
-    defaultEnv.set(envKeys.DB_NAME, {
-        value: "mysql",
-        comment: "connection name",
-    });
-    defaultEnv.set(envKeys.DB_USER, {
-        value: "admin",
-        comment: "connection user\nroot user is not recommended",
-    });
-    defaultEnv.set(envKeys.DB_HOST, {
-        value: "localhost",
-        comment: "connection host",
-    });
-    defaultEnv.set(envKeys.DB_PORT, {
-        value: 3306,
-        comment: "database port",
+    defaultEnv.set(envKeys.DB_PATH, {
+        value: "app_data.db",
+        comment: "local sqlite database file path",
     });
 
     const env = existsSync(path)
@@ -151,6 +147,6 @@ if (!Deno.args.includes("noenv")) {
 }
 
 if (!Deno.args.includes("nodb")) {
-    await logInitDb.task({ text: "Initializing DB" })
-        .startRunner(initMysqlTables);
+    logInitDb.task({ text: "Initializing DB" })
+        .startRunner(initSqliteTables);
 }

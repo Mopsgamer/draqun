@@ -3,6 +3,6 @@
         "golang.go",
         "denoland.vscode-deno",
         "bradlc.vscode-tailwindcss",
-        "cweijan.vscode-mysql-client2"
+        "qwtel.sqlite-viewer"
     ]
 }

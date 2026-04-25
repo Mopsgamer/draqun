@@ -6,7 +6,6 @@ import (
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v3"
-	"github.com/jmoiron/sqlx/types"
 )
 
 type GroupMode string
@@ -22,7 +21,8 @@ func (gm GroupMode) IsValid() bool {
 }
 
 type Group struct {
-	Id          uint64                 `db:"id"`
+	checkEmpty
+	Id          uint64                 `db:"id" goqu:"skipinsert"`
 	CreatorId   uint64                 `db:"creator_id"`
 	OwnerId     uint64                 `db:"owner_id"`
 	Moniker     Moniker                `db:"moniker"` // Nick is a customizable name.
@@ -32,7 +32,7 @@ type Group struct {
 	Description Description            `db:"description"`
 	Avatar      Avatar                 `db:"avatar"`
 	CreatedAt   TimePast               `db:"created_at"`
-	IsDeleted   types.BitBool          `db:"is_deleted"`
+	IsDeleted   bool                   `db:"is_deleted"`
 }
 
 var _ Model = (*Group)(nil)
@@ -94,10 +94,6 @@ func (group Group) Validate() htmx.Alert {
 	}
 
 	return nil
-}
-
-func (group Group) IsEmpty() bool {
-	return group.Id == 0 || group.Name == ""
 }
 
 func (group Group) IsAvailable() bool {

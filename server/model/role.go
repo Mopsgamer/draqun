@@ -99,7 +99,8 @@ func (perm PermMembers) CanKickBan() bool {
 }
 
 type Role struct {
-	Id      uint32  `db:"id"`
+	checkEmpty
+	Id      uint64  `db:"id" goqu:"skipinsert"`
 	GroupId uint64  `db:"group_id"`
 	Name    Name    `db:"name"`
 	Moniker Moniker `db:"moniker"`
@@ -144,10 +145,6 @@ func (role Role) Validate() htmx.Alert {
 	return nil
 }
 
-func (role Role) IsEmpty() bool {
-	return role.Id == 0 || role.Name == ""
-}
-
 // permissions
 //
 // NOTE: Keep 'none' at the end and 'disallow' at the first places.
@@ -182,7 +179,7 @@ func mergePerm[T PermSwitch | PermMessages | PermMembers](list []T, perm1, perm2
 	panic("unexpected perm msg value: " + string(perm1) + " or " + string(perm2) + ". available values: " + strings.Join(listStr, ",") + ".")
 }
 
-func NewRoleFromId(id uint32, groupId uint64) (Role, error) {
+func NewRoleFromId(id uint64, groupId uint64) (Role, error) {
 	role := Role{}
 	return role, First(TableRoles, goqu.Ex{"id": id, "group_id": groupId}, &role)
 }

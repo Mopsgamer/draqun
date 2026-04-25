@@ -3,8 +3,7 @@ package session
 import (
 	"encoding/json"
 
-	"github.com/Mopsgamer/draqun/websocket"
-
+	"github.com/gofiber/contrib/v3/websocket"
 	"github.com/gofiber/fiber/v3"
 )
 

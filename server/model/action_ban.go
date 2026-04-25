@@ -6,6 +6,7 @@ import (
 )
 
 type ActionBan struct {
+	checkEmpty
 	TargetId    uint64      `db:"target_id"`  // The user being banned.
 	CreatorId   uint64      `db:"creator_id"` // The user who created the ban.
 	RevokerId   uint64      `db:"revoker_id"` // The user who unbanned the user.
@@ -38,10 +39,6 @@ func (action ActionBan) Validate() htmx.Alert {
 	}
 
 	return nil
-}
-
-func (action ActionBan) IsEmpty() bool {
-	return action.TargetId == 0 || action.CreatorId == 0 || action.GroupId == 0
 }
 
 func (action *ActionBan) Insert() error {

@@ -1,15 +1,14 @@
 CREATE TABLE IF NOT EXISTS app_group_roles (
-    id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    group_id BIGINT UNSIGNED NOT NULL,
-    moniker VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    color INT UNSIGNED NOT NULL,
-    perm_messages ENUM('', 'hidden', 'read', 'write', 'delete') NOT NULL,
-    perm_roles ENUM('', 'disallow', 'allow') NOT NULL,
-    perm_members ENUM('', 'read', 'invite', 'write', 'delete') NOT NULL,
-    perm_group_change ENUM('', 'disallow', 'allow') NOT NULL,
-    perm_admin ENUM('', 'disallow', 'allow') NOT NULL,
-    PRIMARY KEY (id),
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_id INTEGER NOT NULL,
+    moniker TEXT NOT NULL,
+    name TEXT NOT NULL,
+    color INTEGER NOT NULL,
+    perm_messages TEXT NOT NULL CHECK (perm_messages IN ('', 'hidden', 'read', 'write', 'delete')),
+    perm_roles TEXT NOT NULL CHECK (perm_roles IN ('', 'disallow', 'allow')),
+    perm_members TEXT NOT NULL CHECK (perm_members IN ('', 'read', 'invite', 'write', 'delete')),
+    perm_group_change TEXT NOT NULL CHECK (perm_group_change IN ('', 'disallow', 'allow')),
+    perm_admin TEXT NOT NULL CHECK (perm_admin IN ('', 'disallow', 'allow')),
     FOREIGN KEY (group_id) REFERENCES app_groups (id),
     UNIQUE (name)
-) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+);

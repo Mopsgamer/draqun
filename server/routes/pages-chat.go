@@ -8,10 +8,17 @@ import (
 )
 
 func routePagesChat(router fiber.Router) fiber.Router {
-	chat := router.Group("/chat", func(ctx fiber.Ctx) error {
-		ctx.Locals("IsChatPage", true)
-		return ctx.Next()
-	})
+	chat := router.Group(
+		"/chat",
+		func(ctx fiber.Ctx) error {
+			ctx.Locals("IsChatPage", true)
+			user, _ := perms.UserByAuthFromCtx(ctx)
+			if user.IsEmpty() {
+				return htmx.TryRenderPage(ctx, "chat-login", MapPage(ctx, fiber.Map{"Title": "Home"}))
+			}
+			return ctx.Next()
+		},
+	)
 
 	chat.Get(
 		"/",
@@ -28,7 +35,7 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			}
 
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
-			return htmx.TryRenderPage(ctx, "chat", MapPage(ctx, fiber.Map{"Title": group.Moniker}))
+			return htmx.TryRenderPage(ctx, "chat-group", MapPage(ctx, fiber.Map{"Title": group.Moniker}))
 		},
 	).Name("page.group")
 
@@ -47,7 +54,7 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				return ctx.Redirect().To(group.Url(ctx))
 			}
 
-			return htmx.TryRenderPage(ctx, "chat", MapPage(ctx, fiber.Map{"Title": "Join " + group.Moniker}))
+			return htmx.TryRenderPage(ctx, "chat-group-join", MapPage(ctx, fiber.Map{"Title": "Join " + group.Moniker}))
 		},
 	).Name("page.group.join")
 

@@ -1,6 +1,6 @@
 import type { TaskStateEnd } from "@m234/logger";
 import { binaryInfo, compile, machineInfo } from "./tool/compile-binary.ts";
-import { distFolder, logProd } from "./tool/constants.ts";
+import { distFolder, logProd, taskDotenv } from "./tool/constants.ts";
 import kill from "tree-kill";
 import { compileDist } from "./tool/compile-dist.ts";
 import { existsSync } from "@std/fs/exists";
@@ -48,6 +48,8 @@ async function start(): Promise<TaskStateEnd> {
     }
 
     if (pid > 0) kill(pid);
+
+    taskDotenv(logProd);
 
     pid = new Deno.Command(filePath, {
         stdout: "piped",

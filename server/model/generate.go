@@ -25,6 +25,12 @@ func First[T any](table string, ex goqu.Ex, item *T) (err error) {
 
 	err = Sqlx.QueryRowx(sql, args...).StructScan(item)
 	err = wrapSqlError(err, sql, args)
+	if err == nil {
+		g, ok := any(item).(SetFullfilled)
+		if ok {
+			g.SetFullfilled()
+		}
+	}
 	return
 }
 
@@ -36,6 +42,11 @@ func Last[T any](table string, ex goqu.Ex, key exp.IdentifierExpression, item *T
 
 	err = Sqlx.QueryRowx(sql, args...).StructScan(item)
 	err = wrapSqlError(err, sql, args)
+	if err == nil {
+		if g, ok := any(item).(SetFullfilled); ok {
+			g.SetFullfilled()
+		}
+	}
 	return
 }
 
@@ -52,6 +63,11 @@ func insert[T any](table string, item *T) (result sql.Result, err error) {
 
 func Insert[T any](table string, item *T) (err error) {
 	_, err = insert(table, item)
+	if err == nil {
+		if g, ok := any(item).(SetFullfilled); ok {
+			g.SetFullfilled()
+		}
+	}
 	return
 }
 
@@ -67,6 +83,9 @@ func InsertId[T any, Id constraints.Integer](table string, item *T, itemId *Id) 
 	}
 
 	*itemId = Id(newId)
+	if g, ok := any(item).(SetFullfilled); ok {
+		g.SetFullfilled()
+	}
 	return
 }
 

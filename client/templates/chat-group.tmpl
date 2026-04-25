@@ -10,7 +10,6 @@
 
     <body hx-ext="shoelace,debug">
         {{- template "partials/settings-dialog" . -}}
-        {{- template "partials/new-group-dialog" . -}}
         {{- if not .Group.IsEmpty -}}
             {{- template "partials/group-settings-dialog" . -}}
         {{- else -}}
@@ -30,15 +29,7 @@
         {{- end -}}
         <div id="real-body">
             {{- template "partials/app-header" . -}}
-            {{- if not .Group.IsEmpty -}}
-                {{- if .Member.IsEmpty -}}
-                    {{- template "partials/app-group-join" . -}}
-                {{- else -}}
-                    {{- template "partials/app-group" . -}}
-                {{- end -}}
-            {{- else -}}
-                {{- template "partials/app-home" . -}}
-            {{- end -}}
+            {{- template "partials/app-group" . -}}
         </div>
     </body>
 </html>

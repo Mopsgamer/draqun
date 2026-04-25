@@ -8,7 +8,7 @@ import (
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/Mopsgamer/draqun/server/render"
 	"github.com/Mopsgamer/draqun/server/session"
-	"github.com/Mopsgamer/draqun/websocket"
+	"github.com/gofiber/contrib/v3/websocket"
 	"github.com/gofiber/fiber/v3"
 )
 

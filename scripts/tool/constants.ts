@@ -53,10 +53,5 @@ export enum envKeys {
     CHAT_MESSAGE_MAX_LENGTH = "CHAT_MESSAGE_MAX_LENGTH",
 
     PORT = "PORT",
-
-    DB_PASSWORD = "DB_PASSWORD",
-    DB_NAME = "DB_NAME",
-    DB_USER = "DB_USER",
-    DB_HOST = "DB_HOST",
-    DB_PORT = "DB_PORT",
+    DB_PATH = "DB_PATH",
 }

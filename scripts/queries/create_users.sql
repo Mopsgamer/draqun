@@ -1,16 +1,15 @@
 CREATE TABLE IF NOT EXISTS app_users (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    moniker VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    phone VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    avatar VARCHAR(255) NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    moniker TEXT NOT NULL,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    password TEXT NOT NULL,
+    avatar TEXT NOT NULL,
     created_at DATETIME NOT NULL,
     last_seen_at DATETIME NOT NULL,
-    is_deleted BIT NOT NULL,
-    PRIMARY KEY (id),
+    is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)),
     UNIQUE (name),
     UNIQUE (email),
     UNIQUE (phone)
-) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+);

@@ -112,7 +112,7 @@ func checkUser(token *jwt.Token) (user model.User, err error) {
 	claims := token.Claims.(jwt.MapClaims)
 	userIdFloat, ok := claims["Id"].(float64)
 	userId := uint64(userIdFloat)
-	if !ok || userId == 0 {
+	if !ok {
 		err = htmx.AlertToken.Join(errors.New("expected non-zero id"))
 		return
 	}
