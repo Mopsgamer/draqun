@@ -9,52 +9,52 @@ const [os, arch] = machineInfo();
 const { filePath } = binaryInfo(os, arch);
 
 if (!existsSync(distFolder) || !existsSync(distFolder + "/static")) {
-    await compileDist(true);
+	await compileDist(true);
 }
 
 if (!await compile(os, arch)) {
-    Deno.exit(1);
+	Deno.exit(1);
 }
 
 let pid = new Deno.Command(filePath, {
-    stdout: "inherit",
-    stderr: "inherit",
+	stdout: "inherit",
+	stderr: "inherit",
 }).spawn().pid;
 
 setInterval(() => {
-    logProd.task({ text: "Refreshing" })
-        .startRunner(start);
+	logProd.task({ text: "Refreshing" })
+		.startRunner(start);
 }, 3 * 60 * 1000);
 
 async function start(): Promise<TaskStateEnd> {
-    const fetch = await new Deno.Command("git", {
-        args: ["fetch"],
-        stdout: "piped",
-        stderr: "piped",
-    }).output();
+	const fetch = await new Deno.Command("git", {
+		args: ["fetch"],
+		stdout: "piped",
+		stderr: "piped",
+	}).output();
 
-    if (fetch.stdout.toString() == "") return "skipped";
+	if (fetch.stdout.toString() == "") return "skipped";
 
-    await new Deno.Command("git", {
-        args: ["pull"],
-        stdout: "piped",
-        stderr: "piped",
-    }).output();
+	await new Deno.Command("git", {
+		args: ["pull"],
+		stdout: "piped",
+		stderr: "piped",
+	}).output();
 
-    await compileDist(true);
-    if (!await compile(os, arch)) {
-        logProd.warn("Compilation failed, keeping the old version running.");
-        return "aborted";
-    }
+	await compileDist(true);
+	if (!await compile(os, arch)) {
+		logProd.warn("Compilation failed, keeping the old version running.");
+		return "aborted";
+	}
 
-    if (pid > 0) kill(pid);
+	if (pid > 0) kill(pid);
 
-    taskDotenv(logProd);
+	taskDotenv(logProd);
 
-    pid = new Deno.Command(filePath, {
-        stdout: "piped",
-        stderr: "piped",
-    }).spawn().pid;
+	pid = new Deno.Command(filePath, {
+		stdout: "piped",
+		stderr: "piped",
+	}).spawn().pid;
 
-    return "completed";
+	return "completed";
 }

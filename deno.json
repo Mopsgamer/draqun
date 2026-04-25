@@ -1,71 +1,71 @@
 {
-    "name": "@m234/draqun",
-    "version": "0.0.0",
-    "nodeModulesDir": "auto",
-    "tasks": {
-        "init": "deno run -A scripts/init.ts",
-        "dev": "deno run -A scripts/dev.ts",
-        "prod": "deno run -A scripts/prod.ts",
-        "prepare": "deno lint & deno fmt & deno check",
-        "compile:client": "deno run -A scripts/compile-client.ts",
-        "compile:server": "deno run -A scripts/compile-server.ts",
-        "compile:server:cross": "deno run -A scripts/compile-server-cross.ts",
-        "release": "deno run -A scripts/release.ts"
-    },
-    "imports": {
-        "@deno/esbuild-plugin": "jsr:@deno/esbuild-plugin@^1.2.1",
-        "@m234/logger": "jsr:@m234/logger@^3.0.1",
-        "@octokit/rest": "npm:@octokit/rest@^22.0.1",
-        "@shoelace-style/shoelace": "npm:@shoelace-style/shoelace@^2.20.1",
-        "@std/fmt": "jsr:@std/fmt@^1.0.9",
-        "@std/fs": "jsr:@std/fs@^1.0.23",
-        "@std/path": "jsr:@std/path@^1.1.4",
-        "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.2.1",
-        "@types/semver": "npm:@types/semver@^7.7.1",
-        "@types/swagger-ui-dist": "npm:@types/swagger-ui-dist@^3.30.6",
-        "dotenv": "npm:dotenv@^17.3.1",
-        "esbuild": "npm:esbuild@^0.27.3",
-        "esbuild-plugin-tailwindcss": "npm:esbuild-plugin-tailwindcss@^2.1.0",
-        "htmx-ext-debug": "npm:htmx-ext-debug@^2.0.2",
-        "htmx-ext-ws": "npm:htmx-ext-ws@2.0.4",
-        "htmx.org": "npm:htmx.org@^2.0.8",
-        "is-ci": "npm:is-ci@^4.1.0",
-        "mysql2": "npm:mysql2@^3.18.2",
-        "semver": "npm:semver@^7.7.4",
-        "swagger-ui-dist": "npm:swagger-ui-dist@^5.32.0",
-        "tailwindcss": "npm:tailwindcss@^4.2.1",
-        "tree-kill": "npm:tree-kill@^1.2.2"
-    },
-    "exports": {},
-    "exclude": [
-        "dist/static",
-        "client/src/*tailwind*"
-    ],
-    "fmt": {
-        "indentWidth": 4
-    },
-    "lint": {
-        "rules": {
-            "include": [
-                "default-param-last",
-                "explicit-function-return-type",
-                "no-import-prefix",
-                "no-useless-rename"
-            ]
-        }
-    },
-    "compilerOptions": {
-        "lib": [
-            "esnext",
-            "dom",
-            "dom.iterable",
-            "dom.asynciterable",
-            "deno.ns"
-        ]
-    },
-    "allowScripts": [
-        "npm:@scarf/scarf@1.4.0",
-        "npm:esbuild@0.25.12",
-        "npm:esbuild@0.27.3"
-    ]
+	"name": "@m234/draqun",
+	"version": "0.0.0",
+	"nodeModulesDir": "auto",
+	"tasks": {
+		"init": "deno run -A scripts/init.ts",
+		"dev": "deno run -A scripts/dev.ts",
+		"prod": "deno run -A scripts/prod.ts",
+		"prepare": "deno lint & deno fmt & deno check",
+		"compile:client": "deno run -A scripts/compile-client.ts",
+		"compile:server": "deno run -A scripts/compile-server.ts",
+		"compile:server:cross": "deno run -A scripts/compile-server-cross.ts",
+		"release": "deno run -A scripts/release.ts"
+	},
+	"imports": {
+		"@deno/esbuild-plugin": "jsr:@deno/esbuild-plugin@^1.2.1",
+		"@m234/logger": "jsr:@m234/logger@^3.0.1",
+		"@octokit/rest": "npm:@octokit/rest@^22.0.1",
+		"@shoelace-style/shoelace": "npm:@shoelace-style/shoelace@^2.20.1",
+		"@std/fmt": "jsr:@std/fmt@^1.0.10",
+		"@std/fs": "jsr:@std/fs@^1.0.23",
+		"@std/path": "jsr:@std/path@^1.1.4",
+		"@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.2.4",
+		"@types/semver": "npm:@types/semver@^7.7.1",
+		"@types/swagger-ui-dist": "npm:@types/swagger-ui-dist@^3.30.6",
+		"dotenv": "npm:dotenv@^17.4.2",
+		"esbuild": "npm:esbuild@^0.27.7",
+		"esbuild-plugin-tailwindcss": "npm:esbuild-plugin-tailwindcss@^2.2.0",
+		"htmx-ext-debug": "npm:htmx-ext-debug@^2.0.2",
+		"htmx-ext-ws": "npm:htmx-ext-ws@2.0.4",
+		"htmx.org": "npm:htmx.org@^2.0.10",
+		"is-ci": "npm:is-ci@^4.1.0",
+		"semver": "npm:semver@^7.7.4",
+		"swagger-ui-dist": "npm:swagger-ui-dist@^5.32.4",
+		"tailwindcss": "npm:tailwindcss@^4.2.4",
+		"tree-kill": "npm:tree-kill@^1.2.2"
+	},
+	"exports": {},
+	"exclude": [
+		"dist/static",
+		"client/src/*tailwind*"
+	],
+	"fmt": {
+		"indentWidth": 1,
+		"useTabs": true
+	},
+	"lint": {
+		"rules": {
+			"include": [
+				"default-param-last",
+				"explicit-function-return-type",
+				"no-import-prefix",
+				"no-useless-rename"
+			]
+		}
+	},
+	"compilerOptions": {
+		"lib": [
+			"esnext",
+			"dom",
+			"dom.iterable",
+			"dom.asynciterable",
+			"deno.ns"
+		]
+	},
+	"allowScripts": [
+		"npm:@scarf/scarf@1.4.0",
+		"npm:esbuild@0.25.12",
+		"npm:esbuild@0.27.3"
+	]
 }

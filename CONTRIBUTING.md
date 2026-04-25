@@ -3,9 +3,6 @@
 ## First setup
 
 1. Install required tools.
-   - MySQL `8||9`.
-     - Recommended db name: `mysql`.
-     - Recommended user: `admin`.
    - [Go](https://go.dev/doc/install) `^1.26`
    - [Deno](https://deno.com/) `^2.7.11`
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
@@ -23,7 +20,7 @@
    `noenv` and `nodb` options are available.
 8. Run `deno task compile:client` to create client files.
 9. Change the `.env` file.
-   - Set up server connection with MySQL.
+   - Set up server connection with SQLite.
    - Set up JWT secret.
 10. Run `deno task dev` to start the server.
 
@@ -59,31 +56,34 @@ deno task prepare
 - <https://pkg.go.dev/html/template>
 - <https://docs.gofiber.io/next/>
 
-## How to write commit messages and PR names.
+## How to write commit messages and PR names
 
-We use [Conventional Commit messages](https://www.conventionalcommits.org/) to
-automate version management.
+Write clear, concise PR titles that explain the "why" behind changes.
 
-Most common commit message prefixes are:
+We use [Conventional Commits](https://www.conventionalcommits.org/). Since we
+squash on merge, the PR title becomes the commit message in `main`, so it's
+important to get it right.
 
-- `fix:` which represents bug fixes and generate a patch release.
-- `feat:` which represents a new feature and generate a minor release.
-- `impr:` which represents an improvement and generate a minor release.
-- `ci:` which represents a CI/CD change and generate a patch release.
-- `docs:` which represents documentation change and generate a patch release.
-- `chore:` which represents a development environment change and generate a
-  patch release.
-- `docs:` which represents documentation change and generate a patch release.
-- `style:` which represents a code style change and generate a patch release.
-- `test:` which represents a test change and generate a patch release.
-- `BREAKING CHANGE:` which represents a breaking change and generate a major
-  release. Or you are able to use `!` at the end of the prefix. For example
-  `feat!: new feature` or `fix!: bug fix`.
-- Use `prefix(module):` or `prefix(module)!:` to specify a module. For example,
-  `feat(auth): new login page` or `fix(auth)!: login page on mobile devices`.
+Format: `type(scope): description`
 
-Messages itself should be lowercase, without punctuation at the end and should
-be short, but descriptive.
+**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`,
+`ci`, `chore`, `revert`
+
+**Scopes (optional):** `a11y`, `blog`, `deps`, `docs`, `i18n`, `ui`
+
+**Examples:**
+
+- `fix: resolve search pagination issue`
+- `feat: add package version comparison`
+- `fix(i18n): update French translations`
+- `chore(deps): update esbuild to v0.8`
+
+Where front end changes are made, please include before and after screenshots in
+your pull request description.
+
+> [!NOTE]
+> Use lowercase letters in your pull request title. Individual commit messages
+> within your PR don't need to follow this format since they'll be squashed.
 
 ## About releases
 
