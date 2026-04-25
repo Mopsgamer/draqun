@@ -8,28 +8,28 @@ const archList = ["amd64", "arm64"] as const;
 
 const targets: [os: string, arch: string][] = [];
 for (const os of osList) {
-    for (const arch of archList) {
-        targets.push([os, arch]);
-    }
+	for (const arch of archList) {
+		targets.push([os, arch]);
+	}
 }
 
 let success = true;
 logServerComp.info("Plan:");
 for (const [os, arch] of targets) {
-    const { filePath } = binaryInfo(os, arch);
-    await logServerComp.info("\t" + filePath);
+	const { filePath } = binaryInfo(os, arch);
+	await logServerComp.info("\t" + filePath);
 }
 for (const [os, arch] of targets) {
-    const { filePath } = binaryInfo(os, arch);
-    const task = logServerComp.task({
-        text: `Compiling ${filePath}`,
-    });
-    task.start();
-    const result = await compile(os, arch);
-    success &&= result;
-    task.end(result ? "completed" : "failed");
+	const { filePath } = binaryInfo(os, arch);
+	const task = logServerComp.task({
+		text: `Compiling ${filePath}`,
+	});
+	task.start();
+	const result = await compile(os, arch);
+	success &&= result;
+	task.end(result ? "completed" : "failed");
 }
 
 if (!success) {
-    Deno.exit(1);
+	Deno.exit(1);
 }

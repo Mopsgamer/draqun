@@ -1,8 +1,8 @@
 {
-    "recommendations": [
-        "golang.go",
-        "denoland.vscode-deno",
-        "bradlc.vscode-tailwindcss",
-        "cweijan.vscode-mysql-client2"
-    ]
+	"recommendations": [
+		"golang.go",
+		"denoland.vscode-deno",
+		"bradlc.vscode-tailwindcss",
+		"qwtel.sqlite-viewer"
+	]
 }

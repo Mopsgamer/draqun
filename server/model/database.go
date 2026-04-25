@@ -1,12 +1,10 @@
 package model
 
 import (
-	"fmt"
-
-	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/doug-martin/goqu/v9"
-	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
+	_ "github.com/doug-martin/goqu/v9/dialect/sqlite3"
 	"github.com/jmoiron/sqlx"
+	_ "modernc.org/sqlite" // <--- The "Pure Go" secret to cross-compilation
 )
 
 var Goqu *goqu.Database
@@ -29,23 +27,24 @@ const (
 
 // Initialize the DB wrapper.
 func LoadDB() error {
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
-		environment.DBUser,
-		environment.DBPassword,
-		environment.DBHost,
-		environment.DBPort,
-		environment.DBName,
-	)
+	// Simple local file path
+	connectionString := "app_data.db"
 
 	var err error
-	Sqlx, err = sqlx.Open("mysql", connectionString)
+	// Use "sqlite" (the modernc driver name)
+	Sqlx, err = sqlx.Open("sqlite", connectionString)
 	if err != nil {
 		return err
 	}
+
+	// Performance Tip: SQLite works best with one connection for writes
+	Sqlx.SetMaxOpenConns(1)
+
 	if err := Sqlx.Ping(); err != nil {
 		return err
 	}
 
-	Goqu = goqu.New("mysql", Sqlx)
+	// Goqu uses "sqlite3" for its dialect name
+	Goqu = goqu.New("sqlite3", Sqlx)
 	return nil
 }

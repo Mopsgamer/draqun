@@ -5,15 +5,15 @@ import (
 
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/doug-martin/goqu/v9"
-	"github.com/jmoiron/sqlx/types"
 )
 
 type Member struct {
-	GroupId           uint64        `db:"group_id"`
-	UserId            uint64        `db:"user_id"`
-	Moniker           Moniker       `db:"moniker"`
-	FirstTimeJoinedAt TimePast      `db:"first_time_joined_at"`
-	IsDeleted         types.BitBool `db:"is_deleted"`
+	checkEmpty
+	GroupId           uint64   `db:"group_id"`
+	UserId            uint64   `db:"user_id"`
+	Moniker           Moniker  `db:"moniker"`
+	FirstTimeJoinedAt TimePast `db:"first_time_joined_at"`
+	IsDeleted         bool     `db:"is_deleted"`
 }
 
 var _ Model = (*Member)(nil)
@@ -41,10 +41,6 @@ func (member Member) Validate() htmx.Alert {
 	}
 
 	return nil
-}
-
-func (member Member) IsEmpty() bool {
-	return member.GroupId == 0 || member.UserId == 0
 }
 
 func (member Member) IsAvailable() bool {

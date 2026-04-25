@@ -6,18 +6,15 @@ import (
 )
 
 type RoleAssignee struct {
+	checkEmpty
 	UserId uint64 `db:"user_id"`
-	RoleId uint32 `db:"role_id"`
+	RoleId uint64 `db:"role_id"`
 }
 
 var _ Model = (*RoleAssignee)(nil)
 
 func (roleAssign RoleAssignee) Validate() htmx.Alert {
 	return nil
-}
-
-func (roleAssign RoleAssignee) IsEmpty() bool {
-	return roleAssign.UserId == 0 || roleAssign.RoleId == 0
 }
 
 func (roleAssign *RoleAssignee) Insert() error {

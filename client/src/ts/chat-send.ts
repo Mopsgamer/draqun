@@ -1,18 +1,18 @@
 import { domLoaded, findLastMessage } from "./lib.ts";
 
 domLoaded.then(() => {
-    const form = document.getElementById(
-        "send-message-form",
-    ) as HTMLFormElement | null;
+	const form = document.getElementById(
+		"send-message-form",
+	) as HTMLFormElement | null;
 
-    if (!form) return;
+	if (!form) return;
 
-    form.addEventListener(
-        "htmx:afterRequest",
-        () => {
-            form.reset();
-        },
-    );
+	form.addEventListener(
+		"htmx:afterRequest",
+		() => {
+			form.reset();
+		},
+	);
 
-    findLastMessage()?.scrollIntoView();
+	findLastMessage()?.scrollIntoView();
 });

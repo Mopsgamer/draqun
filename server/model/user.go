@@ -5,11 +5,11 @@ import (
 
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/doug-martin/goqu/v9"
-	"github.com/jmoiron/sqlx/types"
 )
 
 type User struct {
-	Id         uint64         `db:"id"`
+	checkEmpty
+	Id         uint64         `db:"id" goqu:"skipinsert"`
 	Moniker    Moniker        `db:"moniker"` // Nick is customizable name. Can contain emojis and special characters.
 	Name       Name           `db:"name"`    // Name is a simple identificator, which can be used to create friend links.
 	Email      Email          `db:"email"`
@@ -18,7 +18,7 @@ type User struct {
 	Avatar     Avatar         `db:"avatar"`
 	CreatedAt  TimePast       `db:"created_at"`
 	LastSeenAt TimePast       `db:"last_seen_at"`
-	IsDeleted  types.BitBool  `db:"is_deleted"`
+	IsDeleted  bool           `db:"is_deleted"`
 }
 
 var _ Model = (*User)(nil)
@@ -84,10 +84,6 @@ func (user User) Validate() htmx.Alert {
 		return htmx.AlertFormatPastMoment
 	}
 	return nil
-}
-
-func (user User) IsEmpty() bool {
-	return user.Id == 0 || user.Name == ""
 }
 
 func (user *User) Insert() error {

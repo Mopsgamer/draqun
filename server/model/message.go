@@ -9,7 +9,8 @@ import (
 )
 
 type Message struct {
-	Id        uint64         `db:"id"`
+	checkEmpty
+	Id        uint64         `db:"id" goqu:"skipinsert"`
 	GroupId   uint64         `db:"group_id"`
 	AuthorId  uint64         `db:"author_id"`
 	Content   MessageContent `db:"content"`
@@ -36,10 +37,6 @@ func (message Message) Validate() htmx.Alert {
 	}
 
 	return nil
-}
-
-func (message Message) IsEmpty() bool {
-	return message.GroupId == 0 || message.AuthorId == 0 || message.Content == ""
 }
 
 func (message *Message) Insert() error {

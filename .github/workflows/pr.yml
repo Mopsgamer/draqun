@@ -1,182 +1,182 @@
 name: PR
 
 env:
-    DENO_VERSION: ^v2.7
+ DENO_VERSION: ^v2.7
 
 on:
-    pull_request:
-        types:
-            - opened
-            - synchronize
-            - ready_for_review
-    workflow_dispatch:
+ pull_request:
+  types:
+   - opened
+   - synchronize
+   - ready_for_review
+ workflow_dispatch:
 
 jobs:
-    govulncheck:
-        name: Vulnerabilities
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  persist-credentials: false
-            - uses: actions/setup-go@v6
-              with:
-                  go-version-file: go.mod
-            - run: |
-                  go run golang.org/x/vuln/cmd/govulncheck@latest ./...
-    types-deno:
-        name: Deno Types
-        if: github.event.pull_request.draft == false
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  ref: ${{ github.head_ref }}
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  repository: ${{ github.repository }}
-            - uses: denoland/setup-deno@v2
-              with:
-                  deno-version: ${{ env.DENO_VERSION }}
-                  cache: true
-            - run: deno check
-    lint-deno:
-        name: Deno Lint
-        if: github.event.pull_request.draft == false
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  ref: ${{ github.head_ref }}
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  repository: ${{ github.repository }}
-            - uses: denoland/setup-deno@v2
-              with:
-                  deno-version: ${{ env.DENO_VERSION }}
-                  cache: true
-            - run: deno lint
-    fmt-deno:
-        name: Deno Format
-        if: github.event.pull_request.draft == false
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  ref: ${{ github.head_ref }}
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  repository: ${{ github.repository }}
-            - uses: denoland/setup-deno@v2
-              with:
-                  deno-version: ${{ env.DENO_VERSION }}
-                  cache: true
-            - run: deno fmt --check
-    fmt-go:
-        name: Go Format
-        env:
-            GOCACHE: ${{ github.workspace }}/dist/cache
-        if: github.event.pull_request.draft == false
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  ref: ${{ github.head_ref }}
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  repository: ${{ github.repository }}
-            - uses: actions/setup-go@v6
-              with:
-                  go-version-file: go.mod
-            - run: go fmt ./...
-            - name: git diff
-              run: git diff; git diff --quiet
-    mod-go:
-        name: Go Mod
-        env:
-            GOCACHE: ${{ github.workspace }}/dist/cache
-        if: github.event.pull_request.draft == false
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  ref: ${{ github.head_ref }}
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  repository: ${{ github.repository }}
-            - uses: actions/setup-go@v6
-              with:
-                  go-version-file: go.mod
-            - run: go mod tidy
-            - name: git diff
-              run: git diff; git diff --quiet
-    test-deno:
-        name: Deno Test
-        if: github.event.pull_request.draft == false
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  ref: ${{ github.head_ref }}
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  repository: ${{ github.repository }}
-            - uses: denoland/setup-deno@v2
-              with:
-                  deno-version: ${{ env.DENO_VERSION }}
-                  cache: true
-            - run: deno test --permit-no-files
-    test-go:
-        name: Go Test
-        env:
-            GOCACHE: ${{ github.workspace }}/dist/cache
-        if: github.event.pull_request.draft == false
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  ref: ${{ github.head_ref }}
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  repository: ${{ github.repository }}
-            - uses: actions/setup-go@v6
-              with:
-                  go-version-file: go.mod
-            - uses: denoland/setup-deno@v2
-              with:
-                  deno-version: ${{ env.DENO_VERSION }}
-                  cache: true
-            - run: deno install
-            - run: deno task compile:client
-            - run: go generate ./...
-            - run: go test ./...
-    build:
-        name: Build
-        needs:
-            - govulncheck
-            - types-deno
-            - lint-deno
-            - fmt-deno
-            - fmt-go
-            - mod-go
-            - test-deno
-            - test-go
-        env:
-            GOCACHE: ${{ github.workspace }}/dist/cache
-        if: github.event.pull_request.draft == false
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  ref: ${{ github.head_ref }}
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  repository: ${{ github.repository }}
-            - uses: denoland/setup-deno@v2
-              with:
-                  deno-version: ${{ env.DENO_VERSION }}
-                  cache: true
-            - run: deno install
-            - run: deno task compile:client
-            - uses: actions/setup-go@v6
-              with:
-                  go-version-file: go.mod
-            - run: deno task compile:server:cross
-            - run: deno task compile:server:cross dev
-            - name: Upload server binaries
-              uses: nanoufo/action-upload-artifacts-and-release-assets@v2
-              with:
-                  path: |
-                      dist/server-*
+ govulncheck:
+  name: Vulnerabilities
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v6
+     with:
+      persist-credentials: false
+   - uses: actions/setup-go@v6
+     with:
+      go-version-file: go.mod
+   - run: |
+      go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+ types-deno:
+  name: Deno Types
+  if: github.event.pull_request.draft == false
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v6
+     with:
+      ref: ${{ github.head_ref }}
+      token: ${{ secrets.GITHUB_TOKEN }}
+      repository: ${{ github.repository }}
+   - uses: denoland/setup-deno@v2
+     with:
+      deno-version: ${{ env.DENO_VERSION }}
+      cache: true
+   - run: deno check
+ lint-deno:
+  name: Deno Lint
+  if: github.event.pull_request.draft == false
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v6
+     with:
+      ref: ${{ github.head_ref }}
+      token: ${{ secrets.GITHUB_TOKEN }}
+      repository: ${{ github.repository }}
+   - uses: denoland/setup-deno@v2
+     with:
+      deno-version: ${{ env.DENO_VERSION }}
+      cache: true
+   - run: deno lint
+ fmt-deno:
+  name: Deno Format
+  if: github.event.pull_request.draft == false
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v6
+     with:
+      ref: ${{ github.head_ref }}
+      token: ${{ secrets.GITHUB_TOKEN }}
+      repository: ${{ github.repository }}
+   - uses: denoland/setup-deno@v2
+     with:
+      deno-version: ${{ env.DENO_VERSION }}
+      cache: true
+   - run: deno fmt --check
+ fmt-go:
+  name: Go Format
+  env:
+   GOCACHE: ${{ github.workspace }}/dist/cache
+  if: github.event.pull_request.draft == false
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v6
+     with:
+      ref: ${{ github.head_ref }}
+      token: ${{ secrets.GITHUB_TOKEN }}
+      repository: ${{ github.repository }}
+   - uses: actions/setup-go@v6
+     with:
+      go-version-file: go.mod
+   - run: go fmt ./...
+   - name: git diff
+     run: git diff; git diff --quiet
+ mod-go:
+  name: Go Mod
+  env:
+   GOCACHE: ${{ github.workspace }}/dist/cache
+  if: github.event.pull_request.draft == false
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v6
+     with:
+      ref: ${{ github.head_ref }}
+      token: ${{ secrets.GITHUB_TOKEN }}
+      repository: ${{ github.repository }}
+   - uses: actions/setup-go@v6
+     with:
+      go-version-file: go.mod
+   - run: go mod tidy
+   - name: git diff
+     run: git diff; git diff --quiet
+ test-deno:
+  name: Deno Test
+  if: github.event.pull_request.draft == false
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v6
+     with:
+      ref: ${{ github.head_ref }}
+      token: ${{ secrets.GITHUB_TOKEN }}
+      repository: ${{ github.repository }}
+   - uses: denoland/setup-deno@v2
+     with:
+      deno-version: ${{ env.DENO_VERSION }}
+      cache: true
+   - run: deno test --permit-no-files
+ test-go:
+  name: Go Test
+  env:
+   GOCACHE: ${{ github.workspace }}/dist/cache
+  if: github.event.pull_request.draft == false
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v6
+     with:
+      ref: ${{ github.head_ref }}
+      token: ${{ secrets.GITHUB_TOKEN }}
+      repository: ${{ github.repository }}
+   - uses: actions/setup-go@v6
+     with:
+      go-version-file: go.mod
+   - uses: denoland/setup-deno@v2
+     with:
+      deno-version: ${{ env.DENO_VERSION }}
+      cache: true
+   - run: deno install
+   - run: deno task compile:client
+   - run: go generate ./...
+   - run: go test ./...
+ build:
+  name: Build
+  needs:
+   - govulncheck
+   - types-deno
+   - lint-deno
+   - fmt-deno
+   - fmt-go
+   - mod-go
+   - test-deno
+   - test-go
+  env:
+   GOCACHE: ${{ github.workspace }}/dist/cache
+  if: github.event.pull_request.draft == false
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v6
+     with:
+      ref: ${{ github.head_ref }}
+      token: ${{ secrets.GITHUB_TOKEN }}
+      repository: ${{ github.repository }}
+   - uses: denoland/setup-deno@v2
+     with:
+      deno-version: ${{ env.DENO_VERSION }}
+      cache: true
+   - run: deno install
+   - run: deno task compile:client
+   - uses: actions/setup-go@v6
+     with:
+      go-version-file: go.mod
+   - run: deno task compile:server:cross
+   - run: deno task compile:server:cross dev
+   - name: Upload server binaries
+     uses: nanoufo/action-upload-artifacts-and-release-assets@v2
+     with:
+      path: |
+       dist/server-*
