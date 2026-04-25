@@ -24,7 +24,7 @@
 		"@types/semver": "npm:@types/semver@^7.7.1",
 		"@types/swagger-ui-dist": "npm:@types/swagger-ui-dist@^3.30.6",
 		"dotenv": "npm:dotenv@^17.4.2",
-		"esbuild": "npm:esbuild@^0.27.7",
+		"esbuild": "npm:esbuild@^0.28.0",
 		"esbuild-plugin-tailwindcss": "npm:esbuild-plugin-tailwindcss@^2.2.0",
 		"htmx-ext-debug": "npm:htmx-ext-debug@^2.0.2",
 		"htmx-ext-ws": "npm:htmx-ext-ws@2.0.4",
