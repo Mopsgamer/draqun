@@ -10,5 +10,5 @@ CREATE TABLE IF NOT EXISTS app_group_roles (
     perm_group_change TEXT NOT NULL CHECK (perm_group_change IN ('', 'disallow', 'allow')),
     perm_admin TEXT NOT NULL CHECK (perm_admin IN ('', 'disallow', 'allow')),
     FOREIGN KEY (group_id) REFERENCES app_groups (id),
-    UNIQUE (name)
+    UNIQUE (group_id, name)
 );
