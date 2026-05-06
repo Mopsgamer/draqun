@@ -10,3 +10,4 @@ out
 # project
 client/static
 .env
+*.db
