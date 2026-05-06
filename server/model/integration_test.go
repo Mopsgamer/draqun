@@ -1,25 +1,25 @@
 package model
 
 import (
+	"os"
 	"testing"
-    "os"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/stretchr/testify/assert"
 )
 
 func setupDB(t *testing.T) {
-    // Force LoadDB to use the absolute path to app_data.db in the root
-    // Since LoadDB uses a hardcoded "app_data.db" relative to current working directory,
-    // and go test runs in the package directory, we might need to change dir or fix LoadDB.
+	// Force LoadDB to use the absolute path to app_data.db in the root
+	// Since LoadDB uses a hardcoded "app_data.db" relative to current working directory,
+	// and go test runs in the package directory, we might need to change dir or fix LoadDB.
 
-    // For now, let's try to change the working directory to the root where app_data.db is.
-    originalWd, _ := os.Getwd()
-    err := os.Chdir("../..")
-    if err != nil {
-        t.Fatalf("failed to change dir: %v", err)
-    }
-    t.Cleanup(func() { os.Chdir(originalWd) })
+	// For now, let's try to change the working directory to the root where app_data.db is.
+	originalWd, _ := os.Getwd()
+	err := os.Chdir("../..")
+	if err != nil {
+		t.Fatalf("failed to change dir: %v", err)
+	}
+	t.Cleanup(func() { os.Chdir(originalWd) })
 
 	err = LoadDB()
 	if err != nil {
@@ -50,9 +50,9 @@ func TestMultipleGroupsSameRoleName(t *testing.T) {
 	err = r2.Insert()
 	assert.NoError(t, err, "Should allow same role name in different groups")
 
-    // Cleanup
-    _ = r1.Delete()
-    _ = r2.Delete()
+	// Cleanup
+	_ = r1.Delete()
+	_ = r2.Delete()
 	_ = Delete(TableGroups, goqu.Ex{"id": g1.Id})
 	_ = Delete(TableGroups, goqu.Ex{"id": g2.Id})
 }
