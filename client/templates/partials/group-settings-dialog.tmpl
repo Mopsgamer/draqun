@@ -88,17 +88,20 @@
                 </div>
             </div>
         </form>
-        {{/*TODO: delete group button*/}}
-        <!-- <div>
+        <div>
             <h1 class="anchor-header">
                 <sl-icon name="exclamation-triangle-fill"></sl-icon>
                 Danger zone
             </h1>
             <div class="dialog-footer">
                 <div>
-                    <sl-button variant="danger" href="#group-delete-dialog">Delete account</sl-button>
+                    <sl-button
+                        variant="danger"
+                        hx-delete="/groups/{{.Group.Id}}"
+                        hx-confirm="Are you sure you want to delete this group? This action cannot be undone."
+                    >Delete group</sl-button>
                 </div>
             </div>
-        </div> -->
+        </div>
     </div>
 </sl-dialog>

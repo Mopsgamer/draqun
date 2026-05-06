@@ -29,52 +29,20 @@ func (roleAssign RoleAssignee) Delete() error {
 	return Delete(TableRoleAssignees, goqu.Ex{"role_id": roleAssign.RoleId, "user_id": roleAssign.UserId})
 }
 
-// FIXME: should use group
 func (roleAssign *RoleAssignee) Role() Role {
 	role := Role{}
-	sql, args, err := Goqu.From(TableRoles).Select(goqu.C("*").Table(TableRoles)).
-		LeftJoin(goqu.I(TableRoles), goqu.On(
-			goqu.C("id").Table(TableRoles).Eq(goqu.C("role_id").Table(TableRoleAssignees)),
-		)).
-		LeftJoin(goqu.I(TableRoleAssignees), goqu.On(
-			goqu.C("user_id").Table(TableRoleAssignees).Eq(goqu.C("user_id").Table(TableRoles)),
-		)).
-		Prepared(true).ToSQL()
+	err := First(TableRoles, goqu.Ex{"id": roleAssign.RoleId}, &role)
 	if err != nil {
 		handleErr(err)
-		return role
 	}
-
-	err = Sqlx.QueryRowx(sql, args...).StructScan(&role)
-	if err != nil {
-		handleErr(err)
-		return role
-	}
-
 	return role
 }
 
-// FIXME: should use group
 func (roleAssign *RoleAssignee) Member() Member {
-	member := Member{}
-	sql, args, err := Goqu.From(TableMembers).Select(goqu.C("*").Table(TableMembers)).
-		LeftJoin(goqu.I(TableRoles), goqu.On(
-			goqu.C("id").Table(TableRoles).Eq(goqu.C("role_id").Table(TableRoleAssignees)),
-		)).
-		LeftJoin(goqu.I(TableRoleAssignees), goqu.On(
-			goqu.C("user_id").Table(TableRoleAssignees).Eq(goqu.C("user_id").Table(TableMembers)),
-		)).
-		Prepared(true).ToSQL()
+	role := roleAssign.Role()
+	member, err := NewMemberFromId(role.GroupId, roleAssign.UserId)
 	if err != nil {
 		handleErr(err)
-		return member
 	}
-
-	err = Sqlx.QueryRowx(sql, args...).StructScan(&member)
-	if err != nil {
-		handleErr(err)
-		return member
-	}
-
 	return member
 }
