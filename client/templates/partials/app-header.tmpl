@@ -2,8 +2,20 @@
     <nav>
         {{- if not .Group.IsEmpty -}}
         <sl-icon-button id="members-toggler" name="people-fill"></sl-icon-button>
+        <sl-icon-button id="search-toggler" name="search"></sl-icon-button>
+        <sl-input
+            id="search-input"
+            class="search-input-header collapse"
+            placeholder="Search messages..."
+            size="small"
+            name="q"
+            hx-get="/groups/{{.Group.Id}}/messages/search"
+            hx-trigger="sl-input delay:500ms"
+            hx-target="#search-results"
+        >
+            <sl-icon name="search" slot="prefix"></sl-icon>
+        </sl-input>
         {{- end}}
-        <!-- TODO: implement search -->
     </nav>
     <nav>
         {{- template "partials/avatar-context-menu" .}}

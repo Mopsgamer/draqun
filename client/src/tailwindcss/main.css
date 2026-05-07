@@ -311,6 +311,10 @@
         @apply secondary-view-header opacity-50 justify-center;
     }
 
+    .search-input-header {
+        @apply w-48 ml-2;
+    }
+
     .search-results-list {
         @apply overflow-y-auto h-full;
     }
