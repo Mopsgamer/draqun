@@ -331,7 +331,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 					bind := fiber.Map{
 						"MessageList":      highlightedList,
-						"SearchQuery":     fullQuery,
+						"SearchQuery":      fullQuery,
 						"HighlightedQuery": template.HTML(highlightedQuery),
 					}
 
