@@ -6,7 +6,7 @@ import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
 import tailwindcss from "@tailwindcss/postcss";
 import stylePlugin from "esbuild-style-plugin";
 import autoprefixer from "autoprefixer";
-import { format, type TaskStateEnd } from "@m234/logger";
+import type { TaskStateEnd } from "@m234/logger";
 
 taskDotenv(logClientComp);
 
