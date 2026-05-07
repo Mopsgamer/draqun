@@ -3,8 +3,10 @@ import { denoPlugin } from "@deno/esbuild-plugin";
 import { existsSync } from "@std/fs";
 import { cp } from "node:fs/promises";
 import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
-import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
-import { format } from "@m234/logger";
+import tailwindcss from "@tailwindcss/postcss";
+import stylePlugin from "esbuild-style-plugin";
+import autoprefixer from "autoprefixer";
+import { format, type TaskStateEnd } from "@m234/logger";
 
 taskDotenv(logClientComp);
 
@@ -30,7 +32,7 @@ const options: esbuild.BuildOptions = {
 let buildCalls = 0;
 async function build(
 	options: BuildOptions,
-): Promise<void> {
+): Promise<TaskStateEnd | void> {
 	const { outdir, outfile, entryPoints = [], whenChange = [] } = options;
 	buildCalls++;
 
@@ -56,32 +58,39 @@ async function build(
 		logClientComp.error(
 			`File expected to exist: ${badEntryPoints.join(", ")}`,
 		);
-		return;
+		return "failed";
 	}
 
 	if (!outfile && !outdir) {
 		logClientComp.error(`Provide outdir or outfile.`);
-		return;
+		return "failed";
 	}
 
 	if (outfile && outdir) {
 		logClientComp.error(`Can not use outdir and outfile at the same time.`);
-		return;
+		return "failed";
 	}
 
 	const safeOptions = options;
 	delete safeOptions.whenChange;
 	const ctx = await esbuild.context(safeOptions as esbuild.BuildOptions);
 
-	async function rebuild(): Promise<void> {
+	async function rebuild(): Promise<TaskStateEnd | void> {
 		try {
 			await ctx.rebuild();
 		} catch (error) {
-			logClientComp.error(format(error));
+			logClientComp.error((error as Error).stack!);
+			return "failed";
 		}
 	}
 
-	await rebuild();
+	{
+		const result = await rebuild();
+		await ctx.dispose();
+		if (result === "failed") {
+			return result;
+		}
+	}
 
 	if (!isWatch) {
 		await ctx.dispose();
@@ -91,25 +100,27 @@ async function build(
 	try {
 		await ctx.watch();
 	} catch (error) {
-		logClientComp.error(format(error));
-		return;
+		logClientComp.error((error as Error).stack!);
+		await ctx.dispose();
+		return "failed";
 	}
 
 	if (whenChange.length === 0) {
 		logClientComp.error("Nothing to watch: " + whenChange.join(", ") + ".");
 		await ctx.dispose();
-		return;
+		return "skipped";
 	}
 
 	let watcher: Deno.FsWatcher;
 	try {
 		watcher = Deno.watchFs(whenChange, { recursive: true });
 	} catch (error) {
-		logClientComp.error(format(error));
+		logClientComp.error((error as Error).stack!);
 		logClientComp.error(
 			"Bad paths, can not add watcher: " + whenChange.join(", ") + ".",
 		);
-		return;
+		await ctx.dispose();
+		return "failed";
 	}
 
 	// this callback won't block the process.
@@ -127,17 +138,10 @@ async function build(
 	})();
 }
 
-// deno-lint-ignore no-explicit-any
-type Call<Args extends (...args: any[]) => Promise<void>> = [
-	fn: (...args: Parameters<Args>) => Promise<void>,
-	params: Parameters<Args>,
-	group: string[],
-];
-
 const slAlias = ["shoelace", "shoe", "sl"];
 const slAssets = slAlias.map((a) => (a + "-assets"));
 
-const calls: [() => Promise<void>, string, string[]][] = [
+const calls: [() => Promise<TaskStateEnd | void>, string, string[]][] = [
 	[
 		() =>
 			cp(
@@ -187,7 +191,19 @@ const calls: [() => Promise<void>, string, string[]][] = [
 				],
 				external: ["/static/assets/*"],
 				plugins: [
-					tailwindcssPlugin(),
+					stylePlugin({
+						postcss: {
+							map: false,
+							plugins: [
+								autoprefixer(),
+								tailwindcss({
+									optimize: true,
+									base: "client",
+									transformAssetUrls: false,
+								}),
+							],
+						},
+					}),
 				],
 			}),
 		`./${distFolder}/static/css`,
