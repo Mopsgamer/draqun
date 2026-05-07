@@ -78,11 +78,11 @@
         @apply relative flex flex-col size-full gap-1;
     }
 
-    #members-view {
+    .secondary-view {
         @apply hidden;
     }
 
-    #members-view.open {
+    .secondary-view.open {
         @apply flex;
     }
 
@@ -90,7 +90,7 @@
         @apply gap-2 hidden group-[:not(:has(.open))]:flex md:flex;
     }
 
-    #members-view {
+    #members-view, #search-view {
         @apply p-3 md:w-56 text-2xl md:text-base bg-neutral-50 snap-y;
     }
 
@@ -301,5 +301,33 @@
 
     .member .text {
         @apply aligned overflow-hidden w-full;
+    }
+
+    .secondary-view-header {
+        @apply aligned p-2 border-b;
+    }
+
+    .secondary-view-empty {
+        @apply secondary-view-header opacity-50 justify-center;
+    }
+
+    .search-results-list {
+        @apply overflow-y-auto h-full;
+    }
+
+    .search-result-item {
+        @apply message p-2 border-b cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800;
+    }
+
+    .search-result-item .header {
+        @apply flex justify-between text-xs opacity-70;
+    }
+
+    .search-result-item .text {
+        @apply text-sm mt-1 pl-0;
+    }
+
+    mark {
+        @apply bg-warning-300 dark:bg-warning-700 text-neutral-1000 rounded-xs px-0.5;
     }
 }

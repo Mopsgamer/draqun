@@ -227,6 +227,30 @@ func (group Group) MessagesPage(page, limit uint) []Message {
 	return messageList
 }
 
+func (group Group) SearchMessages(query string, limit uint) []Message {
+	messageList := []Message{}
+
+	sql, args, err := Goqu.From(TableMessages).
+		Where(goqu.And(
+			goqu.C("group_id").Eq(group.Id),
+			goqu.C("content").ILike("%"+query+"%"),
+		)).
+		Order(goqu.I("id").Desc()).
+		Limit(limit).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return messageList
+	}
+
+	err = Sqlx.Select(&messageList, sql, args...)
+	if err != nil {
+		handleErr(err)
+	}
+
+	return messageList
+}
+
 func (group Group) ActionListPage(page uint, limit uint) []Action {
 	actions := []Action{}
 	from := (page - 1) * limit

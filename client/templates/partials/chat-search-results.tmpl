@@ -1,0 +1,27 @@
+{{- $this := . -}}
+<div id="search-results-header" class="secondary-view-header">
+    {{if .SearchQuery}}
+    Found {{len .MessageList}} results for "{{.SearchQuery}}"
+    {{else}}
+    Type to search...
+    {{end}}
+</div>
+<div id="search-results-list" class="search-results-list">
+{{- range $message := .MessageList -}}
+<div
+    id="search-message-{{$message.Id}}"
+    class="search-result-item"
+    onclick="document.getElementById('message-{{$message.Id}}')?.scrollIntoView({behavior: 'smooth', block: 'center'});"
+>
+    <div class="header">
+        <span class="moniker">{{$message.Author.Moniker}}</span>
+        <sl-format-date
+            date="{{jsonTime $message.CreatedAt.Value}}"
+            hour="numeric"
+            minute="numeric"
+        ></sl-format-date>
+    </div>
+    <div class="text">{{$message.HighlightedContent}}</div>
+</div>
+{{- end -}}
+</div>

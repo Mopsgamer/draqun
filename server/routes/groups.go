@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"html/template"
+	"strings"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -225,6 +227,70 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					}
 
 					return ctx.Render("partials/chat-messages", bind)
+				}
+
+				return ctx.JSON(messageList)
+			},
+		).
+		Get("/:group_id/messages/search",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermMessages.CanReadMessages()
+			}),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				query := ctx.Query("q")
+				if query == "" {
+					return ctx.Render("partials/chat-search-results", fiber.Map{
+						"MessageList": []model.Message{},
+						"SearchQuery": "",
+					})
+				}
+				const SearchLimit uint = 50
+				messageList := group.SearchMessages(query, SearchLimit)
+
+				if htmx.IsHtmx(ctx) {
+					type HighlightedMessage struct {
+						model.Message
+						HighlightedContent template.HTML
+					}
+
+					highlightedList := make([]HighlightedMessage, len(messageList))
+					for i, msg := range messageList {
+						content := string(msg.Content)
+						escapedContent := template.HTMLEscapeString(content)
+						queryEscaped := template.HTMLEscapeString(query)
+
+						var highlighted strings.Builder
+						remaining := escapedContent
+						lowerQuery := strings.ToLower(queryEscaped)
+
+						for len(remaining) > 0 {
+							lowerRemaining := strings.ToLower(remaining)
+							pos := strings.Index(lowerRemaining, lowerQuery)
+							if pos == -1 {
+								highlighted.WriteString(remaining)
+								break
+							}
+
+							highlighted.WriteString(remaining[:pos])
+							highlighted.WriteString("<mark>")
+							highlighted.WriteString(remaining[pos : pos+len(queryEscaped)])
+							highlighted.WriteString("</mark>")
+							remaining = remaining[pos+len(queryEscaped):]
+						}
+
+						highlightedList[i] = HighlightedMessage{
+							Message:            msg,
+							HighlightedContent: template.HTML(highlighted.String()),
+						}
+					}
+
+					bind := fiber.Map{
+						"MessageList": highlightedList,
+						"SearchQuery": query,
+					}
+
+					return ctx.Render("partials/chat-search-results", bind)
 				}
 
 				return ctx.JSON(messageList)
