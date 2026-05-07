@@ -227,14 +227,33 @@ func (group Group) MessagesPage(page, limit uint) []Message {
 	return messageList
 }
 
-func (group Group) SearchMessages(query string, limit uint) []Message {
+func (group Group) SearchMessages(query string, user string, since time.Time, limit uint) []Message {
 	messageList := []Message{}
 
+	where := []goqu.Expression{
+		goqu.C("group_id").Eq(group.Id),
+	}
+
+	if query != "" {
+		where = append(where, goqu.C("content").ILike("%"+query+"%"))
+	}
+
+	if user != "" {
+		subquery := Goqu.Select("id").From(TableUsers).Where(
+			goqu.Or(
+				goqu.C("name").Eq(user),
+				goqu.C("moniker").Eq(user),
+			),
+		)
+		where = append(where, goqu.C("author_id").In(subquery))
+	}
+
+	if !since.IsZero() {
+		where = append(where, goqu.C("created_at").Gte(since))
+	}
+
 	sql, args, err := Goqu.From(TableMessages).
-		Where(goqu.And(
-			goqu.C("group_id").Eq(group.Id),
-			goqu.C("content").ILike("%"+query+"%"),
-		)).
+		Where(where...).
 		Order(goqu.I("id").Desc()).
 		Limit(limit).
 		Prepared(true).ToSQL()

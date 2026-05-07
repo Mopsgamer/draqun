@@ -1,7 +1,7 @@
 {{- $this := . -}}
 <div id="search-results-header" class="secondary-view-header">
     {{if .SearchQuery}}
-    Found {{len .MessageList}} results for "{{.SearchQuery}}"
+    Found {{len .MessageList}} results for "{{.HighlightedQuery}}"
     {{else}}
     Type to search...
     {{end}}

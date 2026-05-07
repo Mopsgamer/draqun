@@ -347,6 +347,10 @@
         @apply bg-pink-500/30 text-pink-600 dark:text-pink-400 rounded-md px-1;
     }
 
+    mark.search-filter {
+        @apply bg-primary-500/30 text-primary-600 dark:text-primary-400;
+    }
+
     .search-help-content section {
         @apply mb-4;
     }

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"html/template"
+	"regexp"
 	"strings"
 	"time"
 
@@ -238,17 +239,69 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			}),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
-				query := ctx.Query("q")
-				if query == "" {
+				fullQuery := ctx.Query("q")
+				if fullQuery == "" {
 					return ctx.Render("partials/chat-search-results", fiber.Map{
 						"MessageList": []model.Message{},
 						"SearchQuery": "",
 					})
 				}
+
+				// Parse query for special filters
+				userFilter := ""
+				var sinceFilter time.Time
+
+				// Regex for filters
+				reUser := regexp.MustCompile(`user:([^\s]+)`)
+				reSince := regexp.MustCompile(`since:(\d{4}-\d{2}-\d{2})`)
+
+				searchText := fullQuery
+				if match := reUser.FindStringSubmatch(fullQuery); len(match) > 1 {
+					userFilter = match[1]
+					searchText = strings.Replace(searchText, match[0], "", 1)
+				}
+				if match := reSince.FindStringSubmatch(fullQuery); len(match) > 1 {
+					t, err := time.Parse("2006-01-02", match[1])
+					if err == nil {
+						sinceFilter = t
+					}
+					searchText = strings.Replace(searchText, match[0], "", 1)
+				}
+
+				searchText = strings.TrimSpace(searchText)
+
 				const SearchLimit uint = 50
-				messageList := group.SearchMessages(query, SearchLimit)
+				messageList := group.SearchMessages(searchText, userFilter, sinceFilter, SearchLimit)
 
 				if htmx.IsHtmx(ctx) {
+					// Function to highlight keyword or filter
+					highlightMatch := func(text string, match string, isFilter bool) string {
+						if match == "" {
+							return text
+						}
+						var res strings.Builder
+						rem := text
+						lowerMatch := strings.ToLower(match)
+						for len(rem) > 0 {
+							lowerRem := strings.ToLower(rem)
+							pos := strings.Index(lowerRem, lowerMatch)
+							if pos == -1 {
+								res.WriteString(rem)
+								break
+							}
+							res.WriteString(rem[:pos])
+							if isFilter {
+								res.WriteString("<mark class=\"search-filter\">")
+							} else {
+								res.WriteString("<mark>")
+							}
+							res.WriteString(rem[pos : pos+len(match)])
+							res.WriteString("</mark>")
+							rem = rem[pos+len(match):]
+						}
+						return res.String()
+					}
+
 					type HighlightedMessage struct {
 						model.Message
 						HighlightedContent template.HTML
@@ -258,36 +311,28 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					for i, msg := range messageList {
 						content := string(msg.Content)
 						escapedContent := template.HTMLEscapeString(content)
-						queryEscaped := template.HTMLEscapeString(query)
-
-						var highlighted strings.Builder
-						remaining := escapedContent
-						lowerQuery := strings.ToLower(queryEscaped)
-
-						for len(remaining) > 0 {
-							lowerRemaining := strings.ToLower(remaining)
-							pos := strings.Index(lowerRemaining, lowerQuery)
-							if pos == -1 {
-								highlighted.WriteString(remaining)
-								break
-							}
-
-							highlighted.WriteString(remaining[:pos])
-							highlighted.WriteString("<mark>")
-							highlighted.WriteString(remaining[pos : pos+len(queryEscaped)])
-							highlighted.WriteString("</mark>")
-							remaining = remaining[pos+len(queryEscaped):]
-						}
+						highlightedContent := highlightMatch(escapedContent, searchText, false)
 
 						highlightedList[i] = HighlightedMessage{
 							Message:            msg,
-							HighlightedContent: template.HTML(highlighted.String()),
+							HighlightedContent: template.HTML(highlightedContent),
 						}
 					}
 
+					// Highlight filters in the full query for display
+					highlightedQuery := template.HTMLEscapeString(fullQuery)
+					if userFilter != "" {
+						highlightedQuery = highlightMatch(highlightedQuery, "user:"+userFilter, true)
+					}
+					if !sinceFilter.IsZero() {
+						sinceStr := reSince.FindString(fullQuery)
+						highlightedQuery = highlightMatch(highlightedQuery, sinceStr, true)
+					}
+
 					bind := fiber.Map{
-						"MessageList": highlightedList,
-						"SearchQuery": query,
+						"MessageList":      highlightedList,
+						"SearchQuery":     fullQuery,
+						"HighlightedQuery": template.HTML(highlightedQuery),
 					}
 
 					return ctx.Render("partials/chat-search-results", bind)
