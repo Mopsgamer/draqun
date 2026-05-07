@@ -4,6 +4,7 @@ import "./chat-mutate.ts";
 import "./chat-send.ts";
 import "./chat-mutate.ts";
 import { domLoaded } from "./lib.ts";
+import { SlDialog, SlInput } from "@shoelace-style/shoelace";
 
 import("htmx-ext-ws");
 
@@ -42,7 +43,9 @@ domLoaded.then(() => {
 			closeAllBut(searchView, secondaryViewList);
 			if (searchView.classList.contains("open")) {
 				searchInput.classList.remove("collapse");
-				(searchInput as any).focus();
+				if (searchInput instanceof SlInput) {
+					searchInput.focus();
+				}
 			} else {
 				searchInput.classList.add("collapse");
 			}
@@ -51,28 +54,26 @@ domLoaded.then(() => {
 		searchToggler.addEventListener("click", toggleSearch);
 
 		document.addEventListener("keydown", (e) => {
-			if (
-				e.key === "/" &&
-				document.activeElement?.tagName !== "INPUT" &&
-				document.activeElement?.tagName !== "TEXTAREA" &&
-				!(document.activeElement as any)?.tagName?.startsWith("SL-")
-			) {
+			const activeElement = document.activeElement;
+			const isTyping = activeElement?.tagName === "INPUT" ||
+				activeElement?.tagName === "TEXTAREA" ||
+				activeElement?.tagName.startsWith("SL-");
+
+			if (e.key === "/" && !isTyping) {
 				e.preventDefault();
 				if (!searchView.classList.contains("open")) {
 					toggleSearch();
-				} else {
-					(searchInput as any).focus();
+				} else if (searchInput instanceof SlInput) {
+					searchInput.focus();
 				}
 			}
 
-			if (
-				e.key === "?" &&
-				document.activeElement?.tagName !== "INPUT" &&
-				document.activeElement?.tagName !== "TEXTAREA" &&
-				!(document.activeElement as any)?.tagName?.startsWith("SL-")
-			) {
+			if (e.key === "?" && !isTyping) {
 				e.preventDefault();
-				(document.getElementById("search-help-dialog") as any)?.show();
+				const dialog = document.getElementById("search-help-dialog");
+				if (dialog instanceof SlDialog) {
+					dialog.show();
+				}
 			}
 		});
 	}
