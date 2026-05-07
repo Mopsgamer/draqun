@@ -1,0 +1,27 @@
+<sl-dialog label="Search Help" id="search-help-dialog">
+    <span slot="label" class="aligned">
+        <sl-icon name="question-circle"></sl-icon>
+        Search Help
+    </span>
+    <div class="search-help-content">
+        <section>
+            <h3>How to search</h3>
+            <p>Type your query in the search box to find messages containing that text.</p>
+        </section>
+        <section>
+            <h3>Syntax</h3>
+            <ul>
+                <li><strong>Keywords:</strong> Search for any word or phrase.</li>
+                <li><strong>Case-insensitive:</strong> Search is not case-sensitive.</li>
+            </ul>
+        </section>
+        <section>
+            <h3>Shortcuts</h3>
+            <ul>
+                <li><kbd>/</kbd> - Focus search input</li>
+                <li><kbd>?</kbd> - Open this help dialog</li>
+            </ul>
+        </section>
+    </div>
+    <sl-button slot="footer" variant="primary" onclick="document.getElementById('search-help-dialog').hide()">Close</sl-button>
+</sl-dialog>

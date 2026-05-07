@@ -315,6 +315,18 @@
         @apply w-48 ml-2;
     }
 
+    .search-container {
+        @apply flex flex-col items-start;
+    }
+
+    .search-help-hint {
+        @apply text-[10px] text-neutral-400 ml-2 opacity-0 transition-opacity;
+    }
+
+    #header:hover .search-help-hint {
+        @apply opacity-100;
+    }
+
     .search-results-list {
         @apply overflow-y-auto h-full;
     }
@@ -332,6 +344,22 @@
     }
 
     mark {
-        @apply bg-warning-300 dark:bg-warning-700 text-neutral-1000 rounded-xs px-0.5;
+        @apply bg-pink-500/30 text-pink-600 dark:text-pink-400 rounded-md px-1;
+    }
+
+    .search-help-content section {
+        @apply mb-4;
+    }
+
+    .search-help-content h3 {
+        @apply text-base mt-0 mb-2 border-none p-0;
+    }
+
+    .search-help-content ul {
+        @apply list-disc pl-5 text-sm;
+    }
+
+    kbd {
+        @apply bg-neutral-200 dark:bg-neutral-800 px-1 rounded-sm border border-neutral-300 dark:border-neutral-700 font-mono text-xs;
     }
 }

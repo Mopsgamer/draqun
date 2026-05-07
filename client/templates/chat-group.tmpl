@@ -10,6 +10,7 @@
 
     <body hx-ext="shoelace,debug">
         {{- template "partials/settings-dialog" . -}}
+        {{- template "partials/search-help-dialog" . -}}
         {{- if not .Group.IsEmpty -}}
             {{- template "partials/group-settings-dialog" . -}}
         {{- else -}}
