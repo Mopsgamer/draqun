@@ -21,9 +21,9 @@ function closeAllBut(
 }
 
 domLoaded.then(() => {
-	const membersToggler = document.getElementById("members-toggler")!;
-	const searchToggler = document.getElementById("search-toggler")!;
-	const searchInput = document.getElementById("search-input")!;
+	const membersToggler = document.getElementById("members-toggler");
+	const searchToggler = document.getElementById("search-toggler");
+	const searchInput = document.getElementById("search-input");
 
 	const secondaryViewList = Array.from(
 		document.getElementsByClassName("secondary-view"),
@@ -38,7 +38,7 @@ domLoaded.then(() => {
 		});
 	}
 
-	if (searchView && searchToggler) {
+	if (searchView && searchToggler && searchInput) {
 		const toggleSearch = () => {
 			closeAllBut(searchView, secondaryViewList);
 			if (searchView.classList.contains("open")) {
@@ -57,7 +57,7 @@ domLoaded.then(() => {
 			const activeElement = document.activeElement;
 			const isTyping = activeElement?.tagName === "INPUT" ||
 				activeElement?.tagName === "TEXTAREA" ||
-				activeElement?.tagName.startsWith("SL-");
+				(activeElement?.tagName && activeElement.tagName.startsWith("SL-"));
 
 			if (e.key === "/" && !isTyping) {
 				e.preventDefault();
