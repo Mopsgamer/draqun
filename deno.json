@@ -55,7 +55,21 @@
 				"default-param-last",
 				"explicit-function-return-type",
 				"no-import-prefix",
-				"no-useless-rename"
+                "no-unused-vars",
+                "no-debugger",
+                "ban-unused-ignore",
+                "camelcase",
+                "ban-untagged-ignore",
+                "ban-untagged-todo",
+                "eqeqeq",
+                "explicit-module-boundary-types",
+                "guard-for-in",
+                "no-inferrable-types",
+                "no-non-null-asserted-optional-chain",
+                "no-slow-types",
+                "no-sparse-arrays",
+				"no-useless-rename",
+                "verbatim-module-syntax"
 			]
 		}
 	},

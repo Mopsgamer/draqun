@@ -33,7 +33,7 @@ async function start(): Promise<TaskStateEnd> {
 		stderr: "piped",
 	}).output();
 
-	if (fetch.stdout.toString() == "") return "skipped";
+	if (fetch.stdout.toString().length === 0) return "skipped";
 
 	await new Deno.Command("git", {
 		args: ["pull"],

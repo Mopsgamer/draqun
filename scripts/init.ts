@@ -124,7 +124,7 @@ function initEnvFile(path: string): void {
 				([key, { value, comment }]) => {
 					env[key] ||= value === undefined ? "" : String(value);
 					Deno.env.set(key, env[key]);
-					if (value == undefined) {
+					if (value === undefined) {
 						comment += "\ndefault: <empty>";
 					} else {
 						comment += "\ndefault: " + value;
