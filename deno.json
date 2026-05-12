@@ -4,7 +4,7 @@
 	"nodeModulesDir": "auto",
 	"minimumDependencyAge": {
 		"exclude": ["jsr:@m234/logger"],
-		"age": "P2D"
+		"age": "P7D"
 	},
 	"tasks": {
 		"init": "deno run -A scripts/init.ts",
