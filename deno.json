@@ -2,18 +2,18 @@
 	"name": "@m234/draqun",
 	"version": "0.0.0",
 	"nodeModulesDir": "auto",
-    "minimumDependencyAge": {
-        "exclude": ["@m234/logger"],
-        "age": "P2D"
-    },
+	"minimumDependencyAge": {
+		"exclude": ["jsr:@m234/logger"],
+		"age": "P2D"
+	},
 	"tasks": {
 		"init": "deno run -A scripts/init.ts",
 		"dev": "deno run -A scripts/dev.ts",
 		"prod": "deno run -A scripts/prod.ts",
 		"prepare": "deno lint & deno fmt & deno check",
-		"compile:client": "deno run -A scripts/compile-client.ts",
-		"compile:server": "deno run -A scripts/compile-server.ts",
-		"compile:server:cross": "deno run -A scripts/compile-server-cross.ts",
+		"front": "deno run -A scripts/make-front.ts",
+		"back": "deno run -A scripts/make-back.ts",
+		"back:cross": "deno run -A scripts/make-back-cross.ts",
 		"release": "deno run -A scripts/release.ts"
 	},
 	"imports": {

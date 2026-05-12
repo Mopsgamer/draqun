@@ -43,7 +43,7 @@ async function start(): Promise<TaskStateEnd> {
 
 	await compileDist(true);
 	if (!await compile(os, arch)) {
-		logProd.warn("Compilation failed, keeping the old version running.");
+		await logProd.warn("Compilation failed, keeping the old version running.");
 		return "aborted";
 	}
 

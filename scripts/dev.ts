@@ -71,19 +71,19 @@ async function watchAndRestart(): Promise<void> {
 		if (!["modify", "create", "remove"].includes(event.kind)) continue;
 
 		clearTimeout(timeout);
-		timeout = setTimeout(() => {
+		timeout = setTimeout(async () => {
 			// Stop the ASYNC FLOW of the previous 'start' call
 			abortController.abort();
 			abortController = new AbortController();
 
-			logDevelopment.info(
+			await logDevelopment.info(
 				"Refreshing (" + event.kind + " " + event.paths[0] + ")",
 			);
 
 			taskDotenv(logDevelopment);
 
 			// Start the new cycle, which will manually tree-kill the old PID
-			start(abortController.signal);
+			await start(abortController.signal);
 		}, 150);
 	}
 }

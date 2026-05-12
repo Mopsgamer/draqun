@@ -9,7 +9,7 @@
 				"task",
 				"init"
 			],
-			"detail": "Initialize the ./.env file, then database tables.",
+			"detail": "Initialize the '.env' file, then database tables.",
 			"icon": {
 				"id": "gear",
 				"color": "terminal.ansiBlue"
@@ -22,9 +22,9 @@
 			"command": "deno",
 			"args": [
 				"task",
-				"compile:client"
+				"front"
 			],
-			"detail": "Build the ./client folder.",
+			"detail": "Build the 'client' folder.",
 			"icon": {
 				"id": "tools",
 				"color": "terminal.ansiGreen"
@@ -37,10 +37,10 @@
 			"command": "deno",
 			"args": [
 				"task",
-				"compile:client",
+				"front",
 				"watch"
 			],
-			"detail": "Watch and rebuild on ./client changes.",
+			"detail": "Watch and rebuild on 'client' changes.",
 			"icon": {
 				"id": "tools",
 				"color": "terminal.ansiYellow"
@@ -53,7 +53,7 @@
 			"command": "deno",
 			"args": [
 				"task",
-				"compile:client",
+				"front",
 				"shoelace"
 			],
 			"detail": "Compile only the Shoelace assets for the client.",

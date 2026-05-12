@@ -9,6 +9,6 @@ export async function compileDist(
 		await rm(distFolder + "/static", { recursive: true, force: true });
 	}
 	await new Deno.Command("deno", {
-		args: ["task", "compile:client", ...(args as string[])],
+		args: ["task", "front", ...(args as string[])],
 	}).spawn().status;
 }

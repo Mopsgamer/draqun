@@ -62,7 +62,7 @@ jobs:
       deno install
    - name: Compile client
      run: |
-      deno task compile:client
+      deno task front
    - name: Dry run
      run: |
       deno task release --dry-run ${{ github.event.inputs.release_type }}
@@ -71,7 +71,7 @@ jobs:
       go-version-file: go.mod
    - name: Build binaries
      run: |
-      deno task compile:server:cross
+      deno task back:cross
    - name: Increment and release
      if: ${{ !github.event.inputs.dry_run }}
      run: |

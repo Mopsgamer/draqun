@@ -6,8 +6,6 @@ import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { format } from "@m234/logger";
 
-taskDotenv(logClientComp);
-
 const isWatch = Deno.args.includes("watch");
 
 type BuildOptions = esbuild.BuildOptions & {
@@ -53,19 +51,19 @@ async function build(
 	});
 
 	if (badEntryPoints.length > 0) {
-		logClientComp.error(
-			`File expected to exist: ${badEntryPoints.join(", ")}`,
+		await logClientComp.error(
+			format("File expected to exist: %o", badEntryPoints),
 		);
 		return;
 	}
 
 	if (!outfile && !outdir) {
-		logClientComp.error(`Provide outdir or outfile.`);
+		await logClientComp.error("Provide outdir or outfile.");
 		return;
 	}
 
 	if (outfile && outdir) {
-		logClientComp.error(`Can not use outdir and outfile at the same time.`);
+		await logClientComp.error("Can not use outdir and outfile at the same time.");
 		return;
 	}
 
@@ -77,7 +75,7 @@ async function build(
 		try {
 			await ctx.rebuild();
 		} catch (error) {
-			logClientComp.error(format(error));
+			await logClientComp.error(format(error));
 		}
 	}
 
@@ -91,12 +89,12 @@ async function build(
 	try {
 		await ctx.watch();
 	} catch (error) {
-		logClientComp.error(format(error));
+		await logClientComp.error(format(error));
 		return;
 	}
 
 	if (whenChange.length === 0) {
-		logClientComp.error("Nothing to watch: " + whenChange.join(", ") + ".");
+		await logClientComp.error("Nothing to watch: " + whenChange.join(", ") + ".");
 		await ctx.dispose();
 		return;
 	}
@@ -105,8 +103,8 @@ async function build(
 	try {
 		watcher = Deno.watchFs(whenChange, { recursive: true });
 	} catch (error) {
-		logClientComp.error(format(error));
-		logClientComp.error(
+		await logClientComp.error(format(error));
+		await logClientComp.error(
 			"Bad paths, can not add watcher: " + whenChange.join(", ") + ".",
 		);
 		return;
@@ -141,22 +139,22 @@ const calls: [() => Promise<void>, string, string[]][] = [
 	[
 		() =>
 			cp(
-				"./node_modules/@shoelace-style/shoelace/dist/assets",
-				`./${distFolder}/static/shoelace/assets`,
+				"node_modules/@shoelace-style/shoelace/dist/assets",
+				distFolder + "/static/shoelace/assets",
 				{ recursive: true },
 			),
-		`./${distFolder}/static/shoelace/assets`,
+		distFolder + "/static/shoelace/assets",
 		[...slAssets, ...slAlias],
 	],
 
 	[
 		() =>
 			cp(
-				`./client/src/assets`,
-				`./${distFolder}/static/assets`,
+				"client/src/assets",
+				distFolder + "/static/assets",
 				{ recursive: true },
 			),
-		`./${distFolder}/static/assets`,
+		distFolder + "/static/assets",
 		["assets"],
 	],
 
@@ -164,14 +162,14 @@ const calls: [() => Promise<void>, string, string[]][] = [
 		() =>
 			build({
 				...options,
-				outdir: `./${distFolder}/static/js`,
-				entryPoints: [`./client/src/ts/**/*`],
+				outdir: distFolder + "/static/js",
+				entryPoints: ["client/src/ts/**/*"],
 				whenChange: [
-					`./${distFolder}/static/js`,
+					distFolder + "/static/js",
 				],
 				plugins: [denoPlugin()],
 			}),
-		`./${distFolder}/static/js`,
+		distFolder + "/static/js",
 		["js", ...slAlias],
 	],
 
@@ -179,18 +177,18 @@ const calls: [() => Promise<void>, string, string[]][] = [
 		() =>
 			build({
 				...options,
-				outdir: `./${distFolder}/static/css`,
-				entryPoints: [`./client/src/tailwindcss/**/*.css`],
+				outdir: distFolder + "/static/css",
+				entryPoints: ["client/src/tailwindcss/**/*.css"],
 				whenChange: [
-					`./client/templates`,
-					`./client/src/tailwindcss`,
+					"client/templates",
+					"client/src/tailwindcss",
 				],
 				external: ["/static/assets/*"],
 				plugins: [
 					tailwindcssPlugin(),
 				],
 			}),
-		`./${distFolder}/static/css`,
+		distFolder + "/static/css",
 		["css", ...slAlias],
 	],
 ];
@@ -199,22 +197,28 @@ const existingGroups = Array.from(new Set(calls.flatMap((c) => c[2])));
 const extraGroups = ["min", "watch", "all", "help"];
 const availableGroups = [...extraGroups, ...existingGroups];
 
-if (Deno.args.includes("help")) {
-	logClientComp.info(
+
+if (
+    Deno.args.includes("help") || Deno.args.includes("--help") ||
+	Deno.args.includes("-h")
+) {
+	await logClientComp.info(
 		"Available options: " +
 			availableGroups.join(", ") + ".",
 	);
-	logClientComp.info(
-		"Usage example:\n\n\tdeno task compile:client js css min watch\n",
+	await logClientComp.info(
+		"Usage example:\n\n\tdeno task front js css min watch\n",
 	);
 	Deno.exit();
 }
+
+taskDotenv(logClientComp);
 
 const unknownGroups = Deno.args.filter(
 	(a) => !availableGroups.includes(a),
 );
 if (unknownGroups.length > 0) {
-	logClientComp.warn(
+	await logClientComp.warn(
 		`Unknown groups: ${unknownGroups.join(", ")}\n` +
 			"Available groups: " +
 			availableGroups.join(", ") + ".",
@@ -239,12 +243,15 @@ if (existingGroupsUsed) {
 	);
 }
 
+const watchingPrint = isWatch ? logClientComp.info("Watching for file changes...") : Promise.resolve();
+
 await Promise.allSettled(calls.map(([builder, directory]) => {
-	const text = "Bundling " + directory;
+	const text = `Bundling '${directory}'`;
 	return logClientComp.task({ text })
-		.startRunner(builder);
+		.startRunner(async () => {
+            await watchingPrint
+            return await builder()
+        });
 }));
 
-if (isWatch) {
-	logClientComp.info("Watching for file changes...");
-}
+

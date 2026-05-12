@@ -18,7 +18,7 @@
 6. Run `go mod download` to install required server dependencies (optional).
 7. Run `deno task init` to create `.env` file and initialize the database.
    `noenv` and `nodb` options are available.
-8. Run `deno task compile:client` to create client files.
+8. Run `deno task front` to create client files.
 9. Change the `.env` file.
    - Set up server connection with SQLite.
    - Set up JWT secret.
@@ -35,7 +35,7 @@ The best way is to use two terminals, with a third for other tasks:
 > - Serve
 
 ```bash
-deno task compile:client watch
+deno task front watch
 ```
 
 ```bash
@@ -158,10 +158,10 @@ Available deno tasks:
 
 ```bash
 # -tags prod
-deno task compile:server
-deno task compile:server:cross
+deno task back
+deno task back:cross
 
 # -tags lite
-deno task compile:server dev
-deno task compile:server:cross dev
+deno task back dev
+deno task back:cross dev
 ```

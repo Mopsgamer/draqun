@@ -29,9 +29,9 @@ export const logInitFiles = new Logger({
 
 export function taskDotenv(
 	logger: Logger,
-	distination = "./.env",
+	distination = ".env",
 ): void {
-	logger.task({ text: "Loading " + distination }).startRunner(
+	logger.task({ text: `Loading '${distination}'` }).startRunner(
 		() => {
 			dotenv.config({ quiet: true });
 		},

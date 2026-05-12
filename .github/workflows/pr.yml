@@ -140,7 +140,7 @@ jobs:
       deno-version: ${{ env.DENO_VERSION }}
       cache: true
    - run: deno install
-   - run: deno task compile:client
+   - run: deno task front
    - run: go generate ./...
    - run: go test ./...
  build:
@@ -169,12 +169,12 @@ jobs:
       deno-version: ${{ env.DENO_VERSION }}
       cache: true
    - run: deno install
-   - run: deno task compile:client
+   - run: deno task front
    - uses: actions/setup-go@v6
      with:
       go-version-file: go.mod
-   - run: deno task compile:server:cross
-   - run: deno task compile:server:cross dev
+   - run: deno task back:cross
+   - run: deno task back:cross dev
    - name: Upload server binaries
      uses: nanoufo/action-upload-artifacts-and-release-assets@v2
      with:

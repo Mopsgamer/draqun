@@ -14,7 +14,7 @@ for (const os of osList) {
 }
 
 let success = true;
-logServerComp.info("Plan:");
+await logServerComp.info("Plan:");
 for (const [os, arch] of targets) {
 	const { filePath } = binaryInfo(os, arch);
 	await logServerComp.info("\t" + filePath);
