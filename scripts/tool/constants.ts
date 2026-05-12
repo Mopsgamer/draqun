@@ -1,37 +1,31 @@
 import dotenv from "dotenv";
 import { Logger } from "@m234/logger";
 import { ensureDir } from "@std/fs/ensure-dir";
+import { styleText } from "node:util";
 
 const defaultTaskOptions = { suffixDuration: true };
+const lopts = { prefix: "🐉", defaultTaskOptions };
 
-export const logDevelopment = new Logger({
-	prefix: "development",
-	defaultTaskOptions,
-});
-export const logRelease = new Logger({ prefix: "release", defaultTaskOptions });
-export const logProd = new Logger({ prefix: "prod", defaultTaskOptions });
-export const logServerComp = new Logger({
-	prefix: "server-compilation",
-	defaultTaskOptions,
-});
-export const logClientComp = new Logger({
-	prefix: "client-compilation",
-	defaultTaskOptions,
-});
-export const logInitDb = new Logger({
-	prefix: "init-database",
-	defaultTaskOptions,
-});
-export const logInitFiles = new Logger({
-	prefix: "init-files",
-	defaultTaskOptions,
-});
+lopts.prefix = styleText("red", "⏺");
+export const logDevelopment = new Logger(lopts);
+lopts.prefix = styleText("blue", "✪");
+export const logProd = new Logger(lopts);
+lopts.prefix = "🚚 Release";
+export const logRelease = new Logger(lopts);
+lopts.prefix = "📦 Front";
+export const logServerComp = new Logger(lopts);
+lopts.prefix = "📦 Back";
+export const logClientComp = new Logger(lopts);
+lopts.prefix = "🔨 DB";
+export const logInitDb = new Logger(lopts);
+lopts.prefix = "🔨 Files";
+export const logInitFiles = new Logger(lopts);
 
 export function taskDotenv(
 	logger: Logger,
-	distination = "./.env",
+	distination = ".env",
 ): void {
-	logger.task({ text: "Loading " + distination }).startRunner(
+	logger.task({ text: `Loading '${distination}'` }).startRunner(
 		() => {
 			dotenv.config({ quiet: true });
 		},

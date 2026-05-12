@@ -61,9 +61,9 @@ export function getFormPropData(
 		}
 
 		const convert = slElement.getAttribute("data-convert");
-		data[name as string] = convert == "number"
+		data[name as string] = convert === "number"
 			? Number(value)
-			: convert == "boolean"
+			: convert === "boolean"
 			? Boolean(value)
 			: value;
 	}

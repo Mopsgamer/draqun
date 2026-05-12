@@ -12,7 +12,7 @@ import {
 
 taskDotenv(logInitFiles);
 
-function initSqliteTables(): void {
+async function initSqliteTables(): Promise<void> {
 	const sqlFileList = [
 		"./scripts/queries/create_users.sql",
 		"./scripts/queries/create_groups.sql",
@@ -24,7 +24,7 @@ function initSqliteTables(): void {
 		"./scripts/queries/create_group_action_kicks.sql",
 		"./scripts/queries/create_group_action_bans.sql",
 	];
-	logInitDb.info("You can pass 'nodb' to ignore DB initialization step.");
+	await logInitDb.info("You can pass 'nodb' to ignore DB initialization step.");
 
 	// SQLite uses a local file instead of a network connection
 	const dbPath = "app_data.db";
@@ -51,35 +51,35 @@ function initSqliteTables(): void {
 		},
 	};
 
-	logInitDb.warn(
+	await logInitDb.warn(
 		"Rerunning 'init' won't change existing tables. Delete 'app_data.db' if you need a full reset.",
 	);
 
 	for (const sqlFile of sqlFileList) {
-		const execution = logInitDb.task({
+		const execution = await logInitDb.task({
 			text: "Executing " + sqlFile,
 			indent: 1,
 		})
-			.startRunner(() => {
+			.startRunner(async () => {
 				const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
 				// db.exec runs the entire file content at once
 				try {
 					db.exec(sqlString);
 				} catch (error) {
-					logInitDb.error((error as Error).message);
+					await logInitDb.error((error as Error).message);
 					return "failed";
 				}
 			});
 
 		if (execution.state === "failed") {
-			logInitDb.warn(
+			await logInitDb.warn(
 				"If the initialization fails because of references, check the execution order of your .sql files.",
 			);
 			return;
 		}
 	}
 
-	logInitDb.success(
+	await logInitDb.success(
 		"All queries have been executed against app_data.db.",
 	);
 }
@@ -124,7 +124,7 @@ function initEnvFile(path: string): void {
 				([key, { value, comment }]) => {
 					env[key] ||= value === undefined ? "" : String(value);
 					Deno.env.set(key, env[key]);
-					if (value == undefined) {
+					if (value === undefined) {
 						comment += "\ndefault: <empty>";
 					} else {
 						comment += "\ndefault: " + value;

@@ -33,7 +33,7 @@ async function start(): Promise<TaskStateEnd> {
 		stderr: "piped",
 	}).output();
 
-	if (fetch.stdout.toString() == "") return "skipped";
+	if (fetch.stdout.toString().length === 0) return "skipped";
 
 	await new Deno.Command("git", {
 		args: ["pull"],
@@ -43,7 +43,7 @@ async function start(): Promise<TaskStateEnd> {
 
 	await compileDist(true);
 	if (!await compile(os, arch)) {
-		logProd.warn("Compilation failed, keeping the old version running.");
+		await logProd.warn("Compilation failed, keeping the old version running.");
 		return "aborted";
 	}
 

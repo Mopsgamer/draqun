@@ -14,15 +14,15 @@ let isDryRun = Deno.args.includes("--dry-run");
 
 if (!isCI) {
 	isDryRun = true;
-	logRelease.warn("This is not an actual release.");
-	logRelease.warn(
+	await logRelease.warn("This is not an actual release.");
+	await logRelease.warn(
 		"You are not in CI environment, dry run is enabled by default to prevent accidental releases.\n" +
 			"If you really want to release, run this script in CI environment on GitHub or set 'CI' environment variable to 'true' (not recommended).",
 	);
 }
 
 if (!Deno.env.has("GITHUB_TOKEN")) {
-	logRelease.error("Evironemnt variable GITHUB_TOKEN is not set.");
+	await logRelease.error("Evironemnt variable GITHUB_TOKEN is not set.");
 	Deno.exit(1);
 }
 
@@ -30,7 +30,7 @@ const manifestPath = "deno.json";
 const manifestExists = existsSync(manifestPath);
 
 if (!manifestExists) {
-	logRelease.error("Manifest file" + manifestPath + "not found.");
+	await logRelease.error("Manifest file" + manifestPath + "not found.");
 	Deno.exit(1);
 }
 
@@ -41,15 +41,15 @@ const tagName = newVersion;
 const releaseName = newVersion;
 const newChangelog = getNewChangelog(latestTag);
 if (isDryRun) {
-	logRelease.info("Changelog:\n" + newChangelog);
+	await logRelease.info("Changelog:\n" + newChangelog);
 }
-logRelease.info("Increment: " + denojson.version + " -> " + newVersion);
-logRelease.info("Old latest tag: " + latestTagString);
+await logRelease.info("Increment: " + denojson.version + " -> " + newVersion);
+await logRelease.info("Old latest tag: " + latestTagString);
 if (!isDryRun) {
 	const task = logRelease.task({ text: "Creating tag " + tagName }).start();
 	createTag(tagName, newChangelog);
 	task.end("completed");
-	logRelease.info("New latest tag: " + latestTagString);
+	await logRelease.info("New latest tag: " + latestTagString);
 }
 if (newVersion !== denojson.version) {
 	const manifestOldContent = await Deno.readTextFile(manifestPath);
