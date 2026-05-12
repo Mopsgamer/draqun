@@ -1,6 +1,7 @@
 {
 	"name": "@m234/draqun",
 	"version": "0.0.0",
+    "publish": false,
 	"nodeModulesDir": "auto",
 	"minimumDependencyAge": {
 		"exclude": ["jsr:@m234/logger"],
