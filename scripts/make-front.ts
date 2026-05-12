@@ -197,9 +197,8 @@ const existingGroups = Array.from(new Set(calls.flatMap((c) => c[2])));
 const extraGroups = ["min", "watch", "all", "help"];
 const availableGroups = [...extraGroups, ...existingGroups];
 
-
 if (
-    Deno.args.includes("help") || Deno.args.includes("--help") ||
+	Deno.args.includes("help") || Deno.args.includes("--help") ||
 	Deno.args.includes("-h")
 ) {
 	await logClientComp.info(
@@ -243,15 +242,15 @@ if (existingGroupsUsed) {
 	);
 }
 
-const watchingPrint = isWatch ? logClientComp.info("Watching for file changes...") : Promise.resolve();
+const watchingPrint = isWatch
+	? logClientComp.info("Watching for file changes...")
+	: Promise.resolve();
 
 await Promise.allSettled(calls.map(([builder, directory]) => {
 	const text = `Bundling '${directory}'`;
 	return logClientComp.task({ text })
 		.startRunner(async () => {
-            await watchingPrint
-            return await builder()
-        });
+			await watchingPrint;
+			return await builder();
+		});
 }));
-
-
