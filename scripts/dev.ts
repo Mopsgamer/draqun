@@ -66,7 +66,7 @@ async function watchAndRestart(): Promise<void> {
 	abortController = new AbortController();
 	start(abortController.signal);
 
-	let timeout = NaN;
+	let timeout: NodeJS.Timeout | undefined;
 	for await (const event of watcher) {
 		if (!["modify", "create", "remove"].includes(event.kind)) continue;
 
