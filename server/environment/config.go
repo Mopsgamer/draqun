@@ -43,11 +43,7 @@ var (
 	GitJson      GitInfo
 	GoMod        modfile.File
 
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBHost     string
-	DBPort     string
+	DBPath string
 )
 
 type DenoConfig struct {
@@ -90,11 +86,7 @@ func LoadEnv(embedFS fs.FS) (errEnv error) {
 
 	Port = getenvString("PORT", "3000")
 
-	DBHost = getenvString("DB_HOST", "localhost")
-	DBName = getenvString("DB_NAME", "mysql")
-	DBPassword = getenvString("DB_PASSWORD", "")
-	DBPort = getenvString("DB_PORT", "3306")
-	DBUser = getenvString("DB_USER", "admin")
+	DBPath = getenvString("DB_PATH", "app_data.db")
 	return errEnv
 }
 

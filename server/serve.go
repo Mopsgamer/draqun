@@ -4,11 +4,8 @@ import (
 	"fmt"
 	"io/fs"
 
-	_ "github.com/go-sql-driver/mysql"
-
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/model"
-	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 )
 
@@ -21,7 +18,7 @@ func Serve(embedFS fs.FS, clientEmbedded bool) {
 		fmt.Println(meta)
 		log.Fatal(err)
 	}
-	model.LoadDB()
+	err = model.LoadDB()
 	if err != nil {
 		fmt.Println(meta)
 		log.Fatal(err)
@@ -31,10 +28,6 @@ func Serve(embedFS fs.FS, clientEmbedded bool) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	app.Hooks().OnListen(func(data fiber.ListenData) error {
-		return nil
-	})
 
 	err = app.Listen(":" + environment.Port) // normal
 	if err == nil {
