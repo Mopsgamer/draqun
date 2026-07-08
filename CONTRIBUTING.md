@@ -168,3 +168,22 @@ deno task back:cross
 deno task back dev
 deno task back:cross dev
 ```
+
+## Burn it all down
+
+### Purge global caches & artifacts
+
+Even after deleting the folder, Deno and Go leave cached modules and build
+artifacts in your system directories. Run these commands to wipe them out
+completely from your local environment:
+
+```bash
+# Remove cached modules, lockfiles, etc.
+deno clean
+# Remove all build and module download caches
+go clean -cache -modcache
+```
+
+- Deno Registry Cache: Located at `~/.cache/deno` (Linux/macOS) or
+  `%LOCALAPPDATA%\deno` (Windows).
+- Go Module Cache: Located at `$GOPATH/pkg/mod` (usually `~/go/pkg/mod`).
