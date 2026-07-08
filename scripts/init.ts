@@ -24,7 +24,7 @@ async function initSqliteTables(): Promise<void> {
 		"./scripts/queries/create_group_action_kicks.sql",
 		"./scripts/queries/create_group_action_bans.sql",
 	];
-	await logInitDb.info("You can pass 'nodb' to ignore DB initialization step.");
+	logInitDb.info("You can pass 'nodb' to ignore DB initialization step.");
 
 	// SQLite uses a local file instead of a network connection
 	const dbPath = "app_data.db";
@@ -51,7 +51,7 @@ async function initSqliteTables(): Promise<void> {
 		},
 	};
 
-	await logInitDb.warn(
+	logInitDb.warn(
 		"Rerunning 'init' won't change existing tables. Delete 'app_data.db' if you need a full reset.",
 	);
 
@@ -60,26 +60,26 @@ async function initSqliteTables(): Promise<void> {
 			text: "Executing " + sqlFile,
 			indent: 1,
 		})
-			.startRunner(async () => {
+			.startRunner(() => {
 				const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
 				// db.exec runs the entire file content at once
 				try {
 					db.exec(sqlString);
 				} catch (error) {
-					await logInitDb.error((error as Error).message);
+					logInitDb.error((error as Error).message);
 					return "failed";
 				}
 			});
 
 		if (execution.state === "failed") {
-			await logInitDb.warn(
+			logInitDb.warn(
 				"If the initialization fails because of references, check the execution order of your .sql files.",
 			);
 			return;
 		}
 	}
 
-	await logInitDb.success(
+	logInitDb.success(
 		"All queries have been executed against app_data.db.",
 	);
 }

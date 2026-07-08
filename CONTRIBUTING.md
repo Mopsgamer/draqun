@@ -4,14 +4,15 @@
 
 1. Install required tools.
    - [Go](https://go.dev/doc/install) `^1.26`
-   - [Deno](https://deno.com/) `^2.8`
+   - [Deno](https://deno.com/) `^2.9`
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
    and
    [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
-   the repository.
+   the fork.
 3. Open it in your favorite editor. [VSC](https://code.visualstudio.com/) is
-   recommended. For small changes you can also use
-   [web-based GitHub editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor).
+   recommended. You can also use
+   [web-based GitHub editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor)
+   or a [Codespace](https://docs.github.com/en/codespaces/quickstart).
 4. Open terminal. You can use built-in
    [VSC terminal](https://code.visualstudio.com/docs/terminal/getting-started).
 5. Run `deno install` to install required client dependencies.
@@ -23,6 +24,8 @@
    - Set up server connection with SQLite.
    - Set up JWT secret.
 10. Run `deno task dev` to start the server.
+11. Open your browser and navigate to `http://localhost:3000` (or hold the
+    <kbd>Ctrl</kbd> key and click the link in the terminal).
 
 ## Making changes
 

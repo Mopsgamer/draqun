@@ -1,12 +1,33 @@
-import { distFolder } from "./constants.ts";
+import { distFolder, logServerComp } from "./constants.ts";
 import { resolve } from "@std/path";
-
-const isDev = Deno.args.includes("dev");
 
 export type BinaryInfo = {
 	fileName: string;
 	filePath: string;
 };
+
+export async function compileTask(run?: false): Promise<boolean>;
+export async function compileTask(
+	run: true,
+): Promise<Deno.ChildProcess | false>;
+export async function compileTask(
+	run = false,
+): Promise<Deno.ChildProcess | boolean> {
+	const [os, arch] = machineInfo();
+	const { filePath } = binaryInfo(os, arch);
+	const task = logServerComp.task({
+		text: run ? "Compiling and starting" : "Compiling " + filePath,
+	}).start();
+	if (!run) {
+		const result = await compile(os, arch, run);
+		task.end(result ? "completed" : "failed");
+		return result;
+	}
+	const result = await compile(os, arch, run);
+	if (result) task.end("completed");
+	else task.end("failed");
+	return result;
+}
 
 export function binaryInfo(os: string, arch: string): BinaryInfo {
 	let fileName = `server-${os}-${arch}`;
@@ -27,7 +48,18 @@ export function machineInfo(): [os: string, arch: string] {
 export async function compile(
 	os: string,
 	arch: string,
-): Promise<boolean> {
+	run?: false,
+): Promise<boolean>;
+export async function compile(
+	os: string,
+	arch: string,
+	run: true,
+): Promise<Deno.ChildProcess | false>;
+export async function compile(
+	os: string,
+	arch: string,
+	run = false,
+): Promise<Deno.ChildProcess | boolean> {
 	const { filePath } = binaryInfo(os, arch);
 
 	const env = {
@@ -35,7 +67,7 @@ export async function compile(
 		...Deno.env.toObject(),
 	};
 
-	return (await new Deno.Command("go", {
+	let child = await new Deno.Command("go", {
 		args: [
 			"generate",
 			"./...",
@@ -43,13 +75,16 @@ export async function compile(
 		env,
 		stdout: "inherit",
 		stderr: "inherit",
-	}).output()).success && (await new Deno.Command("go", {
+	}).output();
+
+	if (!child.success) return false;
+
+	const spawn = new Deno.Command("go", {
 		args: [
-			"build",
+			run ? "run" : "build",
 			"-tags",
-			isDev ? "lite" : "prod",
-			"-o",
-			filePath,
+			run ? "lite" : "prod",
+			...(run ? [] : ["-o", filePath]),
 			".",
 		],
 		env: {
@@ -57,7 +92,10 @@ export async function compile(
 			GOOS: os,
 			GOARCH: arch,
 		},
-		stdout: "inherit",
-		stderr: "inherit",
-	}).output()).success;
+	}).spawn();
+
+	if (run) return spawn;
+	child = await spawn.output();
+
+	return child.success;
 }

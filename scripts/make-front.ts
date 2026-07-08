@@ -4,7 +4,7 @@ import { existsSync } from "@std/fs";
 import { cp } from "node:fs/promises";
 import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
-import { format } from "@m234/logger";
+import { format, type TaskStateEnd } from "@m234/logger";
 
 const isWatch = Deno.args.includes("watch");
 
@@ -28,7 +28,7 @@ const options: esbuild.BuildOptions = {
 let buildCalls = 0;
 async function build(
 	options: BuildOptions,
-): Promise<void> {
+): Promise<TaskStateEnd | void> {
 	const { outdir, outfile, entryPoints = [], whenChange = [] } = options;
 	buildCalls++;
 
@@ -51,91 +51,110 @@ async function build(
 	});
 
 	if (badEntryPoints.length > 0) {
-		await logClientComp.error(
+		logClientComp.error(
 			format("File expected to exist: %o", badEntryPoints),
 		);
-		return;
+		return "failed";
 	}
 
 	if (!outfile && !outdir) {
-		await logClientComp.error("Provide outdir or outfile.");
-		return;
+		logClientComp.error("Provide outdir or outfile.");
+		return "failed";
 	}
 
 	if (outfile && outdir) {
-		await logClientComp.error("Can not use outdir and outfile at the same time.");
-		return;
+		logClientComp.error("Can not use outdir and outfile at the same time.");
+		return "failed";
 	}
 
 	const safeOptions = options;
 	delete safeOptions.whenChange;
-	const ctx = await esbuild.context(safeOptions as esbuild.BuildOptions);
-
-	async function rebuild(): Promise<void> {
-		try {
-			await ctx.rebuild();
-		} catch (error) {
-			await logClientComp.error(format(error));
-		}
+	let ctx: esbuild.BuildContext<esbuild.BuildOptions>;
+	try {
+		ctx = await esbuild.context(safeOptions as esbuild.BuildOptions);
+	} catch (error) {
+		logClientComp.error(format(error));
+		return "failed";
 	}
 
-	await rebuild();
+	try {
+		await ctx.rebuild();
+	} catch (error) {
+		logClientComp.error((error as Error).message);
+		return "failed";
+	}
 
 	if (!isWatch) {
 		await ctx.dispose();
-		return;
+		return "completed";
 	}
 
 	try {
 		await ctx.watch();
 	} catch (error) {
-		await logClientComp.error(format(error));
-		return;
+		logClientComp.error(format(error));
+		return "failed";
 	}
 
 	if (whenChange.length === 0) {
-		await logClientComp.error("Nothing to watch: " + whenChange.join(", ") + ".");
+		logClientComp.error("Nothing to watch: " + whenChange.join(", ") + ".");
 		await ctx.dispose();
-		return;
+		return "failed";
 	}
 
 	let watcher: Deno.FsWatcher;
 	try {
 		watcher = Deno.watchFs(whenChange, { recursive: true });
 	} catch (error) {
-		await logClientComp.error(format(error));
-		await logClientComp.error(
+		logClientComp.error(format(error));
+		logClientComp.error(
 			"Bad paths, can not add watcher: " + whenChange.join(", ") + ".",
 		);
-		return;
+		await ctx.dispose();
+		return "failed";
 	}
 
 	// this callback won't block the process.
 	// buildTask will return while ignoring loop
 	(async () => {
-		for await (const event of watcher) {
-			if (
-				event.kind === "modify" || event.kind === "create" ||
-				event.kind === "remove"
-			) return;
+		const task = logClientComp.task({ text: "Watching for file changes" })
+			.start();
 
-			await rebuild();
+		for await (const { paths, kind } of watcher) {
+			const isTargetEvent = kind === "modify" ||
+				kind === "create" ||
+				kind === "remove";
+
+			if (!isTargetEvent) continue;
+
+			const hasRelevantChanges = paths.some((p) => p.endsWith(".css"));
+
+			if (!hasRelevantChanges) continue;
+
+			let x = " ";
+			if (paths.length === 1) {
+				const path = paths[0]!.replaceAll("\\", "/");
+				x = " '" + path.slice(path.lastIndexOf("/") + 1) + "'";
+			} else x = " (" + paths.length + " files)";
+			try {
+				task.text = "Building at " + new Date().toLocaleTimeString() + x;
+				await ctx.rebuild();
+				task.text = "Updated at " + new Date().toLocaleTimeString() + x;
+			} catch (error) {
+				task.text = "Failed at " + new Date().toLocaleTimeString() + x + ": " +
+					(error as Error).message;
+			}
 		}
+
 		await ctx.dispose();
 	})();
+	return "completed";
 }
-
-// deno-lint-ignore no-explicit-any
-type Call<Args extends (...args: any[]) => Promise<void>> = [
-	fn: (...args: Parameters<Args>) => Promise<void>,
-	params: Parameters<Args>,
-	group: string[],
-];
 
 const slAlias = ["shoelace", "shoe", "sl"];
 const slAssets = slAlias.map((a) => (a + "-assets"));
 
-const calls: [() => Promise<void>, string, string[]][] = [
+const calls: [() => Promise<TaskStateEnd | void>, string, string[]][] = [
 	[
 		() =>
 			cp(
@@ -201,11 +220,11 @@ if (
 	Deno.args.includes("help") || Deno.args.includes("--help") ||
 	Deno.args.includes("-h")
 ) {
-	await logClientComp.info(
+	logClientComp.info(
 		"Available options: " +
 			availableGroups.join(", ") + ".",
 	);
-	await logClientComp.info(
+	logClientComp.info(
 		"Usage example:\n\n\tdeno task front js css min watch\n",
 	);
 	Deno.exit();
@@ -217,7 +236,7 @@ const unknownGroups = Deno.args.filter(
 	(a) => !availableGroups.includes(a),
 );
 if (unknownGroups.length > 0) {
-	await logClientComp.warn(
+	logClientComp.warn(
 		`Unknown groups: ${unknownGroups.join(", ")}\n` +
 			"Available groups: " +
 			availableGroups.join(", ") + ".",
@@ -242,15 +261,7 @@ if (existingGroupsUsed) {
 	);
 }
 
-const watchingPrint = isWatch
-	? logClientComp.info("Watching for file changes...")
-	: Promise.resolve();
-
 await Promise.allSettled(calls.map(([builder, directory]) => {
 	const text = `Bundling '${directory}'`;
-	return logClientComp.task({ text })
-		.startRunner(async () => {
-			await watchingPrint;
-			return await builder();
-		});
+	return logClientComp.task({ text }).startRunner(builder);
 }));
