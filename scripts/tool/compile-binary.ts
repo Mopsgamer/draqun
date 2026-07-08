@@ -6,11 +6,13 @@ export type BinaryInfo = {
 	filePath: string;
 };
 
-export async function compileTask(run?: false): Promise<boolean>;
+export async function compileTask(dev?: boolean): Promise<boolean>;
 export async function compileTask(
+	dev: true,
 	run: true,
 ): Promise<Deno.ChildProcess | false>;
 export async function compileTask(
+	dev = false,
 	run = false,
 ): Promise<Deno.ChildProcess | boolean> {
 	const [os, arch] = machineInfo();
@@ -18,14 +20,9 @@ export async function compileTask(
 	const task = logServerComp.task({
 		text: run ? "Compiling and starting" : "Compiling " + filePath,
 	}).start();
-	if (!run) {
-		const result = await compile(os, arch, run);
-		task.end(result ? "completed" : "failed");
-		return result;
-	}
-	const result = await compile(os, arch, run);
-	if (result) task.end("completed");
-	else task.end("failed");
+	//@ts-expect-error we do not care about signature
+	const result = await compile(os, arch, dev, run);
+	task.end(result ? "completed" : "failed");
 	return result;
 }
 
@@ -48,16 +45,18 @@ export function machineInfo(): [os: string, arch: string] {
 export async function compile(
 	os: string,
 	arch: string,
-	run?: false,
+	dev?: boolean,
 ): Promise<boolean>;
 export async function compile(
 	os: string,
 	arch: string,
+	dev: true,
 	run: true,
 ): Promise<Deno.ChildProcess | false>;
 export async function compile(
 	os: string,
 	arch: string,
+	dev = false,
 	run = false,
 ): Promise<Deno.ChildProcess | boolean> {
 	const { filePath } = binaryInfo(os, arch);
@@ -83,7 +82,7 @@ export async function compile(
 		args: [
 			run ? "run" : "build",
 			"-tags",
-			run ? "lite" : "prod",
+			dev ? "lite" : "prod",
 			...(run ? [] : ["-o", filePath]),
 			".",
 		],
@@ -94,7 +93,7 @@ export async function compile(
 		},
 	}).spawn();
 
-	if (run) return spawn;
+	if (dev && run) return spawn;
 	child = await spawn.output();
 
 	return child.success;
