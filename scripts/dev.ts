@@ -2,6 +2,7 @@ import kill from "tree-kill";
 import { sep } from "node:path";
 import { existsSync } from "node:fs";
 import { logDevelopment, taskDotenv } from "./tool/constants.ts";
+import { compileTask } from "./tool/compile-binary.ts";
 
 taskDotenv(logDevelopment);
 
@@ -32,24 +33,8 @@ async function start(signal: AbortSignal): Promise<void> {
 	if (signal.aborted) return;
 
 	try {
-		// 2. GENERATE
-		const gen = new Deno.Command("go", {
-			args: ["generate", "./..."],
-			signal, // Signal here is okay, it only stops the generate task
-		});
-		const genOutput = await gen.output();
-		if (!genOutput.success || signal.aborted) return;
-
-		// 3. RUN
-		const server = new Deno.Command("go", {
-			args: ["run", "-tags", "lite", "."],
-			// We DO NOT pass signal here.
-			// Passing signal to spawn/run is why Deno orphans the child.
-		});
-
-		const child = server.spawn();
-		activePid = child.pid;
-
+		const child = await compileTask(true, true);
+		if (!child) return;
 		// Ensure we clean up if the server crashes on its own
 		child.status.then(() => {
 			if (activePid === child.pid) activePid = undefined;
@@ -76,7 +61,7 @@ async function watchAndRestart(): Promise<void> {
 			abortController.abort();
 			abortController = new AbortController();
 
-			await logDevelopment.info(
+			logDevelopment.info(
 				"Refreshing (" + event.kind + " " + event.paths[0] + ")",
 			);
 

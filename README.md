@@ -5,9 +5,11 @@
 
 Definitely a cool chat application.
 
+<!-- ## Installation
+
+You can install Draqun server by downloading the latest release from the
+[releases page](https://github.com/Mopsgamer/draqun/releases/latest). -->
+
 ## Contributing and building
 
 Check out the [contributing guide](CONTRIBUTING.md).
-
-You can install Draqun server by downloading the latest release from the
-[releases page](https://github.com/Mopsgamer/draqun/releases/latest).
