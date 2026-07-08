@@ -1,527 +1,527 @@
 openapi: 3.1.1
 info:
-  title: Draqun API Docs
-  version: 1.0.0
-  description: |
-    API documentation for Draqun, including HTMX and WebSocket endpoints.
+ title: Draqun API Docs
+ version: 1.0.0
+ description: |
+  API documentation for Draqun, including HTMX and WebSocket endpoints.
 
-    **HTMX Support:**
-    Most endpoints respond with HTML partials if the `HX-Request` header is present.
-    If the response is an HTMX redirect, it will use the `HX-Redirect` or `HX-Location` headers.
+  **HTMX Support:**
+  Most endpoints respond with HTML partials if the `HX-Request` header is present.
+  If the response is an HTMX redirect, it will use the `HX-Redirect` or `HX-Location` headers.
 
-    **Authentication:**
-    Authentication is handled via a JWT token stored in a cookie named `Authorization`.
+  **Authentication:**
+  Authentication is handled via a JWT token stored in a cookie named `Authorization`.
 tags:
-  - name: Account
-    description: User account management, authentication, and settings.
-  - name: Group
-    description: Group creation, management, messaging, and membership.
-  - name: Pages
-    description: Main application pages.
+ - name: Account
+   description: User account management, authentication, and settings.
+ - name: Group
+   description: Group creation, management, messaging, and membership.
+ - name: Pages
+   description: Main application pages.
 servers:
-  - url: http://localhost:3000
+ - url: http://localhost:3000
 paths:
-  /:
-    get:
-      tags:
-        - Pages
-      summary: Homepage
-      responses:
-        "200":
-          description: The landing page.
-  /terms:
-    get:
-      tags:
-        - Pages
-      summary: Terms of Service
-      responses:
-        "200":
-          description: Terms of service page.
-  /privacy:
-    get:
-      tags:
-        - Pages
-      summary: Privacy Policy
-      responses:
-        "200":
-          description: Privacy policy page.
-  /acknowledgements:
-    get:
-      tags:
-        - Pages
-      summary: Acknowledgements
-      responses:
-        "200":
-          description: Open source acknowledgements page.
-  /docs:
-    get:
-      tags:
-        - Pages
-      summary: Documentation
-      responses:
-        "200":
-          description: This documentation page.
-  /settings:
-    get:
-      tags:
-        - Pages
-      summary: User Settings
-      responses:
-        "200":
-          description: User settings page. Requires authentication.
-        "302":
-          description: Redirects to homepage if not authenticated.
-  /chat:
-    get:
-      tags:
-        - Pages
-      summary: Chat Home
-      responses:
-        "200":
-          description: Main chat interface or login page if not authenticated.
-  /chat/groups/{group_id}:
-    get:
-      tags:
-        - Pages
-      summary: Group Chat Page
-      parameters:
-        - name: group_id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Chat page for a specific group.
-        "302":
-          description: Redirects to /chat if not a member.
-  /chat/groups/join/{group_name}:
-    get:
-      tags:
-        - Pages
-      summary: Join Group Page
-      parameters:
-        - name: group_name
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Page to join a public group.
-        "302":
-          description: Redirects to group chat if already a member.
-  /account:
-    post:
-      tags:
-        - Account
-      summary: Sign Up
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/UserSignUp"
-      responses:
-        "200":
-          description: Account created and logged in.
-        "400":
-          description: Validation error.
-    delete:
-      tags:
-        - Account
-      summary: Delete Account
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/UserDelete"
-      responses:
-        "200":
-          description: Account deleted.
-  /account/login:
-    post:
-      tags:
-        - Account
-      summary: Log In
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/UserLogin"
-      responses:
-        "200":
-          description: Logged in.
-        "401":
-          description: Invalid credentials.
-  /account/logout:
-    put:
-      tags:
-        - Account
-      summary: Log Out
-      responses:
-        "200":
-          description: Logged out.
-  /account/change/name:
-    put:
-      tags:
-        - Account
-      summary: Change Name/Nickname
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/UserChangeName"
-      responses:
-        "200":
-          description: Name changed.
-  /account/change/email:
-    put:
-      tags:
-        - Account
-      summary: Change Email
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/UserChangeEmail"
-      responses:
-        "200":
-          description: Email changed.
-  /account/change/phone:
-    put:
-      tags:
-        - Account
-      summary: Change Phone
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/UserChangePhone"
-      responses:
-        "200":
-          description: Phone changed.
-  /account/change/password:
-    put:
-      tags:
-        - Account
-      summary: Change Password
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/UserChangePassword"
-      responses:
-        "200":
-          description: Password changed.
-  /groups/search:
-    get:
-      tags:
-        - Group
-      summary: Search Groups
-      parameters:
-        - name: q
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: List of groups matching the query.
-  /groups/create:
-    post:
-      tags:
-        - Group
-      summary: Create Group
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/GroupCreate"
-      responses:
-        "200":
-          description: Group created.
-  /groups/{group_id}/join:
-    put:
-      tags:
-        - Group
-      summary: Join Group
-      parameters:
-        - name: group_id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Joined group.
-  /groups/{group_id}/leave:
-    delete:
-      tags:
-        - Group
-      summary: Leave Group
-      parameters:
-        - name: group_id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Left group.
-  /groups/{group_id}/change:
-    put:
-      tags:
-        - Group
-      summary: Change Group Details
-      parameters:
-        - name: group_id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/GroupChange"
-      responses:
-        "200":
-          description: Group details updated.
-  /groups/{group_id}:
-    delete:
-      tags:
-        - Group
-      summary: Delete Group
-      parameters:
-        - name: group_id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Group deleted.
-  /groups/{group_id}/messages/create:
-    post:
-      tags:
-        - Group
-      summary: Send Message
-      parameters:
-        - name: group_id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/MessageCreate"
-      responses:
-        "200":
-          description: Message sent.
-  /groups/{group_id}/messages/page/{messages_page}:
-    get:
-      tags:
-        - Group
-      summary: Get Messages (Paginated)
-      parameters:
-        - name: group_id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: messages_page
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: List of messages.
-  /groups/{group_id}/members/page/{members_page}:
-    get:
-      tags:
-        - Group
-      summary: Get Members (Paginated)
-      parameters:
-        - name: group_id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: members_page
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: List of members.
-  /groups/ws/{group_id}/:
-    get:
-      tags:
-        - Group
-      summary: WebSocket for Group
-      parameters:
-        - name: group_id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "101":
-          description: Switching Protocols.
+ /:
+  get:
+   tags:
+    - Pages
+   summary: Homepage
+   responses:
+    "200":
+     description: The landing page.
+ /terms:
+  get:
+   tags:
+    - Pages
+   summary: Terms of Service
+   responses:
+    "200":
+     description: Terms of service page.
+ /privacy:
+  get:
+   tags:
+    - Pages
+   summary: Privacy Policy
+   responses:
+    "200":
+     description: Privacy policy page.
+ /acknowledgements:
+  get:
+   tags:
+    - Pages
+   summary: Acknowledgements
+   responses:
+    "200":
+     description: Open source acknowledgements page.
+ /docs:
+  get:
+   tags:
+    - Pages
+   summary: Documentation
+   responses:
+    "200":
+     description: This documentation page.
+ /settings:
+  get:
+   tags:
+    - Pages
+   summary: User Settings
+   responses:
+    "200":
+     description: User settings page. Requires authentication.
+    "302":
+     description: Redirects to homepage if not authenticated.
+ /chat:
+  get:
+   tags:
+    - Pages
+   summary: Chat Home
+   responses:
+    "200":
+     description: Main chat interface or login page if not authenticated.
+ /chat/groups/{group_id}:
+  get:
+   tags:
+    - Pages
+   summary: Group Chat Page
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Chat page for a specific group.
+    "302":
+     description: Redirects to /chat if not a member.
+ /chat/groups/join/{group_name}:
+  get:
+   tags:
+    - Pages
+   summary: Join Group Page
+   parameters:
+    - name: group_name
+      in: path
+      required: true
+      schema:
+       type: string
+   responses:
+    "200":
+     description: Page to join a public group.
+    "302":
+     description: Redirects to group chat if already a member.
+ /account:
+  post:
+   tags:
+    - Account
+   summary: Sign Up
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/UserSignUp"
+   responses:
+    "200":
+     description: Account created and logged in.
+    "400":
+     description: Validation error.
+  delete:
+   tags:
+    - Account
+   summary: Delete Account
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/UserDelete"
+   responses:
+    "200":
+     description: Account deleted.
+ /account/login:
+  post:
+   tags:
+    - Account
+   summary: Log In
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/UserLogin"
+   responses:
+    "200":
+     description: Logged in.
+    "401":
+     description: Invalid credentials.
+ /account/logout:
+  put:
+   tags:
+    - Account
+   summary: Log Out
+   responses:
+    "200":
+     description: Logged out.
+ /account/change/name:
+  put:
+   tags:
+    - Account
+   summary: Change Name/Nickname
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/UserChangeName"
+   responses:
+    "200":
+     description: Name changed.
+ /account/change/email:
+  put:
+   tags:
+    - Account
+   summary: Change Email
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/UserChangeEmail"
+   responses:
+    "200":
+     description: Email changed.
+ /account/change/phone:
+  put:
+   tags:
+    - Account
+   summary: Change Phone
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/UserChangePhone"
+   responses:
+    "200":
+     description: Phone changed.
+ /account/change/password:
+  put:
+   tags:
+    - Account
+   summary: Change Password
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/UserChangePassword"
+   responses:
+    "200":
+     description: Password changed.
+ /groups/search:
+  get:
+   tags:
+    - Group
+   summary: Search Groups
+   parameters:
+    - name: q
+      in: query
+      required: true
+      schema:
+       type: string
+   responses:
+    "200":
+     description: List of groups matching the query.
+ /groups/create:
+  post:
+   tags:
+    - Group
+   summary: Create Group
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/GroupCreate"
+   responses:
+    "200":
+     description: Group created.
+ /groups/{group_id}/join:
+  put:
+   tags:
+    - Group
+   summary: Join Group
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Joined group.
+ /groups/{group_id}/leave:
+  delete:
+   tags:
+    - Group
+   summary: Leave Group
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Left group.
+ /groups/{group_id}/change:
+  put:
+   tags:
+    - Group
+   summary: Change Group Details
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/GroupChange"
+   responses:
+    "200":
+     description: Group details updated.
+ /groups/{group_id}:
+  delete:
+   tags:
+    - Group
+   summary: Delete Group
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Group deleted.
+ /groups/{group_id}/messages/create:
+  post:
+   tags:
+    - Group
+   summary: Send Message
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/MessageCreate"
+   responses:
+    "200":
+     description: Message sent.
+ /groups/{group_id}/messages/page/{messages_page}:
+  get:
+   tags:
+    - Group
+   summary: Get Messages (Paginated)
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: messages_page
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: List of messages.
+ /groups/{group_id}/members/page/{members_page}:
+  get:
+   tags:
+    - Group
+   summary: Get Members (Paginated)
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: members_page
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: List of members.
+ /groups/ws/{group_id}/:
+  get:
+   tags:
+    - Group
+   summary: WebSocket for Group
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "101":
+     description: Switching Protocols.
 components:
-  schemas:
-    UserSignUp:
-      type: object
-      required:
-        - moniker
-        - name
-        - email
-        - phone
-        - password
-        - confirm-password
-      properties:
-        moniker:
-          type: string
-          description: Display name.
-        name:
-          type: string
-          description: Unique username/handle.
-        email:
-          type: string
-          format: email
-        phone:
-          type: string
-        password:
-          type: string
-          format: password
-        confirm-password:
-          type: string
-          format: password
-    UserLogin:
-      type: object
-      required:
-        - email
-        - password
-      properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          format: password
-    UserDelete:
-      type: object
-      required:
-        - current-password
-        - confirm-name
-      properties:
-        current-password:
-          type: string
-          format: password
-        confirm-name:
-          type: string
-          description: Must match the user's name to confirm deletion.
-    UserChangeName:
-      type: object
-      required:
-        - new-moniker
-        - new-name
-      properties:
-        new-moniker:
-          type: string
-        new-name:
-          type: string
-    UserChangeEmail:
-      type: object
-      required:
-        - current-password
-        - new-email
-      properties:
-        current-password:
-          type: string
-          format: password
-        new-email:
-          type: string
-          format: email
-    UserChangePhone:
-      type: object
-      required:
-        - current-password
-        - new-phone
-      properties:
-        current-password:
-          type: string
-          format: password
-        new-phone:
-          type: string
-    UserChangePassword:
-      type: object
-      required:
-        - current-password
-        - new-password
-        - confirm-password
-      properties:
-        current-password:
-          type: string
-          format: password
-        new-password:
-          type: string
-          format: password
-        confirm-password:
-          type: string
-          format: password
-    GroupCreate:
-      type: object
-      required:
-        - name
-        - nick
-        - mode
-      properties:
-        name:
-          type: string
-          description: Unique group handle.
-        nick:
-          type: string
-          description: Group display name.
-        password:
-          type: string
-          format: password
-          description: Optional password for protected groups.
-        mode:
-          type: string
-          enum: [public, protected, private]
-        description:
-          type: string
-        avatar:
-          type: string
-          format: uri
-    GroupChange:
-      type: object
-      properties:
-        name:
-          type: string
-        nick:
-          type: string
-        password:
-          type: string
-          format: password
-        mode:
-          type: string
-          enum: [public, protected, private]
-        description:
-          type: string
-        avatar:
-          type: string
-          format: uri
-    MessageCreate:
-      type: object
-      required:
-        - content
-      properties:
-        content:
-          type: string
-          maxLength: 8000
+ schemas:
+  UserSignUp:
+   type: object
+   required:
+    - moniker
+    - name
+    - email
+    - phone
+    - password
+    - confirm-password
+   properties:
+    moniker:
+     type: string
+     description: Display name.
+    name:
+     type: string
+     description: Unique username/handle.
+    email:
+     type: string
+     format: email
+    phone:
+     type: string
+    password:
+     type: string
+     format: password
+    confirm-password:
+     type: string
+     format: password
+  UserLogin:
+   type: object
+   required:
+    - email
+    - password
+   properties:
+    email:
+     type: string
+     format: email
+    password:
+     type: string
+     format: password
+  UserDelete:
+   type: object
+   required:
+    - current-password
+    - confirm-name
+   properties:
+    current-password:
+     type: string
+     format: password
+    confirm-name:
+     type: string
+     description: Must match the user's name to confirm deletion.
+  UserChangeName:
+   type: object
+   required:
+    - new-moniker
+    - new-name
+   properties:
+    new-moniker:
+     type: string
+    new-name:
+     type: string
+  UserChangeEmail:
+   type: object
+   required:
+    - current-password
+    - new-email
+   properties:
+    current-password:
+     type: string
+     format: password
+    new-email:
+     type: string
+     format: email
+  UserChangePhone:
+   type: object
+   required:
+    - current-password
+    - new-phone
+   properties:
+    current-password:
+     type: string
+     format: password
+    new-phone:
+     type: string
+  UserChangePassword:
+   type: object
+   required:
+    - current-password
+    - new-password
+    - confirm-password
+   properties:
+    current-password:
+     type: string
+     format: password
+    new-password:
+     type: string
+     format: password
+    confirm-password:
+     type: string
+     format: password
+  GroupCreate:
+   type: object
+   required:
+    - name
+    - nick
+    - mode
+   properties:
+    name:
+     type: string
+     description: Unique group handle.
+    nick:
+     type: string
+     description: Group display name.
+    password:
+     type: string
+     format: password
+     description: Optional password for protected groups.
+    mode:
+     type: string
+     enum: [public, protected, private]
+    description:
+     type: string
+    avatar:
+     type: string
+     format: uri
+  GroupChange:
+   type: object
+   properties:
+    name:
+     type: string
+    nick:
+     type: string
+    password:
+     type: string
+     format: password
+    mode:
+     type: string
+     enum: [public, protected, private]
+    description:
+     type: string
+    avatar:
+     type: string
+     format: uri
+  MessageCreate:
+   type: object
+   required:
+    - content
+   properties:
+    content:
+     type: string
+     maxLength: 8000
