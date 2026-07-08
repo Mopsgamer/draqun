@@ -42,7 +42,7 @@
 	},
 	"exports": {},
 	"exclude": [
-		"dist/static",
+		"dist",
 		"client/src/*tailwind*"
 	],
 	"fmt": {

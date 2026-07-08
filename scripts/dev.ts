@@ -33,7 +33,7 @@ async function start(signal: AbortSignal): Promise<void> {
 	if (signal.aborted) return;
 
 	try {
-		const child = await compileTask(true);
+		const child = await compileTask(true, true);
 		if (!child) return;
 		// Ensure we clean up if the server crashes on its own
 		child.status.then(() => {
