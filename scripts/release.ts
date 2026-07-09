@@ -22,7 +22,7 @@ if (!isCI) {
 }
 
 if (!Deno.env.has("GITHUB_TOKEN")) {
-	logRelease.error("Evironemnt variable GITHUB_TOKEN is not set.");
+	logRelease.error("Environment variable GITHUB_TOKEN is not set.");
 	Deno.exit(1);
 }
 
@@ -30,7 +30,7 @@ const manifestPath = "deno.json";
 const manifestExists = existsSync(manifestPath);
 
 if (!manifestExists) {
-	logRelease.error("Manifest file" + manifestPath + "not found.");
+	logRelease.error("Manifest file " + manifestPath + " not found.");
 	Deno.exit(1);
 }
 

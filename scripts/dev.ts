@@ -6,13 +6,37 @@ import { compileTask } from "./tool/compile-binary.ts";
 
 taskDotenv(logDevelopment);
 
-const paths = [
+const requiredPaths = [
 	"server" + sep,
-	"client-lite.go",
 	"main.go",
-	".git" + sep + "ORIG_HEAD",
 ];
-if (existsSync(".env")) paths.push(".env");
+
+const optionalPaths = [
+	"client-lite.go",
+	".git" + sep + "ORIG_HEAD",
+	".env",
+];
+
+const paths: string[] = [];
+
+for (const p of requiredPaths) {
+	if (existsSync(p)) {
+		paths.push(p);
+	} else {
+		logDevelopment.error(`Required path '${p}' not found.`);
+		Deno.exit(1);
+	}
+}
+
+for (const p of optionalPaths) {
+	if (existsSync(p)) {
+		paths.push(p);
+	} else {
+		logDevelopment.warn(`Optional path '${p}' not found, skipping watch.`);
+	}
+}
+
+logDevelopment.info("Watching paths: " + paths.join(", "));
 
 let activePid: number | undefined;
 let abortController = new AbortController();

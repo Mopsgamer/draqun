@@ -63,8 +63,12 @@ func LoadMeta(embedFS fs.FS) {
 	GitJson, _ = getJson[GitInfo](embedFS, DistFolder+"/git.json")
 	GoMod, _ = getGoMod(embedFS)
 
-	GitHubCommit = GitHubRepo + "/commit/" + GitJson.HashLong
-	GitHubBranch = GitHubRepo + "/tree/" + GitJson.Branch
+	if GitJson.HashLong != "" {
+		GitHubCommit = GitHubRepo + "/commit/" + GitJson.HashLong
+	}
+	if GitJson.Branch != "" {
+		GitHubBranch = GitHubRepo + "/tree/" + GitJson.Branch
+	}
 }
 
 // LoadEnv environemnt variables from the '.env' file. Exits if any errors.
