@@ -8,10 +8,16 @@ import (
 )
 
 func hashString() string {
+	if environment.GitJson.Hash == "" {
+		return ""
+	}
 	return color.New(color.Faint).Sprint(link(environment.GitHubCommit, environment.GitJson.Hash))
 }
 
 func branchString() string {
+	if environment.GitJson.Branch == "" {
+		return ""
+	}
 	return color.RGB(100, 0, 180).Sprint(link(environment.GitHubBranch, environment.GitJson.Branch))
 }
 
@@ -37,7 +43,18 @@ func link(link, text string) string {
 }
 
 func gitString() string {
-	return branchString() + " " + hashString()
+	branch := branchString()
+	hash := hashString()
+	if branch == "" && hash == "" {
+		return ""
+	}
+	if branch == "" {
+		return hash
+	}
+	if hash == "" {
+		return branch
+	}
+	return branch + " " + hash
 }
 
 func versionString(clientEmbedded bool) string {
@@ -47,8 +64,11 @@ func versionString(clientEmbedded bool) string {
 func metaString(clientEmbedded bool) string {
 	prefix := "│  "
 	title := environment.AppName + " ─ "
-	return "╭── " + color.New(color.Italic).Sprint(title) + "\n" +
-		prefix + versionString(clientEmbedded) + "\n" +
-		prefix + gitString() + "\n" +
-		"╰──•\n"
+	res := "╭── " + color.New(color.Italic).Sprint(title) + "\n" +
+		prefix + versionString(clientEmbedded) + "\n"
+	if git := gitString(); git != "" {
+		res += prefix + git + "\n"
+	}
+	res += "╰──•\n"
+	return res
 }
