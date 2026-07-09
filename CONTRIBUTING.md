@@ -3,6 +3,7 @@
 ## First setup
 
 1. Install required tools.
+   - Git, obviously
    - [Go](https://go.dev/doc/install) `^1.26`
    - [Deno](https://deno.com/) `^2.9`
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)

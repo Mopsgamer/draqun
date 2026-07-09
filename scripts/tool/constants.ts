@@ -1,14 +1,17 @@
 import dotenv from "dotenv";
-import { Logger } from "@m234/logger";
+import {
+	type DefaultTaskOptions,
+	Logger,
+	type LoggerOptions,
+} from "@m234/logger";
 import { ensureDir } from "@std/fs/ensure-dir";
-import { styleText } from "node:util";
 
-const defaultTaskOptions = { suffixDuration: true };
-const lopts = { prefix: "🐉", defaultTaskOptions };
+const defaultTaskOptions: DefaultTaskOptions = { suffixDuration: 0n };
+const lopts: LoggerOptions = { prefix: "🐉", defaultTaskOptions };
 
-lopts.prefix = styleText("red", "⏺");
+lopts.prefix = "🧑‍💻 Dev";
 export const logDevelopment = new Logger(lopts);
-lopts.prefix = styleText("blue", "✪");
+lopts.prefix = "🚚 Prod";
 export const logProd = new Logger(lopts);
 lopts.prefix = "🚚 Release";
 export const logRelease = new Logger(lopts);

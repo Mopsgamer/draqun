@@ -4,7 +4,7 @@ import { existsSync } from "@std/fs";
 import { cp } from "node:fs/promises";
 import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
-import { format, type TaskStateEnd } from "@m234/logger";
+import { format, type TaskRunnerReturn } from "@m234/logger";
 
 const isWatch = Deno.args.includes("watch");
 
@@ -28,7 +28,7 @@ const options: esbuild.BuildOptions = {
 let buildCalls = 0;
 async function build(
 	options: BuildOptions,
-): Promise<TaskStateEnd | void> {
+): Promise<TaskRunnerReturn> {
 	const { outdir, outfile, entryPoints = [], whenChange = [] } = options;
 	buildCalls++;
 
@@ -154,7 +154,7 @@ async function build(
 const slAlias = ["shoelace", "shoe", "sl"];
 const slAssets = slAlias.map((a) => (a + "-assets"));
 
-const calls: [() => Promise<TaskStateEnd | void>, string, string[]][] = [
+const calls: [() => Promise<TaskRunnerReturn>, string, string[]][] = [
 	[
 		() =>
 			cp(
