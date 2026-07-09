@@ -1,5 +1,4 @@
 import kill from "tree-kill";
-import { sep } from "node:path";
 import { existsSync } from "node:fs";
 import { logDevelopment, taskDotenv } from "./tool/constants.ts";
 import { compileTask } from "./tool/compile-binary.ts";
@@ -7,13 +6,13 @@ import { compileTask } from "./tool/compile-binary.ts";
 taskDotenv(logDevelopment);
 
 const requiredPaths = [
-	"server" + sep,
+	"server/",
 	"main.go",
 ];
 
 const optionalPaths = [
 	"client-lite.go",
-	".git" + sep + "ORIG_HEAD",
+	".git/ORIG_HEAD",
 	".env",
 ];
 
@@ -59,6 +58,7 @@ async function start(signal: AbortSignal): Promise<void> {
 	try {
 		const child = await compileTask(true, true);
 		if (!child) return;
+		activePid = child.pid;
 		// Ensure we clean up if the server crashes on its own
 		child.status.then(() => {
 			if (activePid === child.pid) activePid = undefined;
