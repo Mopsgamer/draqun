@@ -12,8 +12,44 @@ on:
  workflow_dispatch:
 
 jobs:
+ changes:
+  name: Detect changes
+  runs-on: ubuntu-latest
+  outputs:
+   go: ${{ steps.filter.outputs.go }}
+   deno: ${{ steps.filter.outputs.deno }}
+  steps:
+   - uses: actions/checkout@v6
+   - uses: dorny/paths-filter@v3
+     id: filter
+     with:
+      filters: |
+       go:
+        - '**/*.go'
+        - 'go.mod'
+        - 'go.sum'
+        - 'go.work'
+        - 'server/**'
+        - 'scripts/**'
+       deno:
+        - '**/*.md'
+        - '**/*.?([cm])[jt]s'
+        - '**/*.[jt]sx'
+        - '**/*.css'
+        - '**/*.svg'
+        - '**/*.html'
+        - '**/*.tmpl'
+        - '**/*.y?(a)ml'
+        - '**/*.json?(c)'
+        - '**/*.lock'
+        - '**/*.sql'
+        - 'client/**'
+        - 'scripts/**'
+
  govulncheck:
   name: Vulnerabilities
+  needs: changes
+  if: needs.changes.outputs.go == 'true'
   runs-on: ubuntu-latest
   steps:
    - uses: actions/checkout@v6
@@ -24,9 +60,11 @@ jobs:
       go-version-file: go.mod
    - run: |
       go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
  types-deno:
   name: Deno Types
-  if: github.event.pull_request.draft == false
+  needs: changes
+  if: github.event.pull_request.draft == false && needs.changes.outputs.deno == 'true'
   runs-on: ubuntu-latest
   steps:
    - uses: actions/checkout@v6
@@ -39,9 +77,11 @@ jobs:
       deno-version: ${{ env.DENO_VERSION }}
       cache: true
    - run: deno check
+
  lint-deno:
   name: Deno Lint
-  if: github.event.pull_request.draft == false
+  needs: changes
+  if: github.event.pull_request.draft == false && needs.changes.outputs.deno == 'true'
   runs-on: ubuntu-latest
   steps:
    - uses: actions/checkout@v6
@@ -54,9 +94,11 @@ jobs:
       deno-version: ${{ env.DENO_VERSION }}
       cache: true
    - run: deno lint
+
  fmt-deno:
   name: Deno Format
-  if: github.event.pull_request.draft == false
+  needs: changes
+  if: github.event.pull_request.draft == false && needs.changes.outputs.deno == 'true'
   runs-on: ubuntu-latest
   steps:
    - uses: actions/checkout@v6
@@ -69,11 +111,13 @@ jobs:
       deno-version: ${{ env.DENO_VERSION }}
       cache: true
    - run: deno fmt --check
+
  fmt-go:
   name: Go Format
+  needs: changes
+  if: github.event.pull_request.draft == false && needs.changes.outputs.go == 'true'
   env:
    GOCACHE: ${{ github.workspace }}/dist/cache
-  if: github.event.pull_request.draft == false
   runs-on: ubuntu-latest
   steps:
    - uses: actions/checkout@v6
@@ -87,11 +131,13 @@ jobs:
    - run: go fmt ./...
    - name: git diff
      run: git diff; git diff --quiet
+
  mod-go:
   name: Go Mod
+  needs: changes
+  if: github.event.pull_request.draft == false && needs.changes.outputs.go == 'true'
   env:
    GOCACHE: ${{ github.workspace }}/dist/cache
-  if: github.event.pull_request.draft == false
   runs-on: ubuntu-latest
   steps:
    - uses: actions/checkout@v6
@@ -105,9 +151,11 @@ jobs:
    - run: go mod tidy
    - name: git diff
      run: git diff; git diff --quiet
+
  test-deno:
   name: Deno Test
-  if: github.event.pull_request.draft == false
+  needs: changes
+  if: github.event.pull_request.draft == false && needs.changes.outputs.deno == 'true'
   runs-on: ubuntu-latest
   steps:
    - uses: actions/checkout@v6
@@ -120,11 +168,13 @@ jobs:
       deno-version: ${{ env.DENO_VERSION }}
       cache: true
    - run: deno test --permit-no-files
+
  test-go:
   name: Go Test
+  needs: changes
+  if: github.event.pull_request.draft == false && (needs.changes.outputs.go == 'true' || needs.changes.outputs.deno == 'true')
   env:
    GOCACHE: ${{ github.workspace }}/dist/cache
-  if: github.event.pull_request.draft == false
   runs-on: ubuntu-latest
   steps:
    - uses: actions/checkout@v6
@@ -143,9 +193,11 @@ jobs:
    - run: deno task front
    - run: go generate ./...
    - run: go test ./...
+
  build:
   name: Build
   needs:
+   - changes
    - govulncheck
    - types-deno
    - lint-deno
@@ -154,9 +206,11 @@ jobs:
    - mod-go
    - test-deno
    - test-go
+  if: |
+   github.event.pull_request.draft == false &&
+   (needs.changes.outputs.go == 'true' || needs.changes.outputs.deno == 'true')
   env:
    GOCACHE: ${{ github.workspace }}/dist/cache
-  if: github.event.pull_request.draft == false
   runs-on: ubuntu-latest
   steps:
    - uses: actions/checkout@v6
