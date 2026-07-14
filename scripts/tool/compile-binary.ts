@@ -66,7 +66,7 @@ export async function compile(
 		...Deno.env.toObject(),
 	};
 
-	let child = await new Deno.Command("go", {
+	const child = await new Deno.Command("go", {
 		args: [
 			"generate",
 			"./...",
@@ -78,12 +78,13 @@ export async function compile(
 
 	if (!child.success) return false;
 
-	const spawn = new Deno.Command("go", {
+	const buildChild = await new Deno.Command("go", {
 		args: [
-			run ? "run" : "build",
+			"build",
 			"-tags",
 			dev ? "lite" : "prod",
-			...(run ? [] : ["-o", filePath]),
+			"-o",
+			filePath,
 			".",
 		],
 		env: {
@@ -91,10 +92,24 @@ export async function compile(
 			GOOS: os,
 			GOARCH: arch,
 		},
-	}).spawn();
+		stdout: "inherit",
+		stderr: "inherit",
+	}).output();
 
-	if (dev && run) return spawn;
-	child = await spawn.output();
+	if (!buildChild.success) return false;
 
-	return child.success;
+	if (run) {
+		const spawn = new Deno.Command(filePath, {
+			env: {
+				...env,
+				GOOS: os,
+				GOARCH: arch,
+			},
+			stdout: "inherit",
+			stderr: "inherit",
+		}).spawn();
+		return spawn;
+	}
+
+	return true;
 }
