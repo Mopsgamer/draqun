@@ -20,7 +20,7 @@ type TestServer struct {
 }
 
 func chdirToRoot() {
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		if _, err := os.Stat("go.mod"); err == nil {
 			return
 		}

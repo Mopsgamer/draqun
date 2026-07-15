@@ -11,10 +11,10 @@ import (
 	"github.com/gofiber/fiber/v3/client"
 )
 
-var userCounter int32
+var userCounter atomic.Int32
 
 func createTestUserCookie(t testing.TB, ts *TestServer, moniker, name, email string) (string, model.User) {
-	count := atomic.AddInt32(&userCounter, 1)
+	count := userCounter.Add(1)
 	phone := fmt.Sprintf("1234567%03d", count)
 
 	resp, err := ts.Client.R().

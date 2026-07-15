@@ -10,7 +10,7 @@ import (
 )
 
 func chdirToRoot() {
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		if _, err := os.Stat("go.mod"); err == nil {
 			return
 		}
@@ -305,9 +305,9 @@ func TestModelRoles(t *testing.T) {
 
 	// Role Custom
 	custom := Role{
-		GroupId: group.Id,
-		Name:    "admin",
-		Moniker: "Admin",
+		GroupId:      group.Id,
+		Name:         "admin",
+		Moniker:      "Admin",
 		PermMessages: PermMessagesDelete,
 	}
 	if err := custom.Insert(); err != nil {
