@@ -177,7 +177,7 @@ func (group Group) MessageFirst() *Message {
 		return message
 	}
 
-	err = Sqlx.QueryRowx(sql, args...).StructScan(&message)
+	err = Sqlx.QueryRowx(sql, args...).StructScan(message)
 	if err != nil {
 		handleErr(err)
 	}
@@ -195,7 +195,7 @@ func (group Group) MessageLast() *Message {
 		return message
 	}
 
-	err = Sqlx.QueryRowx(sql, args...).StructScan(&message)
+	err = Sqlx.QueryRowx(sql, args...).StructScan(message)
 	if err != nil {
 		handleErr(err)
 		return message
