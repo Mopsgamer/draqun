@@ -2,6 +2,7 @@ package session
 
 import (
 	"encoding/json"
+	"sync"
 
 	"github.com/gofiber/contrib/v3/websocket"
 	"github.com/gofiber/fiber/v3"
@@ -17,6 +18,7 @@ type ControllerWs struct {
 	dataToFlush []byte
 	Closed      bool
 	Subs        []EventPick
+	mu          sync.Mutex
 }
 
 func New(ctx fiber.Ctx) *ControllerWs {
@@ -34,11 +36,15 @@ func (ws *ControllerWs) GetMessageJSON(out any) error {
 
 // Append new flushing data.
 func (ws *ControllerWs) Push(data string) {
-	ws.dataToFlush = []byte(string(ws.dataToFlush) + data)
+	ws.mu.Lock()
+	defer ws.mu.Unlock()
+	ws.dataToFlush = append(ws.dataToFlush, []byte(data)...)
 }
 
 // Can flush empty string for HTMX requests, it's normal.
 func (ws *ControllerWs) Flush() error {
+	ws.mu.Lock()
+	defer ws.mu.Unlock()
 	err := ws.Conn.WriteMessage(websocket.TextMessage, ws.dataToFlush)
 	if err != nil {
 		return err
