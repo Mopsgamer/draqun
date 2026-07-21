@@ -57,22 +57,16 @@ jobs:
      with:
       deno-version: ${{ env.DENO_VERSION }}
       cache: true
-   - name: Install deno dependencies
+   - name: Install Deno dependencies
      run: |
       deno install
-   - name: Compile client
-     run: |
-      deno task front
-   - name: Dry run
-     run: |
-      deno task release --dry-run ${{ github.event.inputs.release_type }}
    - uses: actions/setup-go@v6
      with:
       go-version-file: go.mod
-   - name: Build binaries
+   - name: Run release script (Dry Run or Real Release)
      run: |
-      deno task back:cross
-   - name: Increment and release
-     if: ${{ !github.event.inputs.dry_run }}
-     run: |
-      deno task release ${{ github.event.inputs.release_type }}
+      if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+        deno task release --dry-run ${{ github.event.inputs.release_type }}
+      else
+        deno task release ${{ github.event.inputs.release_type }}
+      fi
