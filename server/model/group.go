@@ -150,7 +150,11 @@ func (group Group) UsersPage(page, limit uint) []User {
 
 	sql, args, err := Goqu.Select(TableUsers+".*").From(TableMembers).
 		LeftJoin(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(goqu.I(TableMembers+".user_id")))).
-		Where(goqu.Ex{TableMembers + ".group_id": group.Id}).
+		Where(goqu.Ex{
+			TableMembers + ".group_id":   group.Id,
+			TableMembers + ".is_deleted": false,
+			TableUsers + ".is_deleted":   false,
+		}).
 		Order(goqu.I(TableMembers + ".user_id").Asc()).
 		Limit(limit).Offset(from).
 		Prepared(true).ToSQL()
