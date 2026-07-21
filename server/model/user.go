@@ -99,7 +99,15 @@ func (user User) GroupListCreator() []Group {
 
 	sql, args, err := Goqu.Select(TableGroups+".*").From(TableGroups).
 		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
-		Where(goqu.Ex{TableMembers + ".user_id": user.Id, TableGroups + ".creator_id": TableMembers + ".user_id"}).
+		Where(
+			goqu.Ex{
+				TableMembers + ".user_id":    user.Id,
+				TableGroups + ".is_deleted":  false,
+				TableMembers + ".is_deleted": false,
+			},
+			goqu.I(TableGroups+".creator_id").Eq(goqu.I(TableMembers+".user_id")),
+		).
+		Order(goqu.I(TableGroups + ".id").Asc()).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
@@ -120,7 +128,15 @@ func (user User) GroupListOwner() []Group {
 
 	sql, args, err := Goqu.Select(TableGroups+".*").From(TableGroups).
 		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
-		Where(goqu.Ex{TableMembers + ".user_id": user.Id, TableGroups + ".owner_id": TableMembers + ".user_id"}).
+		Where(
+			goqu.Ex{
+				TableMembers + ".user_id":    user.Id,
+				TableGroups + ".is_deleted":  false,
+				TableMembers + ".is_deleted": false,
+			},
+			goqu.I(TableGroups+".owner_id").Eq(goqu.I(TableMembers+".user_id")),
+		).
+		Order(goqu.I(TableGroups + ".id").Asc()).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
@@ -141,7 +157,12 @@ func (user User) GroupList() []Group {
 
 	sql, args, err := Goqu.Select(TableGroups+".*").From(TableGroups).
 		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
-		Where(goqu.Ex{TableMembers + ".user_id": user.Id}).
+		Where(goqu.Ex{
+			TableMembers + ".user_id":    user.Id,
+			TableGroups + ".is_deleted":  false,
+			TableMembers + ".is_deleted": false,
+		}).
+		Order(goqu.I(TableGroups + ".id").Asc()).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
@@ -162,12 +183,16 @@ func (user User) MemberList() []Member {
 
 	sql, args, err := Goqu.Select(TableMembers+".*").From(TableGroups).
 		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
-		Where(goqu.Ex{TableMembers + ".user_id": user.Id}).
+		Where(goqu.Ex{
+			TableMembers + ".user_id":    user.Id,
+			TableGroups + ".is_deleted":  false,
+			TableMembers + ".is_deleted": false,
+		}).
+		Order(goqu.I(TableGroups + ".id").Asc()).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
 		return memberList
-
 	}
 
 	err = Sqlx.Select(&memberList, sql, args...)

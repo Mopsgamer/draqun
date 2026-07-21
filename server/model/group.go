@@ -128,7 +128,7 @@ func (group Group) MembersCount() uint64 {
 	sql, args, err := Goqu.Select(goqu.COUNT("*")).From(TableMembers).
 		Where(goqu.And(
 			goqu.C("group_id").Eq(group.Id),
-			goqu.C("is_deleted").Eq([]byte{0}),
+			goqu.C("is_deleted").Eq(false),
 		)).
 		Prepared(true).ToSQL()
 	if err != nil {
