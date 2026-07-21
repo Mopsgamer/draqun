@@ -15,6 +15,7 @@ type ControllerWs struct {
 
 	MessageType int
 	Message     []byte
+	PrevMessage string
 	dataToFlush []byte
 	Closed      bool
 	Subs        []EventPick

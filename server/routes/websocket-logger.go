@@ -9,8 +9,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-var prevWsMessage = ""
-
 func logWS(start time.Time, err error, ws *session.ControllerWs) {
 	if environment.BuildEnvironment == environment.BuildModeProduction {
 		return
@@ -21,7 +19,7 @@ func logWS(start time.Time, err error, ws *session.ControllerWs) {
 		colorErr = fiber.DefaultColors.Red
 	}
 
-	if prevWsMessage != string(ws.Message) {
+	if ws.PrevMessage != string(ws.Message) {
 		fmt.Printf(
 			"%s | %s%3s%s | %13s | %15s | %d | %s%s%s \n",
 			time.Now().Format("15:04:05"),
@@ -36,5 +34,5 @@ func logWS(start time.Time, err error, ws *session.ControllerWs) {
 			fiber.DefaultColors.Reset,
 		)
 	}
-	prevWsMessage = string(ws.Message)
+	ws.PrevMessage = string(ws.Message)
 }
