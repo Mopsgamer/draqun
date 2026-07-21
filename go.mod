@@ -16,35 +16,35 @@ ignore (
 require (
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/fatih/color v1.19.0
-	github.com/gofiber/contrib/v3/websocket v1.2.0
-	github.com/gofiber/fiber/v3 v3.3.0
-	github.com/gofiber/template/html/v3 v3.0.5
+	github.com/gofiber/contrib/v3/websocket v1.2.1
+	github.com/gofiber/fiber/v3 v3.4.0
+	github.com/gofiber/template/html/v3 v3.0.6
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/crypto v0.52.0
-	golang.org/x/exp v0.0.0-20260529124908-c761662dc8c9
-	golang.org/x/mod v0.36.0
-	modernc.org/sqlite v1.51.0
+	golang.org/x/crypto v0.54.0
+	golang.org/x/exp v0.0.0-20260718201538-764159d718ef
+	golang.org/x/mod v0.38.0
+	modernc.org/sqlite v1.54.0
 )
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/andybalholm/brotli v1.2.1 // indirect
+	github.com/andybalholm/brotli v1.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fasthttp/websocket v1.5.12 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/go-sql-driver/mysql v1.9.3 // indirect
-	github.com/gofiber/schema v1.7.2 // indirect
+	github.com/gofiber/schema v1.8.3 // indirect
 	github.com/gofiber/template/v2 v2.1.0 // indirect
-	github.com/gofiber/utils/v2 v2.1.0 // indirect
+	github.com/gofiber/utils/v2 v2.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/klauspost/compress v1.18.6 // indirect
+	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
-	github.com/mattn/go-isatty v0.0.22 // indirect
+	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
@@ -52,13 +52,13 @@ require (
 	github.com/savsgio/gotils v0.0.0-20250924091648-bce9a52d7761 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.71.0 // indirect
+	github.com/valyala/fasthttp v1.72.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/net v0.55.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/net v0.57.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/text v0.40.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.72.5 // indirect
+	modernc.org/libc v1.74.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )
