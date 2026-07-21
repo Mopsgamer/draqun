@@ -152,7 +152,7 @@ func (member Member) JoinActed() error {
 	action := ActionMembership{
 		GroupId: member.GroupId,
 		UserId:  member.UserId,
-		IsJoin:  false,
+		IsJoin:  true,
 		ActedAt: TimePast(time.Now()),
 	}
 
