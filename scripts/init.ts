@@ -137,14 +137,17 @@ function initEnvFile(path: string): void {
 	);
 }
 
-if (!Deno.args.includes("noenv")) {
+const isNoEnv = Deno.args.includes("--no-env");
+const isNoDb = Deno.args.includes("--no-db");
+
+if (!isNoEnv) {
 	const path = ".env";
 	await logInitFiles.task({ text: `Initializing '${path}'` })
 		.startRunner(() => initEnvFile(path));
 }
 
-if (!Deno.args.includes("nodb")) {
-	logInitDb.info("You can pass 'nodb' to ignore DB initialization step.");
+if (!isNoDb) {
+	logInitDb.info("You can pass '--no-db' to ignore DB initialization step.");
 	await logInitDb.task({ text: "Initializing DB" })
 		.startRunner(initSqliteTables);
 }
