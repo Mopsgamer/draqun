@@ -24,7 +24,6 @@ async function initSqliteTables(): Promise<void> {
 		"./scripts/queries/create_group_action_kicks.sql",
 		"./scripts/queries/create_group_action_bans.sql",
 	];
-	logInitDb.info("You can pass 'nodb' to ignore DB initialization step.");
 
 	// SQLite uses a local file instead of a network connection
 	const dbPath = "app_data.db";
@@ -138,13 +137,17 @@ function initEnvFile(path: string): void {
 	);
 }
 
-if (!Deno.args.includes("noenv")) {
+const isNoEnv = Deno.args.includes("--no-env");
+const isNoDb = Deno.args.includes("--no-db");
+
+if (!isNoEnv) {
 	const path = ".env";
-	logInitFiles.task({ text: `Initializing '${path}'` })
+	await logInitFiles.task({ text: `Initializing '${path}'` })
 		.startRunner(() => initEnvFile(path));
 }
 
-if (!Deno.args.includes("nodb")) {
-	logInitDb.task({ text: "Initializing DB" })
+if (!isNoDb) {
+	logInitDb.info("You can pass '--no-db' to ignore DB initialization step.");
+	await logInitDb.task({ text: "Initializing DB" })
 		.startRunner(initSqliteTables);
 }

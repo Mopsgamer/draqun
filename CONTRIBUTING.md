@@ -19,7 +19,7 @@
 5. Run `deno install` to install required client dependencies.
 6. Run `go mod download` to install required server dependencies (optional).
 7. Run `deno task init` to create `.env` file and initialize the database.
-   `noenv` and `nodb` options are available.
+   `--no-env` and `--no-db` options are available.
 8. Run `deno task front` to create client files.
 9. Change the `.env` file.
    - Set up server connection with SQLite.

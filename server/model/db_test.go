@@ -332,3 +332,44 @@ func TestModelRoles(t *testing.T) {
 		t.Errorf("expected PermMessagesDelete, got %v", fetched.PermMessages)
 	}
 }
+
+func TestModelUserMultipleEmptyPhones(t *testing.T) {
+	setupTestDB(t)
+
+	// Create first user with empty phone
+	user1 := NewUser("User One", "user1", "user1@example.com", "", "hashed_password_1", "")
+	if err := user1.Validate(); err != nil {
+		t.Fatalf("expected user1 to be valid: %v", err)
+	}
+	if err := user1.Insert(); err != nil {
+		t.Fatalf("failed to insert user1: %v", err)
+	}
+
+	// Create second user with empty phone
+	user2 := NewUser("User Two", "user2", "user2@example.com", "", "hashed_password_2", "")
+	if err := user2.Validate(); err != nil {
+		t.Fatalf("expected user2 to be valid: %v", err)
+	}
+	if err := user2.Insert(); err != nil {
+		t.Fatalf("failed to insert user2: %v", err)
+	}
+
+	// Verify both were inserted and have unique IDs
+	if user1.Id == 0 || user2.Id == 0 {
+		t.Fatalf("expected non-zero IDs, got user1=%d, user2=%d", user1.Id, user2.Id)
+	}
+	if user1.Id == user2.Id {
+		t.Fatalf("expected unique IDs, got same ID: %d", user1.Id)
+	}
+
+	// Verify uniqueness is still enforced for non-empty phone numbers
+	user3 := NewUser("User Three", "user3", "user3@example.com", "1234567890", "hashed_password_3", "")
+	if err := user3.Insert(); err != nil {
+		t.Fatalf("failed to insert user3: %v", err)
+	}
+
+	user4 := NewUser("User Four", "user4", "user4@example.com", "1234567890", "hashed_password_4", "")
+	if err := user4.Insert(); err == nil {
+		t.Fatalf("expected error when inserting user4 with duplicate non-empty phone number, got nil")
+	}
+}
