@@ -1,6 +1,6 @@
 module github.com/Mopsgamer/draqun
 
-go 1.26.5
+go 1.26.6
 
 ignore (
 	client
