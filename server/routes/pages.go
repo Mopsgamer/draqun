@@ -10,7 +10,7 @@ func RoutePages(app *fiber.App) {
 	app.Get(
 		"/",
 		func(ctx fiber.Ctx) error {
-			return htmx.TryRenderPage(ctx, "homepage", MapPage(ctx, fiber.Map{"Title": "Homepage", "IsHomePage": true}), "partials/main")
+			return htmx.TryRenderPage(ctx, "homepage", MapPage(ctx, fiber.Map{"Title": "Homepage"}), "partials/main")
 		},
 	)
 	app.Get(
@@ -34,7 +34,7 @@ func RoutePages(app *fiber.App) {
 	app.Get(
 		"/docs",
 		func(ctx fiber.Ctx) error {
-			return htmx.TryRenderPage(ctx, "docs", MapPage(ctx, fiber.Map{"Title": "Docs", "IsDocsPage": true}), "partials/main")
+			return htmx.TryRenderPage(ctx, "docs", MapPage(ctx, fiber.Map{"Title": "Docs"}), "partials/main")
 		},
 	)
 	app.Get(

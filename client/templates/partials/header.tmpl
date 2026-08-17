@@ -3,7 +3,7 @@
         <sl-dropdown class="aligned" id="page-nav">
             <sl-icon-button library="draqun" name="logo" slot="trigger"></sl-icon-button>
             <sl-menu>
-                {{if not .IsHomePage}}
+                {{if ne .Ctx.Path "/"}}
                 <a href="/">
                     <sl-menu-item>
                         <sl-icon name="rocket-fill" slot="prefix"></sl-icon>

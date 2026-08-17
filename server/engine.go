@@ -63,6 +63,7 @@ func NewAppHtmlEngine(embedFS fs.FS, clientEmbedded bool, directory string) *htm
 		"hide": func(text string) string {
 			return strings.Repeat("*", len(text))
 		},
+		"hasPrefix": strings.HasPrefix,
 		"isString": satisfies[string],
 		"newMap": func(args ...any) fiber.Map {
 			result := fiber.Map{}
