@@ -6,23 +6,14 @@
     </sl-button>
     <sl-menu>
         {{- if not .User.IsEmpty -}}
-            {{- if .IsChatPage -}}
-            <a href="#settings-dialog">
-                <sl-menu-item>
-                    <sl-icon slot="prefix" name="gear-fill"></sl-icon>
-                    Settings
-                </sl-menu-item>
-            </a>
-            {{- else -}}
             <a href="/settings">
                 <sl-menu-item>
                     <sl-icon slot="prefix" name="gear-fill"></sl-icon>
                     Settings
                 </sl-menu-item>
             </a>
-            {{- end -}}
         {{- end -}}
-        {{- if not .IsDocsPage -}}
+        {{- if ne .Ctx.Path "/docs" -}}
         <sl-menu-item class="theme-menu">
             <sl-icon slot="prefix" name="circle-half"></sl-icon>
             Theme
@@ -51,7 +42,7 @@
             Log Out
         </sl-menu-item>
         {{- else -}}
-        <a href="#login-dialog">
+        <a href="/login">
             <sl-menu-item>
                 <sl-icon slot="prefix" name="person-circle"></sl-icon>
                 Log In

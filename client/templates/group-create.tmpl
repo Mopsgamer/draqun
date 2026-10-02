@@ -1,9 +1,8 @@
-{{- if not .User.IsEmpty -}}
-<sl-dialog label="Dialog" id="new-group-dialog">
-    <span slot="label" class="aligned">
+<div class="p-page">
+    <h1>
         <sl-icon name="people-fill"></sl-icon>
         Create new group
-    </span>
+    </h1>
     <form
         id="new-group-form"
         name="new-group-form"
@@ -35,8 +34,8 @@
             id="new-group-password"
             name="password"
         >
-        <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
-        <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
+            <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
+            <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
         </sl-input>
         <sl-textarea
             label="Description"
@@ -54,12 +53,11 @@
             <sl-option value="public">Public</sl-option>
         </sl-select>
         <div id="new-group-error"></div>
-    </form>
-    <div slot="footer" class="dialog-footer">
-        <div>
-            <sl-button form="new-group-form" variant="primary" type="submit"
-            >Create</sl-button>
+        <div class="form-footer">
+            <div>
+                <sl-button form="new-group-form" variant="primary" type="submit"
+                >Create</sl-button>
+            </div>
         </div>
-    </div>
-</sl-dialog>
-{{- end}}
+    </form>
+</div>

@@ -323,3 +323,188 @@ func TestPageGroup(t *testing.T) {
 		t.Errorf("expected status 303 for non-member, got %d", respNonMember.StatusCode())
 	}
 }
+
+func TestPageLogin(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	resp, err := ts.Client.Get("/login")
+	if err != nil {
+		t.Fatalf("GET /login failed: %v", err)
+	}
+	defer resp.Close()
+
+	if resp.StatusCode() != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode())
+	}
+
+	bodyStr := resp.String()
+	if !strings.Contains(strings.ToLower(bodyStr), "log in") {
+		t.Errorf("expected login content, got body: %s", bodyStr)
+	}
+}
+
+func TestPageSignup(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	resp, err := ts.Client.Get("/signup")
+	if err != nil {
+		t.Fatalf("GET /signup failed: %v", err)
+	}
+	defer resp.Close()
+
+	if resp.StatusCode() != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode())
+	}
+
+	bodyStr := resp.String()
+	if !strings.Contains(strings.ToLower(bodyStr), "sign up") {
+		t.Errorf("expected signup content, got body: %s", bodyStr)
+	}
+}
+
+func TestPageSettingsEmail(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookie, _ := createTestUserCookie(t, ts, "User Email", "useremail", "useremail@example.com")
+
+	resp, err := ts.Client.R().
+		SetHeader("Cookie", cookie).
+		Get("/settings/email")
+	if err != nil {
+		t.Fatalf("GET /settings/email failed: %v", err)
+	}
+	defer resp.Close()
+
+	if resp.StatusCode() != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode())
+	}
+
+	bodyStr := resp.String()
+	if !strings.Contains(strings.ToLower(bodyStr), "change email") {
+		t.Errorf("expected change email content, got body: %s", bodyStr)
+	}
+}
+
+func TestPageSettingsPassword(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookie, _ := createTestUserCookie(t, ts, "User Password", "userpass", "userpass@example.com")
+
+	resp, err := ts.Client.R().
+		SetHeader("Cookie", cookie).
+		Get("/settings/password")
+	if err != nil {
+		t.Fatalf("GET /settings/password failed: %v", err)
+	}
+	defer resp.Close()
+
+	if resp.StatusCode() != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode())
+	}
+
+	bodyStr := resp.String()
+	if !strings.Contains(strings.ToLower(bodyStr), "change password") {
+		t.Errorf("expected change password content, got body: %s", bodyStr)
+	}
+}
+
+func TestPageSettingsPhone(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookie, _ := createTestUserCookie(t, ts, "User Phone", "userphone", "userphone@example.com")
+
+	resp, err := ts.Client.R().
+		SetHeader("Cookie", cookie).
+		Get("/settings/phone")
+	if err != nil {
+		t.Fatalf("GET /settings/phone failed: %v", err)
+	}
+	defer resp.Close()
+
+	if resp.StatusCode() != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode())
+	}
+
+	bodyStr := resp.String()
+	if !strings.Contains(strings.ToLower(bodyStr), "change phone") {
+		t.Errorf("expected change phone content, got body: %s", bodyStr)
+	}
+}
+
+func TestPageSettingsDelete(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookie, _ := createTestUserCookie(t, ts, "User Delete", "userdelete", "userdelete@example.com")
+
+	resp, err := ts.Client.R().
+		SetHeader("Cookie", cookie).
+		Get("/settings/delete")
+	if err != nil {
+		t.Fatalf("GET /settings/delete failed: %v", err)
+	}
+	defer resp.Close()
+
+	if resp.StatusCode() != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode())
+	}
+
+	bodyStr := resp.String()
+	if !strings.Contains(strings.ToLower(bodyStr), "delete account") {
+		t.Errorf("expected delete account content, got body: %s", bodyStr)
+	}
+}
+
+func TestPageGroupCreate(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookie, _ := createTestUserCookie(t, ts, "User GroupCreate", "usergc", "usergc@example.com")
+
+	resp, err := ts.Client.R().
+		SetHeader("Cookie", cookie).
+		Get("/groups/create")
+	if err != nil {
+		t.Fatalf("GET /groups/create failed: %v", err)
+	}
+	defer resp.Close()
+
+	if resp.StatusCode() != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode())
+	}
+
+	bodyStr := resp.String()
+	if !strings.Contains(strings.ToLower(bodyStr), "create new group") {
+		t.Errorf("expected create new group content, got body: %s", bodyStr)
+	}
+}
+
+func TestPageGroupSettings(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookieMember, userMember := createTestUserCookie(t, ts, "Owner User", "owneruser", "owner@example.com")
+	group := createTestGroupDirectly(t, int64(userMember.Id), "Settings Group", "settings_group")
+
+	resp, err := ts.Client.R().
+		SetHeader("Cookie", cookieMember).
+		Get(fmt.Sprintf("/groups/%d/settings", group.Id))
+	if err != nil {
+		t.Fatalf("GET /groups/:id/settings failed: %v", err)
+	}
+	defer resp.Close()
+
+	if resp.StatusCode() != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode())
+	}
+
+	bodyStr := resp.String()
+	if !strings.Contains(strings.ToLower(bodyStr), "group settings") {
+		t.Errorf("expected group settings content, got body: %s", bodyStr)
+	}
+}

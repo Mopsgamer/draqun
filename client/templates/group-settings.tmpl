@@ -1,17 +1,13 @@
-<sl-dialog
-    id="group-settings-dialog-{{.Group.Id}}"
-    class="fullscreen-base"
-    label="Group settings dialog for {{.Group.Moniker}}"
->
-    <span slot="label" class="aligned">
+<div class="p-page">
+    <h1>
         <sl-icon name="people-fill"></sl-icon>
         Group settings - {{.Group.Moniker}}
-    </span>
+    </h1>
     <div>
-        <h1 class="anchor-header">
+        <h2 class="anchor-header">
             <sl-icon name="person-fill"></sl-icon>
             General settings
-        </h1>
+        </h2>
         <sl-alert open variant="primary">
             <sl-icon slot="icon" name="info-circle-fill"></sl-icon>
             {{- "" -}} You can invite more people. Share the link {{- "" -}}
@@ -54,12 +50,10 @@
                 autocomplete="new-password"
                 id="change-group-password"
                 name="password"
-                {{if
-                .Group.Password}}value="{{.Group.Password}}"
-                {{end}}
+                {{if .Group.Password}}value="{{.Group.Password}}"{{end}}
             >
-            <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
-            <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
+                <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
+                <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
             </sl-input>
             <sl-textarea
                 label="Description"
@@ -78,7 +72,7 @@
                 <sl-option value="public">Public</sl-option>
             </sl-select>
             <div id="group-change-error"></div>
-            <div class="dialog-footer">
+            <div class="form-footer">
                 <div>
                     <sl-button
                         type="submit"
@@ -89,11 +83,11 @@
             </div>
         </form>
         <div>
-            <h1 class="anchor-header">
+            <h2 class="anchor-header">
                 <sl-icon name="exclamation-triangle-fill"></sl-icon>
                 Danger zone
-            </h1>
-            <div class="dialog-footer">
+            </h2>
+            <div class="form-footer">
                 <div>
                     <sl-button
                         variant="danger"
@@ -104,4 +98,4 @@
             </div>
         </div>
     </div>
-</sl-dialog>
+</div>

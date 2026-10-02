@@ -9,12 +9,6 @@
     </head>
 
     <body hx-ext="shoelace,debug">
-        <div id="real-body">
-            {{- template "partials/header" . -}}
-            <main id="main">
-                {{- embed -}}
-                {{- template "partials/footer" . -}}
-            </main>
-        </div>
+        {{- embed -}}
     </body>
 </html>

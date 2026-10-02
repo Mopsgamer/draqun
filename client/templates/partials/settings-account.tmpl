@@ -3,10 +3,6 @@
         <sl-icon name="person-fill"></sl-icon>
         Account settings
     </h2>
-    {{- template "partials/change-email-dialog" .}} {{- template
-    "partials/change-password-dialog" .}} {{- template
-    "partials/change-phone-dialog" .}} {{- template
-    "partials/account-delete-dialog" .}}
     <h4 slot="header" class="anchor-header">
         <sl-icon name="pen-fill"></sl-icon>
         Profile
@@ -32,7 +28,7 @@
             value="{{.User.Name}}"
         ></sl-input>
         <div id="change-name-error"></div>
-        <div class="dialog-footer">
+        <div class="form-footer">
             <div>
                 <sl-button
                     type="submit"
@@ -48,7 +44,7 @@
     </h4>
     <div class="flex justify-between">
         {{- hideEmail .User.Email -}}
-        <sl-button variant="primary" href="#change-email-dialog"
+        <sl-button variant="primary" href="/settings/email"
         >Change email</sl-button>
     </div>
     <h4 slot="header" class="anchor-header">
@@ -61,7 +57,7 @@
         {{- else -}}
             None
         {{- end -}}
-        <sl-button variant="primary" href="#change-phone-dialog"
+        <sl-button variant="primary" href="/settings/phone"
         >Change phone</sl-button>
     </div>
     <h4 slot="header" class="anchor-header">
@@ -69,7 +65,7 @@
         Password
     </h4>
     <div class="flex gap-2">
-        <sl-button variant="primary" href="#change-password-dialog"
+        <sl-button variant="primary" href="/settings/password"
         >Change password</sl-button>
     </div>
     <h4 slot="header" class="anchor-header">
@@ -77,7 +73,7 @@
         Danger zone
     </h4>
     <div class="flex gap-2">
-        <sl-button variant="danger" href="#account-delete-dialog"
+        <sl-button variant="danger" href="/settings/delete"
         >Delete account</sl-button>
     </div>
 </div>

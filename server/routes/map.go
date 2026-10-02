@@ -3,6 +3,7 @@ package routes
 import (
 	"errors"
 	"maps"
+	"strings"
 
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -33,6 +34,28 @@ func MapPage(ctx fiber.Ctx, bind fiber.Map) fiber.Map {
 		"GitJson":      environment.GitJson,
 		"GoMod":        environment.GoMod,
 	}
+
+	path := ctx.Path()
+
+	var stylesheets []string
+	var scripts []string
+
+	if strings.HasPrefix(path, "/chat") {
+		stylesheets = []string{"/static/css/main.css"}
+		scripts = []string{"/static/js/app.js"}
+	} else if strings.HasPrefix(path, "/docs") {
+		stylesheets = []string{"/static/css/docs.css"}
+		scripts = []string{"/static/js/docs.js"}
+	} else if path == "/" {
+		stylesheets = []string{"/static/css/homepage.css"}
+		scripts = []string{"/static/js/homepage.js"}
+	} else {
+		stylesheets = []string{"/static/css/main.css"}
+		scripts = []string{"/static/js/main.js"}
+	}
+
+	bindx["Stylesheets"] = stylesheets
+	bindx["Scripts"] = scripts
 
 	maps.Copy(bindx, bind)
 	return bindx

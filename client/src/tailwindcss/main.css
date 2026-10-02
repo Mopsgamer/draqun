@@ -15,6 +15,10 @@
     @apply flex flex-col gap-4;
 }
 
+@utility p-page {
+    @apply max-w-3xl mx-auto w-full p-5;
+}
+
 @layer base {
     #header {
         @apply relative flex justify-between bg-neutral-100 p-4 shadow-lg z-20;
@@ -167,11 +171,11 @@
         @apply text-neutral-500 p-2 font-semibold;
     }
 
-    .dialog-footer {
+    .form-footer {
         @apply flex flex-col gap-2;
     }
 
-    .dialog-footer div {
+    .form-footer div {
         @apply aligned flex justify-end items-center gap-2;
     }
 
