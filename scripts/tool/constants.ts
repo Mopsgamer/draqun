@@ -1,4 +1,3 @@
-import dotenv from "dotenv";
 import {
 	type DefaultTaskOptions,
 	Logger,
@@ -23,17 +22,6 @@ lopts.prefix = "🔨 DB";
 export const logInitDb = new Logger(lopts);
 lopts.prefix = "🔨 Files";
 export const logInitFiles = new Logger(lopts);
-
-export function taskDotenv(
-	logger: Logger,
-	destination = ".env",
-): void {
-	logger.task({ text: `Loading '${destination}'` }).startRunner(
-		() => {
-			dotenv.config({ quiet: true });
-		},
-	);
-}
 
 /**
  * Consider using same value in the environment/config.go and deno.json.

@@ -1,7 +1,7 @@
 import { inc, type ReleaseType } from "semver";
 import { Octokit } from "@octokit/rest";
 import denojson from "../deno.json" with { type: "json" };
-import { logRelease, taskDotenv } from "./tool/constants.ts";
+import { logRelease } from "./tool/constants.ts";
 import { existsSync, expandGlob } from "@std/fs";
 import { basename } from "@std/path";
 import isCI from "is-ci";
@@ -10,7 +10,6 @@ const gitLogFormat = "- [%h] %s (@%cN)";
 const preIdList = ["alpha", "beta"];
 const preId = Deno.args.find((a) => preIdList.includes(a));
 
-taskDotenv(logRelease);
 let isDryRun = Deno.args.includes("--dry-run");
 
 if (!isCI) {

@@ -1,9 +1,7 @@
 import kill from "tree-kill";
 import { existsSync } from "node:fs";
-import { logDevelopment, taskDotenv } from "./tool/constants.ts";
+import { logDevelopment } from "./tool/constants.ts";
 import { compileTask } from "./tool/compile-binary.ts";
-
-taskDotenv(logDevelopment);
 
 const requiredPaths = [
 	"server/",
@@ -88,8 +86,6 @@ async function watchAndRestart(): Promise<void> {
 			logDevelopment.info(
 				"Refreshing (" + event.kind + " " + event.paths[0] + ")",
 			);
-
-			taskDotenv(logDevelopment);
 
 			// Start the new cycle, which will manually tree-kill the old PID
 			await start(abortController.signal);

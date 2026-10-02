@@ -1,7 +1,5 @@
-import { logServerComp, taskDotenv } from "./tool/constants.ts";
+import { logServerComp } from "./tool/constants.ts";
 import { binaryInfo, compile } from "./tool/compile-binary.ts";
-
-taskDotenv(logServerComp);
 
 const osList = ["windows", "linux", "darwin"] as const;
 const archList = ["amd64", "arm64"] as const;

@@ -1,5 +1,5 @@
-import dotenv from "dotenv";
-import { DatabaseSync } from "node:sqlite"; // Deno 2.x native
+import { DatabaseSync } from "node:sqlite";
+import { parse } from "@std/dotenv";
 import { existsSync } from "@std/fs";
 import {
 	decoder,
@@ -7,10 +7,7 @@ import {
 	envKeys,
 	logInitDb,
 	logInitFiles,
-	taskDotenv,
 } from "./tool/constants.ts";
-
-taskDotenv(logInitFiles);
 
 async function initSqliteTables(): Promise<void> {
 	const sqlFileList = [
@@ -113,7 +110,7 @@ function initEnvFile(path: string): void {
 	});
 
 	const env = existsSync(path)
-		? dotenv.parse(decoder.decode(Deno.readFileSync(path)))
+		? parse(decoder.decode(Deno.readFileSync(path)))
 		: {};
 
 	Deno.writeFileSync(

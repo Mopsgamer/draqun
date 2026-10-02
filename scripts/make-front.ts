@@ -2,7 +2,7 @@ import * as esbuild from "esbuild";
 import { denoPlugin } from "@deno/esbuild-plugin";
 import { existsSync } from "@std/fs";
 import { cp } from "node:fs/promises";
-import { distFolder, logClientComp, taskDotenv } from "./tool/constants.ts";
+import { distFolder, logClientComp } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { format, type TaskRunnerReturn } from "@m234/logger";
 
@@ -229,8 +229,6 @@ if (
 	);
 	Deno.exit();
 }
-
-taskDotenv(logClientComp);
 
 const unknownGroups = Deno.args.filter(
 	(a) => !availableGroups.includes(a),
