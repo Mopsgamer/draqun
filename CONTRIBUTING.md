@@ -4,8 +4,8 @@
 
 1. Install required tools.
    - Git, obviously
-   - [Go](https://go.dev/doc/install) `^1.26`
-   - [Deno](https://deno.com/) `^2.9`
+   - [Go](https://go.dev/doc/install) `^1.27.1`
+   - [Deno](https://deno.com/) `^2.9.7`
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
    and
    [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
@@ -118,14 +118,20 @@ Examples:
 | major         | 0.0.1 → 1.0.0 → 2.0.0         |
 | minor         | 0.0.1 → 0.1.0 → 0.2.0         |
 | patch         | 0.0.1 → 0.0.2 → 0.0.3         |
-| patch         | 0.0.1.alpha.1 → 0.0.1         |
-| patch alpha   | 0.0.1.alpha.1 → 0.0.2-alpha.0 |
-| patch beta    | 0.0.1.alpha.1 → 0.0.2-beta.0  |
-| release       | 0.0.1.alpha.1 → 0.0.1         |
-| release alpha | 0.0.1.alpha.1 → 0.0.1-alpha.2 |
-| release beta  | 0.0.1.alpha.1 → 0.0.1-beta.0  |
-| alpha         | 0.0.1.alpha.1 → 1.0.0-alpha.0 |
-| beta          | 0.0.1.alpha.1 → 1.0.0-beta.0  |
+| alpha patch   | 0.0.1 → 0.0.2-alpha.0         |
+| alpha minor   | 0.0.1 → 0.1.0-alpha.0         |
+| alpha major   | 0.0.1 → 1.0.0-alpha.0         |
+| beta patch    | 0.0.1 → 0.0.2-beta.0          |
+| beta minor    | 0.0.1 → 0.1.0-beta.0          |
+| beta major    | 0.0.1 → 1.0.0-beta.0          |
+| patch         | 0.0.1-alpha.1 → 0.0.1         |
+| release       | 0.0.1-alpha.1 → 0.0.1         |
+| release alpha | 0.0.1-alpha.1 → 0.0.1-alpha.2 |
+| release beta  | 0.0.1-alpha.1 → 0.0.1-beta.0  |
+| patch alpha   | 0.0.1-alpha.1 → 0.0.2-alpha.0 |
+| patch beta    | 0.0.1-alpha.1 → 0.0.2-beta.0  |
+| alpha         | 0.0.1-alpha.1 → 1.0.0-alpha.0 |
+| beta          | 0.0.1-alpha.1 → 1.0.0-beta.0  |
 
 You can get next version and changelog output without creating a release:
 
@@ -187,4 +193,5 @@ go clean -cache -modcache
 
 - Deno Registry Cache: Located at `~/.cache/deno` (Linux/macOS) or
   `%LOCALAPPDATA%\deno` (Windows).
-- Go Module Cache: Located at `$GOPATH/pkg/mod` (usually `~/go/pkg/mod`).
+- Go Module Cache: Located at `$GOPATH/pkg/mod` (usually `~/go/pkg/mod`)
+  (Linux/macOS) or `%USERPROFILE%\go\pkg\mod` (Windows).
