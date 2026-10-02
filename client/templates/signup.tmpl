@@ -1,9 +1,8 @@
-{{- if .User.IsEmpty -}}
-<sl-dialog label="Dialog" id="signup-dialog">
-    <span slot="label" class="aligned">
+<div class="p-page">
+    <h1>
         <sl-icon name="box-arrow-in-right"></sl-icon>
         Sign Up
-    </span>
+    </h1>
     <form
         id="signup-form"
         name="signup-form"
@@ -45,8 +44,8 @@
             name="password"
             required
         >
-        <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
-        <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
+            <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
+            <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
         </sl-input>
         <sl-input
             label="Confirm password"
@@ -57,20 +56,19 @@
             name="confirm-password"
             required
         >
-        <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
-        <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
+            <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
+            <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
         </sl-input>
         <div id="signup-error"></div>
+        <div class="form-footer">
+            <div>
+                Already a member?
+                <sl-button href="/login">Log In</sl-button>
+            </div>
+            <div>
+                <sl-button form="signup-form" variant="primary" type="submit"
+                >Sign Up</sl-button>
+            </div>
+        </div>
     </form>
-    <div slot="footer" class="dialog-footer">
-        <div>
-            Already a member?
-            <sl-button href="#login-dialog">Log In</sl-button>
-        </div>
-        <div>
-            <sl-button form="signup-form" variant="primary" type="submit"
-            >Sign Up</sl-button>
-        </div>
-    </div>
-</sl-dialog>
-{{- end}}
+</div>

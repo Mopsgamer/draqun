@@ -1,18 +1,4 @@
-<!DOCTYPE html>
-<html lang="en" class="sl-theme-dark">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{{- .Title -}}</title>
-        <link rel="icon" href="/static/assets/logo.svg" type="image/svg+xml">
-        {{- template "partials/scripts" . -}}
-    </head>
-
-    <body hx-ext="shoelace,debug">
-        {{- template "partials/settings-dialog" . -}}
-        <div id="real-body">
-            {{- template "partials/app-header" . -}}
-            {{- template "partials/app-group-join" . -}}
-        </div>
-    </body>
-</html>
+<div id="real-body">
+    {{- template "partials/app-header" . -}}
+    {{- template "partials/app-group-join" . -}}
+</div>

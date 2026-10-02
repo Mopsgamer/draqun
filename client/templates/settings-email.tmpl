@@ -1,8 +1,8 @@
-<sl-dialog label="Dialog" id="change-email-dialog">
-    <span slot="label" class="aligned">
+<div class="p-page">
+    <h1>
         <sl-icon name="mailbox2-flag"></sl-icon>
         Change email
-    </span>
+    </h1>
     <form
         id="change-email-form"
         name="change-email-form"
@@ -20,8 +20,8 @@
             required
             password-toggle
         >
-        <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
-        <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
+            <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
+            <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
         </sl-input>
 
         <sl-input
@@ -35,11 +35,11 @@
         >
         </sl-input>
         <div id="change-email-error"></div>
-    </form>
-    <div slot="footer" class="dialog-footer">
-        <div>
-            <sl-button form="change-email-form" variant="primary" type="submit"
-            >Change email</sl-button>
+        <div class="form-footer">
+            <div>
+                <sl-button form="change-email-form" variant="primary" type="submit"
+                >Change email</sl-button>
+            </div>
         </div>
-    </div>
-</sl-dialog>
+    </form>
+</div>

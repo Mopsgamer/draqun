@@ -4,7 +4,6 @@ import { registerIconLibrary, setBasePath } from "@shoelace-style/shoelace";
 import htmx from "htmx.org";
 import type HTMX from "htmx.org";
 import "./shoelace-htmx-extension.ts";
-import "./shoelace-open-hash.ts";
 import { domLoaded, initAnchorHeadersFor } from "./lib.ts";
 
 declare namespace globalThis {

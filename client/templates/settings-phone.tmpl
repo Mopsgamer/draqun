@@ -1,8 +1,8 @@
-<sl-dialog label="Dialog" id="change-phone-dialog">
-    <span slot="label" class="aligned">
+<div class="p-page">
+    <h1>
         <sl-icon name="telephone-fill"></sl-icon>
         Change phone
-    </span>
+    </h1>
     <form
         id="change-phone-form"
         name="change-phone-form"
@@ -19,8 +19,8 @@
             required
             password-toggle
         >
-        <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
-        <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
+            <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
+            <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
         </sl-input>
         <sl-input
             label="New phone"
@@ -31,11 +31,11 @@
         >
         </sl-input>
         <div id="change-phone-error"></div>
-    </form>
-    <div slot="footer" class="dialog-footer">
-        <div>
-            <sl-button form="change-phone-form" variant="primary" type="submit"
-            >Change phone</sl-button>
+        <div class="form-footer">
+            <div>
+                <sl-button form="change-phone-form" variant="primary" type="submit"
+                >Change phone</sl-button>
+            </div>
         </div>
-    </div>
-</sl-dialog>
+    </form>
+</div>

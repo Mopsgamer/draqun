@@ -265,3 +265,7 @@ await Promise.allSettled(calls.map(([builder, directory]) => {
 	const text = `Bundling '${directory}'`;
 	return logClientComp.task({ text }).startRunner(builder);
 }));
+
+if (!isWatch) {
+	Deno.exit(0);
+}
