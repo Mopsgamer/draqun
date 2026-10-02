@@ -1,7 +1,7 @@
 name: Release
 
 env:
- DENO_VERSION: ^v2.9
+ DENO_VERSION: ^v2.9.7
 
 on:
  workflow_dispatch:
@@ -60,7 +60,7 @@ jobs:
    - name: Install Deno dependencies
      run: |
       deno install
-   - uses: actions/setup-go@v6
+   - uses: actions/setup-go@v7
      with:
       go-version-file: go.mod
    - name: Run release script (Dry Run or Real Release)

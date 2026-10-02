@@ -1,7 +1,7 @@
 name: PR
 
 env:
- DENO_VERSION: ^v2.9
+ DENO_VERSION: ^v2.9.7
 
 on:
  pull_request:
@@ -61,7 +61,7 @@ jobs:
    - uses: actions/checkout@v6
      with:
       persist-credentials: false
-   - uses: actions/setup-go@v6
+   - uses: actions/setup-go@v7
      with:
       go-version-file: go.mod
    - run: |
@@ -135,7 +135,7 @@ jobs:
       ref: ${{ github.head_ref }}
       token: ${{ secrets.GITHUB_TOKEN }}
       repository: ${{ github.repository }}
-   - uses: actions/setup-go@v6
+   - uses: actions/setup-go@v7
      with:
       go-version-file: go.mod
    - run: go fmt ./...
@@ -155,7 +155,7 @@ jobs:
       ref: ${{ github.head_ref }}
       token: ${{ secrets.GITHUB_TOKEN }}
       repository: ${{ github.repository }}
-   - uses: actions/setup-go@v6
+   - uses: actions/setup-go@v7
      with:
       go-version-file: go.mod
    - run: go mod tidy
@@ -197,7 +197,7 @@ jobs:
       ref: ${{ github.head_ref }}
       token: ${{ secrets.GITHUB_TOKEN }}
       repository: ${{ github.repository }}
-   - uses: actions/setup-go@v6
+   - uses: actions/setup-go@v7
      with:
       go-version-file: go.mod
    - uses: denoland/setup-deno@v2
@@ -242,7 +242,7 @@ jobs:
       cache: true
    - run: deno install
    - run: deno task front
-   - uses: actions/setup-go@v6
+   - uses: actions/setup-go@v7
      with:
       go-version-file: go.mod
    - run: deno task back:cross
