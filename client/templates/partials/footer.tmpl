@@ -1,65 +1,30 @@
 <footer id="footer" role="navigation">
-    <section class="nav-block">
-        <h1 class="aligned">Project<sl-icon library="draqun" name="logo"></sl-icon></h1>
-        <nav>
-            <a href="{{.GitHubRepo}}" target="_blank" rel="noopener">
-                <sl-icon name="github"></sl-icon>
+    <nav class="flex flex-col gap-2">
+        <h6 class="footer-title flex items-center gap-2 text-white opacity-100 text-lg">
+            Project <span class="brand-logo size-5 inline-block" aria-hidden="true"></span>
+        </h6>
+        <div class="flex flex-col gap-1 text-base">
+            <a class="link link-hover flex items-center gap-2" href="{{.GitHubRepo}}" target="_blank" rel="noopener">
+                <span class="icon icon-[simple-icons--github] size-4" aria-hidden="true"></span>
                 Repository
             </a>
-            <a href="{{.GitHubRepo}}/issues" target="_blank" rel="noopener">
-                <sl-icon name="mailbox2-flag"></sl-icon>
+            <a class="link link-hover flex items-center gap-2" href="{{.GitHubRepo}}/issues" target="_blank" rel="noopener">
+                <span class="icon icon-[lucide--message-square-text] size-4" aria-hidden="true"></span>
                 Feedback
             </a>
-            <a href="/docs">
-                <sl-icon name="file-text-fill"></sl-icon>
+            <a class="link link-hover flex items-center gap-2" href="/docs">
+                <span class="icon icon-[lucide--file-text] size-4" aria-hidden="true"></span>
                 Documentation
             </a>
-            <a href="/acknowledgements">
-                <sl-icon name="hearts"></sl-icon>
+            <a class="link link-hover flex items-center gap-2" href="/acknowledgements">
+                <span class="icon icon-[lucide--heart-handshake] size-4" aria-hidden="true"></span>
                 Acknowledgements
             </a>
-        </nav>
-    </section>
-    {{/*<section class="nav-block">
-        <h1>Community</h1>
-        <nav>
-            <a
-                href="https://discord.com/invite/example"
-                target="_blank"
-                rel="noopener"
-            >
-                <sl-icon name="discord"></sl-icon>
-                Join Discord
-            </a>
-            <a
-                href="https://twitter.com/yourproject"
-                target="_blank"
-                rel="noopener"
-            >
-                <sl-icon name="twitter"></sl-icon>
-                Follow on Twitter
-            </a>
-        </nav>
-    </section>*/}} {{/*<section class="nav-block">
-        <h1>Security</h1>
-        <nav>
-            <a href="mailto:kisillev020304@gmail.com">
-                <sl-icon name="ticket-perforated-fill"></sl-icon>
-                Support
-            </a>
-            <a href="/terms">
-                <sl-icon name="shield-fill"></sl-icon>
-                Terms of Service
-            </a>
-            <a href="/privacy">
-                <sl-icon name="lock-fill"></sl-icon>
-                Privacy Policy
-            </a>
-        </nav>
-    </section>*/}}
-    <div class="absolute right-0 bottom-0 text-neutral-500 p-2 font-[monospace]">
+        </div>
+    </nav>
+    <div class="absolute right-3 bottom-2 text-white/50 text-xs font-[monospace]">
         version: {{.DenoJson.Version}}{{if ne .GitJson.Hash ""}} ({{.GitJson.Branch}} <a
-            class="text-cyan-500 underline"
+            class="text-white/80 underline"
             href="{{.GitHubCommit}}"
         >{{.GitJson.Hash}}</a>){{end -}}
     </div>

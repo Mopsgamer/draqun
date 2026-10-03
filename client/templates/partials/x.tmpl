@@ -1,19 +1,19 @@
 <div class="centered-main">
-    <div class="text-3xl font-bold aligned select-none">
-        {{- if isString .}} Under construction <sl-icon name="hammer"></sl-icon> -
+    <div class="text-3xl font-bold flex items-center gap-2 select-none mb-4">
+        {{- if isString .}} Under construction <span class="icon icon-[lucide--hammer] size-6" aria-hidden="true"></span> -
         {{.}} {{- else}}
-        <sl-icon name="exclamation-triangle-fill"></sl-icon>
+        <span class="icon icon-[lucide--triangle-alert] size-6" aria-hidden="true"></span>
         {{.StatusCode}} - {{.StatusMessage}} {{- end}}
     </div>
-    <div class="select-none">
-        <sl-button variant="text" href="/">
-            <sl-icon name="rocket-fill" slot="prefix"></sl-icon>
+    <div class="select-none flex items-center gap-2">
+        <a class="btn btn-ghost" href="/">
+            <span class="icon icon-[lucide--rocket] size-4" aria-hidden="true"></span>
             Landing page
-        </sl-button>
+        </a>
         &middot;
-        <sl-button variant="text" href="/chat">
-            <sl-icon name="house-fill" slot="prefix"></sl-icon>
+        <a class="btn btn-ghost" href="/chat">
+            <span class="icon icon-[lucide--house] size-4" aria-hidden="true"></span>
             Open {{.AppName}}
-        </sl-button>
+        </a>
     </div>
 </div>

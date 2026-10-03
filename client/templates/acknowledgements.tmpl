@@ -1,24 +1,26 @@
-<div class="p-page font-[monospace]">
-    <h1>
-        <sl-icon name="hearts"></sl-icon>
+<div class="p-page font-mono text-sm max-w-3xl mx-auto">
+    <h1 class="text-2xl font-bold font-sans flex items-center gap-2 mb-2">
+        <span class="icon icon-[lucide--heart-handshake]" aria-hidden="true"></span>
         Acknowledgements
     </h1>
-    <div class="note-header">
+    <div class="text-base-content/70 font-sans mb-6">
         These are the open source libraries we use to make {{.AppName}}.
     </div>
-    <div class="font-[monospace]">
+    <div class="flex flex-col gap-1 bg-surface-card p-4 rounded-box border border-base-content/10 mb-6">
+        <div class="font-bold font-sans text-xs uppercase tracking-wider text-base-content/60 pb-2 border-b border-base-content/10">Frontend & Tooling</div>
         {{- range $name, $module := .DenoJson.Imports -}}
-        <div class="flex flex-row justify-between w-full">
-            <div>{{$name}}</div>
-            <div>{{$module}}</div>
+        <div class="flex flex-row justify-between w-full py-1 text-xs border-b border-base-content/5 last:border-none">
+            <span class="font-semibold">{{$name}}</span>
+            <span class="text-base-content/60 truncate max-w-xs">{{$module}}</span>
         </div>
         {{- end -}}
     </div>
-    <div class="font-[monospace]">
+    <div class="flex flex-col gap-1 bg-surface-card p-4 rounded-box border border-base-content/10">
+        <div class="font-bold font-sans text-xs uppercase tracking-wider text-base-content/60 pb-2 border-b border-base-content/10">Backend</div>
         {{- range $i, $module := .GoMod.Require -}}
-        <div class="flex flex-row justify-between w-full">
-            <div>{{index $module.Syntax.Token 0}}</div>
-            <div>{{$module.Mod}}</div>
+        <div class="flex flex-row justify-between w-full py-1 text-xs border-b border-base-content/5 last:border-none">
+            <span class="font-semibold">{{index $module.Syntax.Token 0}}</span>
+            <span class="text-base-content/60 truncate max-w-xs">{{$module.Mod}}</span>
         </div>
         {{- end -}}
     </div>

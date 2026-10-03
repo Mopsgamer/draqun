@@ -1,43 +1,47 @@
 <main id="app-content">
-    <div class="p-page">
-        <h2 class="anchor-header">
-            Groups
-            <sl-button href="/groups/create" size="small" variant="success">
-                <sl-icon name="plus" slot="suffix"></sl-icon>
-                Create
-            </sl-button>
-        </h2>
-        <div class="flex flex-row gap-2 p-4">
+    <div class="p-page max-w-6xl">
+        <h1 class="text-2xl font-bold mb-4 flex items-center gap-2">Groups</h1>
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,14rem),1fr))] gap-4">
+            <a href="/groups/create" class="card bg-primary text-primary-content hover:brightness-95 p-4 min-h-36 flex flex-col justify-between transition-all">
+                <span class="inline-flex size-10 items-center justify-center rounded-lg bg-white/20" aria-hidden="true">
+                    <span class="icon icon-[lucide--plus] size-6"></span>
+                </span>
+                <div class="flex flex-col gap-0.5">
+                    <span class="font-bold text-lg">Create a group</span>
+                    <span class="text-sm opacity-80">Start a new group</span>
+                </div>
+            </a>
             {{- $groupList := .User.GroupList -}}
             {{- $memberList := .User.MemberList -}}
             {{- $this := . -}}
             {{- range $i, $member := $memberList -}}
             {{- $group := index $groupList $i -}}
             {{- $rights := $member.Role -}}
-            <a href="/chat/groups/{{$group.Id}}">
-                <sl-card
+            <div class="relative min-w-0">
+                <a
                     id="my-group-{{$group.Id}}"
                     data-id="{{$group.Id}}"
-                    class="group-card"
+                    href="/chat/groups/{{$group.Id}}"
+                    class="card bg-surface-card hover:bg-[var(--surface-card-hover)] p-4 min-h-36 flex flex-col justify-between border border-base-content/10 transition-colors"
                 >
-                    <div class="group-card-header" slot="header">
-                        <sl-avatar class="prefix" shape="rounded">
-                            <sl-icon slot="icon" name="people-fill"></sl-icon>
-                        </sl-avatar>
-                        <div class="suffix">
-                            <div class="name" title="{{$group.Moniker}}">
-                                {{- $group.Moniker -}}
-                            </div>
-                            {{- if or ($rights.PermAdmin.Has) (and (not $member.IsEmpty) $rights.PermGroupChange.Has)}}
-                            <div class="group-actions">
-                                {{template "partials/group-actions" $group}}
-                            </div>
-                            {{- end}}
-                        </div>
+                    <span class="inline-flex size-10 items-center justify-center rounded-lg bg-primary text-primary-content" aria-hidden="true">
+                        <span class="icon icon-[lucide--users] size-5"></span>
+                    </span>
+                    <div class="flex flex-col gap-0.5">
+                        <span class="font-bold truncate text-base" title="{{$group.Moniker}}">
+                            {{- $group.Moniker -}}
+                        </span>
+                        {{- if $group.Description -}}
+                        <span class="line-clamp-2 text-sm text-base-content/70">{{$group.Description}}</span>
+                        {{- end -}}
                     </div>
-                    {{$group.Description}}
-                </sl-card>
-            </a>
+                </a>
+                {{- if or ($rights.PermAdmin.Has) (and (not $member.IsEmpty) $rights.PermGroupChange.Has)}}
+                    <div class="absolute top-2 right-2 z-10">
+                        {{template "partials/group-actions" $group}}
+                    </div>
+                {{- end}}
+            </div>
             {{- end -}}
         </div>
     </div>

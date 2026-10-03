@@ -1,25 +1,27 @@
 <div id="real-body">
     <main id="main" class="centered-main">
-        <div class="text-3xl font-bold">
-            You're not logged in.
-        </div>
-        <div>
-            <sl-button
-                variant="text"
-                id="open-login-center"
-                href="/login"
-            >
-                <sl-icon name="box-arrow-in-right"></sl-icon>
-                Log In
-            </sl-button>
-            <sl-button variant="text" href="/signup">
-                <sl-icon name="box-arrow-in-right"></sl-icon>
-                Sign Up
-            </sl-button>
-            <sl-button variant="text" href="/">
-                <sl-icon name="rocket-fill"></sl-icon>
-                Landing page
-            </sl-button>
+        <div class="flex flex-col items-center gap-4 p-8 bg-surface-card rounded-box border border-base-content/10 shadow-sm max-w-md w-full mx-4 text-center">
+            <div class="text-2xl font-bold">
+                You're not logged in
+            </div>
+            <div class="flex flex-wrap items-center justify-center gap-2">
+                <a
+                    class="btn btn-primary"
+                    id="open-login-center"
+                    href="/login"
+                >
+                    <span class="icon icon-[lucide--log-in]" aria-hidden="true"></span>
+                    Log In
+                </a>
+                <a class="btn btn-ghost" href="/signup">
+                    <span class="icon icon-[lucide--user-round-plus]" aria-hidden="true"></span>
+                    Sign Up
+                </a>
+                <a class="btn btn-ghost" href="/">
+                    <span class="icon icon-[lucide--rocket]" aria-hidden="true"></span>
+                    Landing page
+                </a>
+            </div>
         </div>
     </main>
 </div>

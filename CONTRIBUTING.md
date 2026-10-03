@@ -32,38 +32,26 @@
 
 ## Making changes
 
-Run `deno task dev` to build the client and serve locally. When changing client
-files, use a second terminal to rebuild them automatically:
+Run `deno task dev` to build and serve locally. It also watches client files and
+rebuilds frontend assets when they change:
 
 > [!NOTE]
 > You can use Visual Studio Code's task commands: `Tasks: Run Task`.
 >
-> - `deno task dev` to build frontend assets and run the development server.
-> - `deno task front watch` in a second terminal to rebuild frontend assets when
->   they change.
-
-```bash
-deno task front watch
-```
+> - `deno task dev` to build frontend assets, watch for client changes, and run
+>   the development server.
 
 ```bash
 deno task dev
 ```
 
 Other available VS Code tasks mirror the Deno tasks: `deno task init`,
-`deno task prepare`, `deno task front`, and `deno task back`.
-
-Format your changes with `deno fmt`. Before committing, `deno task prepare`
-checks formatting, lint, and types; it also runs automatically before each
-commit after `deno task init` installs the Git hook:
-
-```bash
-deno task prepare
-```
+`deno task prepare`, `deno task back`, and `deno task front` for one-time
+frontend builds.
 
 ### Resources
 
-- <https://shoelace.style>
+- <https://daisyui.com>
 - <https://htmx.org/docs/>
 - <https://htmx.org/reference/>
 - <https://pkg.go.dev/html/template>

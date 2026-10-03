@@ -20,22 +20,19 @@
 >
     <div class="header">
         <div class="prefix">
-            <sl-avatar class="avatar" style="--size: 2rem"></sl-avatar>
-            <span class="moniker">{{$message.Author.Moniker}}</span>
+            <span class="inline-flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0" aria-hidden="true">
+                <span class="icon icon-[lucide--user-round] size-4"></span>
+            </span>
+            <span class="font-bold text-sm truncate max-w-52">{{$message.Author.Moniker}}</span>
         </div>
         <div class="suffix">
-            <sl-format-date
+            <time
                 class="date"
-                hour="numeric"
-                minute="numeric"
-                year="numeric"
-                month="long"
-                day="numeric"
-                date="{{jsonTime $message.CreatedAt.Value}}"
-            ></sl-format-date>
+                datetime="{{jsonTime $message.CreatedAt.Value}}"
+                data-format-date
+            >{{jsonTime $message.CreatedAt.Value}}</time>
         </div>
     </div>
-    <div class="text">{{$message.Content}}</div>
-    <!-- use <area> if you implementing hyperlink previews -->
+    <div class="text text-sm">{{$message.Content}}</div>
 </div>
 {{- end}}

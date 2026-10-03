@@ -3,7 +3,9 @@ package routes
 import (
 	"errors"
 	"maps"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -52,6 +54,16 @@ func MapPage(ctx fiber.Ctx, bind fiber.Map) fiber.Map {
 	} else {
 		stylesheets = []string{"/static/css/main.css"}
 		scripts = []string{"/static/js/main.js"}
+	}
+
+	if environment.BuildEnvironment == environment.BuildModeDevelopment {
+		version := strconv.FormatInt(time.Now().UnixNano(), 10)
+		for i, stylesheet := range stylesheets {
+			stylesheets[i] = stylesheet + "?v=" + version
+		}
+		for i, script := range scripts {
+			scripts[i] = script + "?v=" + version
+		}
 	}
 
 	bindx["Stylesheets"] = stylesheets

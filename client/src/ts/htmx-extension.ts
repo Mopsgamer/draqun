@@ -1,22 +1,26 @@
 import htmx from "htmx.org";
 import { getFormPropData } from "./lib.ts";
-import { SlButton, SlMenuItem } from "@shoelace-style/shoelace";
 
 const onEvent: htmx.HtmxExtension["onEvent"] = function (name, event): boolean {
 	if (name === "htmx:beforeRequest" || name === "htmx:afterRequest") {
 		const enable = name === "htmx:beforeRequest";
-
-		let form = event.target || {} as object;
-		if (event.target instanceof HTMLFormElement) {
-			form = (event.target.querySelector("sl-button[type=submit]") ||
-				document.querySelector(
-					"sl-button[form=" + event.target.id + "][type=submit]",
-				) || {}) as object;
+		let control: EventTarget | null = event.target;
+		if (control instanceof HTMLFormElement) {
+			const form = control;
+			control = form.querySelector<HTMLButtonElement>(
+				"button[type=submit]",
+			) ??
+				Array.from(
+					document.querySelectorAll<HTMLButtonElement>(
+						"button[type=submit][form]",
+					),
+				).find((button) => button.form === form) ??
+				form;
 		}
 
-		if (form instanceof SlButton || form instanceof SlMenuItem) {
-			form.loading = enable;
-			form.disabled = enable;
+		if (control instanceof HTMLButtonElement) {
+			control.disabled = enable;
+			control.classList.toggle("loading", enable);
 		}
 		return true;
 	}
@@ -38,8 +42,6 @@ const onEvent: htmx.HtmxExtension["onEvent"] = function (name, event): boolean {
 	Object.assign(event.detail.formData, formData);
 	console.log("configRequest details: %o", event.detail);
 
-	// Prevent form submission if one or more fields are invalid.
-	// form is always a form as per the main if statement
 	if (!form.checkValidity()) {
 		console.error("Form is invalid: %o", form);
 		console.groupEnd();
@@ -49,6 +51,6 @@ const onEvent: htmx.HtmxExtension["onEvent"] = function (name, event): boolean {
 	return true;
 };
 
-(htmx as unknown as typeof htmx.default).defineExtension("shoelace", {
+(htmx as unknown as typeof htmx.default).defineExtension("app", {
 	onEvent,
 });

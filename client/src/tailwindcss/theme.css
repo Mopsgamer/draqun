@@ -1,140 +1,92 @@
-@reference "tailwindcss";
-@layer base {
-    @import "../../../node_modules/@shoelace-style/shoelace/dist/themes/light.css";
-    @import "../../../node_modules/@shoelace-style/shoelace/dist/themes/dark.css";
+@plugin "daisyui" {
+	themes: light --default, dark --prefersdark;
 }
 
-.sl-theme-dark, sl-button[variant=default]:hover {
-    --sl-color-primary-50: hsl(166, 76%, 97%);
-    --sl-color-primary-100: hsl(168, 86%, 89%);
-    --sl-color-primary-200: hsl(168, 86%, 78%);
-    --sl-color-primary-300: hsl(171, 81%, 60%);
-    --sl-color-primary-400: hsl(173, 100%, 42%);
-    --sl-color-primary-500: hsl(174, 100%, 37%);
-    --sl-color-primary-600: hsl(175, 100%, 29%);
-    --sl-color-primary-700: hsl(176, 100%, 24%);
-    --sl-color-primary-800: hsl(177, 100%, 19%);
-    --sl-color-primary-900: hsl(176, 76%, 18%);
-    --sl-color-primary-950: hsl(179, 92%, 10%);
+@plugin "daisyui/theme" {
+	name: "light";
+	default: true;
+	--color-primary: hsl(175 100% 29%);
+	--color-primary-content: white;
 }
 
-.sl-theme-dark :is(sl-button:not([variant=default]:not(:hover)), sl-icon-button, a:hover) {
-    --sl-color-neutral-0: var(--sl-color-neutral-900);
+@plugin "daisyui/theme" {
+	name: "dark";
+	prefersdark: true;
+	--color-primary: hsl(173 100% 42%);
+	--color-primary-content: hsl(179 92% 10%);
 }
 
-html, .sl-theme-dark :is(sl-button:not([variant=default]:not(:hover)), sl-icon-button, a:hover) {
-    --sl-color-primary-50: hsl(179, 92%, 10%);
-    --sl-color-primary-100: hsl(176, 76%, 18%);
-    --sl-color-primary-200: hsl(177, 100%, 19%);
-    --sl-color-primary-300: hsl(176, 100%, 24%);
-    --sl-color-primary-400: hsl(175, 100%, 29%);
-    --sl-color-primary-500: hsl(174, 100%, 37%);
-    --sl-color-primary-600: hsl(173, 100%, 42%);
-    --sl-color-primary-700: hsl(171, 81%, 60%);
-    --sl-color-primary-800: hsl(168, 86%, 78%);
-    --sl-color-primary-900: hsl(168, 86%, 89%);
-    --sl-color-primary-950: hsl(166, 76%, 97%);
-
-    --sl-color-success-50: hsl(149, 92%, 10%);
-    --sl-color-success-100: hsl(146, 76%, 18%);
-    --sl-color-success-200: hsl(147, 100%, 19%);
-    --sl-color-success-300: hsl(146, 100%, 24%);
-    --sl-color-success-400: hsl(145, 100%, 29%);
-    --sl-color-success-500: hsl(144, 100%, 37%);
-    --sl-color-success-600: hsl(143, 100%, 42%);
-    --sl-color-success-700: hsl(141, 81%, 60%);
-    --sl-color-success-800: hsl(138, 86%, 78%);
-    --sl-color-success-900: hsl(138, 86%, 89%);
-    --sl-color-success-950: hsl(136, 76%, 97%);
-
-    --sl-color-warning-50: hsl(39, 92%, 10%);
-    --sl-color-warning-100: hsl(36, 76%, 18%);
-    --sl-color-warning-200: hsl(37, 100%, 19%);
-    --sl-color-warning-300: hsl(36, 100%, 24%);
-    --sl-color-warning-400: hsl(35, 100%, 29%);
-    --sl-color-warning-500: hsl(34, 100%, 37%);
-    --sl-color-warning-600: hsl(33, 100%, 42%);
-    --sl-color-warning-700: hsl(31, 81%, 60%);
-    --sl-color-warning-800: hsl(28, 86%, 78%);
-    --sl-color-warning-900: hsl(28, 86%, 89%);
-    --sl-color-warning-950: hsl(26, 76%, 97%);
-
-    --sl-color-danger-50: hsl(0, 92%, 10%);
-    --sl-color-danger-100: hsl(0, 76%, 18%);
-    --sl-color-danger-200: hsl(0, 100%, 19%);
-    --sl-color-danger-300: hsl(0, 100%, 24%);
-    --sl-color-danger-400: hsl(0, 100%, 29%);
-    --sl-color-danger-500: hsl(0, 100%, 37%);
-    --sl-color-danger-600: hsl(0, 100%, 42%);
-    --sl-color-danger-700: hsl(0, 81%, 60%);
-    --sl-color-danger-800: hsl(0, 86%, 78%);
-    --sl-color-danger-900: hsl(0, 86%, 89%);
-    --sl-color-danger-950: hsl(0, 76%, 97%);
+@plugin "@iconify/tailwind4" {
+	prefixes: lucide, simple-icons;
 }
 
-@theme {
-    --transition-duration-1100: 1100ms;
-    --transition-duration-1200: 1200ms;
-    --transition-duration-1300: 1300ms;
-    --transition-duration-1400: 1400ms;
+@theme inline {
+	--transition-duration-1100: 1100ms;
+	--transition-duration-1200: 1200ms;
+	--transition-duration-1300: 1300ms;
+	--transition-duration-1400: 1400ms;
 
-    --spacing-page: 1.25rem;
+	--spacing-page: 1.25rem;
 
-    --color-neutral-0: var(--sl-color-neutral-0);
-    --color-neutral-50: var(--sl-color-neutral-50);
-    --color-neutral-100: var(--sl-color-neutral-100);
-    --color-neutral-200: var(--sl-color-neutral-200);
-    --color-neutral-300: var(--sl-color-neutral-300);
-    --color-neutral-400: var(--sl-color-neutral-400);
-    --color-neutral-500: var(--sl-color-neutral-500);
-    --color-neutral-600: var(--sl-color-neutral-600);
-    --color-neutral-700: var(--sl-color-neutral-700);
-    --color-neutral-800: var(--sl-color-neutral-800);
-    --color-neutral-900: var(--sl-color-neutral-900);
-    --color-neutral-950: var(--sl-color-neutral-950);
-    --color-neutral-1000: var(--sl-color-neutral-1000);
-    --color-primary-50: var(--sl-color-primary-50);
-    --color-primary-100: var(--sl-color-primary-100);
-    --color-primary-200: var(--sl-color-primary-200);
-    --color-primary-300: var(--sl-color-primary-300);
-    --color-primary-400: var(--sl-color-primary-400);
-    --color-primary-500: var(--sl-color-primary-500);
-    --color-primary-600: var(--sl-color-primary-600);
-    --color-primary-700: var(--sl-color-primary-700);
-    --color-primary-800: var(--sl-color-primary-800);
-    --color-primary-900: var(--sl-color-primary-900);
-    --color-primary-950: var(--sl-color-primary-950);
-    --color-danger-50: var(--sl-color-danger-50);
-    --color-danger-100: var(--sl-color-danger-100);
-    --color-danger-200: var(--sl-color-danger-200);
-    --color-danger-300: var(--sl-color-danger-300);
-    --color-danger-400: var(--sl-color-danger-400);
-    --color-danger-500: var(--sl-color-danger-500);
-    --color-danger-600: var(--sl-color-danger-600);
-    --color-danger-700: var(--sl-color-danger-700);
-    --color-danger-800: var(--sl-color-danger-800);
-    --color-danger-900: var(--sl-color-danger-900);
-    --color-danger-950: var(--sl-color-danger-950);
-    --color-warning-50: var(--sl-color-warning-50);
-    --color-warning-100: var(--sl-color-warning-100);
-    --color-warning-200: var(--sl-color-warning-200);
-    --color-warning-300: var(--sl-color-warning-300);
-    --color-warning-400: var(--sl-color-warning-400);
-    --color-warning-500: var(--sl-color-warning-500);
-    --color-warning-600: var(--sl-color-warning-600);
-    --color-warning-700: var(--sl-color-warning-700);
-    --color-warning-800: var(--sl-color-warning-800);
-    --color-warning-900: var(--sl-color-warning-900);
-    --color-warning-950: var(--sl-color-warning-950);
-    --color-success-50: var(--sl-color-success-50);
-    --color-success-100: var(--sl-color-success-100);
-    --color-success-200: var(--sl-color-success-200);
-    --color-success-300: var(--sl-color-success-300);
-    --color-success-400: var(--sl-color-success-400);
-    --color-success-500: var(--sl-color-success-500);
-    --color-success-600: var(--sl-color-success-600);
-    --color-success-700: var(--sl-color-success-700);
-    --color-success-800: var(--sl-color-success-800);
-    --color-success-900: var(--sl-color-success-900);
-    --color-success-950: var(--sl-color-success-950);
+	--color-neutral-0: var(--color-base-100);
+	--color-neutral-50: var(--color-base-100);
+	--color-neutral-100: var(--color-base-200);
+	--color-neutral-200: var(--color-base-300);
+	--color-neutral-300: color-mix(in oklab, var(--color-base-content) 12%, var(--color-base-100));
+	--color-neutral-400: color-mix(in oklab, var(--color-base-content) 30%, var(--color-base-100));
+	--color-neutral-500: color-mix(in oklab, var(--color-base-content) 50%, var(--color-base-100));
+	--color-neutral-600: color-mix(in oklab, var(--color-base-content) 70%, var(--color-base-100));
+	--color-neutral-700: var(--color-base-content);
+	--color-neutral-800: var(--color-base-content);
+	--color-neutral-900: var(--color-base-content);
+	--color-neutral-950: var(--color-base-content);
+	--color-neutral-1000: var(--color-base-content);
+
+	--color-primary-50: color-mix(in oklab, var(--color-primary) 10%, var(--color-base-100));
+	--color-primary-100: color-mix(in oklab, var(--color-primary) 20%, var(--color-base-100));
+	--color-primary-200: color-mix(in oklab, var(--color-primary) 30%, var(--color-base-100));
+	--color-primary-300: color-mix(in oklab, var(--color-primary) 40%, var(--color-base-100));
+	--color-primary-400: color-mix(in oklab, var(--color-primary) 60%, var(--color-base-100));
+	--color-primary-500: var(--color-primary);
+	--color-primary-600: var(--color-primary);
+	--color-primary-700: color-mix(in oklab, var(--color-primary) 80%, black);
+	--color-primary-800: color-mix(in oklab, var(--color-primary) 70%, black);
+	--color-primary-900: color-mix(in oklab, var(--color-primary) 60%, black);
+	--color-primary-950: color-mix(in oklab, var(--color-primary) 50%, black);
+
+	--color-danger-50: color-mix(in oklab, var(--color-error) 10%, var(--color-base-100));
+	--color-danger-100: color-mix(in oklab, var(--color-error) 20%, var(--color-base-100));
+	--color-danger-200: color-mix(in oklab, var(--color-error) 30%, var(--color-base-100));
+	--color-danger-300: color-mix(in oklab, var(--color-error) 50%, var(--color-base-100));
+	--color-danger-400: color-mix(in oklab, var(--color-error) 70%, var(--color-base-100));
+	--color-danger-500: var(--color-error);
+	--color-danger-600: var(--color-error);
+	--color-danger-700: color-mix(in oklab, var(--color-error) 80%, black);
+	--color-danger-800: color-mix(in oklab, var(--color-error) 70%, black);
+	--color-danger-900: color-mix(in oklab, var(--color-error) 60%, black);
+	--color-danger-950: color-mix(in oklab, var(--color-error) 50%, black);
+
+	--color-warning-50: color-mix(in oklab, var(--color-warning) 10%, var(--color-base-100));
+	--color-warning-100: color-mix(in oklab, var(--color-warning) 20%, var(--color-base-100));
+	--color-warning-200: color-mix(in oklab, var(--color-warning) 30%, var(--color-base-100));
+	--color-warning-300: color-mix(in oklab, var(--color-warning) 50%, var(--color-base-100));
+	--color-warning-400: color-mix(in oklab, var(--color-warning) 70%, var(--color-base-100));
+	--color-warning-500: var(--color-warning);
+	--color-warning-600: var(--color-warning);
+	--color-warning-700: color-mix(in oklab, var(--color-warning) 80%, black);
+	--color-warning-800: color-mix(in oklab, var(--color-warning) 70%, black);
+	--color-warning-900: color-mix(in oklab, var(--color-warning) 60%, black);
+	--color-warning-950: color-mix(in oklab, var(--color-warning) 50%, black);
+
+	--color-success-50: color-mix(in oklab, var(--color-success) 10%, var(--color-base-100));
+	--color-success-100: color-mix(in oklab, var(--color-success) 20%, var(--color-base-100));
+	--color-success-200: color-mix(in oklab, var(--color-success) 30%, var(--color-base-100));
+	--color-success-300: color-mix(in oklab, var(--color-success) 50%, var(--color-base-100));
+	--color-success-400: color-mix(in oklab, var(--color-success) 70%, var(--color-base-100));
+	--color-success-500: var(--color-success);
+	--color-success-600: var(--color-success);
+	--color-success-700: color-mix(in oklab, var(--color-success) 80%, black);
+	--color-success-800: color-mix(in oklab, var(--color-success) 70%, black);
+	--color-success-900: color-mix(in oklab, var(--color-success) 60%, black);
+	--color-success-950: color-mix(in oklab, var(--color-success) 50%, black);
 }

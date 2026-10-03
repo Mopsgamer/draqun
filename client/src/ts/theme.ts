@@ -1,9 +1,8 @@
-import { SlMenuItem, SlSelect } from "@shoelace-style/shoelace";
 import { domLoaded } from "./lib.ts";
 
 enum Theme {
-	dark = "sl-theme-dark",
-	light = "sl-theme-light",
+	dark = "dark",
+	light = "light",
 	system = "system",
 }
 
@@ -38,80 +37,65 @@ function setTheme(theme: Theme): void {
 		localStorage.setItem("theme", theme);
 	}
 
-	const target = document.documentElement;
-	target.classList.remove(...themeList);
-
 	if (theme === Theme.system) {
 		const prefersDark = matchMedia("(prefers-color-scheme: dark)").matches;
-		target.classList.add(prefersDark ? Theme.dark : Theme.light);
+		document.documentElement.dataset.theme = prefersDark
+			? Theme.dark
+			: Theme.light;
 	} else {
-		target.classList.add(theme);
+		document.documentElement.dataset.theme = theme;
 	}
 }
 
 function updateThemeMenuElements(): void {
-	const menuList = Array.from(
-		document.querySelectorAll<SlMenuItem | SlSelect>(".theme-menu"),
-	);
-	for (const menu of menuList) {
-		if (menu instanceof SlSelect) {
-			menu.value = getTheme();
-			continue;
-		}
-		if (menu instanceof SlMenuItem) {
-			const allItemList = menuList.flatMap(
-				(menu) => [
-					...menu.querySelectorAll<SlMenuItem>(
-						"sl-menu-item[type=checkbox][value]",
-					),
-				],
-			);
-
-			const theme = getTheme();
-			for (const child of allItemList) {
-				child.checked = child.value === theme;
-			}
-			continue;
-		}
+	const theme = getTheme();
+	for (
+		const select of document.querySelectorAll<HTMLSelectElement>(
+			"select.theme-menu",
+		)
+	) {
+		select.value = theme;
+	}
+	for (
+		const choice of document.querySelectorAll<HTMLInputElement>(
+			"input[name=theme-choice]",
+		)
+	) {
+		choice.checked = choice.value === theme;
 	}
 }
 
 function initThemeMenuElements(): void {
-	const menuList = Array.from(
-		document.querySelectorAll<SlMenuItem | SlSelect>(".theme-menu"),
-	);
-
-	for (const menu of menuList) {
-		if (menu instanceof SlSelect) {
-			menu.addEventListener("sl-change", () => {
-				const theme = menu.value as Theme;
-				setTheme(theme);
-			});
-			continue;
-		}
-		if (menu instanceof SlMenuItem) {
-			menu.addEventListener("sl-select", (event) => {
-				const item = event.detail.item;
-				if (item.type !== "checkbox") {
-					return;
-				}
-
-				const theme = item.value;
-				if (!isTheme(theme)) {
-					console.error(
-						`Unknown theme ${theme}, can not change: %o.`,
-						item,
-					);
-					item.checked = !item.checked;
-					return;
-				}
-
-				setTheme(theme);
+	document.addEventListener("change", (event) => {
+		const target = event.target;
+		if (
+			target instanceof HTMLSelectElement &&
+			target.matches("select.theme-menu")
+		) {
+			if (!isTheme(target.value)) {
+				console.error(`Unknown theme ${target.value}, can not change.`);
 				updateThemeMenuElements();
-			});
-			continue;
+				return;
+			}
+			setTheme(target.value);
+			updateThemeMenuElements();
+			target.closest(".dropdown")?.removeAttribute("open");
+			return;
 		}
-	}
+
+		if (
+			target instanceof HTMLInputElement &&
+			target.matches("input[name=theme-choice]")
+		) {
+			if (!isTheme(target.value)) {
+				console.error(`Unknown theme ${target.value}, can not change.`);
+				updateThemeMenuElements();
+				return;
+			}
+			setTheme(target.value);
+			updateThemeMenuElements();
+		}
+	});
 }
 
 /**
@@ -121,15 +105,12 @@ function initTheme(): void {
 	const theme = getTheme();
 	setTheme(theme);
 
-	if (theme === Theme.system) {
-		// Add a listener to react to system theme changes
-		matchMedia("(prefers-color-scheme: dark)").addEventListener(
-			"change",
-			() => {
-				setTheme(Theme.system);
-			},
-		);
-	}
+	matchMedia("(prefers-color-scheme: dark)").addEventListener(
+		"change",
+		() => {
+			if (getTheme() === Theme.system) setTheme(Theme.system);
+		},
+	);
 }
 
 initTheme();
