@@ -11,3 +11,7 @@ out
 client/static
 .env
 *.db
+
+# prevent 'deno init'
+/main.ts
+/main_test.ts
