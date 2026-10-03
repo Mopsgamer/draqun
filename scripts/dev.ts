@@ -1,3 +1,4 @@
+import process from "node:process";
 import kill from "tree-kill";
 import { existsSync } from "node:fs";
 import { logDevelopment } from "./tool/constants.ts";
@@ -38,7 +39,7 @@ logDevelopment.info("Watching paths: " + paths.join(", "));
 let activePid: number | undefined;
 let abortController = new AbortController();
 
-async function start(signal: AbortSignal): Promise<void> {
+async function start(signal: AbortSignal): Promise<boolean> {
 	// 1. MANUALLY KILL BEFORE STARTING
 	// We don't rely on Deno's signal to kill the old process.
 	// We use tree-kill to nuke the group before we even attempt a new build.
@@ -51,18 +52,19 @@ async function start(signal: AbortSignal): Promise<void> {
 		});
 	}
 
-	if (signal.aborted) return;
+	if (signal.aborted) return true;
 
 	try {
 		const child = await compileTask(true, true);
-		if (!child) return;
+		if (!child) return false;
 		activePid = child.pid;
 		// Ensure we clean up if the server crashes on its own
 		child.status.then(() => {
 			if (activePid === child.pid) activePid = undefined;
 		});
+		return true;
 	} catch (e) {
-		if ((e as Error).name === "AbortError") return;
+		if ((e as Error).name === "AbortError") return true;
 		throw e;
 	}
 }
@@ -71,7 +73,11 @@ async function watchAndRestart(): Promise<void> {
 	const watcher = Deno.watchFs(paths, { recursive: true });
 
 	abortController = new AbortController();
-	start(abortController.signal);
+	if (!await start(abortController.signal)) {
+		watcher.close();
+		process.exitCode = 1;
+		return;
+	}
 
 	let timeout: NodeJS.Timeout | undefined;
 	for await (const event of watcher) {

@@ -3,7 +3,7 @@
   "specifiers": {
     "jsr:@deno/esbuild-plugin@^1.2.1": "1.2.1",
     "jsr:@deno/loader@~0.3.10": "0.3.14",
-    "jsr:@m234/logger@^3.0.7": "3.0.7",
+    "jsr:@m234/logger@^3.0.8": "3.0.8",
     "jsr:@m234/ns@^1.1.0": "1.1.0",
     "jsr:@std/async@^1.5.1": "1.5.1",
     "jsr:@std/dotenv@~0.225.8": "0.225.8",
@@ -44,8 +44,8 @@
     "@deno/loader@0.3.14": {
       "integrity": "97bc63a6cc2d27a60bcdc953f588c5213331d866d44212eebb24cebfb9b011ca"
     },
-    "@m234/logger@3.0.7": {
-      "integrity": "d3960cb25eb30a4a2ba91b2eff4208acec869dd5522e2ff5a5204b2f08ad7ad5",
+    "@m234/logger@3.0.8": {
+      "integrity": "db4e049d3cdd7e3e44d544b2508088bb4ec89a1b17b0ee111ae3d8fc6039a2f6",
       "dependencies": [
         "jsr:@m234/ns",
         "jsr:@std/async",
@@ -1136,7 +1136,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@deno/esbuild-plugin@^1.2.1",
-      "jsr:@m234/logger@^3.0.7",
+      "jsr:@m234/logger@^3.0.8",
       "jsr:@std/dotenv@~0.225.8",
       "jsr:@std/fmt@^1.0.10",
       "jsr:@std/fs@^1.0.24",

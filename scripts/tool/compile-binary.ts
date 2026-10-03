@@ -42,6 +42,27 @@ export function machineInfo(): [os: string, arch: string] {
 	return [os, arch];
 }
 
+async function runGo(
+	args: string[],
+	env: Record<string, string>,
+): Promise<boolean> {
+	const child = new Deno.Command("go", {
+		args,
+		env,
+		stdout: "piped",
+		stderr: "piped",
+	}).spawn();
+
+	const stdout = child.stdout.pipeTo(Deno.stdout.writable, {
+		preventClose: true,
+	});
+	const stderr = child.stderr.pipeTo(Deno.stderr.writable, {
+		preventClose: true,
+	});
+	const [status] = await Promise.all([child.status, stdout, stderr]);
+	return status.success;
+}
+
 export async function compile(
 	os: string,
 	arch: string,
@@ -66,20 +87,11 @@ export async function compile(
 		...Deno.env.toObject(),
 	};
 
-	const child = await new Deno.Command("go", {
-		args: [
-			"generate",
-			"./...",
-		],
-		env,
-		stdout: "inherit",
-		stderr: "inherit",
-	}).output();
+	const generated = await runGo(["generate", "./..."], env);
+	if (!generated) return false;
 
-	if (!child.success) return false;
-
-	const buildChild = await new Deno.Command("go", {
-		args: [
+	const built = await runGo(
+		[
 			"build",
 			"-tags",
 			dev ? "lite" : "prod",
@@ -87,16 +99,13 @@ export async function compile(
 			filePath,
 			".",
 		],
-		env: {
+		{
 			...env,
 			GOOS: os,
 			GOARCH: arch,
 		},
-		stdout: "inherit",
-		stderr: "inherit",
-	}).output();
-
-	if (!buildChild.success) return false;
+	);
+	if (!built) return false;
 
 	if (run) {
 		const spawn = new Deno.Command(filePath, {
