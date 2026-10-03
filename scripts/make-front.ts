@@ -5,6 +5,7 @@ import { cp } from "node:fs/promises";
 import { distFolder, logClientComp } from "./tool/constants.ts";
 import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { format, type TaskRunnerReturn } from "@m234/logger";
+import { showHelp } from "./tool/help.ts";
 
 const isWatch = Deno.args.includes("watch");
 
@@ -213,20 +214,23 @@ const calls: [() => Promise<TaskRunnerReturn>, string, string[]][] = [
 ];
 
 const existingGroups = Array.from(new Set(calls.flatMap((c) => c[2])));
-const extraGroups = ["min", "watch", "all", "help"];
+const extraGroups = ["min", "watch", "all"];
 const availableGroups = [...extraGroups, ...existingGroups];
 
 if (
-	Deno.args.includes("help") || Deno.args.includes("--help") ||
-	Deno.args.includes("-h")
+	showHelp({
+		name: "front",
+		description: "Build client assets.",
+		usage: "deno task front [group ...] [options]",
+		options: [
+			"-h, --help  Show this help.",
+			`Groups: ${availableGroups.join(", ")}.`,
+			"min         Minify JavaScript and CSS.",
+			"watch       Watch for client CSS changes and rebuild.",
+			"all         Build all asset groups (the default).",
+		],
+	}, true)
 ) {
-	logClientComp.info(
-		"Available options: " +
-			availableGroups.join(", ") + ".",
-	);
-	logClientComp.info(
-		"Usage example:\n\n\tdeno task front js css min watch\n",
-	);
 	Deno.exit();
 }
 

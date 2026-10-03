@@ -6,7 +6,7 @@
 			"type": "shell",
 			"command": "deno",
 			"args": ["task", "init"],
-			"detail": "Create the .env file, initialize database tables, and install the Git pre-commit hook.",
+			"detail": "Create .env, initialize database tables, and configure the Git pre-commit hook; supports --no-env, --no-db, and --no-git-hook.",
 			"icon": {
 				"id": "gear",
 				"color": "terminal.ansiBlue"

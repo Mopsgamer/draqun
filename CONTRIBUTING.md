@@ -20,7 +20,9 @@
 6. Run `go mod download` to install required server dependencies (optional).
 7. Run `deno task init` (or select **deno task init** from VS Code's **Tasks:
    Run Task**) to create the `.env` file, initialize the database, and install
-   the Git pre-commit hook. `--no-env` and `--no-db` options are available.
+   the Git pre-commit hook. `--no-env`, `--no-db`, and `--no-git-hook` options
+   are available to skip their respective setup steps. `--no-git-hook` also
+   removes a hook previously installed by this task.
 8. Change the `.env` file.
    - Set up server connection with SQLite.
    - Set up JWT secret.

@@ -1,5 +1,17 @@
 import { logServerComp } from "./tool/constants.ts";
 import { binaryInfo, compile } from "./tool/compile-binary.ts";
+import { showHelp } from "./tool/help.ts";
+
+if (
+	showHelp({
+		name: "back:cross",
+		description: "Cross-compile the backend for Windows, Linux, and macOS.",
+		usage: "deno task back:cross",
+		options: ["-h, --help  Show this help."],
+	})
+) {
+	Deno.exit(0);
+}
 
 const osList = ["windows", "linux", "darwin"] as const;
 const archList = ["amd64", "arm64"] as const;

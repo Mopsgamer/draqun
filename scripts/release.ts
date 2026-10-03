@@ -5,6 +5,23 @@ import { logRelease } from "./tool/constants.ts";
 import { existsSync, expandGlob } from "@std/fs";
 import { basename } from "@std/path";
 import isCI from "is-ci";
+import { showHelp } from "./tool/help.ts";
+
+if (
+	showHelp({
+		name: "release",
+		description: "Calculate a release version and create a GitHub release.",
+		usage: "deno task release [release-type] [alpha|beta] [--dry-run]",
+		options: [
+			"-h, --help                  Show this help.",
+			"--dry-run                   Calculate the version and changelog without publishing.",
+			"patch|minor|major|release   Select a release type; defaults to commit analysis.",
+			"alpha|beta                  Create a prerelease; defaults to a prerelease major.",
+		],
+	})
+) {
+	Deno.exit(0);
+}
 
 const gitLogFormat = "- [%h] %s (@%cN)";
 const preIdList = ["alpha", "beta"];

@@ -9,8 +9,25 @@ import {
 	logInitDb,
 	logInitFiles,
 } from "./tool/constants.ts";
+import { showHelp } from "./tool/help.ts";
 
-async function initGitHook(): Promise<void> {
+if (
+	showHelp({
+		name: "init",
+		description: "Initialize local environment files, database, and Git hook.",
+		usage: "deno task init [options]",
+		options: [
+			"-h, --help  Show this help.",
+			"--no-env    Skip creating or updating the .env file.",
+			"--no-db     Skip initializing the SQLite database.",
+			"--no-git-hook  Skip installing, or remove an existing managed pre-commit hook.",
+		],
+	})
+) {
+	Deno.exit(0);
+}
+
+async function initGitHook(disabled: boolean): Promise<void> {
 	const result = await new Deno.Command("git", {
 		args: ["rev-parse", "--git-path", "hooks"],
 		stdout: "piped",
@@ -18,6 +35,10 @@ async function initGitHook(): Promise<void> {
 	}).output();
 
 	if (!result.success) {
+		if (disabled) {
+			logInitFiles.info("Git hook setup skipped.");
+			return;
+		}
 		throw new Error(
 			"Unable to locate the Git hooks directory: " +
 				decoder.decode(result.stderr).trim(),
@@ -39,11 +60,23 @@ deno task prepare
 	if (existsSync(hookPath)) {
 		const existingHook = decoder.decode(await Deno.readFile(hookPath));
 		if (!existingHook.includes(hookMarker)) {
+			if (disabled) {
+				logInitFiles.warn(
+					`Leaving existing unmanaged pre-commit hook at '${hookPath}' unchanged.`,
+				);
+				return;
+			}
 			throw new Error(
 				`A pre-commit hook already exists at '${hookPath}'. ` +
 					"Preserve it and add 'deno task prepare' to that hook.",
 			);
 		}
+		if (disabled) {
+			await Deno.remove(hookPath);
+			return;
+		}
+	} else if (disabled) {
+		return;
 	}
 
 	await Deno.writeTextFile(hookPath, hookContents);
@@ -88,10 +121,6 @@ async function initSqliteTables(): Promise<void> {
 		},
 	};
 
-	logInitDb.warn(
-		"Rerunning 'init' won't change existing tables. Delete 'app_data.db' if you need a full reset.",
-	);
-
 	for (const sqlFile of sqlFileList) {
 		const execution = await logInitDb.task({
 			text: "Executing " + sqlFile,
@@ -115,10 +144,6 @@ async function initSqliteTables(): Promise<void> {
 			return;
 		}
 	}
-
-	logInitDb.success(
-		"All queries have been executed against app_data.db.",
-	);
 }
 
 function initEnvFile(path: string): void {
@@ -177,21 +202,33 @@ function initEnvFile(path: string): void {
 
 const isNoEnv = Deno.args.includes("--no-env");
 const isNoDb = Deno.args.includes("--no-db");
+const isNoGitHook = Deno.args.includes("--no-git-hook");
+
+if (!isNoDb) {
+	logInitDb.warn(
+		"Existing tables are unchanged; delete 'app_data.db' to reset.",
+	);
+}
 
 if (!isNoEnv) {
 	const path = ".env";
-	await logInitFiles.task({ text: `Initializing '${path}'` })
+	await logInitFiles.task({
+		text: `Initializing '${path}' (disable with --no-env)`,
+	})
 		.startRunner(() => initEnvFile(path));
 }
 
 if (!isNoDb) {
-	logInitDb.info("You can pass '--no-db' to ignore DB initialization step.");
-	await logInitDb.task({ text: "Initializing DB" })
+	await logInitDb.task({
+		text: "Initializing DB (disable with --no-db)",
+	})
 		.startRunner(initSqliteTables);
 }
 
 const hook = await logInitFiles.task({
-	text: "Installing Git pre-commit hook",
-}).startRunner(initGitHook);
+	text: isNoGitHook
+		? "Disabling Git pre-commit hook"
+		: "Configuring Git pre-commit hook (disable with --no-git-hook)",
+}).startRunner(() => initGitHook(isNoGitHook));
 
 if (hook.state === "failed") Deno.exit(1);

@@ -4,6 +4,18 @@ import { distFolder, logProd } from "./tool/constants.ts";
 import kill from "tree-kill";
 import { compileDist } from "./tool/compile-dist.ts";
 import { existsSync } from "@std/fs/exists";
+import { showHelp } from "./tool/help.ts";
+
+if (
+	showHelp({
+		name: "prod",
+		description: "Build and run the production server with periodic updates.",
+		usage: "deno task prod",
+		options: ["-h, --help  Show this help."],
+	})
+) {
+	Deno.exit(0);
+}
 
 const [os, arch] = machineInfo();
 const { filePath } = binaryInfo(os, arch);

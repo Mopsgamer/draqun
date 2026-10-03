@@ -3,6 +3,27 @@ import kill from "tree-kill";
 import { existsSync } from "node:fs";
 import { logDevelopment } from "./tool/constants.ts";
 import { compileTask } from "./tool/compile-binary.ts";
+import { showHelp } from "./tool/help.ts";
+
+if (
+	showHelp({
+		name: "dev",
+		description:
+			"Build client assets and run the development server, restarting on changes.",
+		usage: "deno task dev",
+		options: ["-h, --help  Show this help."],
+	})
+) {
+	Deno.exit(0);
+}
+
+const frontendBuild = new Deno.Command("deno", {
+	args: ["task", "front"],
+	stdout: "inherit",
+	stderr: "inherit",
+}).spawn();
+const frontendBuildStatus = await frontendBuild.status;
+if (!frontendBuildStatus.success) Deno.exit(frontendBuildStatus.code);
 
 const requiredPaths = [
 	"server/",
