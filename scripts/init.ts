@@ -1,6 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { parse } from "@std/dotenv";
 import { existsSync } from "@std/fs";
+import { resolve } from "@std/path";
 import {
 	decoder,
 	encoder,
@@ -8,6 +9,46 @@ import {
 	logInitDb,
 	logInitFiles,
 } from "./tool/constants.ts";
+
+async function initGitHook(): Promise<void> {
+	const result = await new Deno.Command("git", {
+		args: ["rev-parse", "--git-path", "hooks"],
+		stdout: "piped",
+		stderr: "piped",
+	}).output();
+
+	if (!result.success) {
+		throw new Error(
+			"Unable to locate the Git hooks directory: " +
+				decoder.decode(result.stderr).trim(),
+		);
+	}
+
+	const hookPath = resolve(
+		decoder.decode(result.stdout).trim(),
+		"pre-commit",
+	);
+	const hookMarker = "# draqun managed pre-commit hook";
+	const hookContents = `#!/bin/sh
+${hookMarker}
+repo_root=$(git rev-parse --show-toplevel) || exit 1
+cd "$repo_root" || exit 1
+deno task prepare
+`;
+
+	if (existsSync(hookPath)) {
+		const existingHook = decoder.decode(await Deno.readFile(hookPath));
+		if (!existingHook.includes(hookMarker)) {
+			throw new Error(
+				`A pre-commit hook already exists at '${hookPath}'. ` +
+					"Preserve it and add 'deno task prepare' to that hook.",
+			);
+		}
+	}
+
+	await Deno.writeTextFile(hookPath, hookContents);
+	await Deno.chmod(hookPath, 0o755);
+}
 
 async function initSqliteTables(): Promise<void> {
 	const sqlFileList = [
@@ -148,3 +189,9 @@ if (!isNoDb) {
 	await logInitDb.task({ text: "Initializing DB" })
 		.startRunner(initSqliteTables);
 }
+
+const hook = await logInitFiles.task({
+	text: "Installing Git pre-commit hook",
+}).startRunner(initGitHook);
+
+if (hook.state === "failed") Deno.exit(1);

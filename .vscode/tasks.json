@@ -2,14 +2,11 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Init",
+			"label": "deno task init",
 			"type": "shell",
 			"command": "deno",
-			"args": [
-				"task",
-				"init"
-			],
-			"detail": "Initialize the '.env' file, then database tables.",
+			"args": ["task", "init"],
+			"detail": "Create the .env file, initialize database tables, and install the Git pre-commit hook.",
 			"icon": {
 				"id": "gear",
 				"color": "terminal.ansiBlue"
@@ -17,14 +14,35 @@
 			"problemMatcher": []
 		},
 		{
-			"label": "Compile Client",
+			"label": "deno task prepare",
 			"type": "shell",
 			"command": "deno",
-			"args": [
-				"task",
-				"front"
-			],
-			"detail": "Build the 'client' folder.",
+			"args": ["task", "prepare"],
+			"detail": "Check formatting, lint, and types before committing.",
+			"icon": {
+				"id": "check",
+				"color": "terminal.ansiGreen"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "deno task dev",
+			"type": "shell",
+			"command": "deno",
+			"args": ["task", "dev"],
+			"detail": "Build frontend assets, then compile and run the development server.",
+			"icon": {
+				"id": "server",
+				"color": "terminal.ansiMagenta"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "deno task front",
+			"type": "shell",
+			"command": "deno",
+			"args": ["task", "front"],
+			"detail": "Build client assets.",
 			"icon": {
 				"id": "tools",
 				"color": "terminal.ansiGreen"
@@ -32,15 +50,11 @@
 			"problemMatcher": []
 		},
 		{
-			"label": "Compile Client & Watch",
+			"label": "deno task front watch",
 			"type": "shell",
 			"command": "deno",
-			"args": [
-				"task",
-				"front",
-				"watch"
-			],
-			"detail": "Watch and rebuild on 'client' changes.",
+			"args": ["task", "front", "watch"],
+			"detail": "Build client assets and watch for frontend changes.",
 			"icon": {
 				"id": "tools",
 				"color": "terminal.ansiYellow"
@@ -48,33 +62,14 @@
 			"problemMatcher": []
 		},
 		{
-			"label": "Compile Client Shoelace",
+			"label": "deno task back",
 			"type": "shell",
 			"command": "deno",
-			"args": [
-				"task",
-				"front",
-				"shoelace"
-			],
-			"detail": "Compile only the Shoelace assets for the client.",
+			"args": ["task", "back"],
+			"detail": "Compile the backend.",
 			"icon": {
 				"id": "tools",
 				"color": "terminal.ansiBlue"
-			},
-			"problemMatcher": []
-		},
-		{
-			"label": "Serve",
-			"type": "shell",
-			"command": "deno",
-			"args": [
-				"task",
-				"dev"
-			],
-			"detail": "Serve locally.",
-			"icon": {
-				"id": "server",
-				"color": "terminal.ansiMagenta"
 			},
 			"problemMatcher": []
 		}

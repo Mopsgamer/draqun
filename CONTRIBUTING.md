@@ -18,25 +18,27 @@
    [VSC terminal](https://code.visualstudio.com/docs/terminal/getting-started).
 5. Run `deno install` to install required client dependencies.
 6. Run `go mod download` to install required server dependencies (optional).
-7. Run `deno task init` to create `.env` file and initialize the database.
-   `--no-env` and `--no-db` options are available.
-8. Run `deno task front` to create client files.
-9. Change the `.env` file.
+7. Run `deno task init` (or select **deno task init** from VS Code's **Tasks:
+   Run Task**) to create the `.env` file, initialize the database, and install
+   the Git pre-commit hook. `--no-env` and `--no-db` options are available.
+8. Change the `.env` file.
    - Set up server connection with SQLite.
    - Set up JWT secret.
-10. Run `deno task dev` to start the server.
-11. Open your browser and navigate to `http://localhost:3000` (or hold the
+9. Run `deno task dev` to build client files and start the server.
+10. Open your browser and navigate to `http://localhost:3000` (or hold the
     <kbd>Ctrl</kbd> key and click the link in the terminal).
 
 ## Making changes
 
-The best way is to use two terminals, with a third for other tasks:
+Run `deno task dev` to build the client and serve locally. When changing client
+files, use a second terminal to rebuild them automatically:
 
 > [!NOTE]
 > You can use Visual Studio Code's task commands: `Tasks: Run Task`.
 >
-> - Compile Client & Watch
-> - Serve
+> - `deno task dev` to build frontend assets and run the development server.
+> - `deno task front watch` in a second terminal to rebuild frontend assets when
+>   they change.
 
 ```bash
 deno task front watch
@@ -46,7 +48,12 @@ deno task front watch
 deno task dev
 ```
 
-Before committing your changes, make sure to run the prepare task to format:
+Other available VS Code tasks mirror the Deno tasks: `deno task init`,
+`deno task prepare`, `deno task front`, and `deno task back`.
+
+Format your changes with `deno fmt`. Before committing, `deno task prepare`
+checks formatting, lint, and types; it also runs automatically before each
+commit after `deno task init` installs the Git hook:
 
 ```bash
 deno task prepare

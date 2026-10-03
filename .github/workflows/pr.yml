@@ -67,42 +67,8 @@ jobs:
    - run: |
       go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
- types-deno:
-  name: Deno Types
-  needs: changes
-  if: github.event.pull_request.draft == false && needs.changes.outputs.deno_code == 'true'
-  runs-on: ubuntu-latest
-  steps:
-   - uses: actions/checkout@v6
-     with:
-      ref: ${{ github.head_ref }}
-      token: ${{ secrets.GITHUB_TOKEN }}
-      repository: ${{ github.repository }}
-   - uses: denoland/setup-deno@v2
-     with:
-      deno-version: ${{ env.DENO_VERSION }}
-      cache: true
-   - run: deno check
-
- lint-deno:
-  name: Deno Lint
-  needs: changes
-  if: github.event.pull_request.draft == false && needs.changes.outputs.deno_code == 'true'
-  runs-on: ubuntu-latest
-  steps:
-   - uses: actions/checkout@v6
-     with:
-      ref: ${{ github.head_ref }}
-      token: ${{ secrets.GITHUB_TOKEN }}
-      repository: ${{ github.repository }}
-   - uses: denoland/setup-deno@v2
-     with:
-      deno-version: ${{ env.DENO_VERSION }}
-      cache: true
-   - run: deno lint
-
- fmt-deno:
-  name: Deno Format
+ deno-validation:
+  name: Deno Validation
   needs: changes
   if: |
    github.event.pull_request.draft == false &&
@@ -120,7 +86,9 @@ jobs:
      with:
       deno-version: ${{ env.DENO_VERSION }}
       cache: true
-   - run: deno fmt --check
+   - run: deno task prepare
+   - if: needs.changes.outputs.deno_code == 'true'
+     run: deno test --permit-no-files
 
  fmt-go:
   name: Go Format
@@ -162,23 +130,6 @@ jobs:
    - name: git diff
      run: git diff; git diff --quiet
 
- test-deno:
-  name: Deno Test
-  needs: changes
-  if: github.event.pull_request.draft == false && needs.changes.outputs.deno_code == 'true'
-  runs-on: ubuntu-latest
-  steps:
-   - uses: actions/checkout@v6
-     with:
-      ref: ${{ github.head_ref }}
-      token: ${{ secrets.GITHUB_TOKEN }}
-      repository: ${{ github.repository }}
-   - uses: denoland/setup-deno@v2
-     with:
-      deno-version: ${{ env.DENO_VERSION }}
-      cache: true
-   - run: deno test --permit-no-files
-
  test-go:
   name: Go Test
   needs: changes
@@ -214,19 +165,28 @@ jobs:
   needs:
    - changes
    - govulncheck
-   - types-deno
-   - lint-deno
-   - fmt-deno
+   - deno-validation
    - fmt-go
    - mod-go
-   - test-deno
    - test-go
   if: |
+   always() &&
+   !cancelled() &&
    github.event.pull_request.draft == false &&
    (needs.changes.outputs.go == 'true' ||
     needs.changes.outputs.sql == 'true' ||
     needs.changes.outputs.deno_code == 'true' ||
-    needs.changes.outputs.frontend == 'true')
+    needs.changes.outputs.frontend == 'true') &&
+   needs.govulncheck.result != 'failure' &&
+   needs.govulncheck.result != 'cancelled' &&
+   needs.deno-validation.result != 'failure' &&
+   needs.deno-validation.result != 'cancelled' &&
+   needs.fmt-go.result != 'failure' &&
+   needs.fmt-go.result != 'cancelled' &&
+   needs.mod-go.result != 'failure' &&
+   needs.mod-go.result != 'cancelled' &&
+   needs.test-go.result != 'failure' &&
+   needs.test-go.result != 'cancelled'
   env:
    GOCACHE: ${{ github.workspace }}/dist/cache
   runs-on: ubuntu-latest

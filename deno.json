@@ -9,9 +9,9 @@
 	},
 	"tasks": {
 		"init": "deno run -A scripts/init.ts",
-		"dev": "deno run --env-file=.env -A scripts/dev.ts",
+		"dev": "deno task front && deno run --env-file=.env -A scripts/dev.ts",
 		"prod": "deno run --env-file=.env -A scripts/prod.ts",
-		"prepare": "deno lint & deno fmt & deno check",
+		"prepare": "deno fmt --check && deno lint && deno check",
 		"front": "deno run -A scripts/make-front.ts",
 		"back": "deno run -A scripts/make-back.ts",
 		"back:cross": "deno run -A scripts/make-back-cross.ts",
