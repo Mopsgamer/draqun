@@ -17,13 +17,20 @@ if (
 	Deno.exit(0);
 }
 
-const frontendBuild = new Deno.Command("deno", {
-	args: ["task", "front"],
+const frontendWatcher = new Deno.Command("deno", {
+	args: ["run", "-A", "scripts/make-front.ts", "watch", "quiet"],
 	stdout: "inherit",
 	stderr: "inherit",
 }).spawn();
-const frontendBuildStatus = await frontendBuild.status;
-if (!frontendBuildStatus.success) Deno.exit(frontendBuildStatus.code);
+frontendWatcher.status.then((status) => {
+	if (!status.success) {
+		logDevelopment.error(
+			`Frontend watcher exited with code ${status.code}.`,
+		);
+		process.exitCode = status.code || 1;
+	}
+});
+logDevelopment.info("Frontend assets are building and watching for changes.");
 
 const requiredPaths = [
 	"server/",
@@ -91,15 +98,13 @@ async function start(signal: AbortSignal): Promise<boolean> {
 }
 
 async function watchAndRestart(): Promise<void> {
-	const watcher = Deno.watchFs(paths, { recursive: true });
-
 	abortController = new AbortController();
 	if (!await start(abortController.signal)) {
-		watcher.close();
 		process.exitCode = 1;
 		return;
 	}
 
+	const watcher = Deno.watchFs(paths, { recursive: true });
 	let timeout: NodeJS.Timeout | undefined;
 	for await (const event of watcher) {
 		if (!["modify", "create", "remove"].includes(event.kind)) continue;

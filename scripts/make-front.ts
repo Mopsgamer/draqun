@@ -8,6 +8,7 @@ import { format, type TaskRunnerReturn } from "@m234/logger";
 import { showHelp } from "./tool/help.ts";
 
 const isWatch = Deno.args.includes("watch");
+const isQuiet = Deno.args.includes("quiet");
 
 type BuildOptions = esbuild.BuildOptions & {
 	whenChange?: string[];
@@ -118,8 +119,9 @@ async function build(
 	// this callback won't block the process.
 	// buildTask will return while ignoring loop
 	(async () => {
-		const task = logClientComp.task({ text: "Watching for file changes" })
-			.start();
+		const task = isQuiet
+			? undefined
+			: logClientComp.task({ text: "Watching for file changes" }).start();
 
 		for await (const { paths, kind } of watcher) {
 			const isTargetEvent = kind === "modify" ||
@@ -138,12 +140,23 @@ async function build(
 				x = " '" + path.slice(path.lastIndexOf("/") + 1) + "'";
 			} else x = " (" + paths.length + " files)";
 			try {
-				task.text = "Building at " + new Date().toLocaleTimeString() + x;
+				if (task) {
+					task.text = "Building at " + new Date().toLocaleTimeString() + x;
+				}
 				await ctx.rebuild();
-				task.text = "Updated at " + new Date().toLocaleTimeString() + x;
+				if (task) {
+					task.text = "Updated at " + new Date().toLocaleTimeString() + x;
+				} else {
+					logClientComp.info(
+						"Frontend rebuilt at " + new Date().toLocaleTimeString() + x,
+					);
+				}
 			} catch (error) {
-				task.text = "Failed at " + new Date().toLocaleTimeString() + x + ": " +
+				const message = "Frontend build failed at " +
+					new Date().toLocaleTimeString() + x + ": " +
 					(error as Error).message;
+				if (task) task.text = message;
+				else logClientComp.error(message);
 			}
 		}
 
@@ -214,7 +227,7 @@ const calls: [() => Promise<TaskRunnerReturn>, string, string[]][] = [
 ];
 
 const existingGroups = Array.from(new Set(calls.flatMap((c) => c[2])));
-const extraGroups = ["min", "watch", "all"];
+const extraGroups = ["min", "watch", "quiet", "all"];
 const availableGroups = [...extraGroups, ...existingGroups];
 
 if (
@@ -227,6 +240,7 @@ if (
 			`Groups: ${availableGroups.join(", ")}.`,
 			"min         Minify JavaScript and CSS.",
 			"watch       Watch for client CSS changes and rebuild.",
+			"quiet       Suppress progress output while building.",
 			"all         Build all asset groups (the default).",
 		],
 	}, true)
@@ -265,7 +279,12 @@ if (existingGroupsUsed) {
 
 await Promise.allSettled(calls.map(([builder, directory]) => {
 	const text = `Bundling '${directory}'`;
-	return logClientComp.task({ text }).startRunner(builder);
+	if (!isQuiet) return logClientComp.task({ text }).startRunner(builder);
+	return builder()
+		.then((result) => {
+			if (result === "failed") logClientComp.error(`${text} failed.`);
+		})
+		.catch((error) => logClientComp.error(`${text} failed: ${format(error)}`));
 }));
 
 if (!isWatch) {
