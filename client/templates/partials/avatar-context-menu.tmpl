@@ -1,53 +1,69 @@
-<sl-dropdown placement="bottom-end">
-    <sl-button id="avatar-button" variant="text" slot="trigger">
-        <span class="moniker aligned h-full" title={{with .User.Moniker}}{{.}}{{end}}
-        >{{if not .User.IsEmpty}}{{.User.Moniker}}{{else}}Guest{{end}}</span>
-        <sl-avatar class="-mr-2 ml-4" slot="suffix"></sl-avatar>
-    </sl-button>
-    <sl-menu>
+<details class="dropdown dropdown-end">
+    <summary id="avatar-button" class="btn btn-ghost btn-sm normal-case flex items-center gap-2 cursor-pointer list-none">
+        <span class="truncate max-w-44 flex items-center gap-1 font-semibold" title={{with .User.Moniker}}{{.}}{{end}}>
+            {{if not .User.IsEmpty}}{{.User.Moniker}}{{else}}Guest{{end}}
+        </span>
+        <span class="inline-flex size-7 items-center justify-center rounded-full bg-white text-[#073b3a]" aria-hidden="true">
+            <span class="icon icon-[lucide--user-round] size-4"></span>
+        </span>
+    </summary>
+    <ul class="dropdown-content menu menu-sm w-56 z-30 mt-2 p-1 rounded-box">
         {{- if not .User.IsEmpty -}}
+        <li>
             <a href="/settings">
-                <sl-menu-item>
-                    <sl-icon slot="prefix" name="gear-fill"></sl-icon>
-                    Settings
-                </sl-menu-item>
+                <span class="icon icon-[lucide--settings] size-4" aria-hidden="true"></span>
+                Settings
             </a>
+        </li>
         {{- end -}}
         {{- if ne .Ctx.Path "/docs" -}}
-        <sl-menu-item class="theme-menu">
-            <sl-icon slot="prefix" name="circle-half"></sl-icon>
-            Theme
-            <sl-menu slot="submenu">
-                <sl-menu-item type="checkbox" value="sl-theme-dark">
-                    <sl-icon slot="prefix" name="moon-fill"></sl-icon>
-                    Dark
-                </sl-menu-item>
-                <sl-menu-item type="checkbox" value="sl-theme-light">
-                    <sl-icon slot="prefix" name="sun-fill"></sl-icon>
-                    Light
-                </sl-menu-item>
-                <sl-menu-item type="checkbox" value="system">
-                    <sl-icon slot="prefix" name="pc-display"></sl-icon>
-                    System
-                </sl-menu-item>
-            </sl-menu>
-        </sl-menu-item>
+        <li>
+            <details>
+                <summary>
+                    <span class="icon icon-[lucide--contrast] size-4" aria-hidden="true"></span>
+                    Theme
+                </summary>
+                <ul>
+                    <li>
+                        <label>
+                            <input type="radio" name="theme-choice" value="dark">
+                            <span class="icon icon-[lucide--moon] size-4" aria-hidden="true"></span>
+                            Dark
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            <input type="radio" name="theme-choice" value="light">
+                            <span class="icon icon-[lucide--sun] size-4" aria-hidden="true"></span>
+                            Light
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            <input type="radio" name="theme-choice" value="system">
+                            <span class="icon icon-[lucide--monitor] size-4" aria-hidden="true"></span>
+                            System
+                        </label>
+                    </li>
+                </ul>
+            </details>
+        </li>
         {{- end -}}
 
-        <sl-divider></sl-divider>
-
         {{- if not .User.IsEmpty -}}
-        <sl-menu-item hx-put="/account/logout" hx-swap="innerHTML">
-            <sl-icon slot="prefix" name="box-arrow-right"></sl-icon>
-            Log Out
-        </sl-menu-item>
+        <li>
+            <button hx-put="/account/logout" hx-swap="innerHTML">
+                <span class="icon icon-[lucide--log-out] size-4" aria-hidden="true"></span>
+                Log Out
+            </button>
+        </li>
         {{- else -}}
-        <a href="/login">
-            <sl-menu-item>
-                <sl-icon slot="prefix" name="person-circle"></sl-icon>
+        <li>
+            <a href="/login">
+                <span class="icon icon-[lucide--circle-user-round] size-4" aria-hidden="true"></span>
                 Log In
-            </sl-menu-item>
-        </a>
+            </a>
+        </li>
         {{- end}}
-    </sl-menu>
-</sl-dropdown>
+    </ul>
+</details>

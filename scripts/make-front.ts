@@ -165,21 +165,7 @@ async function build(
 	return "completed";
 }
 
-const slAlias = ["shoelace", "shoe", "sl"];
-const slAssets = slAlias.map((a) => (a + "-assets"));
-
 const calls: [() => Promise<TaskRunnerReturn>, string, string[]][] = [
-	[
-		() =>
-			cp(
-				"node_modules/@shoelace-style/shoelace/dist/assets",
-				distFolder + "/static/shoelace/assets",
-				{ recursive: true },
-			),
-		distFolder + "/static/shoelace/assets",
-		[...slAssets, ...slAlias],
-	],
-
 	[
 		() =>
 			cp(
@@ -203,7 +189,7 @@ const calls: [() => Promise<TaskRunnerReturn>, string, string[]][] = [
 				plugins: [denoPlugin()],
 			}),
 		distFolder + "/static/js",
-		["js", ...slAlias],
+		["js"],
 	],
 
 	[
@@ -222,7 +208,7 @@ const calls: [() => Promise<TaskRunnerReturn>, string, string[]][] = [
 				],
 			}),
 		distFolder + "/static/css",
-		["css", ...slAlias],
+		["css"],
 	],
 ];
 

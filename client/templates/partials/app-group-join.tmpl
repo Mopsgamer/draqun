@@ -1,25 +1,24 @@
 <main id="app-content" class="centered-main">
-    <div class="gap-5 flex flex-col items-center">
-        <sl-avatar shape="rounded" style="--size: 5rem">
-            <sl-icon slot="icon" name="people-fill"></sl-icon>
-        </sl-avatar>
+    <div class="gap-5 flex flex-col items-center p-6 bg-surface-card rounded-box border border-base-content/10 shadow-sm max-w-md w-full mx-4">
+        <span class="inline-flex size-20 items-center justify-center rounded-full bg-primary/10 text-primary" aria-hidden="true">
+            <span class="icon icon-[lucide--users] size-10"></span>
+        </span>
         {{- with .Group.Description -}}
-        <div class="description">{{.}}</div>
+        <div class="text-center text-sm text-base-content/70">{{.}}</div>
         {{- end -}}
-        <div class="question">Join to {{.Group.Moniker}} group?</div>
-        <div class="aligned answers" hx-target="#error-group-join">
-            <sl-button
-                variant="success"
-                outline
+        <div class="text-xl font-bold text-center">Join to {{.Group.Moniker}} group?</div>
+        <div class="flex items-center gap-3" hx-target="#error-group-join">
+            <button
+                class="btn btn-success"
                 hx-put="/groups/{{.Group.Id}}/join"
             >
-                <sl-icon name="person-plus-fill" slot="prefix"></sl-icon>
+                <span class="icon icon-[lucide--user-round-plus] size-4" aria-hidden="true"></span>
                 Join
-            </sl-button>
-            <sl-button variant="danger" outline href="/chat">
-                <sl-icon name="house-fill" slot="prefix"></sl-icon>
+            </button>
+            <a class="btn btn-ghost" href="/chat">
+                <span class="icon icon-[lucide--house] size-4" aria-hidden="true"></span>
                 Stay
-            </sl-button>
+            </a>
         </div>
         <div id="error-group-join"></div>
     </div>

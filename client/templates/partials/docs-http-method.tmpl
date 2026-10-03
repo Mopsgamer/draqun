@@ -1,20 +1,19 @@
-{{$variant := "neutral"}} {{- if eq .Method "get"}}{{$variant =
-"primary"}}{{end}} {{- if eq .Method "post"}}{{$variant = "success"}}{{end}} {{-
-if eq .Method "put"}}{{$variant = "warning"}}{{end}} {{- if eq .Method
-"delete"}}{{$variant = "danger"}}{{end}}
-<div class="http-method">
-    <div class="aligned">
-        <sl-tag size="medium" variant="{{$variant}}" class="method uppercase"
-        >{{.Method}}</sl-tag>
-        <code class="w-full overflow-y-auto path">{{.Path}}</code>
+{{$variant := "badge-neutral"}} {{- if eq .Method "get"}}{{$variant =
+"badge-primary"}}{{end}} {{- if eq .Method "post"}}{{$variant = "badge-success"}}{{end}} {{-
+if eq .Method "put"}}{{$variant = "badge-warning"}}{{end}} {{- if eq .Method
+"delete"}}{{$variant = "badge-error"}}{{end}}
+<div class="http-method flex flex-col gap-2">
+    <div class="flex items-center gap-2">
+        <span class="badge {{$variant}} method uppercase font-bold">{{.Method}}</span>
+        <code class="w-full overflow-y-auto path bg-surface-inset p-1.5 rounded">{{.Path}}</code>
     </div>
-    <div class="description">
+    <div class="description text-sm text-base-content/80">
         {{- .Description -}}
     </div>
-    <h5>Request</h5>
+    <h5 class="text-xs uppercase tracking-wider font-bold text-base-content/60 mt-2">Request</h5>
     <div class="request">
         {{- template "partials/docs-fields" .Request}}
     </div>
-    <h5>Response</h5>
+    <h5 class="text-xs uppercase tracking-wider font-bold text-base-content/60 mt-2">Response</h5>
     <div class="response">{{.Response}}</div>
 </div>

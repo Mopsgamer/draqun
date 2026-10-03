@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/static"
 )
@@ -13,6 +14,9 @@ func RouteStatic(embedFS fs.FS, clientEmbedded bool, app *fiber.App) {
 	cfg := static.Config{
 		Browse:        false,
 		CacheDuration: time.Minute,
+	}
+	if environment.BuildEnvironment == environment.BuildModeDevelopment {
+		cfg.CacheDuration = -1
 	}
 
 	if !clientEmbedded {

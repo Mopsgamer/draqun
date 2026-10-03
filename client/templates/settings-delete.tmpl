@@ -1,9 +1,10 @@
-<div class="p-page">
-    <h1>
-        <sl-icon name="exclamation-triangle-fill"></sl-icon>
+<div class="p-page max-w-md mx-auto">
+    <h1 class="text-2xl font-bold mb-4 flex items-center gap-2 text-error">
+        <span class="icon icon-[lucide--triangle-alert]" aria-hidden="true"></span>
         Delete account
     </h1>
     <form
+        class="flex flex-col gap-4 bg-surface-card p-6 rounded-box border border-error/20 shadow-sm"
         autocomplete="off"
         id="account-delete-form"
         name="account-delete-form"
@@ -11,34 +12,23 @@
         hx-swap="innerHTML"
         hx-target="#account-delete-error"
     >
-        <sl-input
-            autofocus
-            label="Current password"
-            type="password"
-            id="account-delete-current-password"
-            name="current-password"
-            required
-            password-toggle
-            autocomplete="password"
-        >
-            <sl-icon slot="show-password-icon" name="eye-fill"></sl-icon>
-            <sl-icon slot="hide-password-icon" name="eye-slash-fill"></sl-icon>
-        </sl-input>
-        <sl-input
-            label="Confirm name ({{.User.Name}})"
-            id="account-delete-confirm-name"
-            name="confirm-name"
-            required
-            type="text"
-            autocomplete="off"
-        >
-        </sl-input>
-        <div id="account-delete-error"></div>
-        <div class="form-footer">
-            <div>
-                <sl-button form="account-delete-form" variant="danger" type="submit"
-                >Delete account</sl-button>
+        <div class="flex flex-col gap-1 w-full">
+            <label class="text-sm font-semibold" for="account-delete-current-password">Current password</label>
+            <div class="relative w-full">
+                <input class="input input-bordered w-full pr-12" autofocus type="password" id="account-delete-current-password" name="current-password" required autocomplete="password">
+                <button type="button" class="absolute inset-y-0 right-2 inline-flex items-center justify-center p-1 text-base-content/70 hover:text-base-content cursor-pointer" aria-label="Show password" aria-pressed="false" data-toggle-password>
+                    <span class="icon icon-[lucide--eye] size-5" aria-hidden="true" data-password-visible></span>
+                    <span class="icon icon-[lucide--eye-off] size-5" aria-hidden="true" data-password-hidden hidden></span>
+                </button>
             </div>
+        </div>
+        <div class="flex flex-col gap-1 w-full">
+            <label class="text-sm font-semibold" for="account-delete-confirm-name">Confirm name ({{.User.Name}})</label>
+            <input class="input input-bordered w-full" id="account-delete-confirm-name" name="confirm-name" required type="text" autocomplete="off">
+        </div>
+        <div id="account-delete-error"></div>
+        <div class="flex justify-end pt-2">
+            <button class="btn btn-error" form="account-delete-form" type="submit">Delete account</button>
         </div>
     </form>
 </div>

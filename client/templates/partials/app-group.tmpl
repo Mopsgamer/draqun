@@ -12,8 +12,23 @@
         {{- template "partials/chat-input" .}}
     </div>
     <div id="members-view">
-        <div class="aligned" slot="label">
-            Members - {{.Group.MembersCount}}
+        <div class="flex items-center justify-between min-h-10 pb-2 border-b border-base-content/10">
+            <div class="flex items-center gap-2 font-semibold text-base truncate">
+                <span class="icon icon-[lucide--users] size-4 shrink-0" aria-hidden="true"></span>
+                <span class="truncate">{{.Group.Moniker}}</span>
+            </div>
+            <button
+                class="btn btn-ghost btn-square btn-sm group-members-toggle"
+                type="button"
+                aria-label="Close members list"
+                aria-controls="members-view"
+                aria-expanded="false"
+            >
+                <span class="icon icon-[lucide--x] size-5" aria-hidden="true"></span>
+            </button>
+        </div>
+        <div class="text-xs font-semibold text-base-content/60 uppercase tracking-wider py-1">
+            Members &middot; {{.Group.MembersCount}}
         </div>
         <div id="members">
             <div

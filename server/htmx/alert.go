@@ -5,13 +5,15 @@ import (
 	"fmt"
 )
 
-type ShoelaceAlertLevel int
+type AlertLevel int
 
-var _ fmt.Stringer = (*ShoelaceAlertLevel)(nil)
-var _ fmt.GoStringer = (*ShoelaceAlertLevel)(nil)
+var _ fmt.Stringer = (*AlertLevel)(nil)
+var _ fmt.GoStringer = (*AlertLevel)(nil)
 
-func (level ShoelaceAlertLevel) String() string {
+func (level AlertLevel) String() string {
 	switch level {
+	case Primary:
+		return "primary"
 	case Success:
 		return "success"
 	case Warning:
@@ -19,16 +21,16 @@ func (level ShoelaceAlertLevel) String() string {
 	case Danger:
 		return "danger"
 	default:
-		panic(fmt.Sprintf("Unknown shoelace alert level: %d", level))
+		panic(fmt.Sprintf("Unknown alert level: %d", level))
 	}
 }
 
-func (level ShoelaceAlertLevel) GoString() string {
+func (level AlertLevel) GoString() string {
 	return level.String()
 }
 
 const (
-	Primary ShoelaceAlertLevel = iota
+	Primary AlertLevel = iota
 	Success
 	Warning
 	Danger
@@ -37,18 +39,18 @@ const (
 type Alert interface {
 	error
 	Local() string // User friendly error message.
-	Level() ShoelaceAlertLevel
+	Level() AlertLevel
 }
 
 type alert struct {
 	err   error
 	local string // User friendly error message.
-	level ShoelaceAlertLevel
+	level AlertLevel
 }
 
 var _ Alert = (*alert)(nil)
 
-func NewAlert(err error, local string, level ShoelaceAlertLevel) alert {
+func NewAlert(err error, local string, level AlertLevel) alert {
 	return alert{
 		err:   err,
 		local: local,
@@ -75,6 +77,6 @@ func (a alert) Local() string {
 	return a.local
 }
 
-func (a alert) Level() ShoelaceAlertLevel {
+func (a alert) Level() AlertLevel {
 	return a.level
 }

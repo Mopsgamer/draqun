@@ -1,6 +1,6 @@
 <div class="chat-input">
     <form
-        class="aligned flex-row w-full"
+        class="flex flex-row items-end gap-2 w-full"
         id="send-message-form"
         hx-trigger="submit, keydown[key=='Enter'&&ctrlKey] from:#new-message-input"
         hx-target="#send-message-error"
@@ -8,45 +8,58 @@
         hx-swap="innerHTML"
         hx-post="/groups/{{.Group.Id}}/messages/create"
     >
-        <div class="box">
-            <div id="send-message-error" class="w-full"></div>
-            <sl-textarea
+        <div class="flex flex-col flex-1 min-w-0">
+            <div id="send-message-error" class="w-full text-error text-xs font-semibold pb-1"></div>
+            <textarea
+                class="textarea textarea-bordered w-full bg-surface-inset text-base leading-snug rounded-lg"
                 id="new-message-input"
                 form="send-message-form"
                 placeholder="Write to {{.Group.Moniker}}"
                 name="content"
                 rows="1"
-                resize="auto"
-            ></sl-textarea>
+                data-autoresize
+            ></textarea>
         </div>
-        <div class="right">
-            <sl-button
+        <div>
+            <button
+                class="btn btn-ghost btn-square"
                 title="Send"
-                variant="text"
                 form="send-message-form"
                 type="submit"
             >
-                <sl-icon name="send-fill"></sl-icon>
-            </sl-button>
+                <span class="icon icon-[lucide--send] size-5" aria-hidden="true"></span>
+            </button>
         </div>
     </form>
-    <div class="bottom aligned flex-row w-full">
-        <sl-breadcrumb class="ml-3">
-            <sl-breadcrumb-item href="/chat">
-                <sl-icon name="house-fill" slot="prefix"></sl-icon>
-                {{.AppName}}
-            </sl-breadcrumb-item>
+    <div class="flex flex-row items-center w-full text-xs">
+        <nav class="breadcrumbs text-xs py-0">
+            <ul>
+                <li>
+                    <a href="/chat" class="flex items-center gap-1">
+                        <span class="icon icon-[lucide--house] size-3.5" aria-hidden="true"></span>
+                        {{.AppName}}
+                    </a>
+                </li>
             {{- if not .Group.IsEmpty -}}
-            <sl-breadcrumb-item href="/chat/groups/{{.Group.Id}}">
-                <sl-icon name="people-fill" slot="prefix"></sl-icon>
-                <div class="name">{{- .Group.Moniker -}}</div>
+                <li>
+                    <button
+                        class="btn btn-ghost btn-xs gap-1 normal-case group-members-toggle cursor-pointer"
+                        type="button"
+                        aria-label="Toggle members for {{.Group.Moniker}}"
+                        aria-controls="members-view"
+                        aria-expanded="false"
+                    >
+                        <span class="icon icon-[lucide--users] size-3.5" aria-hidden="true"></span>
+                        <span>{{- .Group.Moniker -}}</span>
+                    </button>
                 {{- if .Member.Role.PermGroupChange.Has -}}
-                <div class="group-actions" slot="suffix">
-                    {{template "partials/group-actions" .Group}}
-                </div>
+                    <span class="inline-flex items-center ml-1">
+                        {{template "partials/group-actions" .Group}}
+                    </span>
                 {{- end -}}
-            </sl-breadcrumb-item>
+                </li>
             {{- end -}}
-        </sl-breadcrumb>
+            </ul>
+        </nav>
     </div>
 </div>

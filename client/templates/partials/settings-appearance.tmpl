@@ -1,21 +1,14 @@
-<div>
-    <h2 class="anchor-header">
-        <sl-icon name="palette-fill"></sl-icon>
+<div class="flex flex-col gap-4">
+    <h2 class="text-xl font-bold pb-2 border-b border-base-content/10 flex items-center gap-2">
+        <span class="icon icon-[lucide--palette] size-5" aria-hidden="true"></span>
         Appearance
     </h2>
-    <sl-select class="theme-menu" label="Theme">
-        <sl-icon slot="prefix" name="circle-half"></sl-icon>
-        <sl-option value="sl-theme-dark">
-            <sl-icon slot="prefix" name="moon-fill"></sl-icon>
-            Dark
-        </sl-option>
-        <sl-option value="sl-theme-light">
-            <sl-icon slot="prefix" name="sun-fill"></sl-icon>
-            Light
-        </sl-option>
-        <sl-option value="system">
-            <sl-icon slot="prefix" name="pc-display"></sl-icon>
-            System
-        </sl-option>
-    </sl-select>
+    <div class="flex flex-col gap-1 max-w-sm">
+        <label class="text-sm font-semibold">Theme</label>
+        <select class="select select-bordered w-full">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="system">System</option>
+        </select>
+    </div>
 </div>

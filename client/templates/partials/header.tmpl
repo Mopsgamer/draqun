@@ -1,38 +1,44 @@
-<header id="header">
-    <nav>
-        <sl-dropdown class="aligned" id="page-nav">
-            <sl-icon-button library="draqun" name="logo" slot="trigger"></sl-icon-button>
-            <sl-menu>
+<header id="header" class="navbar">
+    <nav class="navbar-start gap-1">
+        <details class="dropdown">
+            <summary class="btn btn-ghost btn-square btn-sm cursor-pointer list-none flex items-center justify-center" id="page-nav" aria-label="Open navigation">
+                <span class="icon icon-[lucide--menu] size-5" aria-hidden="true"></span>
+            </summary>
+            <ul class="dropdown-content menu menu-sm w-56 z-30 mt-2 p-1 rounded-box">
                 {{if ne .Ctx.Path "/"}}
-                <a href="/">
-                    <sl-menu-item>
-                        <sl-icon name="rocket-fill" slot="prefix"></sl-icon>
+                <li>
+                    <a href="/">
+                        <span class="icon icon-[lucide--rocket] size-4" aria-hidden="true"></span>
                         Landing page
-                    </sl-menu-item>
-                </a>
+                    </a>
+                </li>
                 {{end}}
-                <a href="/chat">
-                    <sl-menu-item>
-                        <sl-icon library="draqun" name="logo" slot="prefix"></sl-icon>
+                <li>
+                    <a href="/chat">
+                        <span class="brand-logo size-4" aria-hidden="true"></span>
                         Open {{.AppName}}
-                    </sl-menu-item>
-                </a>
-                <a href="/docs">
-                    <sl-menu-item>
-                        <sl-icon name="code" slot="prefix"></sl-icon>
+                    </a>
+                </li>
+                <li>
+                    <a href="/docs">
+                        <span class="icon icon-[lucide--code-xml] size-4" aria-hidden="true"></span>
                         Documentation
-                    </sl-menu-item>
-                </a>
-                <a href="#footer">
-                    <sl-menu-item>
-                        <sl-icon name="three-dots" slot="prefix"></sl-icon>
+                    </a>
+                </li>
+                <li>
+                    <a href="#footer">
+                        <span class="icon icon-[lucide--ellipsis] size-4" aria-hidden="true"></span>
                         More
-                    </sl-menu-item>
-                </a>
-            </sl-menu>
-        </sl-dropdown>
+                    </a>
+                </li>
+            </ul>
+        </details>
+        <a class="btn btn-ghost text-base font-bold gap-2 normal-case text-white hover:text-white" href="/" aria-label="{{.AppName}} home">
+            <span class="brand-logo" aria-hidden="true"></span>
+            <span>{{.AppName}}</span>
+        </a>
     </nav>
-    <nav>
+    <nav class="navbar-end">
         {{- template "partials/avatar-context-menu" .}}
     </nav>
 </header>

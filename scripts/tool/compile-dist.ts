@@ -3,7 +3,7 @@ import { distFolder } from "./constants.ts";
 
 export async function compileDist(
 	clean = true,
-	...args: ("css" | "js" | "sl" | "sl-assets")[]
+	...args: ("css" | "js")[]
 ): Promise<void> {
 	if (clean) {
 		await rm(distFolder + "/static", { recursive: true, force: true });

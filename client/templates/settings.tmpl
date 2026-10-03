@@ -1,8 +1,12 @@
-<div class="p-page">
-    <h1>
-        <sl-icon name="gear-fill"></sl-icon>
+<div class="p-page grid grid-cols-1 md:grid-cols-[minmax(0,1.7fr)_minmax(14rem,1fr)] gap-4">
+    <h1 class="col-span-full text-2xl font-bold flex items-center gap-2 mb-2">
+        <span class="icon icon-[lucide--settings]" aria-hidden="true"></span>
         Settings
     </h1>
-    {{- template "partials/settings-account" . -}}
-    {{- template "partials/settings-appearance" . -}}
+    <section class="bg-surface-panel p-4 md:p-6 rounded-box border border-base-content/10 shadow-sm flex flex-col gap-4">
+        {{- template "partials/settings-account" . -}}
+    </section>
+    <section class="bg-surface-panel p-4 md:p-6 rounded-box border border-base-content/10 shadow-sm flex flex-col gap-4 h-fit">
+        {{- template "partials/settings-appearance" . -}}
+    </section>
 </div>

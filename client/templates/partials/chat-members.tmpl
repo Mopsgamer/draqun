@@ -1,23 +1,18 @@
 {{$this := .}} {{- range $i, $member := $this.MemberList}}
 
 <div id="member-{{$member.Id}}" class="member">
-    <div class="prefix">
-        <sl-avatar style="--size: 2rem"></sl-avatar>
-    </div>
-    <div class="text">
-        <div
-            class="moniker w-full"
-            {{with
-            $member.Moniker}}title="{{$member.Moniker}}"
-            {{end}}
-        >
-            {{$member.Moniker}}
-        </div>
-    </div>
+    <span class="inline-flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0" aria-hidden="true">
+        <span class="icon icon-[lucide--user-round] size-4"></span>
+    </span>
+    <span
+        class="truncate font-medium text-sm flex-1"
+        {{with $member.Moniker}}title="{{$member.Moniker}}"{{end}}
+    >
+        {{$member.Moniker}}
+    </span>
 </div>
 
-{{- if and (eq $i $this.MembersPagination) (eq (len $this.MemberList)
-$this.MembersPagination) -}}
+{{- if and (eq $i $this.MembersPagination) (eq (len $this.MemberList) $this.MembersPagination) -}}
 <div
     class="load-scroll"
     hx-trigger="intersect once"

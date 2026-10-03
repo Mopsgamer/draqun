@@ -1,79 +1,66 @@
-<div>
-    <h2 class="anchor-header">
-        <sl-icon name="person-fill"></sl-icon>
+<div class="flex flex-col gap-4">
+    <h2 class="text-xl font-bold pb-2 border-b border-base-content/10 flex items-center gap-2">
+        <span class="icon icon-[lucide--user-round] size-5" aria-hidden="true"></span>
         Account settings
     </h2>
-    <h4 slot="header" class="anchor-header">
-        <sl-icon name="pen-fill"></sl-icon>
+    <h4 class="text-base font-semibold flex items-center gap-2 text-base-content/80">
+        <span class="icon icon-[lucide--pen] size-4" aria-hidden="true"></span>
         Profile
     </h4>
     <form
         id="change-name-form"
+        class="grid grid-cols-1 md:grid-cols-2 gap-3"
         hx-put="/account/change/name"
         hx-swap="innerHTML"
         hx-target="#change-name-error"
     >
-        <sl-input
-            label="Moniker"
-            type="text"
-            id="new-moniker"
-            name="new-moniker"
-            value="{{.User.Moniker}}"
-        ></sl-input>
-        <sl-input
-            label="Name"
-            type="text"
-            id="new-name"
-            name="new-name"
-            value="{{.User.Name}}"
-        ></sl-input>
-        <div id="change-name-error"></div>
-        <div class="form-footer">
-            <div>
-                <sl-button
-                    type="submit"
-                    form="change-name-form"
-                    variant="primary"
-                >Save</sl-button>
-            </div>
+        <div class="flex flex-col gap-1 w-full">
+            <label class="text-sm font-semibold" for="new-moniker">Moniker</label>
+            <input class="input input-bordered w-full" type="text" id="new-moniker" name="new-moniker" value="{{.User.Moniker}}">
+        </div>
+        <div class="flex flex-col gap-1 w-full">
+            <label class="text-sm font-semibold" for="new-name">Name</label>
+            <input class="input input-bordered w-full" type="text" id="new-name" name="new-name" value="{{.User.Name}}">
+        </div>
+        <div id="change-name-error" class="col-span-full"></div>
+        <div class="col-span-full flex justify-end">
+            <button class="btn btn-primary" type="submit" form="change-name-form">Save</button>
         </div>
     </form>
-    <h4 slot="header" class="anchor-header">
-        <sl-icon name="mailbox2-flag"></sl-icon>
+    <h4 class="text-base font-semibold flex items-center gap-2 text-base-content/80">
+        <span class="icon icon-[lucide--mail] size-4" aria-hidden="true"></span>
         Email
     </h4>
-    <div class="flex justify-between">
-        {{- hideEmail .User.Email -}}
-        <sl-button variant="primary" href="/settings/email"
-        >Change email</sl-button>
+    <div class="flex items-center justify-between p-3 rounded-lg bg-surface-card border border-base-content/10">
+        <span>{{- hideEmail .User.Email -}}</span>
+        <a class="btn btn-primary btn-sm" href="/settings/email">Change email</a>
     </div>
-    <h4 slot="header" class="anchor-header">
-        <sl-icon name="telephone-fill"></sl-icon>
+    <h4 class="text-base font-semibold flex items-center gap-2 text-base-content/80">
+        <span class="icon icon-[lucide--phone] size-4" aria-hidden="true"></span>
         Phone
     </h4>
-    <div class="flex justify-between">
-        {{- if ne .User.Phone "" -}}
-            {{- hidePhone .User.Phone -}}
-        {{- else -}}
-            None
-        {{- end -}}
-        <sl-button variant="primary" href="/settings/phone"
-        >Change phone</sl-button>
+    <div class="flex items-center justify-between p-3 rounded-lg bg-surface-card border border-base-content/10">
+        <span>
+            {{- if ne .User.Phone "" -}}
+                {{- hidePhone .User.Phone -}}
+            {{- else -}}
+                None
+            {{- end -}}
+        </span>
+        <a class="btn btn-primary btn-sm" href="/settings/phone">Change phone</a>
     </div>
-    <h4 slot="header" class="anchor-header">
-        <sl-icon name="lock-fill"></sl-icon>
+    <h4 class="text-base font-semibold flex items-center gap-2 text-base-content/80">
+        <span class="icon icon-[lucide--lock-keyhole] size-4" aria-hidden="true"></span>
         Password
     </h4>
     <div class="flex gap-2">
-        <sl-button variant="primary" href="/settings/password"
-        >Change password</sl-button>
+        <a class="btn btn-primary btn-sm" href="/settings/password">Change password</a>
     </div>
-    <h4 slot="header" class="anchor-header">
-        <sl-icon name="exclamation-triangle-fill"></sl-icon>
+    <h4 class="text-base font-semibold flex items-center gap-2 text-error">
+        <span class="icon icon-[lucide--triangle-alert] size-4" aria-hidden="true"></span>
         Danger zone
     </h4>
     <div class="flex gap-2">
-        <sl-button variant="danger" href="/settings/delete"
-        >Delete account</sl-button>
+        <a class="btn btn-error btn-sm" href="/settings/delete">Delete account</a>
     </div>
 </div>

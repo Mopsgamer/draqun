@@ -1,16 +1,27 @@
-{{- $icon := "" -}}
 {{- $variant := .Variant -}}
 
+{{- $alertClass := "alert-info" -}}
 {{- if eq $variant "warning" -}}
-{{- $icon = "exclamation-triangle-fill" -}}
+{{- $alertClass = "alert-warning" -}}
 {{- else if eq $variant "success" -}}
-{{- $icon = "check-circle-fill" -}}
+{{- $alertClass = "alert-success" -}}
 {{- else if eq $variant "danger" -}}
-{{- $icon = "exclamation-octagon-fill" -}}
-{{- else if eq $variant "primary" -}}
-{{- $icon = "info-circle-fill" -}}
+{{- $alertClass = "alert-error" -}}
 {{- end -}}
-<sl-alert open closable={{.Closable}} id={{.Id}} variant={{ $variant }}>
-    <sl-icon slot="icon" name={{ $icon }}></sl-icon>
-    {{- .Message -}}
-</sl-alert>
+<div role="alert" class="alert {{ $alertClass }}" id={{.Id}}>
+    {{- if eq $variant "warning" -}}
+    <span class="icon icon-[lucide--triangle-alert] size-5" aria-hidden="true"></span>
+    {{- else if eq $variant "success" -}}
+    <span class="icon icon-[lucide--circle-check] size-5" aria-hidden="true"></span>
+    {{- else if eq $variant "danger" -}}
+    <span class="icon icon-[lucide--circle-alert] size-5" aria-hidden="true"></span>
+    {{- else -}}
+    <span class="icon icon-[lucide--info] size-5" aria-hidden="true"></span>
+    {{- end -}}
+    <span>{{- .Message -}}</span>
+    {{- if .Closable -}}
+    <button type="button" class="btn btn-ghost btn-sm" aria-label="Dismiss" data-close-alert>
+        <span class="icon icon-[lucide--x] size-4" aria-hidden="true"></span>
+    </button>
+    {{- end -}}
+</div>
