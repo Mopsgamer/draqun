@@ -4,7 +4,7 @@
 
 1. Install required tools.
    - Git, obviously
-   - [Go](https://go.dev/doc/install) `^1.27.1`
+   - [Go](https://go.dev/doc/install) `^1.27.2`
    - [Deno](https://deno.com/) `^2.9.7`
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
    and
