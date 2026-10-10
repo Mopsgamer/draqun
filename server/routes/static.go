@@ -17,6 +17,18 @@ func RouteStatic(embedFS fs.FS, clientEmbedded bool, app *fiber.App) {
 	}
 	if environment.BuildEnvironment == environment.BuildModeDevelopment {
 		cfg.CacheDuration = -1
+		cfg.ModifyResponse = func(c fiber.Ctx) error {
+			c.Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0")
+			c.Set("Pragma", "no-cache")
+			c.Set("Expires", "0")
+			return nil
+		}
+		app.Use("/static", func(c fiber.Ctx) error {
+			c.Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0")
+			c.Set("Pragma", "no-cache")
+			c.Set("Expires", "0")
+			return c.Next()
+		})
 	}
 
 	if !clientEmbedded {

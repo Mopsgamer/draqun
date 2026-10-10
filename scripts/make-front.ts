@@ -27,6 +27,17 @@ const options: esbuild.BuildOptions = {
 	target: "esnext",
 };
 
+async function notifyHMR(type: "css" | "reload"): Promise<void> {
+	const port = Deno.env.get("PORT") || "3000";
+	try {
+		await fetch(`http://localhost:${port}/__hmr/notify?type=${type}`, {
+			method: "POST",
+		});
+	} catch {
+		// Ignore if server is offline or restarting
+	}
+}
+
 let buildCalls = 0;
 async function build(
 	options: BuildOptions,
@@ -123,6 +134,9 @@ async function build(
 			? undefined
 			: logClientComp.task({ text: "Watching for file changes" }).start();
 
+		let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+		let pendingPaths: string[] = [];
+
 		for await (const { paths, kind } of watcher) {
 			const isTargetEvent = kind === "modify" ||
 				kind === "create" ||
@@ -130,34 +144,58 @@ async function build(
 
 			if (!isTargetEvent) continue;
 
-			const hasRelevantChanges = paths.some((p) => p.endsWith(".css"));
-
-			if (!hasRelevantChanges) continue;
-
-			let x = " ";
-			if (paths.length === 1) {
-				const path = paths[0]!.replaceAll("\\", "/");
-				x = " '" + path.slice(path.lastIndexOf("/") + 1) + "'";
-			} else x = " (" + paths.length + " files)";
-			try {
-				if (task) {
-					task.text = "Building at " + new Date().toLocaleTimeString() + x;
+			const relevantPaths = paths.filter((p) => {
+				if (outdir && outdir.endsWith("/js")) {
+					return p.endsWith(".ts") || p.endsWith(".js");
 				}
-				await ctx.rebuild();
-				if (task) {
-					task.text = "Updated at " + new Date().toLocaleTimeString() + x;
-				} else {
-					logClientComp.info(
-						"Frontend rebuilt at " + new Date().toLocaleTimeString() + x,
-					);
+				if (outdir && outdir.endsWith("/css")) {
+					return p.endsWith(".css") || p.endsWith(".tmpl");
 				}
-			} catch (error) {
-				const message = "Frontend build failed at " +
-					new Date().toLocaleTimeString() + x + ": " +
-					(error as Error).message;
-				if (task) task.text = message;
-				else logClientComp.error(message);
+				return false;
+			});
+
+			if (relevantPaths.length === 0) continue;
+
+			pendingPaths.push(...relevantPaths);
+
+			if (debounceTimer !== undefined) {
+				clearTimeout(debounceTimer);
 			}
+
+			debounceTimer = setTimeout(async () => {
+				const currentPaths = [...new Set(pendingPaths)];
+				pendingPaths = [];
+				debounceTimer = undefined;
+
+				let x = " ";
+				if (currentPaths.length === 1) {
+					const path = currentPaths[0]!.replaceAll("\\", "/");
+					x = " '" + path.slice(path.lastIndexOf("/") + 1) + "'";
+				} else x = " (" + currentPaths.length + " files)";
+
+				try {
+					if (task) {
+						task.text = "Building at " + new Date().toLocaleTimeString() + x;
+					}
+					await ctx.rebuild();
+					if (task) {
+						task.text = "Updated at " + new Date().toLocaleTimeString() + x;
+					} else {
+						logClientComp.info(
+							"Frontend rebuilt at " + new Date().toLocaleTimeString() + x,
+						);
+					}
+
+					const isCssOnly = currentPaths.every((p) => p.endsWith(".css"));
+					await notifyHMR(isCssOnly ? "css" : "reload");
+				} catch (error) {
+					const message = "Frontend build failed at " +
+						new Date().toLocaleTimeString() + x + ": " +
+						(error as Error).message;
+					if (task) task.text = message;
+					else logClientComp.error(message);
+				}
+			}, 150);
 		}
 
 		await ctx.dispose();
@@ -184,7 +222,7 @@ const calls: [() => Promise<TaskRunnerReturn>, string, string[]][] = [
 				outdir: distFolder + "/static/js",
 				entryPoints: ["client/src/ts/**/*"],
 				whenChange: [
-					distFolder + "/static/js",
+					"client/src/ts",
 				],
 				plugins: [denoPlugin()],
 			}),

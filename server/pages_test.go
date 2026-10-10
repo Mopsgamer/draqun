@@ -508,3 +508,30 @@ func TestPageGroupSettings(t *testing.T) {
 		t.Errorf("expected group settings content, got body: %s", bodyStr)
 	}
 }
+
+func TestHMRAndStaticNoCache(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	respNotify, err := ts.Client.R().
+		Post("/__hmr/notify?type=css")
+	if err != nil {
+		t.Fatalf("POST /__hmr/notify failed: %v", err)
+	}
+	defer respNotify.Close()
+
+	if respNotify.StatusCode() != http.StatusOK {
+		t.Errorf("expected status 200, got %d", respNotify.StatusCode())
+	}
+
+	respStatic, err := ts.Client.Get("/static/css/main.css")
+	if err != nil {
+		t.Fatalf("GET /static/css/main.css failed: %v", err)
+	}
+	defer respStatic.Close()
+
+	cacheControl := respStatic.Header("Cache-Control")
+	if !strings.Contains(cacheControl, "no-cache") && !strings.Contains(cacheControl, "no-store") {
+		t.Errorf("expected no-cache/no-store in Cache-Control header, got %q", cacheControl)
+	}
+}

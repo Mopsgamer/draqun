@@ -29,6 +29,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 
 	app.Use(logger.New())
 
+	routes.RouteHMR(app)
 	routes.RouteStatic(embedFS, clientEmbedded, app)
 	routes.RoutePages(app)
 	routes.RouteAccount(app)

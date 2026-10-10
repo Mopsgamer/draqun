@@ -64,6 +64,7 @@ func MapPage(ctx fiber.Ctx, bind fiber.Map) fiber.Map {
 		for i, script := range scripts {
 			scripts[i] = script + "?v=" + version
 		}
+		scripts = append(scripts, "/static/js/hmr.js?v="+version)
 	}
 
 	bindx["Stylesheets"] = stylesheets
