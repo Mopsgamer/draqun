@@ -319,7 +319,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertDatabase.Join(err)
 				}
 
-				broadcastGroupMembersUpdate(app, group)
+				broadcastGroupMemberLeave(app, group, member.UserId)
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, "/chat")
@@ -409,4 +409,28 @@ func broadcastGroupMembersUpdate(app *fiber.App, group model.Group) {
 	countOob := render.WrapOob("innerHTML:#members-count", &countStr)
 
 	session.UserSessionMap.PushGroup(group.Id, membersOob+countOob)
+}
+
+func broadcastGroupMemberLeave(app *fiber.App, group model.Group, userId uint64) {
+	deleteOob := render.WrapOob(fmt.Sprintf("delete:#member-%d", userId), nil)
+
+	const MembersPagination uint = 5
+	memberList := group.UsersPage(1, MembersPagination)
+	buf, err := render.RenderBuffer(app, "partials/chat-members", fiber.Map{
+		"Group":             group,
+		"MemberList":        memberList,
+		"MembersPage":       1,
+		"MembersPagination": MembersPagination,
+	})
+	if err != nil {
+		session.UserSessionMap.PushGroup(group.Id, deleteOob)
+		return
+	}
+	str := buf.String()
+	membersOob := render.WrapOob("innerHTML:#members", &str)
+
+	countStr := fmt.Sprintf("%d", group.MembersCount())
+	countOob := render.WrapOob("innerHTML:#members-count", &countStr)
+
+	session.UserSessionMap.PushGroup(group.Id, deleteOob+membersOob+countOob)
 }
