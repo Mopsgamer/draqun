@@ -8,6 +8,7 @@
         id="new-group-form"
         name="new-group-form"
         hx-post="/groups/create"
+        hx-encoding="multipart/form-data"
         hx-swap="innerHTML"
         hx-target="#new-group-error"
     >
@@ -28,6 +29,10 @@
                     <span class="icon icon-[lucide--eye-off] size-5" aria-hidden="true" data-password-hidden hidden></span>
                 </button>
             </div>
+        </div>
+        <div class="flex flex-col gap-1 w-full">
+            <label class="text-sm font-semibold" for="new-group-avatar">Avatar</label>
+            <input class="file-input file-input-bordered w-full" type="file" id="new-group-avatar" name="avatar" accept="image/*">
         </div>
         <div class="flex flex-col gap-1 w-full">
             <label class="text-sm font-semibold" for="new-group-description">Description</label>

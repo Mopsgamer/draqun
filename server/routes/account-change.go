@@ -1,6 +1,9 @@
 package routes
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/environment"
@@ -183,6 +186,47 @@ func routeAccountChange(router fiber.Router) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, htmx.Path(ctx))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Put("/avatar",
+			perms.UserByAuth(),
+			func(ctx fiber.Ctx) error {
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				file, err := ctx.FormFile("avatar")
+				if err != nil || file == nil {
+					return htmx.AlertFormatAvatar.Join(err)
+				}
+
+				if err := os.MkdirAll("uploads", 0755); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				ext := filepath.Ext(file.Filename)
+				if ext == "" {
+					ext = ".png"
+				}
+				filename := fmt.Sprintf("user-%d-%d%s", user.Id, time.Now().UnixNano(), ext)
+				dst := filepath.Join("uploads", filename)
+
+				if err := ctx.SaveFile(file, dst); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				user.Avatar = model.Avatar("/uploads/" + filename)
+				if err := user.Validate(); err != nil {
+					return err
+				}
+
+				if err := user.Update(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.EnableRefresh(ctx)
 					return nil
 				}
 

@@ -41,4 +41,9 @@ func RouteStatic(embedFS fs.FS, clientEmbedded bool, app *fiber.App) {
 		cfg.FS = subFS
 		app.Use("/static", static.New("", cfg))
 	}
+
+	app.Use("/uploads", static.New("uploads", static.Config{
+		Browse:        false,
+		CacheDuration: time.Minute,
+	}))
 }

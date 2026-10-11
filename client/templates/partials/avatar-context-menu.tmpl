@@ -3,8 +3,12 @@
         <span class="truncate max-w-44 flex items-center gap-1 font-semibold" title={{with .User.Moniker}}{{.}}{{end}}>
             {{if not .User.IsEmpty}}{{.User.Moniker}}{{else}}Guest{{end}}
         </span>
-        <span class="inline-flex size-7 items-center justify-center rounded-full bg-white text-[#073b3a]" aria-hidden="true">
-            <span class="icon icon-[lucide--user-round] size-4"></span>
+        <span class="inline-flex size-7 items-center justify-center rounded-full border border-dashed border-primary text-primary bg-primary/10 shrink-0 overflow-hidden" aria-hidden="true">
+            {{if ne .User.Avatar ""}}
+                <img src="{{.User.Avatar}}" class="size-full object-cover rounded-full" alt="User avatar">
+            {{else}}
+                <span class="icon icon-[lucide--plus] size-4"></span>
+            {{end}}
         </span>
     </summary>
     <ul class="dropdown-content menu menu-sm w-56 z-30 mt-2 p-1 rounded-box">
