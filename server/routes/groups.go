@@ -445,22 +445,28 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertGroupMemberNotFound
 				}
 
-				if role.Name == "@everyone" {
-					role.Moniker = request.Moniker
-					role.Color = model.ParseColorHex(request.Color)
-					role.PermMessages = request.PermMessages
-					role.PermRoles = request.PermRoles
-					role.PermMembers = request.PermMembers
-					role.PermGroupChange = request.PermGroupChange
-					role.PermAdmin = request.PermAdmin
-				} else {
+				if role.Name != "@everyone" && request.Name != "" {
 					role.Name = request.Name
+				}
+				if request.Moniker != "" {
 					role.Moniker = request.Moniker
+				}
+				if request.Color != "" {
 					role.Color = model.ParseColorHex(request.Color)
+				}
+				if request.PermMessages != "" {
 					role.PermMessages = request.PermMessages
+				}
+				if request.PermRoles != "" {
 					role.PermRoles = request.PermRoles
+				}
+				if request.PermMembers != "" {
 					role.PermMembers = request.PermMembers
+				}
+				if request.PermGroupChange != "" {
 					role.PermGroupChange = request.PermGroupChange
+				}
+				if request.PermAdmin != "" {
 					role.PermAdmin = request.PermAdmin
 				}
 
