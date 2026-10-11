@@ -15,6 +15,7 @@ ignore (
 
 require (
 	github.com/doug-martin/goqu/v9 v9.19.0
+	github.com/fasthttp/websocket v1.5.12
 	github.com/fatih/color v1.19.0
 	github.com/gofiber/contrib/v3/websocket v1.2.7
 	github.com/gofiber/fiber/v3 v3.5.0
@@ -31,7 +32,6 @@ require (
 
 require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
-	github.com/fasthttp/websocket v1.5.12 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/gofiber/schema v1.8.8 // indirect
 	github.com/gofiber/template/v2 v2.1.3 // indirect
