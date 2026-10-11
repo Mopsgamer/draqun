@@ -525,6 +525,9 @@ func TestPageGroupSettings(t *testing.T) {
 	if !strings.Contains(strings.ToLower(bodyStr), "group settings") {
 		t.Errorf("expected group settings content, got body: %s", bodyStr)
 	}
+	if !strings.Contains(strings.ToLower(bodyStr), "leave group") {
+		t.Errorf("expected leave group button in group settings, got body: %s", bodyStr)
+	}
 }
 
 func TestHMRAndStaticNoCache(t *testing.T) {

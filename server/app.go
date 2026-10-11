@@ -40,7 +40,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 					)
 				}
 			}
-			return err
+			return fiber.DefaultErrorHandler(ctx, err)
 		},
 	})
 

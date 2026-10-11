@@ -52,7 +52,7 @@
                         <span class="icon icon-[lucide--users] size-3.5" aria-hidden="true"></span>
                         <span>{{- .Group.Moniker -}}</span>
                     </button>
-                {{- if .Member.Role.PermGroupChange.Has -}}
+                {{- if not .Member.IsEmpty -}}
                     <span class="inline-flex items-center ml-1">
                         {{template "partials/group-actions" .Group}}
                     </span>

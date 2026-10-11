@@ -443,3 +443,67 @@ func TestAPIMemberStatusAndList(t *testing.T) {
 		t.Errorf("expected member list HTML to contain member moniker")
 	}
 }
+
+func TestAPIGroupLeaveEdgeCases(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	// Owner and Joiner
+	cookieOwner, owner := createTestUserCookie(t, ts, "Owner User Leave", "owner_leave", "owner_leave@example.com")
+	cookieJoiner, _ := createTestUserCookie(t, ts, "Joiner User Leave", "joiner_leave", "joiner_leave@example.com")
+
+	group := createTestGroupDirectly(t, int64(owner.Id), "Leave Edge Group", "leave_edge_grp")
+
+	// Joiner joins group
+	respJoin, err := ts.Client.R().
+		SetHeader("Cookie", cookieJoiner).
+		Put(fmt.Sprintf("/groups/%d/join", group.Id))
+	if err != nil {
+		t.Fatalf("join failed: %v", err)
+	}
+	respJoin.Close()
+
+	// Owner attempts to leave while not alone -> should be forbidden (403)
+	respOwnerLeave, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Delete(fmt.Sprintf("/groups/%d/leave", group.Id))
+	if err != nil {
+		t.Fatalf("owner leave request failed: %v", err)
+	}
+	if respOwnerLeave.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for owner leaving non-empty group, got %d", respOwnerLeave.StatusCode())
+	}
+	respOwnerLeave.Close()
+
+	// Joiner leaves group -> should succeed
+	respJoinerLeave, err := ts.Client.R().
+		SetHeader("Cookie", cookieJoiner).
+		Delete(fmt.Sprintf("/groups/%d/leave", group.Id))
+	if err != nil {
+		t.Fatalf("joiner leave request failed: %v", err)
+	}
+	if respJoinerLeave.StatusCode() != http.StatusOK && respJoinerLeave.StatusCode() != http.StatusSeeOther {
+		t.Errorf("expected status 200/303 for joiner leave, got %d", respJoinerLeave.StatusCode())
+	}
+	respJoinerLeave.Close()
+
+	// Now owner is alone in the group, owner leaves group -> should succeed and mark group deleted
+	respSoleOwnerLeave, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Delete(fmt.Sprintf("/groups/%d/leave", group.Id))
+	if err != nil {
+		t.Fatalf("sole owner leave request failed: %v", err)
+	}
+	if respSoleOwnerLeave.StatusCode() != http.StatusOK && respSoleOwnerLeave.StatusCode() != http.StatusSeeOther {
+		t.Errorf("expected status 200/303 for sole owner leave, got %d", respSoleOwnerLeave.StatusCode())
+	}
+	respSoleOwnerLeave.Close()
+
+	updatedGroup, err := model.NewGroupFromId(group.Id)
+	if err != nil {
+		t.Fatalf("failed to query group after sole owner left: %v", err)
+	}
+	if !updatedGroup.IsDeleted {
+		t.Errorf("expected group to be marked deleted after sole owner leaves")
+	}
+}

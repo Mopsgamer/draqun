@@ -63,7 +63,7 @@
                         {{- end -}}
                     </div>
                 </a>
-                {{- if or ($rights.PermAdmin.Has) (and (not $member.IsEmpty) $rights.PermGroupChange.Has)}}
+                {{- if not $member.IsEmpty}}
                     <div class="absolute top-2 right-2 z-10">
                         {{template "partials/group-actions" $group}}
                     </div>
