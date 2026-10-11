@@ -558,6 +558,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[RoleAssignForm](ctx, perms.LocalForm)
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				userId := fiber.Params[uint64](ctx, "user_id")
 
 				role, err := model.NewRoleFromId(request.RoleId, group.Id)
@@ -571,6 +572,17 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				_ = roleAssignee.Insert()
+
+				targetUser, _ := model.NewUserFromId(userId)
+				actionRole := model.ActionRole{
+					RoleId:      role.Id,
+					CreatorId:   caller.Id,
+					GroupId:     group.Id,
+					Action:      "assign",
+					Description: model.Description(fmt.Sprintf("Assigned role %s to %s", role.Moniker, targetUser.Moniker)),
+					ActedAt:     model.TimePast(time.Now()),
+				}
+				_ = actionRole.Insert()
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))
@@ -586,8 +598,11 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			}),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				userId := fiber.Params[uint64](ctx, "user_id")
 				roleId := fiber.Params[uint64](ctx, "role_id")
+
+				role, _ := model.NewRoleFromId(roleId, group.Id)
 
 				roleAssignee := model.RoleAssignee{
 					UserId: userId,
@@ -595,6 +610,17 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				_ = roleAssignee.Delete()
+
+				targetUser, _ := model.NewUserFromId(userId)
+				actionRole := model.ActionRole{
+					RoleId:      roleId,
+					CreatorId:   caller.Id,
+					GroupId:     group.Id,
+					Action:      "unassign",
+					Description: model.Description(fmt.Sprintf("Removed role %s from %s", role.Moniker, targetUser.Moniker)),
+					ActedAt:     model.TimePast(time.Now()),
+				}
+				_ = actionRole.Insert()
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))
