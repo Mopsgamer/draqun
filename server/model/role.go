@@ -100,11 +100,12 @@ func (perm PermMembers) CanKickBan() bool {
 
 type Role struct {
 	checkEmpty
-	Id      uint64  `db:"id" goqu:"skipinsert"`
-	GroupId uint64  `db:"group_id"`
-	Name    Name    `db:"name"`
-	Moniker Moniker `db:"moniker"`
-	Color   Color   `db:"color"`
+	Id       uint64  `db:"id" goqu:"skipinsert"`
+	GroupId  uint64  `db:"group_id"`
+	Position uint    `db:"position"`
+	Name     Name    `db:"name"`
+	Moniker  Moniker `db:"moniker"`
+	Color    Color   `db:"color"`
 
 	PermMessages    PermMessages `db:"perm_messages"`
 	PermRoles       PermSwitch   `db:"perm_roles"`

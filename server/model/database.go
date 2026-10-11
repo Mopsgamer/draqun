@@ -39,6 +39,8 @@ func LoadDB() error {
 		return err
 	}
 
+	_, _ = Sqlx.Exec(`ALTER TABLE app_group_roles ADD COLUMN position INTEGER NOT NULL DEFAULT 0;`)
+
 	_, _ = Sqlx.Exec(`CREATE TABLE IF NOT EXISTS app_group_action_roles (
     role_id INTEGER NOT NULL,
     creator_id INTEGER NOT NULL,

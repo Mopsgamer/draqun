@@ -127,7 +127,7 @@ func (group Group) Roles() []Role {
 	roleList := []Role{}
 	sql, args, err := Goqu.From(TableRoles).
 		Where(goqu.Ex{"group_id": group.Id}).
-		Order(goqu.I("id").Asc()).
+		Order(goqu.I("position").Asc(), goqu.I("id").Asc()).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)

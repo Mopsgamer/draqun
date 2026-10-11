@@ -4,10 +4,10 @@
             <span class="icon icon-[lucide--settings]" aria-hidden="true"></span>
             Settings
         </h1>
-        <a class="btn btn-ghost btn-sm gap-1" href="/chat">
+        <button class="btn btn-ghost btn-sm gap-1" type="button" onclick="history.back()">
             <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
-            Back to chat
-        </a>
+            Back
+        </button>
     </div>
     <section class="bg-surface-panel p-4 md:p-6 rounded-box border border-base-content/10 shadow-sm flex flex-col gap-4">
         {{- template "partials/settings-account" . -}}

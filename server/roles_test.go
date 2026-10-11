@@ -154,6 +154,19 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 		t.Errorf("expected updated role moniker Senior Moderator, got %s", updatedModRole.Moniker)
 	}
 
+	// Test Role Reordering
+	respMoveRole, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Post(fmt.Sprintf("/groups/%d/roles/%d/move?direction=down", group.Id, modRole.Id))
+	if err != nil {
+		t.Fatalf("move role request failed: %v", err)
+	}
+	respMoveRole.Close()
+
+	if respMoveRole.StatusCode() != http.StatusOK && respMoveRole.StatusCode() != http.StatusSeeOther {
+		t.Errorf("expected 200 or 303 for role move action, got %d", respMoveRole.StatusCode())
+	}
+
 	// 6. POST /groups/:id/members/:user_id/roles -> Assign Senior Moderator role to memberUser
 	respAssignRole, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).

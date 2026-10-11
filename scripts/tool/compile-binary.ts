@@ -49,17 +49,11 @@ async function runGo(
 	const child = new Deno.Command("go", {
 		args,
 		env,
-		stdout: "piped",
-		stderr: "piped",
+		stdout: "inherit",
+		stderr: "inherit",
 	}).spawn();
 
-	const stdout = child.stdout.pipeTo(Deno.stdout.writable, {
-		preventClose: true,
-	});
-	const stderr = child.stderr.pipeTo(Deno.stderr.writable, {
-		preventClose: true,
-	});
-	const [status] = await Promise.all([child.status, stdout, stderr]);
+	const status = await child.status;
 	return status.success;
 }
 

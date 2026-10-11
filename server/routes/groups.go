@@ -118,6 +118,65 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
+		Post("/:group_id/roles/:role_id/move",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermRoles.Has()
+			}),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				roleId := fiber.Params[uint64](ctx, "role_id")
+				direction := ctx.Query("direction", "up")
+
+				roles := group.Roles()
+				targetIdx := -1
+				for i, r := range roles {
+					if r.Id == roleId {
+						targetIdx = i
+						break
+					}
+				}
+
+				if targetIdx == -1 {
+					return htmx.AlertGroupMemberNotFound
+				}
+
+				swapIdx := -1
+				if direction == "up" && targetIdx > 0 {
+					swapIdx = targetIdx - 1
+				} else if direction == "down" && targetIdx < len(roles)-1 {
+					swapIdx = targetIdx + 1
+				}
+
+				if swapIdx != -1 {
+					for i := range roles {
+						roles[i].Position = uint(i)
+						_ = roles[i].Update()
+					}
+
+					roles[targetIdx].Position, roles[swapIdx].Position = roles[swapIdx].Position, roles[targetIdx].Position
+					_ = roles[targetIdx].Update()
+					_ = roles[swapIdx].Update()
+
+					actionRole := model.ActionRole{
+						RoleId:      roleId,
+						CreatorId:   caller.Id,
+						GroupId:     group.Id,
+						Action:      "update",
+						Description: model.Description(fmt.Sprintf("Reordered role %s", roles[targetIdx].Moniker)),
+						ActedAt:     model.TimePast(time.Now()),
+					}
+					_ = actionRole.Insert()
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
 		Put("/:group_id/change",
 			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermGroupChange.Has()
