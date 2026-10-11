@@ -193,6 +193,29 @@ func (member Member) JoinActed() error {
 	return action.Insert()
 }
 
+func (member Member) LastTimeJoinedAt() TimePast {
+	action := ActionMembership{}
+	sql, args, err := Goqu.From(TableMemberships).
+		Where(goqu.Ex{
+			"group_id": member.GroupId,
+			"user_id":  member.UserId,
+			"is_join":  true,
+		}).
+		Order(goqu.I("acted_at").Desc()).
+		Limit(1).
+		Prepared(true).ToSQL()
+	if err != nil {
+		return member.FirstTimeJoinedAt
+	}
+
+	err = Sqlx.Get(&action, sql, args...)
+	if err != nil || time.Time(action.ActedAt).IsZero() {
+		return member.FirstTimeJoinedAt
+	}
+
+	return action.ActedAt
+}
+
 func (member Member) MessagesCount() uint64 {
 	count := uint64(0)
 	sql, args, err := Goqu.Select(goqu.COUNT("*")).From(TableMessages).

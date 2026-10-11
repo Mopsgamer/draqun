@@ -260,29 +260,34 @@ func RoutePages(app *fiber.App) {
 			role := fiber.Locals[model.Role](ctx, perms.LocalRights)
 			users := group.UsersPage(1, 100)
 			type MemberItem struct {
-				User           model.User
-				Member         model.Member
-				Roles          []model.Role
-				EffectiveRole  model.Role
-				JoinedAtStr    string
-				AccountCreated string
-				TenureStr      string
-				IsOnline       bool
-				MessagesCount  uint64
+				User             model.User
+				Member           model.Member
+				Roles            []model.Role
+				EffectiveRole    model.Role
+				FirstJoinedAtStr string
+				FirstTenureStr   string
+				LastJoinedAtStr  string
+				LastTenureStr    string
+				AccountCreated   string
+				IsOnline         bool
+				MessagesCount    uint64
 			}
 			memberItems := make([]MemberItem, len(users))
 			for i, u := range users {
 				m, _ := model.NewMemberFromId(group.Id, u.Id)
+				lastJoined := m.LastTimeJoinedAt()
 				memberItems[i] = MemberItem{
-					User:           u,
-					Member:         m,
-					Roles:          m.Roles(),
-					EffectiveRole:  m.Role(),
-					JoinedAtStr:    time.Time(m.FirstTimeJoinedAt).Format("2006-01-02"),
-					AccountCreated: time.Time(u.CreatedAt).Format("2006-01-02"),
-					TenureStr:      formatTenure(time.Time(m.FirstTimeJoinedAt)),
-					IsOnline:       u.IsOnline(),
-					MessagesCount:  m.MessagesCount(),
+					User:             u,
+					Member:           m,
+					Roles:            m.Roles(),
+					EffectiveRole:    m.Role(),
+					FirstJoinedAtStr: time.Time(m.FirstTimeJoinedAt).Format("2006-01-02"),
+					FirstTenureStr:   formatTenure(time.Time(m.FirstTimeJoinedAt)),
+					LastJoinedAtStr:  time.Time(lastJoined).Format("2006-01-02"),
+					LastTenureStr:    formatTenure(time.Time(lastJoined)),
+					AccountCreated:   time.Time(u.CreatedAt).Format("2006-01-02"),
+					IsOnline:         u.IsOnline(),
+					MessagesCount:    m.MessagesCount(),
 				}
 			}
 			roles := group.Roles()

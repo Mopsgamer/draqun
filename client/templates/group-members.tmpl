@@ -12,6 +12,7 @@
             </h2>
             <div class="flex flex-col gap-4">
                 {{range .MemberItems}}
+                {{$targetUser := .User}}
                 <div class="p-4 rounded-lg border border-base-content/10 bg-surface-panel flex flex-col gap-4">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
@@ -51,7 +52,7 @@
                                         <button
                                             type="button"
                                             class="hover:opacity-75 cursor-pointer ml-1"
-                                            hx-delete="/groups/{{$.Group.Id}}/members/{{$.User.Id}}/roles/{{.Id}}"
+                                            hx-delete="/groups/{{$.Group.Id}}/members/{{$targetUser.Id}}/roles/{{.Id}}"
                                             title="Remove role"
                                         >&times;</button>
                                         {{end}}
@@ -64,7 +65,7 @@
                             {{if or $.Role.PermRoles.Has $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)}}
                             <form
                                 class="flex items-center gap-1"
-                                hx-post="/groups/{{$.Group.Id}}/members/{{.User.Id}}/roles"
+                                hx-post="/groups/{{$.Group.Id}}/members/{{$targetUser.Id}}/roles"
                             >
                                 <select name="role_id" class="select select-bordered select-xs" required>
                                     <option value="" disabled selected>+ Role</option>
@@ -104,11 +105,16 @@
                     </div>
 
                     <!-- Member info & stats grid -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-base-content/10 text-xs text-base-content/80">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-base-content/10 text-xs text-base-content/80">
                         <div>
                             <span class="block font-semibold text-base-content/50">First Join Date</span>
-                            <span class="font-medium">{{.JoinedAtStr}}</span>
-                            <span class="block text-[10px] text-base-content/60">({{.TenureStr}} ago)</span>
+                            <span class="font-medium">{{.FirstJoinedAtStr}}</span>
+                            <span class="block text-[10px] text-base-content/60">({{.FirstTenureStr}} ago)</span>
+                        </div>
+                        <div>
+                            <span class="block font-semibold text-base-content/50">Last Join Date</span>
+                            <span class="font-medium">{{.LastJoinedAtStr}}</span>
+                            <span class="block text-[10px] text-base-content/60">({{.LastTenureStr}} ago)</span>
                         </div>
                         <div>
                             <span class="block font-semibold text-base-content/50">Account Created</span>
