@@ -261,7 +261,7 @@ func TestPageGroupJoin(t *testing.T) {
 	// Create a second test user who will view the join page
 	cookieVisitor, _ := createTestUserCookie(t, ts, "Visitor User", "visitor", "visitor@example.com")
 
-	// GET group join page
+	// GET group join page for existing group
 	resp, err := ts.Client.R().
 		SetHeader("Cookie", cookieVisitor).
 		Get("/chat/groups/join/awesome_group")
@@ -277,6 +277,24 @@ func TestPageGroupJoin(t *testing.T) {
 	bodyStr := resp.String()
 	if !strings.Contains(strings.ToLower(bodyStr), "join") || !strings.Contains(strings.ToLower(bodyStr), "awesome group") {
 		t.Errorf("expected join awesome_group content, got body: %s", bodyStr)
+	}
+
+	// GET group join page for non-existent group -> should return 404 page
+	respNotFound, err := ts.Client.R().
+		SetHeader("Cookie", cookieVisitor).
+		Get("/chat/groups/join/adsfsdfs")
+	if err != nil {
+		t.Fatalf("GET /chat/groups/join/adsfsdfs failed: %v", err)
+	}
+	defer respNotFound.Close()
+
+	if respNotFound.StatusCode() != http.StatusNotFound {
+		t.Errorf("expected status 404 for non-existent group join page, got %d", respNotFound.StatusCode())
+	}
+
+	bodyNotFoundStr := respNotFound.String()
+	if !strings.Contains(strings.ToLower(bodyNotFoundStr), "404") {
+		t.Errorf("expected 404 page content, got body: %s", bodyNotFoundStr)
 	}
 }
 

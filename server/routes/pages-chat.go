@@ -48,7 +48,7 @@ func routePagesChat(router fiber.Router) fiber.Router {
 		func(ctx fiber.Ctx) error {
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 			if !group.IsAvailable() || group.Mode == model.GroupModePrivate {
-				return ctx.Redirect().To("/chat")
+				return htmx.AlertGroupNotFound
 			}
 
 			perms.MemberByAuthAndGroupNameFromCtx(ctx, "group_name")

@@ -2,6 +2,7 @@ package internal
 
 import (
 	_ "embed"
+	"errors"
 	"io/fs"
 
 	"github.com/Mopsgamer/draqun/server/environment"
@@ -22,6 +23,22 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		ErrorHandler: func(ctx fiber.Ctx, err error) error {
 			if htmx.IsHtmx(ctx) {
 				return htmx.HandleHTMXError(ctx, err)
+			}
+			if ctx.Method() == fiber.MethodGet {
+				var fiberErr *fiber.Error
+				if errors.As(err, &fiberErr) && fiberErr.Code == fiber.StatusNotFound {
+					ctx.Status(fiber.StatusNotFound)
+					return htmx.TryRenderPage(
+						ctx,
+						"partials/x",
+						routes.MapPage(ctx, fiber.Map{
+							"Title":         "404",
+							"StatusCode":    fiber.StatusNotFound,
+							"StatusMessage": fiber.ErrNotFound.Message,
+						}),
+						"partials/main",
+					)
+				}
 			}
 			return err
 		},
@@ -53,6 +70,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			)
 		}
 		if ctx.Method() == "GET" {
+			ctx.Status(fiber.StatusNotFound)
 			return htmx.TryRenderPage(
 				ctx,
 				"partials/x",
