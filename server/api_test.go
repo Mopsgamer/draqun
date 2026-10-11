@@ -2,11 +2,13 @@ package internal
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/Mopsgamer/draqun/server/model"
+	"github.com/fasthttp/websocket"
 )
 
 func TestAPIAccountRegisterAndLogin(t *testing.T) {
@@ -281,6 +283,26 @@ func TestAPIGroupLifecycle(t *testing.T) {
 		t.Errorf("expected member state to be marked deleted after leaving")
 	}
 
+	// Verify member element is removed from member list page after leaving
+	respMemPageAfterLeave, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		Get(fmt.Sprintf("/groups/%d/members/page/1", group.Id))
+	if err != nil {
+		t.Fatalf("member pagination request after leave failed: %v", err)
+	}
+	defer respMemPageAfterLeave.Close()
+
+	if respMemPageAfterLeave.StatusCode() != http.StatusOK {
+		t.Errorf("expected 200 OK for member page after leave, got %d", respMemPageAfterLeave.StatusCode())
+	}
+
+	memPageAfterLeaveBody := respMemPageAfterLeave.String()
+	joinerElement := fmt.Sprintf("id=\"member-%d\"", joiner.Id)
+	if strings.Contains(memPageAfterLeaveBody, joinerElement) {
+		t.Errorf("expected member element %s to be removed from member list after leaving, but found in body: %s", joinerElement, memPageAfterLeaveBody)
+	}
+
 	// Delete Group (as owner)
 	respDeleteGrp, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
@@ -505,5 +527,170 @@ func TestAPIGroupLeaveEdgeCases(t *testing.T) {
 	}
 	if !updatedGroup.IsDeleted {
 		t.Errorf("expected group to be marked deleted after sole owner leaves")
+	}
+}
+
+func TestAPIMemberJoinLeaveMemberListUpdate(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	// Register Owner and Create Group
+	cookieOwner, owner := createTestUserCookie(t, ts, "Owner User ML", "owner_ml", "owner_ml@example.com")
+	group := createTestGroupDirectly(t, int64(owner.Id), "Member List Group", "member_list_grp")
+
+	// 1. Verify owner element is present initially
+	respPage1, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		Get(fmt.Sprintf("/groups/%d/members/page/1", group.Id))
+	if err != nil {
+		t.Fatalf("failed to fetch initial member list: %v", err)
+	}
+	defer respPage1.Close()
+
+	ownerElement := fmt.Sprintf("id=\"member-%d\"", owner.Id)
+	if !strings.Contains(respPage1.String(), ownerElement) {
+		t.Errorf("expected owner member element %s in initial member list, got: %s", ownerElement, respPage1.String())
+	}
+
+	// Register Joiner
+	cookieJoiner, joiner := createTestUserCookie(t, ts, "Joiner User ML", "joiner_ml", "joiner_ml@example.com")
+	joinerElement := fmt.Sprintf("id=\"member-%d\"", joiner.Id)
+
+	// Verify joiner is NOT in group member list before joining
+	respBeforeJoin, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		Get(fmt.Sprintf("/groups/%d/members/page/1", group.Id))
+	if err != nil {
+		t.Fatalf("failed to fetch member list before join: %v", err)
+	}
+	defer respBeforeJoin.Close()
+
+	if strings.Contains(respBeforeJoin.String(), joinerElement) {
+		t.Errorf("expected joiner member element %s to NOT be present before joining", joinerElement)
+	}
+
+	// 2. Joiner joins group
+	respJoin, err := ts.Client.R().
+		SetHeader("Cookie", cookieJoiner).
+		Put(fmt.Sprintf("/groups/%d/join", group.Id))
+	if err != nil {
+		t.Fatalf("join request failed: %v", err)
+	}
+	respJoin.Close()
+
+	// Verify joiner element IS added to member list after joining
+	respAfterJoin, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		Get(fmt.Sprintf("/groups/%d/members/page/1", group.Id))
+	if err != nil {
+		t.Fatalf("failed to fetch member list after join: %v", err)
+	}
+	defer respAfterJoin.Close()
+
+	if !strings.Contains(respAfterJoin.String(), joinerElement) {
+		t.Errorf("expected joiner member element %s to be added to member list after joining, got: %s", joinerElement, respAfterJoin.String())
+	}
+	if !strings.Contains(respAfterJoin.String(), ownerElement) {
+		t.Errorf("expected owner member element %s to remain in member list after join, got: %s", ownerElement, respAfterJoin.String())
+	}
+
+	// 3. Joiner leaves group
+	respLeave, err := ts.Client.R().
+		SetHeader("Cookie", cookieJoiner).
+		Delete(fmt.Sprintf("/groups/%d/leave", group.Id))
+	if err != nil {
+		t.Fatalf("leave request failed: %v", err)
+	}
+	respLeave.Close()
+
+	// Verify joiner element IS removed from member list after leaving
+	respAfterLeave, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		Get(fmt.Sprintf("/groups/%d/members/page/1", group.Id))
+	if err != nil {
+		t.Fatalf("failed to fetch member list after leave: %v", err)
+	}
+	defer respAfterLeave.Close()
+
+	if strings.Contains(respAfterLeave.String(), joinerElement) {
+		t.Errorf("expected joiner member element %s to be removed from member list after leaving, but found in: %s", joinerElement, respAfterLeave.String())
+	}
+	if !strings.Contains(respAfterLeave.String(), ownerElement) {
+		t.Errorf("expected owner member element %s to remain in member list after joiner leaves, got: %s", ownerElement, respAfterLeave.String())
+	}
+}
+
+func TestAPIMemberJoinLeaveWebSocketBroadcast(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookieOwner, owner := createTestUserCookie(t, ts, "WS Owner", "ws_owner", "ws_owner@example.com")
+	group := createTestGroupDirectly(t, int64(owner.Id), "WS Group", "ws_group")
+
+	port := ts.Listener.Addr().(*net.TCPAddr).Port
+	wsURL := fmt.Sprintf("ws://127.0.0.1:%d/groups/ws/%d/", port, group.Id)
+
+	header := http.Header{}
+	header.Add("Cookie", cookieOwner)
+
+	wsConn, _, err := websocket.DefaultDialer.Dial(wsURL, header)
+	if err != nil {
+		t.Fatalf("failed to dial websocket: %v", err)
+	}
+	defer wsConn.Close()
+
+	// Read initial connection broadcast
+	_, initialMsg, err := wsConn.ReadMessage()
+	if err != nil {
+		t.Fatalf("failed to read initial ws message: %v", err)
+	}
+	_ = initialMsg
+
+	cookieJoiner, joiner := createTestUserCookie(t, ts, "WS Joiner", "ws_joiner", "ws_joiner@example.com")
+
+	// 1. Joiner joins group
+	respJoin, err := ts.Client.R().
+		SetHeader("Cookie", cookieJoiner).
+		Put(fmt.Sprintf("/groups/%d/join", group.Id))
+	if err != nil {
+		t.Fatalf("join request failed: %v", err)
+	}
+	respJoin.Close()
+
+	// Read message from WS connection
+	_, joinMsgBytes, err := wsConn.ReadMessage()
+	if err != nil {
+		t.Fatalf("failed to read ws join message: %v", err)
+	}
+	joinMsg := string(joinMsgBytes)
+
+	joinerElement := fmt.Sprintf("id=\"member-%d\"", joiner.Id)
+	if !strings.Contains(joinMsg, joinerElement) {
+		t.Errorf("expected WS broadcast on join to contain member element %s, got: %s", joinerElement, joinMsg)
+	}
+
+	// 2. Joiner leaves group
+	respLeave, err := ts.Client.R().
+		SetHeader("Cookie", cookieJoiner).
+		Delete(fmt.Sprintf("/groups/%d/leave", group.Id))
+	if err != nil {
+		t.Fatalf("leave request failed: %v", err)
+	}
+	respLeave.Close()
+
+	// Read message from WS connection
+	_, leaveMsgBytes, err := wsConn.ReadMessage()
+	if err != nil {
+		t.Fatalf("failed to read ws leave message: %v", err)
+	}
+	leaveMsg := string(leaveMsgBytes)
+
+	deleteOob := fmt.Sprintf("delete:#member-%d", joiner.Id)
+	if !strings.Contains(leaveMsg, deleteOob) {
+		t.Errorf("expected WS broadcast on leave to contain OOB delete swap %s, got: %s", deleteOob, leaveMsg)
 	}
 }
