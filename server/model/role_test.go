@@ -13,11 +13,15 @@ func TestMergeNone(t *testing.T) {
 	assert.Equal(role, Role{PermMessages: PermMessagesWrite})
 }
 
-func TestMergePreferWorst(t *testing.T) {
+func TestMergePreferHigher(t *testing.T) {
 	assert := assert.New(t)
 	role := Role{PermMessages: PermMessagesDelete}
 	role.Merge(Role{PermMessages: PermMessagesWrite})
-	assert.Equal(role, Role{PermMessages: PermMessagesWrite})
+	assert.Equal(role, Role{PermMessages: PermMessagesDelete})
+
+	roleSwitch := Role{PermRoles: PermSwitchDisallow}
+	roleSwitch.Merge(Role{PermRoles: PermSwitchAllow})
+	assert.Equal(roleSwitch, Role{PermRoles: PermSwitchAllow})
 }
 
 func TestMerge(t *testing.T) {

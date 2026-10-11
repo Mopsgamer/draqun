@@ -1,8 +1,14 @@
 <div class="p-page max-w-xl mx-auto flex flex-col gap-6">
-    <h1 class="text-2xl font-bold flex items-center gap-2">
-        <span class="icon icon-[lucide--users]" aria-hidden="true"></span>
-        Group settings &middot; {{.Group.Moniker}}
-    </h1>
+    <div class="flex items-center justify-between mb-2">
+        <h1 class="text-2xl font-bold flex items-center gap-2">
+            <span class="icon icon-[lucide--users]" aria-hidden="true"></span>
+            Group settings &middot; {{.Group.Moniker}}
+        </h1>
+        <button class="btn btn-ghost btn-sm gap-1" type="button" onclick="history.back()">
+            <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
+            Back
+        </button>
+    </div>
     {{template "partials/group-settings-nav" .}}
     <div class="flex flex-col gap-4 bg-surface-card p-6 rounded-box border border-base-content/10 shadow-sm">
         <h2 class="text-xl font-bold pb-2 border-b border-base-content/10 flex items-center gap-2">
@@ -33,6 +39,7 @@
                 <div class="flex flex-col gap-1 w-full">
                     <label class="text-sm font-semibold" for="perm-messages">Messages Permission</label>
                     <select class="select select-bordered w-full" id="perm-messages" name="perm_messages">
+                        <option value="" {{if eq .TargetRole.PermMessages ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="write" {{if eq .TargetRole.PermMessages "write"}}selected{{end}}>Write</option>
                         <option value="read" {{if eq .TargetRole.PermMessages "read"}}selected{{end}}>Read</option>
                         <option value="delete" {{if eq .TargetRole.PermMessages "delete"}}selected{{end}}>Delete (manage all)</option>
@@ -42,13 +49,15 @@
                 <div class="flex flex-col gap-1 w-full">
                     <label class="text-sm font-semibold" for="perm-roles">Roles Permission</label>
                     <select class="select select-bordered w-full" id="perm-roles" name="perm_roles">
-                        <option value="disallow" {{if eq .TargetRole.PermRoles "disallow"}}selected{{end}}>Disallow</option>
+                        <option value="" {{if eq .TargetRole.PermRoles ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="allow" {{if eq .TargetRole.PermRoles "allow"}}selected{{end}}>Allow</option>
+                        <option value="disallow" {{if eq .TargetRole.PermRoles "disallow"}}selected{{end}}>Disallow</option>
                     </select>
                 </div>
                 <div class="flex flex-col gap-1 w-full">
                     <label class="text-sm font-semibold" for="perm-members">Members Permission</label>
                     <select class="select select-bordered w-full" id="perm-members" name="perm_members">
+                        <option value="" {{if eq .TargetRole.PermMembers ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="read" {{if eq .TargetRole.PermMembers "read"}}selected{{end}}>Read</option>
                         <option value="invite" {{if eq .TargetRole.PermMembers "invite"}}selected{{end}}>Invite</option>
                         <option value="write" {{if eq .TargetRole.PermMembers "write"}}selected{{end}}>Write (manage monikers)</option>
@@ -58,15 +67,17 @@
                 <div class="flex flex-col gap-1 w-full">
                     <label class="text-sm font-semibold" for="perm-group-change">Group Settings Change</label>
                     <select class="select select-bordered w-full" id="perm-group-change" name="perm_group_change">
-                        <option value="disallow" {{if eq .TargetRole.PermGroupChange "disallow"}}selected{{end}}>Disallow</option>
+                        <option value="" {{if eq .TargetRole.PermGroupChange ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="allow" {{if eq .TargetRole.PermGroupChange "allow"}}selected{{end}}>Allow</option>
+                        <option value="disallow" {{if eq .TargetRole.PermGroupChange "disallow"}}selected{{end}}>Disallow</option>
                     </select>
                 </div>
                 <div class="flex flex-col gap-1 w-full col-span-full">
                     <label class="text-sm font-semibold" for="perm-admin">Administrator</label>
                     <select class="select select-bordered w-full" id="perm-admin" name="perm_admin">
-                        <option value="disallow" {{if eq .TargetRole.PermAdmin "disallow"}}selected{{end}}>Disallow</option>
+                        <option value="" {{if eq .TargetRole.PermAdmin ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="allow" {{if eq .TargetRole.PermAdmin "allow"}}selected{{end}}>Allow (all permissions)</option>
+                        <option value="disallow" {{if eq .TargetRole.PermAdmin "disallow"}}selected{{end}}>Disallow</option>
                     </select>
                 </div>
             </div>
@@ -83,7 +94,7 @@
                 <div></div>
                 {{end}}
                 <div class="flex gap-2">
-                    <a class="btn btn-ghost" href="/groups/{{.Group.Id}}/settings/roles">Cancel</a>
+                    <button class="btn btn-ghost" type="button" onclick="history.back()">Cancel</button>
                     {{if or .Role.PermRoles.Has .Role.PermAdmin.Has (eq .Member.UserId .Group.OwnerId)}}
                     <button class="btn btn-primary" type="submit">Save Changes</button>
                     {{end}}

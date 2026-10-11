@@ -1,8 +1,14 @@
 <div class="p-page max-w-xl mx-auto flex flex-col gap-6">
-    <h1 class="text-2xl font-bold flex items-center gap-2">
-        <span class="icon icon-[lucide--users]" aria-hidden="true"></span>
-        Group settings &middot; {{.Group.Moniker}}
-    </h1>
+    <div class="flex items-center justify-between mb-2">
+        <h1 class="text-2xl font-bold flex items-center gap-2">
+            <span class="icon icon-[lucide--users]" aria-hidden="true"></span>
+            Group settings &middot; {{.Group.Moniker}}
+        </h1>
+        <button class="btn btn-ghost btn-sm gap-1" type="button" onclick="history.back()">
+            <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
+            Back
+        </button>
+    </div>
     {{template "partials/group-settings-nav" .}}
     <div class="flex flex-col gap-4 bg-surface-card p-6 rounded-box border border-base-content/10 shadow-sm">
         <h2 class="text-xl font-bold pb-2 border-b border-base-content/10 flex items-center gap-2">
@@ -33,7 +39,8 @@
                 <div class="flex flex-col gap-1 w-full">
                     <label class="text-sm font-semibold" for="perm-messages">Messages Permission</label>
                     <select class="select select-bordered w-full" id="perm-messages" name="perm_messages">
-                        <option value="write" selected>Write</option>
+                        <option value="" selected>Neutral / Inherit</option>
+                        <option value="write">Write</option>
                         <option value="read">Read</option>
                         <option value="delete">Delete (manage all)</option>
                         <option value="hidden">Hidden</option>
@@ -42,14 +49,16 @@
                 <div class="flex flex-col gap-1 w-full">
                     <label class="text-sm font-semibold" for="perm-roles">Roles Permission</label>
                     <select class="select select-bordered w-full" id="perm-roles" name="perm_roles">
-                        <option value="disallow" selected>Disallow</option>
+                        <option value="" selected>Neutral / Inherit</option>
                         <option value="allow">Allow</option>
+                        <option value="disallow">Disallow</option>
                     </select>
                 </div>
                 <div class="flex flex-col gap-1 w-full">
                     <label class="text-sm font-semibold" for="perm-members">Members Permission</label>
                     <select class="select select-bordered w-full" id="perm-members" name="perm_members">
-                        <option value="read" selected>Read</option>
+                        <option value="" selected>Neutral / Inherit</option>
+                        <option value="read">Read</option>
                         <option value="invite">Invite</option>
                         <option value="write">Write (manage monikers)</option>
                         <option value="delete">Delete (kick & ban)</option>
@@ -58,21 +67,23 @@
                 <div class="flex flex-col gap-1 w-full">
                     <label class="text-sm font-semibold" for="perm-group-change">Group Settings Change</label>
                     <select class="select select-bordered w-full" id="perm-group-change" name="perm_group_change">
-                        <option value="disallow" selected>Disallow</option>
+                        <option value="" selected>Neutral / Inherit</option>
                         <option value="allow">Allow</option>
+                        <option value="disallow">Disallow</option>
                     </select>
                 </div>
                 <div class="flex flex-col gap-1 w-full col-span-full">
                     <label class="text-sm font-semibold" for="perm-admin">Administrator</label>
                     <select class="select select-bordered w-full" id="perm-admin" name="perm_admin">
-                        <option value="disallow" selected>Disallow</option>
+                        <option value="" selected>Neutral / Inherit</option>
                         <option value="allow">Allow (all permissions)</option>
+                        <option value="disallow">Disallow</option>
                     </select>
                 </div>
             </div>
             <div id="role-create-error"></div>
             <div class="flex justify-end gap-2 pt-2">
-                <a class="btn btn-ghost" href="/groups/{{.Group.Id}}/settings/roles">Cancel</a>
+                <button class="btn btn-ghost" type="button" onclick="history.back()">Cancel</button>
                 <button class="btn btn-primary" type="submit">Create Role</button>
             </div>
         </form>

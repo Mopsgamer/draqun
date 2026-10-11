@@ -147,11 +147,11 @@ func (role Role) Validate() htmx.Alert {
 
 // permissions
 //
-// NOTE: Keep 'none' at the end and 'disallow' at the first places.
+// NOTE: Highest permissions have priority. Neutral/None is at the end.
 var (
-	permSwitch   = []PermSwitch{PermSwitchDisallow, PermSwitchAllow, PermSwitchNone}
-	permMembers  = []PermMembers{PermMembersRead, PermMembersInvite, PermMembersDelete, PermMembersNone}
-	permMessages = []PermMessages{PermMessagesHidden, PermMessagesRead, PermMessagesWrite, PermMessagesDelete, PermMessagesNone}
+	permSwitch   = []PermSwitch{PermSwitchAllow, PermSwitchDisallow, PermSwitchNone}
+	permMembers  = []PermMembers{PermMembersDelete, PermMembersWrite, PermMembersInvite, PermMembersRead, PermMembersNone}
+	permMessages = []PermMessages{PermMessagesDelete, PermMessagesWrite, PermMessagesRead, PermMessagesHidden, PermMessagesNone}
 )
 
 // Enabled rights have priority over disabled rights.
