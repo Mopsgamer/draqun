@@ -396,6 +396,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[RoleCreate](ctx, perms.LocalForm)
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				existingRole, _ := model.NewRoleFromName(request.Name, group.Id)
 				if !existingRole.IsEmpty() {
@@ -422,6 +423,16 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertDatabase.Join(err)
 				}
 
+				actionRole := model.ActionRole{
+					RoleId:      role.Id,
+					CreatorId:   caller.Id,
+					GroupId:     group.Id,
+					Action:      "create",
+					Description: model.Description(fmt.Sprintf("Created role %s (%s)", role.Moniker, role.Name)),
+					ActedAt:     model.TimePast(time.Now()),
+				}
+				_ = actionRole.Insert()
+
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
 					return nil
@@ -438,6 +449,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[RoleChange](ctx, perms.LocalForm)
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				roleId := fiber.Params[uint64](ctx, "role_id")
 
 				role, err := model.NewRoleFromId(roleId, group.Id)
@@ -478,6 +490,16 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertDatabase.Join(err)
 				}
 
+				actionRole := model.ActionRole{
+					RoleId:      role.Id,
+					CreatorId:   caller.Id,
+					GroupId:     group.Id,
+					Action:      "update",
+					Description: model.Description(fmt.Sprintf("Updated role %s (%s)", role.Moniker, role.Name)),
+					ActedAt:     model.TimePast(time.Now()),
+				}
+				_ = actionRole.Insert()
+
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
 					return nil
@@ -492,6 +514,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			}),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				roleId := fiber.Params[uint64](ctx, "role_id")
 
 				role, err := model.NewRoleFromId(roleId, group.Id)
@@ -502,6 +525,16 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				if role.Name == "@everyone" {
 					return htmx.AlertGroupMemberNotAllowed
 				}
+
+				actionRole := model.ActionRole{
+					RoleId:      role.Id,
+					CreatorId:   caller.Id,
+					GroupId:     group.Id,
+					Action:      "delete",
+					Description: model.Description(fmt.Sprintf("Deleted role %s (%s)", role.Moniker, role.Name)),
+					ActedAt:     model.TimePast(time.Now()),
+				}
+				_ = actionRole.Insert()
 
 				if err := role.Delete(); err != nil {
 					return htmx.AlertDatabase.Join(err)

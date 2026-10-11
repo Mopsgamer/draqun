@@ -294,8 +294,8 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 		t.Errorf("expected 200 OK for audit page, got %d", respAuditPage.StatusCode())
 	}
 	auditBody := respAuditPage.String()
-	if !strings.Contains(auditBody, "Ban") || !strings.Contains(auditBody, "Kick") {
-		t.Errorf("expected audit page to contain Ban and Kick log entries, got: %s", auditBody)
+	if !strings.Contains(auditBody, "Ban") || !strings.Contains(auditBody, "Kick") || !strings.Contains(auditBody, "Role Action") {
+		t.Errorf("expected audit page to contain Ban, Kick, and Role Action log entries, got: %s", auditBody)
 	}
 
 	// 13. POST /groups/:id/members/:user_id/unban -> Unban member

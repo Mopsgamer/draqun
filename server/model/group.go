@@ -244,6 +244,25 @@ func (group Group) Memberships() []ActionMembership {
 	return membershipList
 }
 
+func (group Group) RoleActions() []ActionRole {
+	actionList := []ActionRole{}
+	sql, args, err := Goqu.From(TableRoleActions).
+		Where(goqu.Ex{"group_id": group.Id}).
+		Order(goqu.I("acted_at").Desc()).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return actionList
+	}
+
+	err = Sqlx.Select(&actionList, sql, args...)
+	if err != nil {
+		handleErr(err)
+	}
+
+	return actionList
+}
+
 func (group Group) MembersCount() uint64 {
 	count := uint64(0)
 	sql, args, err := Goqu.Select(goqu.COUNT("*")).From(TableMembers).

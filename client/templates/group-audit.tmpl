@@ -14,6 +14,7 @@
             <div class="p-3.5 rounded-lg border border-base-content/10 bg-surface-panel flex flex-col gap-2">
                 <div class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2.5">
+                        {{if ne .Target.Moniker ""}}
                         <div class="avatar placeholder">
                             <div class="bg-neutral text-neutral-content rounded-full size-8 flex items-center justify-center">
                                 {{if ne .Target.Avatar ""}}
@@ -23,12 +24,19 @@
                                 {{end}}
                             </div>
                         </div>
+                        {{else}}
+                        <span class="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <span class="icon icon-[lucide--shield] size-4"></span>
+                        </span>
+                        {{end}}
                         <div class="flex flex-col">
                             <div class="flex items-center gap-2">
-                                <span class="badge {{if eq .Kind "Ban"}}badge-error{{else if eq .Kind "Kick"}}badge-warning{{else}}badge-neutral{{end}} badge-sm font-semibold">
+                                <span class="badge {{if eq .Kind "Ban"}}badge-error{{else if eq .Kind "Kick"}}badge-warning{{else if eq .Kind "Role Action"}}badge-primary{{else}}badge-neutral{{end}} badge-sm font-semibold">
                                     {{.Kind}}
                                 </span>
+                                {{if ne .Target.Moniker ""}}
                                 <span class="font-bold text-sm">{{.Target.Moniker}}</span>
+                                {{end}}
                             </div>
                             {{if ne .Creator.Moniker ""}}
                             <span class="text-xs text-base-content/60">by {{.Creator.Moniker}}</span>
@@ -39,7 +47,7 @@
                 </div>
                 {{if ne .Description ""}}
                 <div class="text-xs text-base-content/80 pl-10">
-                    {{if eq .Kind "Membership"}}{{.Description}}{{else}}<span class="font-semibold text-base-content/60">Reason:</span> {{.Description}}{{end}}
+                    {{if or (eq .Kind "Membership") (eq .Kind "Role Action")}}{{.Description}}{{else}}<span class="font-semibold text-base-content/60">Reason:</span> {{.Description}}{{end}}
                 </div>
                 {{end}}
                 {{if ne .Details ""}}

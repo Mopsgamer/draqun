@@ -357,6 +357,16 @@ func RoutePages(app *fiber.App) {
 					Details:     "",
 				})
 			}
+			for _, r := range group.RoleActions() {
+				auditItems = append(auditItems, AuditItem{
+					Kind:        "Role Action",
+					Target:      model.User{},
+					Creator:     r.Creator(),
+					Description: string(r.Description),
+					ActedAt:     time.Time(r.ActedAt).Format("2006-01-02 15:04"),
+					Details:     "",
+				})
+			}
 			for _, m := range group.Memberships() {
 				actionStr := "Joined group"
 				if !m.IsJoin {
