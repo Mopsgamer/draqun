@@ -193,6 +193,24 @@ func (member Member) JoinActed() error {
 	return action.Insert()
 }
 
+func (member Member) MessagesCount() uint64 {
+	count := uint64(0)
+	sql, args, err := Goqu.Select(goqu.COUNT("*")).From(TableMessages).
+		Where(goqu.Ex{"group_id": member.GroupId, "user_id": member.UserId}).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return count
+	}
+
+	err = Sqlx.Get(&count, sql, args...)
+	if err != nil {
+		handleErr(err)
+	}
+
+	return count
+}
+
 func (member Member) ActionListPage(page uint, limit uint) []Action {
 	actions := []Action{}
 	from := (page - 1) * limit

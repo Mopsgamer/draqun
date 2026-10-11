@@ -1,4 +1,4 @@
-<div class="p-page max-w-2xl mx-auto flex flex-col gap-6">
+<div class="p-page max-w-3xl mx-auto flex flex-col gap-6">
     <h1 class="text-2xl font-bold flex items-center gap-2">
         <span class="icon icon-[lucide--users]" aria-hidden="true"></span>
         Group settings &middot; {{.Group.Moniker}}
@@ -12,81 +12,126 @@
             </h2>
             <div class="flex flex-col gap-4">
                 {{range .MemberItems}}
-                <div class="p-4 rounded-lg border border-base-content/10 bg-surface-panel flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="avatar placeholder">
-                            <div class="bg-neutral text-neutral-content rounded-full size-10 flex items-center justify-center font-bold">
-                                {{if ne .User.Avatar ""}}
-                                <img src="{{.User.Avatar}}" alt="{{.User.Moniker}}" />
+                <div class="p-4 rounded-lg border border-base-content/10 bg-surface-panel flex flex-col gap-4">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="avatar placeholder relative">
+                                <div class="bg-neutral text-neutral-content rounded-full size-12 flex items-center justify-center">
+                                    {{if ne .User.Avatar ""}}
+                                    <img src="{{.User.Avatar}}" class="size-full object-cover rounded-full" alt="{{.User.Moniker}}" />
+                                    {{else}}
+                                    <span class="icon icon-[lucide--user] size-7" aria-hidden="true"></span>
+                                    {{end}}
+                                </div>
+                                {{if .IsOnline}}
+                                <span class="badge badge-success badge-xs absolute bottom-0 right-0 border-2 border-surface-panel p-1" title="Online"></span>
                                 {{else}}
-                                <span>{{slice .User.Moniker 0 1}}</span>
+                                <span class="badge badge-ghost badge-xs absolute bottom-0 right-0 border-2 border-surface-panel p-1 opacity-50" title="Offline"></span>
                                 {{end}}
+                            </div>
+                            <div>
+                                <div class="font-bold text-base flex items-center gap-2">
+                                    {{.User.Moniker}}
+                                    <span class="text-xs text-base-content/60 font-mono">({{.User.Name}})</span>
+                                    {{if eq .User.Id $.Group.OwnerId}}
+                                    <span class="badge badge-primary badge-xs font-semibold">Owner</span>
+                                    {{end}}
+                                    {{if .IsOnline}}
+                                    <span class="badge badge-success badge-outline badge-xs">Online</span>
+                                    {{else}}
+                                    <span class="badge badge-ghost badge-outline badge-xs">Offline</span>
+                                    {{end}}
+                                </div>
+                                <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                    {{range .Roles}}
+                                    <span class="badge badge-sm gap-1 pl-1.5 pr-1 py-1" style="border-color: {{.Color.Hex}}; color: {{.Color.Hex}}">
+                                        <span class="size-2 rounded-full" style="background-color: {{.Color.Hex}}"></span>
+                                        {{.Moniker}}
+                                        {{if or $.Role.PermRoles.Has $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)}}
+                                        <button
+                                            type="button"
+                                            class="hover:opacity-75 cursor-pointer ml-1"
+                                            hx-delete="/groups/{{$.Group.Id}}/members/{{$.User.Id}}/roles/{{.Id}}"
+                                            title="Remove role"
+                                        >&times;</button>
+                                        {{end}}
+                                    </span>
+                                    {{end}}
+                                </div>
                             </div>
                         </div>
-                        <div>
-                            <div class="font-bold flex items-center gap-2">
-                                {{.User.Moniker}}
-                                <span class="text-xs text-base-content/60">({{.User.Name}})</span>
-                                {{if eq .User.Id $.Group.OwnerId}}
-                                <span class="badge badge-primary badge-xs">Owner</span>
-                                {{end}}
-                            </div>
-                            <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
-                                {{range .Roles}}
-                                <span class="badge badge-sm gap-1 pl-1.5 pr-1 py-1" style="border-color: {{.Color.Hex}}; color: {{.Color.Hex}}">
-                                    <span class="size-2 rounded-full" style="background-color: {{.Color.Hex}}"></span>
-                                    {{.Moniker}}
-                                    <button
-                                        type="button"
-                                        class="hover:opacity-75 cursor-pointer ml-1"
-                                        hx-delete="/groups/{{$.Group.Id}}/members/{{$.User.Id}}/roles/{{.Id}}"
-                                        title="Remove role"
-                                    >&times;</button>
-                                </span>
-                                {{end}}
-                            </div>
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                            {{if or $.Role.PermRoles.Has $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)}}
+                            <form
+                                class="flex items-center gap-1"
+                                hx-post="/groups/{{$.Group.Id}}/members/{{.User.Id}}/roles"
+                            >
+                                <select name="role_id" class="select select-bordered select-xs" required>
+                                    <option value="" disabled selected>+ Role</option>
+                                    {{range $.Roles}}
+                                    {{if ne .Name "@everyone"}}
+                                    <option value="{{.Id}}">{{.Moniker}}</option>
+                                    {{end}}
+                                    {{end}}
+                                </select>
+                                <button class="btn btn-ghost btn-xs" type="submit">Add</button>
+                            </form>
+                            {{end}}
+                            {{if and (or $.Role.PermMembers.CanKickBan $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)) (ne .User.Id $.Group.OwnerId)}}
+                            <details class="dropdown dropdown-end">
+                                <summary class="btn btn-warning btn-xs">Kick</summary>
+                                <div class="dropdown-content z-10 p-3 shadow-lg bg-surface-card rounded-box border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
+                                    <span class="font-semibold text-xs">Kick {{.User.Moniker}}</span>
+                                    <form hx-post="/groups/{{$.Group.Id}}/members/{{.User.Id}}/kick" class="flex flex-col gap-2">
+                                        <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
+                                        <button type="submit" class="btn btn-warning btn-xs w-full">Confirm Kick</button>
+                                    </form>
+                                </div>
+                            </details>
+                            <details class="dropdown dropdown-end">
+                                <summary class="btn btn-error btn-xs">Ban</summary>
+                                <div class="dropdown-content z-10 p-3 shadow-lg bg-surface-card rounded-box border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
+                                    <span class="font-semibold text-xs">Ban {{.User.Moniker}}</span>
+                                    <form hx-post="/groups/{{$.Group.Id}}/members/{{.User.Id}}/ban" class="flex flex-col gap-2">
+                                        <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
+                                        <input type="number" name="duration_days" placeholder="Days (default 365)" class="input input-bordered input-xs w-full" min="1" max="3650">
+                                        <button type="submit" class="btn btn-error btn-xs w-full">Confirm Ban</button>
+                                    </form>
+                                </div>
+                            </details>
+                            {{end}}
                         </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2 shrink-0">
-                        {{if $.Role.PermRoles.Has}}
-                        <form
-                            class="flex items-center gap-1"
-                            hx-post="/groups/{{$.Group.Id}}/members/{{.User.Id}}/roles"
-                        >
-                            <select name="role_id" class="select select-bordered select-xs" required>
-                                <option value="" disabled selected>+ Role</option>
-                                {{range $.Roles}}
-                                {{if ne .Name "@everyone"}}
-                                <option value="{{.Id}}">{{.Moniker}}</option>
-                                {{end}}
-                                {{end}}
-                            </select>
-                            <button class="btn btn-ghost btn-xs" type="submit">Add</button>
-                        </form>
-                        {{end}}
-                        {{if and ($.Role.PermMembers.CanKickBan) (ne .User.Id $.Group.OwnerId)}}
-                        <details class="dropdown dropdown-end">
-                            <summary class="btn btn-warning btn-xs">Kick</summary>
-                            <div class="dropdown-content z-10 p-3 shadow-lg bg-surface-card rounded-box border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                                <span class="font-semibold text-xs">Kick {{.User.Moniker}}</span>
-                                <form hx-post="/groups/{{$.Group.Id}}/members/{{.User.Id}}/kick" class="flex flex-col gap-2">
-                                    <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
-                                    <button type="submit" class="btn btn-warning btn-xs w-full">Confirm Kick</button>
-                                </form>
-                            </div>
-                        </details>
-                        <details class="dropdown dropdown-end">
-                            <summary class="btn btn-error btn-xs">Ban</summary>
-                            <div class="dropdown-content z-10 p-3 shadow-lg bg-surface-card rounded-box border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                                <span class="font-semibold text-xs">Ban {{.User.Moniker}}</span>
-                                <form hx-post="/groups/{{$.Group.Id}}/members/{{.User.Id}}/ban" class="flex flex-col gap-2">
-                                    <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
-                                    <input type="number" name="duration_days" placeholder="Days (default 365)" class="input input-bordered input-xs w-full" min="1" max="3650">
-                                    <button type="submit" class="btn btn-error btn-xs w-full">Confirm Ban</button>
-                                </form>
-                            </div>
-                        </details>
-                        {{end}}
+
+                    <!-- Member info & stats grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-base-content/10 text-xs text-base-content/80">
+                        <div>
+                            <span class="block font-semibold text-base-content/50">Joined Group</span>
+                            <span>{{.JoinedAtStr}}</span>
+                            <span class="block text-[10px] text-base-content/60">({{.TenureStr}} ago)</span>
+                        </div>
+                        <div>
+                            <span class="block font-semibold text-base-content/50">Account Created</span>
+                            <span>{{.AccountCreated}}</span>
+                        </div>
+                        <div>
+                            <span class="block font-semibold text-base-content/50">Messages Sent</span>
+                            <span class="font-bold">{{.MessagesCount}}</span>
+                        </div>
+                        <div>
+                            <span class="block font-semibold text-base-content/50">Time in Group</span>
+                            <span>{{.TenureStr}}</span>
+                        </div>
+                    </div>
+
+                    <!-- Read-only Effective Permissions info -->
+                    <div class="flex flex-wrap items-center gap-2 pt-2 text-[11px] text-base-content/70">
+                        <span class="font-semibold text-base-content/50">Permissions:</span>
+                        <span class="badge badge-ghost badge-xs">Messages: {{.EffectiveRole.PermMessages}}</span>
+                        <span class="badge badge-ghost badge-xs">Roles: {{.EffectiveRole.PermRoles}}</span>
+                        <span class="badge badge-ghost badge-xs">Members: {{.EffectiveRole.PermMembers}}</span>
+                        <span class="badge badge-ghost badge-xs">Group Settings: {{.EffectiveRole.PermGroupChange}}</span>
+                        <span class="badge badge-ghost badge-xs">Admin: {{.EffectiveRole.PermAdmin}}</span>
                     </div>
                 </div>
                 {{end}}
@@ -106,7 +151,7 @@
                         <div class="font-bold text-sm">{{.Target.Moniker}} <span class="text-xs font-normal opacity-70">({{.Target.Name}})</span></div>
                         <div class="text-xs text-base-content/70">Reason: {{.Ban.Description}}</div>
                     </div>
-                    {{if $.Role.PermMembers.CanKickBan}}
+                    {{if or $.Role.PermMembers.CanKickBan $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)}}
                     <button
                         class="btn btn-ghost btn-xs text-success"
                         hx-post="/groups/{{$.Group.Id}}/members/{{.Target.Id}}/unban"

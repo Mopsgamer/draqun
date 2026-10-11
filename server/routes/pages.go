@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -8,6 +9,53 @@ import (
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/gofiber/fiber/v3"
 )
+
+func formatTenure(t time.Time) string {
+	if t.IsZero() {
+		return "N/A"
+	}
+	d := time.Since(t)
+	if d < time.Minute {
+		return "Just joined"
+	}
+	if d < time.Hour {
+		mins := int(d.Minutes())
+		if mins == 1 {
+			return "1 minute"
+		}
+		return fmt.Sprintf("%d minutes", mins)
+	}
+	if d < 24*time.Hour {
+		hours := int(d.Hours())
+		if hours == 1 {
+			return "1 hour"
+		}
+		return fmt.Sprintf("%d hours", hours)
+	}
+	days := int(d.Hours() / 24)
+	if days < 30 {
+		if days == 1 {
+			return "1 day"
+		}
+		return fmt.Sprintf("%d days", days)
+	}
+	months := days / 30
+	if months < 12 {
+		if months == 1 {
+			return "1 month"
+		}
+		return fmt.Sprintf("%d months", months)
+	}
+	years := months / 12
+	remMonths := months % 12
+	if remMonths == 0 {
+		if years == 1 {
+			return "1 year"
+		}
+		return fmt.Sprintf("%d years", years)
+	}
+	return fmt.Sprintf("%d yrs %d mos", years, remMonths)
+}
 
 func RoutePages(app *fiber.App) {
 	app.Get(
@@ -212,15 +260,29 @@ func RoutePages(app *fiber.App) {
 			role := fiber.Locals[model.Role](ctx, perms.LocalRights)
 			users := group.UsersPage(1, 100)
 			type MemberItem struct {
-				User  model.User
-				Roles []model.Role
+				User           model.User
+				Member         model.Member
+				Roles          []model.Role
+				EffectiveRole  model.Role
+				JoinedAtStr    string
+				AccountCreated string
+				TenureStr      string
+				IsOnline       bool
+				MessagesCount  uint64
 			}
 			memberItems := make([]MemberItem, len(users))
 			for i, u := range users {
 				m, _ := model.NewMemberFromId(group.Id, u.Id)
 				memberItems[i] = MemberItem{
-					User:  u,
-					Roles: m.Roles(),
+					User:           u,
+					Member:         m,
+					Roles:          m.Roles(),
+					EffectiveRole:  m.Role(),
+					JoinedAtStr:    time.Time(m.FirstTimeJoinedAt).Format("2006-01-02"),
+					AccountCreated: time.Time(u.CreatedAt).Format("2006-01-02"),
+					TenureStr:      formatTenure(time.Time(m.FirstTimeJoinedAt)),
+					IsOnline:       u.IsOnline(),
+					MessagesCount:  m.MessagesCount(),
 				}
 			}
 			roles := group.Roles()
@@ -287,7 +349,7 @@ func RoutePages(app *fiber.App) {
 					Creator:     k.Creator(),
 					Description: string(k.Description),
 					ActedAt:     time.Time(k.ActedAt).Format("2006-01-02 15:04"),
-					Details:     "Kicked from group",
+					Details:     "",
 				})
 			}
 			for _, m := range group.Memberships() {
@@ -298,10 +360,10 @@ func RoutePages(app *fiber.App) {
 				auditItems = append(auditItems, AuditItem{
 					Kind:        "Membership",
 					Target:      m.User(),
-					Creator:     m.User(),
+					Creator:     model.User{},
 					Description: actionStr,
 					ActedAt:     time.Time(m.ActedAt).Format("2006-01-02 15:04"),
-					Details:     actionStr,
+					Details:     "",
 				})
 			}
 			return htmx.TryRenderPage(ctx, "group-audit", MapPage(ctx, fiber.Map{

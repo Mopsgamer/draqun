@@ -11,24 +11,39 @@
         </h2>
         <div class="flex flex-col gap-3">
             {{range .AuditItems}}
-            <div class="p-3 rounded-lg border border-base-content/10 bg-surface-panel flex flex-col gap-1">
-                <div class="flex items-center justify-between">
-                    <span class="badge {{if eq .Kind "Ban"}}badge-error{{else if eq .Kind "Kick"}}badge-warning{{else}}badge-ghost{{end}} badge-sm font-semibold">
-                        {{.Kind}}
-                    </span>
-                    <span class="text-xs text-base-content/60">{{.ActedAt}}</span>
-                </div>
-                <div class="text-sm font-medium mt-1">
-                    <span class="font-bold">{{.Target.Moniker}}</span>
-                    {{if ne .Creator.Moniker ""}}
-                    <span class="text-xs text-base-content/70">by {{.Creator.Moniker}}</span>
-                    {{end}}
+            <div class="p-3.5 rounded-lg border border-base-content/10 bg-surface-panel flex flex-col gap-2">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="avatar placeholder">
+                            <div class="bg-neutral text-neutral-content rounded-full size-8 flex items-center justify-center">
+                                {{if ne .Target.Avatar ""}}
+                                <img src="{{.Target.Avatar}}" class="size-full object-cover rounded-full" alt="{{.Target.Moniker}}" />
+                                {{else}}
+                                <span class="icon icon-[lucide--user] size-5" aria-hidden="true"></span>
+                                {{end}}
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-2">
+                                <span class="badge {{if eq .Kind "Ban"}}badge-error{{else if eq .Kind "Kick"}}badge-warning{{else}}badge-neutral{{end}} badge-sm font-semibold">
+                                    {{.Kind}}
+                                </span>
+                                <span class="font-bold text-sm">{{.Target.Moniker}}</span>
+                            </div>
+                            {{if ne .Creator.Moniker ""}}
+                            <span class="text-xs text-base-content/60">by {{.Creator.Moniker}}</span>
+                            {{end}}
+                        </div>
+                    </div>
+                    <span class="text-xs text-base-content/50 font-mono shrink-0">{{.ActedAt}}</span>
                 </div>
                 {{if ne .Description ""}}
-                <div class="text-xs text-base-content/80">Reason / Action: {{.Description}}</div>
+                <div class="text-xs text-base-content/80 pl-10">
+                    {{if eq .Kind "Membership"}}{{.Description}}{{else}}<span class="font-semibold text-base-content/60">Reason:</span> {{.Description}}{{end}}
+                </div>
                 {{end}}
                 {{if ne .Details ""}}
-                <div class="text-xs text-base-content/60 italic">{{.Details}}</div>
+                <div class="text-xs text-base-content/60 italic pl-10">{{.Details}}</div>
                 {{end}}
             </div>
             {{else}}

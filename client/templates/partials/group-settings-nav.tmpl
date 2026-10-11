@@ -1,6 +1,10 @@
-<div class="flex border-b border-base-content/10 gap-2 mb-4">
+<div class="flex border-b border-base-content/10 gap-2 mb-4" hx-boost="true">
     <a href="/groups/{{.Group.Id}}/settings" class="btn btn-ghost btn-sm border-b-2 {{if eq .Tab "general"}}border-primary text-primary font-bold{{else}}border-transparent{{end}} rounded-b-none">General</a>
+    {{if or .Role.PermRoles.Has .Role.PermAdmin.Has (eq .Member.UserId .Group.OwnerId)}}
     <a href="/groups/{{.Group.Id}}/settings/roles" class="btn btn-ghost btn-sm border-b-2 {{if eq .Tab "roles"}}border-primary text-primary font-bold{{else}}border-transparent{{end}} rounded-b-none">Roles</a>
+    {{end}}
+    {{if or .Role.PermMembers.CanSee .Role.PermAdmin.Has (eq .Member.UserId .Group.OwnerId)}}
     <a href="/groups/{{.Group.Id}}/settings/members" class="btn btn-ghost btn-sm border-b-2 {{if eq .Tab "members"}}border-primary text-primary font-bold{{else}}border-transparent{{end}} rounded-b-none">Members</a>
     <a href="/groups/{{.Group.Id}}/settings/audit" class="btn btn-ghost btn-sm border-b-2 {{if eq .Tab "audit"}}border-primary text-primary font-bold{{else}}border-transparent{{end}} rounded-b-none">Audit Log</a>
+    {{end}}
 </div>

@@ -40,4 +40,8 @@ if (typeof EventSource !== "undefined") {
 	es.onerror = () => {
 		// EventSource will automatically reconnect when server is back
 	};
+
+	globalThis.addEventListener("beforeunload", () => {
+		es.close();
+	});
 }
