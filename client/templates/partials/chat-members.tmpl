@@ -3,11 +3,11 @@
 <div id="member-{{$member.Id}}" class="member flex items-center justify-between gap-2">
     <div class="flex items-center gap-2 min-w-0 flex-1">
         <div class="relative flex items-center justify-center shrink-0">
-            <span class="inline-flex size-7 items-center justify-center rounded-full border border-dashed border-primary text-primary bg-primary/10 shrink-0 overflow-hidden" aria-hidden="true">
+            <span class="inline-flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0 overflow-hidden" aria-hidden="true">
                 {{if ne $member.Avatar ""}}
                     <img src="{{$member.Avatar}}" class="size-full object-cover rounded-full" alt="Member avatar">
                 {{else}}
-                    <span class="icon icon-[lucide--plus] size-4"></span>
+                    <span class="icon icon-[lucide--user-round] size-4"></span>
                 {{end}}
             </span>
             <span

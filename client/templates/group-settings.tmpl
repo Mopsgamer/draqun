@@ -47,17 +47,19 @@
                 </div>
             </div>
             <div class="flex flex-col gap-1 w-full">
-                <label class="text-sm font-semibold" for="change-group-avatar">Avatar</label>
-                <div class="flex items-center gap-3">
-                    <div class="inline-flex size-10 items-center justify-center rounded-lg border border-dashed border-primary text-primary bg-primary/10 shrink-0 overflow-hidden" aria-hidden="true">
-                        {{if ne .Group.Avatar ""}}
-                            <img src="{{.Group.Avatar}}" class="size-full object-cover rounded-lg" alt="Group avatar">
-                        {{else}}
-                            <span class="icon icon-[lucide--users] size-5"></span>
-                        {{end}}
-                    </div>
-                    <input class="file-input file-input-bordered w-full" type="file" id="change-group-avatar" name="avatar" accept="image/*">
-                </div>
+                <label class="text-sm font-semibold">Avatar</label>
+                <label class="relative cursor-pointer group flex items-center justify-center size-16 rounded-lg border-2 border-dashed border-primary/50 hover:border-primary text-primary bg-primary/5 hover:bg-primary/10 transition-all overflow-hidden shrink-0" title="Click to upload avatar">
+                    {{if ne .Group.Avatar ""}}
+                        <img id="change-group-avatar-preview" src="{{.Group.Avatar}}" class="size-full object-cover rounded-lg" alt="Group avatar">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                            <span class="icon icon-[lucide--plus] size-6"></span>
+                        </div>
+                    {{else}}
+                        <span class="icon icon-[lucide--plus] size-6" id="change-group-avatar-icon"></span>
+                        <img id="change-group-avatar-preview" class="size-full object-cover rounded-lg hidden" alt="Group avatar preview">
+                    {{end}}
+                    <input type="file" id="change-group-avatar" name="avatar" accept="image/*" class="hidden" onchange="if(this.files && this.files[0]){ const img=document.getElementById('change-group-avatar-preview'); const icon=document.getElementById('change-group-avatar-icon'); img.src=URL.createObjectURL(this.files[0]); img.classList.remove('hidden'); if(icon) icon.classList.add('hidden'); }">
+                </label>
             </div>
             <div class="flex flex-col gap-1 w-full">
                 <label class="text-sm font-semibold" for="change-group-description">Description</label>
