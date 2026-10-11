@@ -4,6 +4,35 @@
         Account settings
     </h2>
     <h4 class="text-base font-semibold flex items-center gap-2 text-base-content/80">
+        <span class="icon icon-[lucide--image] size-4" aria-hidden="true"></span>
+        Avatar
+    </h4>
+    <form
+        id="change-avatar-form"
+        class="flex items-center gap-4 p-3 rounded-lg bg-surface-card border border-base-content/10"
+        hx-put="/account/change/avatar"
+        hx-encoding="multipart/form-data"
+        hx-swap="innerHTML"
+        hx-target="#change-avatar-error"
+    >
+        <label class="relative cursor-pointer group flex items-center justify-center size-16 rounded-full border-2 border-dashed border-primary/50 hover:border-primary text-primary bg-primary/5 hover:bg-primary/10 transition-all overflow-hidden shrink-0" title="Click to upload avatar">
+            {{if ne .User.Avatar ""}}
+                <img src="{{.User.Avatar}}" class="size-full object-cover rounded-full" alt="User avatar">
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                    <span class="icon icon-[lucide--plus] size-6"></span>
+                </div>
+            {{else}}
+                <span class="icon icon-[lucide--plus] size-6"></span>
+            {{end}}
+            <input type="file" name="avatar" accept="image/*" class="hidden" onchange="this.form.requestSubmit()">
+        </label>
+        <div class="flex flex-col text-xs text-base-content/70">
+            <span class="font-semibold text-sm text-base-content">Upload avatar</span>
+            <span>Click the circle to choose an image</span>
+        </div>
+        <div id="change-avatar-error" class="ml-auto"></div>
+    </form>
+    <h4 class="text-base font-semibold flex items-center gap-2 text-base-content/80">
         <span class="icon icon-[lucide--pen] size-4" aria-hidden="true"></span>
         Profile
     </h4>

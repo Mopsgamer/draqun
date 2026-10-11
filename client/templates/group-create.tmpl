@@ -8,6 +8,7 @@
         id="new-group-form"
         name="new-group-form"
         hx-post="/groups/create"
+        hx-encoding="multipart/form-data"
         hx-swap="innerHTML"
         hx-target="#new-group-error"
     >
@@ -28,6 +29,14 @@
                     <span class="icon icon-[lucide--eye-off] size-5" aria-hidden="true" data-password-hidden hidden></span>
                 </button>
             </div>
+        </div>
+        <div class="flex flex-col gap-1 w-full">
+            <label class="text-sm font-semibold">Avatar</label>
+            <label class="relative cursor-pointer group flex items-center justify-center size-16 rounded-lg border-2 border-dashed border-primary/50 hover:border-primary text-primary bg-primary/5 hover:bg-primary/10 transition-all overflow-hidden" title="Click to upload avatar">
+                <span class="icon icon-[lucide--plus] size-6" id="new-group-avatar-icon"></span>
+                <img id="new-group-avatar-preview" class="size-full object-cover rounded-lg hidden" alt="Group avatar preview">
+                <input type="file" id="new-group-avatar" name="avatar" accept="image/*" class="hidden" onchange="if(this.files && this.files[0]){ const img=document.getElementById('new-group-avatar-preview'); const icon=document.getElementById('new-group-avatar-icon'); img.src=URL.createObjectURL(this.files[0]); img.classList.remove('hidden'); icon.classList.add('hidden'); }">
+            </label>
         </div>
         <div class="flex flex-col gap-1 w-full">
             <label class="text-sm font-semibold" for="new-group-description">Description</label>

@@ -2,6 +2,8 @@ package routes
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -84,11 +86,30 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[GroupChange](ctx, perms.LocalForm)
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+
+				file, errFile := ctx.FormFile("avatar")
+				if errFile == nil && file != nil {
+					if err := os.MkdirAll("uploads", 0755); err != nil {
+						return htmx.AlertDatabase.Join(err)
+					}
+					ext := filepath.Ext(file.Filename)
+					if ext == "" {
+						ext = ".png"
+					}
+					filename := fmt.Sprintf("group-%d-%d%s", group.Id, time.Now().UnixNano(), ext)
+					dst := filepath.Join("uploads", filename)
+					if err := ctx.SaveFile(file, dst); err != nil {
+						return htmx.AlertDatabase.Join(err)
+					}
+					group.Avatar = model.Avatar("/uploads/" + filename)
+				}
+
 				hasChanges := group.Moniker != request.Nick ||
 					group.Name != request.Name ||
 					group.Description != request.Description ||
 					group.Mode != request.Mode ||
-					group.Password.Compare(request.Password) != nil
+					group.Password.Compare(request.Password) != nil ||
+					errFile == nil
 
 				if !hasChanges {
 					return htmx.AlertUseless
@@ -175,7 +196,26 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
-				group := model.NewGroup(user.Id, request.Nick, request.Name, request.Mode, hash, request.Description, request.Avatar)
+
+				avatarPath := request.Avatar
+				file, errFile := ctx.FormFile("avatar")
+				if errFile == nil && file != nil {
+					if err := os.MkdirAll("uploads", 0755); err != nil {
+						return htmx.AlertDatabase.Join(err)
+					}
+					ext := filepath.Ext(file.Filename)
+					if ext == "" {
+						ext = ".png"
+					}
+					filename := fmt.Sprintf("group-new-%d%s", time.Now().UnixNano(), ext)
+					dst := filepath.Join("uploads", filename)
+					if err := ctx.SaveFile(file, dst); err != nil {
+						return htmx.AlertDatabase.Join(err)
+					}
+					avatarPath = model.Avatar("/uploads/" + filename)
+				}
+
+				group := model.NewGroup(user.Id, request.Nick, request.Name, request.Mode, hash, request.Description, avatarPath)
 				if err := group.Validate(); err != nil {
 					return err
 				}
