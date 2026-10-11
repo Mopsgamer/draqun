@@ -11,6 +11,7 @@ import (
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/Mopsgamer/draqun/server/render"
 	"github.com/Mopsgamer/draqun/server/session"
+	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/contrib/v3/websocket"
 	"github.com/gofiber/fiber/v3"
 )
@@ -22,6 +23,41 @@ type GroupCreate struct {
 	Mode        model.GroupMode        `form:"mode"`
 	Description model.Description      `form:"description"`
 	Avatar      model.Avatar           `form:"avatar"`
+}
+
+type RoleCreate struct {
+	Name            model.Name         `form:"name"`
+	Moniker         model.Moniker      `form:"moniker"`
+	Color           string             `form:"color"`
+	PermMessages    model.PermMessages `form:"perm_messages"`
+	PermRoles       model.PermSwitch   `form:"perm_roles"`
+	PermMembers     model.PermMembers  `form:"perm_members"`
+	PermGroupChange model.PermSwitch   `form:"perm_group_change"`
+	PermAdmin       model.PermSwitch   `form:"perm_admin"`
+}
+
+type RoleChange struct {
+	Name            model.Name         `form:"name"`
+	Moniker         model.Moniker      `form:"moniker"`
+	Color           string             `form:"color"`
+	PermMessages    model.PermMessages `form:"perm_messages"`
+	PermRoles       model.PermSwitch   `form:"perm_roles"`
+	PermMembers     model.PermMembers  `form:"perm_members"`
+	PermGroupChange model.PermSwitch   `form:"perm_group_change"`
+	PermAdmin       model.PermSwitch   `form:"perm_admin"`
+}
+
+type RoleAssignForm struct {
+	RoleId uint64 `form:"role_id"`
+}
+
+type MemberKickForm struct {
+	Description model.Description `form:"description"`
+}
+
+type MemberBanForm struct {
+	Description  model.Description `form:"description"`
+	DurationDays uint              `form:"duration_days"`
 }
 
 type MessageCreate struct {
@@ -44,11 +80,15 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			perms.GroupById("group_id"),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				if group.IsBanned(user.Id) {
+					return htmx.AlertGroupMemberNotAllowed
+				}
+
 				perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id")
 				member := fiber.Locals[model.Member](ctx, perms.LocalMember)
 				if member.IsEmpty() {
 					// never been a member
-					user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 					member = model.NewMember(group.Id, user.Id, "")
 					if err := member.Insert(); err != nil {
 						return htmx.AlertDatabase.Join(err)
@@ -342,6 +382,279 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 				if htmx.IsHtmx(ctx) {
 					htmx.EnableRefresh(ctx)
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Post("/:group_id/roles/create",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermRoles.Has()
+			}),
+			perms.UseBind[RoleCreate](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[RoleCreate](ctx, perms.LocalForm)
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+
+				existingRole, _ := model.NewRoleFromName(request.Name, group.Id)
+				if !existingRole.IsEmpty() {
+					return htmx.AlertGroupExistsName
+				}
+
+				role := model.Role{
+					GroupId:         group.Id,
+					Name:            request.Name,
+					Moniker:         request.Moniker,
+					Color:           model.ParseColorHex(request.Color),
+					PermMessages:    request.PermMessages,
+					PermRoles:       request.PermRoles,
+					PermMembers:     request.PermMembers,
+					PermGroupChange: request.PermGroupChange,
+					PermAdmin:       request.PermAdmin,
+				}
+
+				if err := role.Validate(); err != nil {
+					return err
+				}
+
+				if err := role.Insert(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Put("/:group_id/roles/:role_id",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermRoles.Has()
+			}),
+			perms.UseBind[RoleChange](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[RoleChange](ctx, perms.LocalForm)
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				roleId := fiber.Params[uint64](ctx, "role_id")
+
+				role, err := model.NewRoleFromId(roleId, group.Id)
+				if err != nil || role.IsEmpty() {
+					return htmx.AlertGroupMemberNotFound
+				}
+
+				if role.Name == "@everyone" {
+					role.Moniker = request.Moniker
+					role.Color = model.ParseColorHex(request.Color)
+					role.PermMessages = request.PermMessages
+					role.PermRoles = request.PermRoles
+					role.PermMembers = request.PermMembers
+					role.PermGroupChange = request.PermGroupChange
+					role.PermAdmin = request.PermAdmin
+				} else {
+					role.Name = request.Name
+					role.Moniker = request.Moniker
+					role.Color = model.ParseColorHex(request.Color)
+					role.PermMessages = request.PermMessages
+					role.PermRoles = request.PermRoles
+					role.PermMembers = request.PermMembers
+					role.PermGroupChange = request.PermGroupChange
+					role.PermAdmin = request.PermAdmin
+				}
+
+				if err := role.Validate(); err != nil {
+					return err
+				}
+
+				if err := role.Update(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Delete("/:group_id/roles/:role_id",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermRoles.Has()
+			}),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				roleId := fiber.Params[uint64](ctx, "role_id")
+
+				role, err := model.NewRoleFromId(roleId, group.Id)
+				if err != nil || role.IsEmpty() {
+					return htmx.AlertGroupMemberNotFound
+				}
+
+				if role.Name == "@everyone" {
+					return htmx.AlertGroupMemberNotAllowed
+				}
+
+				if err := role.Delete(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				_ = model.Delete(model.TableRoleAssignees, goqu.Ex{"role_id": roleId})
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Post("/:group_id/members/:user_id/roles",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermRoles.Has()
+			}),
+			perms.UseBind[RoleAssignForm](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[RoleAssignForm](ctx, perms.LocalForm)
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				userId := fiber.Params[uint64](ctx, "user_id")
+
+				role, err := model.NewRoleFromId(request.RoleId, group.Id)
+				if err != nil || role.IsEmpty() {
+					return htmx.AlertGroupMemberNotFound
+				}
+
+				roleAssignee := model.RoleAssignee{
+					UserId: userId,
+					RoleId: role.Id,
+				}
+
+				_ = roleAssignee.Insert()
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Delete("/:group_id/members/:user_id/roles/:role_id",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermRoles.Has()
+			}),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				userId := fiber.Params[uint64](ctx, "user_id")
+				roleId := fiber.Params[uint64](ctx, "role_id")
+
+				roleAssignee := model.RoleAssignee{
+					UserId: userId,
+					RoleId: roleId,
+				}
+
+				_ = roleAssignee.Delete()
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Post("/:group_id/members/:user_id/kick",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermMembers.CanKickBan()
+			}),
+			perms.UseBind[MemberKickForm](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[MemberKickForm](ctx, perms.LocalForm)
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				targetUserId := fiber.Params[uint64](ctx, "user_id")
+
+				if targetUserId == group.OwnerId || targetUserId == caller.Id {
+					return htmx.AlertGroupMemberNotAllowed
+				}
+
+				targetMember, err := model.NewMemberFromId(group.Id, targetUserId)
+				if err != nil || targetMember.IsEmpty() {
+					return htmx.AlertGroupMemberNotFound
+				}
+
+				if err := targetMember.Kick(caller.Id, request.Description); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				broadcastGroupMemberLeave(app, group, targetUserId)
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Post("/:group_id/members/:user_id/ban",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermMembers.CanKickBan()
+			}),
+			perms.UseBind[MemberBanForm](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[MemberBanForm](ctx, perms.LocalForm)
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				targetUserId := fiber.Params[uint64](ctx, "user_id")
+
+				if targetUserId == group.OwnerId || targetUserId == caller.Id {
+					return htmx.AlertGroupMemberNotAllowed
+				}
+
+				durationDays := request.DurationDays
+				if durationDays == 0 {
+					durationDays = 365
+				}
+				endsAt := model.TimeFuture(time.Now().AddDate(0, 0, int(durationDays)))
+
+				targetMember, err := model.NewMemberFromId(group.Id, targetUserId)
+				if err != nil || targetMember.IsEmpty() {
+					targetMember = model.NewMember(group.Id, targetUserId, "")
+				}
+
+				if err := targetMember.Ban(caller.Id, endsAt, request.Description); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				broadcastGroupMemberLeave(app, group, targetUserId)
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Post("/:group_id/members/:user_id/unban",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermMembers.CanKickBan()
+			}),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				targetUserId := fiber.Params[uint64](ctx, "user_id")
+
+				member := model.NewMember(group.Id, targetUserId, "")
+				if err := member.Unban(caller.Id); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))
 					return nil
 				}
 

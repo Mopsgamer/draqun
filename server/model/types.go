@@ -3,6 +3,7 @@ package model
 import (
 	"crypto/sha256"
 	"database/sql/driver"
+	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -112,6 +113,20 @@ type Color uint32
 
 func (color Color) IsValid() bool {
 	return color <= 0xFFFFFF
+}
+
+func (color Color) Hex() string {
+	return fmt.Sprintf("#%06x", uint32(color))
+}
+
+func ParseColorHex(s string) Color {
+	s = strings.TrimPrefix(s, "#")
+	if len(s) == 0 {
+		return 0
+	}
+	var val uint32
+	_, _ = fmt.Sscanf(s, "%x", &val)
+	return Color(val)
 }
 
 type TimePast time.Time

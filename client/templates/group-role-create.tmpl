@@ -1,0 +1,80 @@
+<div class="p-page max-w-xl mx-auto flex flex-col gap-6">
+    <h1 class="text-2xl font-bold flex items-center gap-2">
+        <span class="icon icon-[lucide--users]" aria-hidden="true"></span>
+        Group settings &middot; {{.Group.Moniker}}
+    </h1>
+    {{template "partials/group-settings-nav" .}}
+    <div class="flex flex-col gap-4 bg-surface-card p-6 rounded-box border border-base-content/10 shadow-sm">
+        <h2 class="text-xl font-bold pb-2 border-b border-base-content/10 flex items-center gap-2">
+            <span class="icon icon-[lucide--shield]" aria-hidden="true"></span>
+            Create New Role
+        </h2>
+        <form
+            class="flex flex-col gap-4"
+            id="role-create-form"
+            hx-post="/groups/{{.Group.Id}}/roles/create"
+            hx-swap="innerHTML"
+            hx-target="#role-create-error"
+        >
+            <div class="flex flex-col gap-1 w-full">
+                <label class="text-sm font-semibold" for="role-name">Name (e.g. moderator)</label>
+                <input class="input input-bordered w-full" type="text" id="role-name" name="name" required placeholder="moderator">
+            </div>
+            <div class="flex flex-col gap-1 w-full">
+                <label class="text-sm font-semibold" for="role-moniker">Moniker (display name)</label>
+                <input class="input input-bordered w-full" type="text" id="role-moniker" name="moniker" required placeholder="Moderator">
+            </div>
+            <div class="flex flex-col gap-1 w-full">
+                <label class="text-sm font-semibold" for="role-color">Role Color</label>
+                <input class="input input-bordered h-10 w-24 p-1 cursor-pointer" type="color" id="role-color" name="color" value="#3b82f6">
+            </div>
+            <div class="divider my-1">Permissions</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1 w-full">
+                    <label class="text-sm font-semibold" for="perm-messages">Messages Permission</label>
+                    <select class="select select-bordered w-full" id="perm-messages" name="perm_messages">
+                        <option value="write" selected>Write</option>
+                        <option value="read">Read</option>
+                        <option value="delete">Delete (manage all)</option>
+                        <option value="hidden">Hidden</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1 w-full">
+                    <label class="text-sm font-semibold" for="perm-roles">Roles Permission</label>
+                    <select class="select select-bordered w-full" id="perm-roles" name="perm_roles">
+                        <option value="disallow" selected>Disallow</option>
+                        <option value="allow">Allow</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1 w-full">
+                    <label class="text-sm font-semibold" for="perm-members">Members Permission</label>
+                    <select class="select select-bordered w-full" id="perm-members" name="perm_members">
+                        <option value="read" selected>Read</option>
+                        <option value="invite">Invite</option>
+                        <option value="write">Write (manage monikers)</option>
+                        <option value="delete">Delete (kick & ban)</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1 w-full">
+                    <label class="text-sm font-semibold" for="perm-group-change">Group Settings Change</label>
+                    <select class="select select-bordered w-full" id="perm-group-change" name="perm_group_change">
+                        <option value="disallow" selected>Disallow</option>
+                        <option value="allow">Allow</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1 w-full col-span-full">
+                    <label class="text-sm font-semibold" for="perm-admin">Administrator</label>
+                    <select class="select select-bordered w-full" id="perm-admin" name="perm_admin">
+                        <option value="disallow" selected>Disallow</option>
+                        <option value="allow">Allow (all permissions)</option>
+                    </select>
+                </div>
+            </div>
+            <div id="role-create-error"></div>
+            <div class="flex justify-end gap-2 pt-2">
+                <a class="btn btn-ghost" href="/groups/{{.Group.Id}}/settings/roles">Cancel</a>
+                <button class="btn btn-primary" type="submit">Create Role</button>
+            </div>
+        </form>
+    </div>
+</div>

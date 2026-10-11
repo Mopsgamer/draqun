@@ -112,7 +112,24 @@ func (member Member) Ban(creatorId uint64, endsAt TimeFuture, description Descri
 		EndsAt:      endsAt,
 	}
 
-	return action.Insert()
+	if err := action.Insert(); err != nil {
+		return err
+	}
+
+	member.IsDeleted = true
+	if err := member.Update(); err != nil {
+		return err
+	}
+
+	roleIds := []uint64{}
+	for _, r := range member.Group().Roles() {
+		roleIds = append(roleIds, r.Id)
+	}
+	if len(roleIds) > 0 {
+		_ = Delete(TableRoleAssignees, goqu.Ex{"user_id": member.UserId, "role_id": roleIds})
+	}
+
+	return nil
 }
 
 func (member Member) Unban(revokerId uint64) error {
@@ -134,7 +151,24 @@ func (member Member) Kick(creatorId uint64, description Description) error {
 		ActedAt:     TimePast(time.Now()),
 	}
 
-	return action.Insert()
+	if err := action.Insert(); err != nil {
+		return err
+	}
+
+	member.IsDeleted = true
+	if err := member.Update(); err != nil {
+		return err
+	}
+
+	roleIds := []uint64{}
+	for _, r := range member.Group().Roles() {
+		roleIds = append(roleIds, r.Id)
+	}
+	if len(roleIds) > 0 {
+		_ = Delete(TableRoleAssignees, goqu.Ex{"user_id": member.UserId, "role_id": roleIds})
+	}
+
+	return nil
 }
 
 func (member Member) LeaveActed() error {

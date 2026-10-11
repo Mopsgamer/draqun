@@ -1,0 +1,6 @@
+<div class="flex border-b border-base-content/10 gap-2 mb-4">
+    <a href="/groups/{{.Group.Id}}/settings" class="btn btn-ghost btn-sm border-b-2 {{if eq .Tab "general"}}border-primary text-primary font-bold{{else}}border-transparent{{end}} rounded-b-none">General</a>
+    <a href="/groups/{{.Group.Id}}/settings/roles" class="btn btn-ghost btn-sm border-b-2 {{if eq .Tab "roles"}}border-primary text-primary font-bold{{else}}border-transparent{{end}} rounded-b-none">Roles</a>
+    <a href="/groups/{{.Group.Id}}/settings/members" class="btn btn-ghost btn-sm border-b-2 {{if eq .Tab "members"}}border-primary text-primary font-bold{{else}}border-transparent{{end}} rounded-b-none">Members</a>
+    <a href="/groups/{{.Group.Id}}/settings/audit" class="btn btn-ghost btn-sm border-b-2 {{if eq .Tab "audit"}}border-primary text-primary font-bold{{else}}border-transparent{{end}} rounded-b-none">Audit Log</a>
+</div>

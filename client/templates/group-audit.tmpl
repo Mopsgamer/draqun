@@ -1,0 +1,39 @@
+<div class="p-page max-w-2xl mx-auto flex flex-col gap-6">
+    <h1 class="text-2xl font-bold flex items-center gap-2">
+        <span class="icon icon-[lucide--users]" aria-hidden="true"></span>
+        Group settings &middot; {{.Group.Moniker}}
+    </h1>
+    {{template "partials/group-settings-nav" .}}
+    <div class="flex flex-col gap-4 bg-surface-card p-6 rounded-box border border-base-content/10 shadow-sm">
+        <h2 class="text-xl font-bold pb-2 border-b border-base-content/10 flex items-center gap-2">
+            <span class="icon icon-[lucide--history] size-5" aria-hidden="true"></span>
+            Audit Log
+        </h2>
+        <div class="flex flex-col gap-3">
+            {{range .AuditItems}}
+            <div class="p-3 rounded-lg border border-base-content/10 bg-surface-panel flex flex-col gap-1">
+                <div class="flex items-center justify-between">
+                    <span class="badge {{if eq .Kind "Ban"}}badge-error{{else if eq .Kind "Kick"}}badge-warning{{else}}badge-ghost{{end}} badge-sm font-semibold">
+                        {{.Kind}}
+                    </span>
+                    <span class="text-xs text-base-content/60">{{.ActedAt}}</span>
+                </div>
+                <div class="text-sm font-medium mt-1">
+                    <span class="font-bold">{{.Target.Moniker}}</span>
+                    {{if ne .Creator.Moniker ""}}
+                    <span class="text-xs text-base-content/70">by {{.Creator.Moniker}}</span>
+                    {{end}}
+                </div>
+                {{if ne .Description ""}}
+                <div class="text-xs text-base-content/80">Reason / Action: {{.Description}}</div>
+                {{end}}
+                {{if ne .Details ""}}
+                <div class="text-xs text-base-content/60 italic">{{.Details}}</div>
+                {{end}}
+            </div>
+            {{else}}
+            <div class="text-sm text-base-content/60 text-center py-6">No audit log entries recorded yet.</div>
+            {{end}}
+        </div>
+    </div>
+</div>

@@ -123,6 +123,127 @@ func (group Group) Everyone() Role {
 	return role
 }
 
+func (group Group) Roles() []Role {
+	roleList := []Role{}
+	sql, args, err := Goqu.From(TableRoles).
+		Where(goqu.Ex{"group_id": group.Id}).
+		Order(goqu.I("id").Asc()).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return roleList
+	}
+
+	err = Sqlx.Select(&roleList, sql, args...)
+	if err != nil {
+		handleErr(err)
+	}
+
+	return roleList
+}
+
+func (group Group) IsBanned(userId uint64) bool {
+	count := uint64(0)
+	sql, args, err := Goqu.From(TableBans).
+		Select(goqu.COUNT("*")).
+		Where(goqu.Ex{
+			"group_id":   group.Id,
+			"target_id":  userId,
+			"revoker_id": 0,
+		}, goqu.C("ends_at").Gt(time.Now())).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return false
+	}
+
+	err = Sqlx.Get(&count, sql, args...)
+	if err != nil {
+		handleErr(err)
+	}
+
+	return count > 0
+}
+
+func (group Group) ActiveBans() []ActionBan {
+	banList := []ActionBan{}
+	sql, args, err := Goqu.From(TableBans).
+		Where(goqu.Ex{
+			"group_id":   group.Id,
+			"revoker_id": 0,
+		}, goqu.C("ends_at").Gt(time.Now())).
+		Order(goqu.I("acted_at").Desc()).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return banList
+	}
+
+	err = Sqlx.Select(&banList, sql, args...)
+	if err != nil {
+		handleErr(err)
+	}
+
+	return banList
+}
+
+func (group Group) Bans() []ActionBan {
+	banList := []ActionBan{}
+	sql, args, err := Goqu.From(TableBans).
+		Where(goqu.Ex{"group_id": group.Id}).
+		Order(goqu.I("acted_at").Desc()).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return banList
+	}
+
+	err = Sqlx.Select(&banList, sql, args...)
+	if err != nil {
+		handleErr(err)
+	}
+
+	return banList
+}
+
+func (group Group) Kicks() []ActionKick {
+	kickList := []ActionKick{}
+	sql, args, err := Goqu.From(TableKicks).
+		Where(goqu.Ex{"group_id": group.Id}).
+		Order(goqu.I("acted_at").Desc()).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return kickList
+	}
+
+	err = Sqlx.Select(&kickList, sql, args...)
+	if err != nil {
+		handleErr(err)
+	}
+
+	return kickList
+}
+
+func (group Group) Memberships() []ActionMembership {
+	membershipList := []ActionMembership{}
+	sql, args, err := Goqu.From(TableMemberships).
+		Where(goqu.Ex{"group_id": group.Id}).
+		Order(goqu.I("acted_at").Desc()).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return membershipList
+	}
+
+	err = Sqlx.Select(&membershipList, sql, args...)
+	if err != nil {
+		handleErr(err)
+	}
+
+	return membershipList
+}
+
 func (group Group) MembersCount() uint64 {
 	count := uint64(0)
 	sql, args, err := Goqu.Select(goqu.COUNT("*")).From(TableMembers).
