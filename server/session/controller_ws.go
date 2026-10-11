@@ -9,9 +9,9 @@ import (
 )
 
 type ControllerWs struct {
-	Conn *websocket.Conn
-	App  *fiber.App
-	IP   string
+	Conn    *websocket.Conn
+	App     *fiber.App
+	IP      string
 	GroupId uint64
 
 	MessageType int
