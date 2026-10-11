@@ -1,8 +1,6 @@
 package model
 
 import (
-	"strings"
-
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/doug-martin/goqu/v9"
 )
@@ -155,29 +153,25 @@ var (
 	permMessages = []PermMessages{PermMessagesDelete, PermMessagesWrite, PermMessagesRead, PermMessagesHidden, PermMessagesNone}
 )
 
-// Enabled rights have priority over disabled rights.
+// Higher priority roles override lower priority roles. Neutral/None ("") inherits from lower roles.
 func (r *Role) Merge(roleList ...Role) {
 	for _, role := range roleList {
-		r.PermMessages = mergePerm(permMessages, r.PermMessages, role.PermMessages)
-		r.PermRoles = mergePerm(permSwitch, r.PermRoles, role.PermRoles)
-		r.PermMembers = mergePerm(permMembers, r.PermMembers, role.PermMembers)
-		r.PermGroupChange = mergePerm(permSwitch, r.PermGroupChange, role.PermGroupChange)
-		r.PermAdmin = mergePerm(permSwitch, r.PermAdmin, role.PermAdmin)
-	}
-}
-
-// Enabled rights have priority over disabled rights.
-func mergePerm[T PermSwitch | PermMessages | PermMembers](list []T, perm1, perm2 T) T {
-	for _, perm := range list {
-		if perm1 == perm || perm2 == perm {
-			return perm
+		if role.PermMessages != PermMessagesNone {
+			r.PermMessages = role.PermMessages
+		}
+		if role.PermRoles != PermSwitchNone {
+			r.PermRoles = role.PermRoles
+		}
+		if role.PermMembers != PermMembersNone {
+			r.PermMembers = role.PermMembers
+		}
+		if role.PermGroupChange != PermSwitchNone {
+			r.PermGroupChange = role.PermGroupChange
+		}
+		if role.PermAdmin != PermSwitchNone {
+			r.PermAdmin = role.PermAdmin
 		}
 	}
-	listStr := make([]string, len(list))
-	for i, v := range list {
-		listStr[i] = string(v)
-	}
-	panic("unexpected perm msg value: " + string(perm1) + " or " + string(perm2) + ". available values: " + strings.Join(listStr, ",") + ".")
 }
 
 func NewRoleFromId(id uint64, groupId uint64) (Role, error) {

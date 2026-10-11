@@ -72,6 +72,7 @@ func (member Member) Roles() []Role {
 			goqu.I(TableRoleAssignees+".role_id").Eq(goqu.C("id").Table(TableRoles)),
 		)).
 		Where(goqu.Ex{TableRoles + ".group_id": member.GroupId, TableRoleAssignees + ".user_id": member.UserId}).
+		Order(goqu.I(TableRoles + ".position").Asc(), goqu.I(TableRoles + ".id").Asc()).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
@@ -98,7 +99,11 @@ func (member Member) Role() Role {
 		return everyone
 	}
 
-	everyone.Merge(roleList...)
+	// Reverse roleList so lower priority (higher position) is merged first
+	// and higher priority (lower position) is merged last and takes precedence.
+	for i := len(roleList) - 1; i >= 0; i-- {
+		everyone.Merge(roleList[i])
+	}
 	return everyone
 }
 
