@@ -104,23 +104,19 @@
                     </div>
 
                     <!-- Member info & stats grid -->
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-base-content/10 text-xs text-base-content/80">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-base-content/10 text-xs text-base-content/80">
                         <div>
-                            <span class="block font-semibold text-base-content/50">Joined Group</span>
-                            <span>{{.JoinedAtStr}}</span>
+                            <span class="block font-semibold text-base-content/50">First Join Date</span>
+                            <span class="font-medium">{{.JoinedAtStr}}</span>
                             <span class="block text-[10px] text-base-content/60">({{.TenureStr}} ago)</span>
                         </div>
                         <div>
                             <span class="block font-semibold text-base-content/50">Account Created</span>
-                            <span>{{.AccountCreated}}</span>
+                            <span class="font-medium">{{.AccountCreated}}</span>
                         </div>
                         <div>
                             <span class="block font-semibold text-base-content/50">Messages Sent</span>
                             <span class="font-bold">{{.MessagesCount}}</span>
-                        </div>
-                        <div>
-                            <span class="block font-semibold text-base-content/50">Time in Group</span>
-                            <span>{{.TenureStr}}</span>
                         </div>
                     </div>
 

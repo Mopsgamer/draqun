@@ -196,7 +196,7 @@ func (member Member) JoinActed() error {
 func (member Member) MessagesCount() uint64 {
 	count := uint64(0)
 	sql, args, err := Goqu.Select(goqu.COUNT("*")).From(TableMessages).
-		Where(goqu.Ex{"group_id": member.GroupId, "user_id": member.UserId}).
+		Where(goqu.Ex{"group_id": member.GroupId, "author_id": member.UserId}).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)

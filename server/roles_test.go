@@ -29,6 +29,29 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 	}
 	respJoin.Close()
 
+	// Post 2 messages as memberUser
+	for i := 1; i <= 2; i++ {
+		respMsg, err := ts.Client.R().
+			SetHeader("Cookie", cookieMember).
+			SetFormDataWithMap(map[string]string{
+				"content": fmt.Sprintf("Test message %d", i),
+			}).
+			Post(fmt.Sprintf("/groups/%d/messages/create", group.Id))
+		if err != nil {
+			t.Fatalf("post message failed: %v", err)
+		}
+		respMsg.Close()
+	}
+
+	// Verify member's MessagesCount()
+	mForCount, err := model.NewMemberFromId(group.Id, memberUser.Id)
+	if err != nil {
+		t.Fatalf("failed to query member: %v", err)
+	}
+	if count := mForCount.MessagesCount(); count != 2 {
+		t.Errorf("expected member message count to be 2, got %d", count)
+	}
+
 	// 1. GET /groups/:id/settings/roles
 	respRolesPage, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
