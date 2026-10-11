@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -65,13 +66,9 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertDatabase.Join(err)
 				}
 
-				if htmx.IsHtmx(ctx) {
-					// controller_ws.UserSessionMap.Push(
-					// 	filter,
-					// 	controller.WrapOob("beforeend:#chat", &str),
-					// 	controller_ws.SubForMessages,
-					// )
+				broadcastGroupMembersUpdate(app, group)
 
+				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, group.Url(ctx))
 					return nil
 				}
@@ -282,6 +279,8 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertDatabase.Join(err)
 				}
 
+				broadcastGroupMembersUpdate(app, group)
+
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, "/chat")
 					return nil
@@ -314,13 +313,19 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return role.PermMessages.CanReadMessages()
 			}),
 			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				ctxWs := session.New(ctx)
+				ctxWs.GroupId = group.Id
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				return websocket.New(func(conn *websocket.Conn) {
 					ctxWs.Conn = conn
 					session.UserSessionMap.Connect(user.Id, ctxWs)
-					defer session.UserSessionMap.Close(user.Id, ctxWs)
+					broadcastGroupMembersUpdate(app, group)
+					defer func() {
+						session.UserSessionMap.Close(user.Id, ctxWs)
+						broadcastGroupMembersUpdate(app, group)
+					}()
 					for !ctxWs.Closed {
 						messageType, message, err := ctxWs.Conn.ReadMessage()
 						if err != nil {
@@ -343,4 +348,25 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				})(ctx)
 			},
 		)
+}
+
+func broadcastGroupMembersUpdate(app *fiber.App, group model.Group) {
+	const MembersPagination uint = 5
+	memberList := group.UsersPage(1, MembersPagination)
+	buf, err := render.RenderBuffer(app, "partials/chat-members", fiber.Map{
+		"Group":             group,
+		"MemberList":        memberList,
+		"MembersPage":       1,
+		"MembersPagination": MembersPagination,
+	})
+	if err != nil {
+		return
+	}
+	str := buf.String()
+	membersOob := render.WrapOob("innerHTML:#members", &str)
+
+	countStr := fmt.Sprintf("%d", group.MembersCount())
+	countOob := render.WrapOob("innerHTML:#members-count", &countStr)
+
+	session.UserSessionMap.PushGroup(group.Id, membersOob+countOob)
 }

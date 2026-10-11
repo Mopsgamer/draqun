@@ -24,10 +24,29 @@ func (conns *userSessionMap) Push(data string, pick EventPick) {
 	}
 }
 
+// Push data to all active connections in a group.
+func (conns *userSessionMap) PushGroup(groupId uint64, data string) {
+	sessionMu.RLock()
+	defer sessionMu.RUnlock()
+	for userId := range *conns {
+		for _, ws := range (*conns)[userId] {
+			if ws.GroupId == groupId {
+				ws.Push(data)
+			}
+		}
+	}
+}
+
 func (conns userSessionMap) Connections(userId uint64) []*ControllerWs {
 	sessionMu.RLock()
 	defer sessionMu.RUnlock()
 	return conns[userId]
+}
+
+func (conns userSessionMap) IsOnline(userId uint64) bool {
+	sessionMu.RLock()
+	defer sessionMu.RUnlock()
+	return len(conns[userId]) > 0
 }
 
 func (conns userSessionMap) Connect(userId uint64, ws *ControllerWs) {

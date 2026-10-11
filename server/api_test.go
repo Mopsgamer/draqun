@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/Mopsgamer/draqun/server/model"
@@ -406,5 +407,39 @@ func TestAPIAccountChanges(t *testing.T) {
 	}
 	if !deletedUser.IsDeleted {
 		t.Errorf("expected user state to be marked deleted after delete account action")
+	}
+}
+
+func TestAPIMemberStatusAndList(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookie, user := createTestUserCookie(t, ts, "Member Status User", "status_user", "status@example.com")
+	if user.IsOnline() {
+		t.Errorf("expected user to be offline initially")
+	}
+
+	group := createTestGroupDirectly(t, int64(user.Id), "Status Group", "status_grp")
+
+	// Request members partial page
+	respMemPage, err := ts.Client.R().
+		SetHeader("Cookie", cookie).
+		SetHeader("HX-Request", "true").
+		Get(fmt.Sprintf("/groups/%d/members/page/1", group.Id))
+	if err != nil {
+		t.Fatalf("failed to fetch member list page: %v", err)
+	}
+	defer respMemPage.Close()
+
+	if respMemPage.StatusCode() != http.StatusOK {
+		t.Fatalf("expected 200 OK for member list page, got %d", respMemPage.StatusCode())
+	}
+
+	body := respMemPage.String()
+	if !strings.Contains(body, "offline") {
+		t.Errorf("expected member list HTML to contain 'offline' status badge")
+	}
+	if !strings.Contains(body, "Member Status User") {
+		t.Errorf("expected member list HTML to contain member moniker")
 	}
 }

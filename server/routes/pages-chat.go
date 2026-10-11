@@ -13,6 +13,10 @@ func routePagesChat(router fiber.Router) fiber.Router {
 		func(ctx fiber.Ctx) error {
 			user, _ := perms.UserByAuthFromCtx(ctx)
 			if user.IsEmpty() {
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, "/login")
+					return ctx.Render("partials/redirecting", fiber.Map{})
+				}
 				return htmx.TryRenderPage(ctx, "chat-login", MapPage(ctx, fiber.Map{"Title": "Home"}), "partials/layout-chat")
 			}
 			return ctx.Next()

@@ -3,6 +3,7 @@ package perms
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -144,11 +145,23 @@ func UserByAuthFromCtx(ctx fiber.Ctx) (user model.User, err error) {
 	token := new(jwt.Token)
 	token, err = checkCookieToken(tokenString)
 	if err != nil {
+		if tokenString != "" {
+			ctx.Cookie(&fiber.Cookie{
+				Name:    fiber.HeaderAuthorization,
+				Value:   "",
+				Expires: time.Now(),
+			})
+		}
 		return
 	}
 
 	user, err = checkUser(token)
 	if err != nil {
+		ctx.Cookie(&fiber.Cookie{
+			Name:    fiber.HeaderAuthorization,
+			Value:   "",
+			Expires: time.Now(),
+		})
 		return
 	}
 

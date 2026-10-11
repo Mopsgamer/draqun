@@ -11,6 +11,29 @@
                     <span class="text-sm opacity-80">Start a new group</span>
                 </div>
             </a>
+            <form
+                class="card bg-surface-card p-4 min-h-36 flex flex-col justify-between border border-base-content/10"
+                id="join-group-card"
+                onsubmit="event.preventDefault(); const val = this.querySelector('input').value.trim(); if(val) { window.location.href = '/chat/groups/join/' + encodeURIComponent(val.replace(/.*\/chat\/groups\/join\//, '')); }"
+            >
+                <div class="flex flex-col gap-0.5">
+                    <span class="inline-flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-1" aria-hidden="true">
+                        <span class="icon icon-[lucide--log-in] size-5"></span>
+                    </span>
+                    <span class="font-bold text-base">Join a group</span>
+                    <span class="text-xs text-base-content/70">Enter name or link</span>
+                </div>
+                <div class="flex gap-1.5 mt-2">
+                    <input
+                        type="text"
+                        class="input input-bordered input-sm flex-1 min-w-0"
+                        placeholder="Group name"
+                        aria-label="Group name"
+                        required
+                    >
+                    <button class="btn btn-primary btn-sm shrink-0" type="submit">Join</button>
+                </div>
+            </form>
             {{- $groupList := .User.GroupList -}}
             {{- $memberList := .User.MemberList -}}
             {{- $this := . -}}

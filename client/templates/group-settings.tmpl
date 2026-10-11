@@ -38,7 +38,7 @@
             <div class="flex flex-col gap-1 w-full">
                 <label class="text-sm font-semibold" for="change-group-password">Password</label>
                 <div class="relative w-full">
-                    <input class="input input-bordered w-full pr-12" type="password" autocomplete="new-password" id="change-group-password" name="password" {{if .Group.Password}}value="{{.Group.Password}}"{{end}}>
+                    <input class="input input-bordered w-full pr-12" type="password" autocomplete="new-password" id="change-group-password" name="password">
                     <button type="button" class="absolute inset-y-0 right-2 inline-flex items-center justify-center p-1 text-base-content/70 hover:text-base-content cursor-pointer" aria-label="Show password" aria-pressed="false" data-toggle-password>
                         <span class="icon icon-[lucide--eye] size-5" aria-hidden="true" data-password-visible></span>
                         <span class="icon icon-[lucide--eye-off] size-5" aria-hidden="true" data-password-hidden hidden></span>
