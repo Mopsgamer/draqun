@@ -1,9 +1,9 @@
 <div class="centered-main">
     <div class="text-3xl font-bold flex items-center gap-2 select-none mb-4">
-        {{- if isString .}} Under construction <span class="icon icon-[lucide--hammer] size-6" aria-hidden="true"></span> -
-        {{.}} {{- else}}
+        {{- if .StatusCode}}
         <span class="icon icon-[lucide--triangle-alert] size-6" aria-hidden="true"></span>
-        {{.StatusCode}} - {{.StatusMessage}} {{- end}}
+        {{.StatusCode}} - {{.StatusMessage}} {{- else}} Under construction <span class="icon icon-[lucide--hammer] size-6" aria-hidden="true"></span> -
+        {{.Title}} {{- end}}
     </div>
     <div class="select-none flex items-center gap-2">
         <a class="btn btn-ghost" href="/">

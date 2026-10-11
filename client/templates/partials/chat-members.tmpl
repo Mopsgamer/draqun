@@ -1,18 +1,30 @@
-{{$this := .}} {{- range $i, $member := $this.MemberList}}
-
-<div id="member-{{$member.Id}}" class="member">
-    <span class="inline-flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0" aria-hidden="true">
-        <span class="icon icon-[lucide--user-round] size-4"></span>
-    </span>
-    <span
-        class="truncate font-medium text-sm flex-1"
-        {{with $member.Moniker}}title="{{$member.Moniker}}"{{end}}
-    >
-        {{$member.Moniker}}
+{{$this := .}}
+{{- range $i, $member := $this.MemberList -}}
+<div id="member-{{$member.Id}}" class="member flex items-center justify-between gap-2">
+    <div class="flex items-center gap-2 min-w-0 flex-1">
+        <div class="relative flex items-center justify-center shrink-0">
+            <span class="inline-flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0" aria-hidden="true">
+                <span class="icon icon-[lucide--user-round] size-4"></span>
+            </span>
+            <span
+                class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full ring-2 ring-surface-card {{if $member.IsOnline}}bg-emerald-500{{else}}bg-base-content/30{{end}}"
+                title="{{if $member.IsOnline}}Online{{else}}Offline{{end}}"
+            ></span>
+        </div>
+        <span
+            class="truncate font-medium text-sm flex-1"
+            {{with $member.Moniker}}title="{{$member.Moniker}}"{{end}}
+        >
+            {{$member.Moniker}}
+        </span>
+    </div>
+    <span class="text-[10px] font-semibold uppercase tracking-wider shrink-0 {{if $member.IsOnline}}text-emerald-500{{else}}text-base-content/40{{end}}">
+        {{if $member.IsOnline}}online{{else}}offline{{end}}
     </span>
 </div>
+{{- end -}}
 
-{{- if and (eq $i $this.MembersPagination) (eq (len $this.MemberList) $this.MembersPagination) -}}
+{{- if eq (len $this.MemberList) $this.MembersPagination -}}
 <div
     class="load-scroll"
     hx-trigger="intersect once"
@@ -20,4 +32,4 @@
     hx-get="/groups/{{$this.Group.Id}}/members/page/{{add 1 $this.MembersPage}}"
 >
 </div>
-{{- end -}} {{- end}}
+{{- end -}}

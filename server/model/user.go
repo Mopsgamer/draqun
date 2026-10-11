@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/Mopsgamer/draqun/server/session"
 	"github.com/doug-martin/goqu/v9"
 )
 
@@ -198,8 +199,11 @@ func (user User) MemberList() []Member {
 	err = Sqlx.Select(&memberList, sql, args...)
 	if err != nil {
 		handleErr(err)
-		return memberList
 	}
 
 	return memberList
+}
+
+func (user User) IsOnline() bool {
+	return session.UserSessionMap.IsOnline(user.Id)
 }

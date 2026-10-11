@@ -12,6 +12,7 @@ type ControllerWs struct {
 	Conn *websocket.Conn
 	App  *fiber.App
 	IP   string
+	GroupId uint64
 
 	MessageType int
 	Message     []byte
@@ -40,6 +41,10 @@ func (ws *ControllerWs) Push(data string) {
 	ws.mu.Lock()
 	defer ws.mu.Unlock()
 	ws.dataToFlush = append(ws.dataToFlush, []byte(data)...)
+	if ws.Conn != nil && !ws.Closed {
+		_ = ws.Conn.WriteMessage(websocket.TextMessage, ws.dataToFlush)
+		ws.dataToFlush = []byte("")
+	}
 }
 
 // Can flush empty string for HTMX requests, it's normal.
