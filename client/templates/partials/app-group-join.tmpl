@@ -1,29 +1,39 @@
-<main id="app-content" class="centered-main">
-    <div class="gap-5 flex flex-col items-center p-6 bg-surface-card rounded-box border border-base-content/10 shadow-sm max-w-md w-full mx-4">
-        <span class="inline-flex size-20 items-center justify-center rounded-xl border-2 border-dashed border-primary text-primary bg-primary/10 overflow-hidden shrink-0" aria-hidden="true">
-            {{if ne .Group.Avatar ""}}
-                <img src="{{.Group.Avatar}}" class="size-full object-cover rounded-xl" alt="Group avatar">
-            {{else}}
-                <span class="icon icon-[lucide--users] size-10"></span>
-            {{end}}
-        </span>
+<main id="app-content" class="centered-main p-4">
+    <div class="flex flex-col items-center text-center p-6 rounded-2xl max-w-md w-full gap-5">
+        <div class="relative shrink-0">
+            <div class="size-20 rounded-full bg-surface-card text-primary border border-base-content/15 flex items-center justify-center overflow-hidden">
+                {{if ne .Group.Avatar ""}}
+                    <img src="{{.Group.Avatar}}" class="size-full object-cover" alt="Group avatar">
+                {{else}}
+                    <span class="icon icon-[lucide--users] size-9"></span>
+                {{end}}
+            </div>
+            <span class="size-3.5 rounded-full bg-success absolute bottom-0 right-0 ring-2 ring-surface-canvas"></span>
+        </div>
+
+        <div class="flex flex-col items-center gap-1">
+            <h1 class="text-xl font-bold text-base-content">Join {{.Group.Moniker}}</h1>
+            <p class="text-xs text-base-content/50 font-mono">@{{.Group.Name}}</p>
+        </div>
+
         {{- with .Group.Description -}}
-        <div class="text-center text-sm text-base-content/70">{{.}}</div>
+        <div class="py-2 px-3 rounded-lg text-xs text-base-content/70 w-full">
+            {{.}}
+        </div>
         {{- end -}}
-        <div class="text-xl font-bold text-center">Join to {{.Group.Moniker}} group?</div>
-        <div class="flex items-center gap-3" hx-target="#error-group-join">
+
+        <div class="flex items-center justify-center gap-3 w-full pt-2" hx-target="#error-group-join">
             <button
-                class="btn btn-success"
+                class="btn btn-primary btn-sm gap-2 flex-1"
                 hx-put="/groups/{{.Group.Id}}/join"
             >
-                <span class="icon icon-[lucide--user-round-plus] size-4" aria-hidden="true"></span>
-                Join
+                <span class="icon icon-[lucide--user-plus] size-4" aria-hidden="true"></span>
+                Join Group
             </button>
-            <a class="btn btn-ghost" href="/chat">
-                <span class="icon icon-[lucide--house] size-4" aria-hidden="true"></span>
-                Stay
+            <a class="btn btn-ghost btn-sm flex-1" href="/chat">
+                Cancel
             </a>
         </div>
-        <div id="error-group-join"></div>
+        <div id="error-group-join" class="w-full"></div>
     </div>
 </main>

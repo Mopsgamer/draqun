@@ -1,6 +1,18 @@
-<div class="flex border-b border-base-content/10 gap-2 mb-4" hx-boost="true">
-    <a href="/groups/{{.Group.Id}}/settings" class="btn btn-ghost btn-sm border-b-2 {{if eq .Tab "general"}}border-primary text-primary font-bold{{else}}border-transparent{{end}} rounded-b-none">General</a>
-    <a href="/groups/{{.Group.Id}}/settings/roles" class="btn btn-ghost btn-sm border-b-2 {{if eq .Tab "roles"}}border-primary text-primary font-bold{{else}}border-transparent{{end}} rounded-b-none">Roles</a>
-    <a href="/groups/{{.Group.Id}}/settings/members" class="btn btn-ghost btn-sm border-b-2 {{if eq .Tab "members"}}border-primary text-primary font-bold{{else}}border-transparent{{end}} rounded-b-none">Members</a>
-    <a href="/groups/{{.Group.Id}}/settings/audit" class="btn btn-ghost btn-sm border-b-2 {{if eq .Tab "audit"}}border-primary text-primary font-bold{{else}}border-transparent{{end}} rounded-b-none">Audit Log</a>
-</div>
+<nav class="flex items-center border-b border-base-content/10 gap-6 mb-8 overflow-x-auto" hx-boost="true">
+    <a href="/groups/{{.Group.Id}}/settings" class="flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap {{if eq .Tab "general"}}border-primary text-primary font-semibold{{else}}border-transparent text-base-content/60 hover:text-base-content{{end}}">
+        <span class="icon icon-[lucide--sliders-horizontal] size-4" aria-hidden="true"></span>
+        General
+    </a>
+    <a href="/groups/{{.Group.Id}}/settings/roles" class="flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap {{if eq .Tab "roles"}}border-primary text-primary font-semibold{{else}}border-transparent text-base-content/60 hover:text-base-content{{end}}">
+        <span class="icon icon-[lucide--shield] size-4" aria-hidden="true"></span>
+        Roles
+    </a>
+    <a href="/groups/{{.Group.Id}}/settings/members" class="flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap {{if eq .Tab "members"}}border-primary text-primary font-semibold{{else}}border-transparent text-base-content/60 hover:text-base-content{{end}}">
+        <span class="icon icon-[lucide--users] size-4" aria-hidden="true"></span>
+        Members
+    </a>
+    <a href="/groups/{{.Group.Id}}/settings/audit" class="flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap {{if eq .Tab "audit"}}border-primary text-primary font-semibold{{else}}border-transparent text-base-content/60 hover:text-base-content{{end}}">
+        <span class="icon icon-[lucide--history] size-4" aria-hidden="true"></span>
+        Audit Log
+    </a>
+</nav>

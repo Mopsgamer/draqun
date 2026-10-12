@@ -1,105 +1,141 @@
-<div class="p-page max-w-xl mx-auto flex flex-col gap-6">
-    <div class="flex items-center justify-between mb-2">
-        <h1 class="text-2xl font-bold flex items-center gap-2">
-            <span class="icon icon-[lucide--users]" aria-hidden="true"></span>
-            Group settings &middot; {{.Group.Moniker}}
-        </h1>
-        <button class="btn btn-ghost btn-sm gap-1" type="button" onclick="history.back()">
+<div class="max-w-3xl mx-auto w-full px-4 py-8 flex flex-col gap-8">
+    <div class="flex items-center justify-between pb-4 border-b border-base-content/10">
+        <div class="flex items-center gap-3">
+            <span class="icon icon-[lucide--shield-check] size-6 text-primary" aria-hidden="true"></span>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Edit Role</h1>
+                <p class="text-xs text-base-content/60 mt-0.5">Edit <span class="font-semibold text-base-content/90">{{.TargetRole.Moniker}}</span> in <span class="font-semibold text-base-content/90">{{.Group.Moniker}}</span></p>
+            </div>
+        </div>
+        <button class="btn btn-ghost btn-sm gap-1.5 text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
             <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
             Back
         </button>
     </div>
+
     {{template "partials/group-settings-nav" .}}
-    <div class="flex flex-col gap-4 bg-surface-card p-6 rounded-box border border-base-content/10 shadow-sm">
-        <h2 class="text-xl font-bold pb-2 border-b border-base-content/10 flex items-center gap-2">
-            <span class="icon icon-[lucide--shield]" aria-hidden="true"></span>
-            Edit Role &middot; {{.TargetRole.Moniker}}
-        </h2>
-        <form
-            class="flex flex-col gap-4"
-            id="role-edit-form"
-            hx-put="/groups/{{.Group.Id}}/roles/{{.TargetRole.Id}}"
-            hx-swap="innerHTML"
-            hx-target="#role-edit-error"
-        >
-            <div class="flex flex-col gap-1 w-full">
-                <label class="text-sm font-semibold" for="role-name">Name</label>
-                <input class="input input-bordered w-full" type="text" id="role-name" name="name" required value="{{.TargetRole.Name}}" {{if eq .TargetRole.Name "@everyone"}}readonly{{end}}>
-            </div>
-            <div class="flex flex-col gap-1 w-full">
-                <label class="text-sm font-semibold" for="role-moniker">Moniker (display name)</label>
+
+    <form
+        class="flex flex-col gap-6"
+        id="role-edit-form"
+        hx-put="/groups/{{.Group.Id}}/roles/{{.TargetRole.Id}}"
+        hx-swap="innerHTML"
+        hx-target="#role-edit-error"
+    >
+        <div class="pb-2 border-b border-base-content/10">
+            <h2 class="text-base font-bold flex items-center gap-2">
+                <span class="icon icon-[lucide--sliders] size-4 text-primary" aria-hidden="true"></span>
+                Role Identity
+            </h2>
+            <p class="text-xs text-base-content/60">Display moniker, system identifier, and color.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-base-content/70" for="role-moniker">Display Moniker</label>
                 <input class="input input-bordered w-full" type="text" id="role-moniker" name="moniker" required value="{{.TargetRole.Moniker}}">
             </div>
-            <div class="flex flex-col gap-1 w-full">
-                <label class="text-sm font-semibold" for="role-color">Role Color</label>
-                <input class="input input-bordered h-10 w-24 p-1 cursor-pointer" type="color" id="role-color" name="color" value="{{.TargetRole.Color.Hex}}">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-base-content/70" for="role-name">System Handle</label>
+                <input class="input input-bordered w-full font-mono text-sm" type="text" id="role-name" name="name" required value="{{.TargetRole.Name}}" {{if eq .TargetRole.Name "@everyone"}}readonly{{end}}>
             </div>
-            <div class="divider my-1">Permissions</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="flex flex-col gap-1 w-full">
-                    <label class="text-sm font-semibold" for="perm-messages">Messages Permission</label>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-semibold text-base-content/70" for="role-color">Role Color Accent</label>
+            <div class="flex items-center gap-3">
+                <input class="input input-bordered h-9 w-16 p-1 cursor-pointer shrink-0" type="color" id="role-color" name="color" value="{{.TargetRole.Color.Hex}}">
+                <span class="text-xs text-base-content/60">Badge color used in chat and member lists.</span>
+            </div>
+        </div>
+
+        <div class="pt-4 border-t border-base-content/10 flex flex-col gap-4">
+            <div class="pb-2 border-b border-base-content/10">
+                <h2 class="text-base font-bold flex items-center gap-2">
+                    <span class="icon icon-[lucide--key-round] size-4 text-primary" aria-hidden="true"></span>
+                    Permissions
+                </h2>
+                <p class="text-xs text-base-content/60">Configure access controls for this role.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="perm-messages">Messages</label>
                     <select class="select select-bordered w-full" id="perm-messages" name="perm_messages">
                         <option value="" {{if eq .TargetRole.PermMessages ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="write" {{if eq .TargetRole.PermMessages "write"}}selected{{end}}>Write</option>
                         <option value="read" {{if eq .TargetRole.PermMessages "read"}}selected{{end}}>Read</option>
-                        <option value="delete" {{if eq .TargetRole.PermMessages "delete"}}selected{{end}}>Delete (manage all)</option>
+                        <option value="delete" {{if eq .TargetRole.PermMessages "delete"}}selected{{end}}>Delete (Manage all)</option>
                         <option value="hidden" {{if eq .TargetRole.PermMessages "hidden"}}selected{{end}}>Hidden</option>
                     </select>
                 </div>
-                <div class="flex flex-col gap-1 w-full">
-                    <label class="text-sm font-semibold" for="perm-roles">Roles Permission</label>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="perm-roles">Roles</label>
                     <select class="select select-bordered w-full" id="perm-roles" name="perm_roles">
                         <option value="" {{if eq .TargetRole.PermRoles ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="allow" {{if eq .TargetRole.PermRoles "allow"}}selected{{end}}>Allow</option>
                         <option value="disallow" {{if eq .TargetRole.PermRoles "disallow"}}selected{{end}}>Disallow</option>
                     </select>
                 </div>
-                <div class="flex flex-col gap-1 w-full">
-                    <label class="text-sm font-semibold" for="perm-members">Members Permission</label>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="perm-members">Members</label>
                     <select class="select select-bordered w-full" id="perm-members" name="perm_members">
                         <option value="" {{if eq .TargetRole.PermMembers ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="read" {{if eq .TargetRole.PermMembers "read"}}selected{{end}}>Read</option>
                         <option value="invite" {{if eq .TargetRole.PermMembers "invite"}}selected{{end}}>Invite</option>
-                        <option value="write" {{if eq .TargetRole.PermMembers "write"}}selected{{end}}>Write (manage monikers)</option>
-                        <option value="delete" {{if eq .TargetRole.PermMembers "delete"}}selected{{end}}>Delete (kick & ban)</option>
+                        <option value="write" {{if eq .TargetRole.PermMembers "write"}}selected{{end}}>Write (Manage monikers)</option>
+                        <option value="delete" {{if eq .TargetRole.PermMembers "delete"}}selected{{end}}>Delete (Kick & Ban)</option>
                     </select>
                 </div>
-                <div class="flex flex-col gap-1 w-full">
-                    <label class="text-sm font-semibold" for="perm-group-change">Group Settings Change</label>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="perm-group-change">Group Settings</label>
                     <select class="select select-bordered w-full" id="perm-group-change" name="perm_group_change">
                         <option value="" {{if eq .TargetRole.PermGroupChange ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="allow" {{if eq .TargetRole.PermGroupChange "allow"}}selected{{end}}>Allow</option>
                         <option value="disallow" {{if eq .TargetRole.PermGroupChange "disallow"}}selected{{end}}>Disallow</option>
                     </select>
                 </div>
-                <div class="flex flex-col gap-1 w-full col-span-full">
-                    <label class="text-sm font-semibold" for="perm-admin">Administrator</label>
+
+                <div class="flex flex-col gap-1.5 sm:col-span-2">
+                    <label class="text-xs font-semibold text-base-content/70" for="perm-admin">Administrator</label>
                     <select class="select select-bordered w-full" id="perm-admin" name="perm_admin">
                         <option value="" {{if eq .TargetRole.PermAdmin ""}}selected{{end}}>Neutral / Inherit</option>
-                        <option value="allow" {{if eq .TargetRole.PermAdmin "allow"}}selected{{end}}>Allow (all permissions)</option>
+                        <option value="allow" {{if eq .TargetRole.PermAdmin "allow"}}selected{{end}}>Allow (Full administrative permissions)</option>
                         <option value="disallow" {{if eq .TargetRole.PermAdmin "disallow"}}selected{{end}}>Disallow</option>
                     </select>
                 </div>
             </div>
-            <div id="role-edit-error"></div>
-            <div class="flex justify-between items-center pt-2">
-                {{if and (ne .TargetRole.Name "@everyone") (or .Role.PermRoles.Has .Role.PermAdmin.Has (eq .Member.UserId .Group.OwnerId))}}
-                <button
-                    type="button"
-                    class="btn btn-error btn-sm"
-                    hx-delete="/groups/{{.Group.Id}}/roles/{{.TargetRole.Id}}"
-                    hx-confirm="Are you sure you want to delete this role?"
-                >Delete Role</button>
-                {{else}}
-                <div></div>
+        </div>
+
+        <div id="role-edit-error"></div>
+
+        <div class="flex justify-between items-center pt-2 border-t border-base-content/10">
+            {{if and (ne .TargetRole.Name "@everyone") (or .Role.PermRoles.Has .Role.PermAdmin.Has (eq .Member.UserId .Group.OwnerId))}}
+            <button
+                type="button"
+                class="btn btn-error btn-xs gap-1"
+                hx-delete="/groups/{{.Group.Id}}/roles/{{.TargetRole.Id}}"
+                hx-confirm="Are you sure you want to delete this role?"
+            >
+                <span class="icon icon-[lucide--trash-2] size-3"></span>
+                Delete Role
+            </button>
+            {{else}}
+            <div></div>
+            {{end}}
+
+            <div class="flex gap-2">
+                <button class="btn btn-ghost btn-sm" type="button" onclick="history.back()">Cancel</button>
+                {{if or .Role.PermRoles.Has .Role.PermAdmin.Has (eq .Member.UserId .Group.OwnerId)}}
+                <button class="btn btn-primary btn-sm gap-1.5" type="submit">
+                    <span class="icon icon-[lucide--check] size-3.5"></span>
+                    Save Changes
+                </button>
                 {{end}}
-                <div class="flex gap-2">
-                    <button class="btn btn-ghost" type="button" onclick="history.back()">Cancel</button>
-                    {{if or .Role.PermRoles.Has .Role.PermAdmin.Has (eq .Member.UserId .Group.OwnerId)}}
-                    <button class="btn btn-primary" type="submit">Save Changes</button>
-                    {{end}}
-                </div>
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>

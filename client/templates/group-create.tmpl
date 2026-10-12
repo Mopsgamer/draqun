@@ -1,10 +1,19 @@
-<div class="p-page max-w-md mx-auto">
-    <h1 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        <span class="icon icon-[lucide--users]" aria-hidden="true"></span>
-        Create new group
-    </h1>
+<div class="max-w-lg mx-auto w-full px-4 py-12 flex flex-col gap-6">
+    <div class="flex items-center justify-between pb-3 border-b border-base-content/10">
+        <div class="flex items-center gap-2.5">
+            <span class="icon icon-[lucide--users-round] size-5 text-primary" aria-hidden="true"></span>
+            <div>
+                <h1 class="text-lg font-bold">Create New Group</h1>
+                <p class="text-xs text-base-content/60">Set up a space for your community or project.</p>
+            </div>
+        </div>
+        <button class="btn btn-ghost btn-xs text-base-content/60 hover:text-base-content" type="button" onclick="history.back()">
+            <span class="icon icon-[lucide--x] size-4"></span>
+        </button>
+    </div>
+
     <form
-        class="flex flex-col gap-4 bg-surface-card p-6 rounded-box border border-base-content/10 shadow-sm"
+        class="flex flex-col gap-5"
         id="new-group-form"
         name="new-group-form"
         hx-post="/groups/create"
@@ -12,47 +21,62 @@
         hx-swap="innerHTML"
         hx-target="#new-group-error"
     >
-        <div class="flex flex-col gap-1 w-full">
-            <label class="text-sm font-semibold" for="new-group-nick">Nick</label>
-            <input class="input input-bordered w-full" autofocus type="text" id="new-group-nick" name="nick" required>
-        </div>
-        <div class="flex flex-col gap-1 w-full">
-            <label class="text-sm font-semibold" for="new-group-name">Name</label>
-            <input class="input input-bordered w-full" type="text" autocomplete="off" id="new-group-name" name="name" required>
-        </div>
-        <div class="flex flex-col gap-1 w-full">
-            <label class="text-sm font-semibold" for="new-group-password">Password</label>
-            <div class="relative w-full">
-                <input class="input input-bordered w-full pr-12" type="password" autocomplete="off" id="new-group-password" name="password">
-                <button type="button" class="absolute inset-y-0 right-2 inline-flex items-center justify-center p-1 text-base-content/70 hover:text-base-content cursor-pointer" aria-label="Show password" aria-pressed="false" data-toggle-password>
-                    <span class="icon icon-[lucide--eye] size-5" aria-hidden="true" data-password-visible></span>
-                    <span class="icon icon-[lucide--eye-off] size-5" aria-hidden="true" data-password-hidden hidden></span>
-                </button>
-            </div>
-        </div>
-        <div class="flex flex-col gap-1 w-full">
-            <label class="text-sm font-semibold">Avatar</label>
-            <label class="relative cursor-pointer group flex items-center justify-center size-16 rounded-lg border-2 border-dashed border-primary/50 hover:border-primary text-primary bg-primary/5 hover:bg-primary/10 transition-all overflow-hidden" title="Click to upload avatar">
-                <span class="icon icon-[lucide--plus] size-6" id="new-group-avatar-icon"></span>
-                <img id="new-group-avatar-preview" class="size-full object-cover rounded-lg hidden" alt="Group avatar preview">
+        <div class="flex items-center gap-4 py-2 border-b border-base-content/10">
+            <label class="relative cursor-pointer group flex items-center justify-center size-14 rounded-xl border border-base-content/20 hover:border-primary text-primary bg-surface-card transition-all overflow-hidden shrink-0" title="Click to upload avatar">
+                <span class="icon icon-[lucide--camera] size-5 text-base-content/60 group-hover:text-primary" id="new-group-avatar-icon"></span>
+                <img id="new-group-avatar-preview" class="size-full object-cover rounded-xl hidden" alt="Group avatar preview">
                 <input type="file" id="new-group-avatar" name="avatar" accept="image/*" class="hidden" onchange="if(this.files && this.files[0]){ const img=document.getElementById('new-group-avatar-preview'); const icon=document.getElementById('new-group-avatar-icon'); img.src=URL.createObjectURL(this.files[0]); img.classList.remove('hidden'); icon.classList.add('hidden'); }">
             </label>
+            <div>
+                <div class="font-semibold text-sm">Group Icon</div>
+                <div class="text-xs text-base-content/60">Choose a photo or graphic</div>
+            </div>
         </div>
-        <div class="flex flex-col gap-1 w-full">
-            <label class="text-sm font-semibold" for="new-group-description">Description</label>
-            <textarea class="textarea textarea-bordered w-full" id="new-group-description" name="description"></textarea>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-base-content/70" for="new-group-nick">Display Moniker</label>
+                <input class="input input-bordered w-full" autofocus type="text" id="new-group-nick" name="nick" required placeholder="Display Name">
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-base-content/70" for="new-group-name">Unique Handle</label>
+                <input class="input input-bordered w-full font-mono text-sm" type="text" autocomplete="off" id="new-group-name" name="name" required placeholder="group-handle">
+            </div>
         </div>
-        <div class="flex flex-col gap-1 w-full">
-            <label class="text-sm font-semibold" for="new-group-mode">Mode</label>
-            <select class="select select-bordered w-full" id="new-group-mode" name="mode" required>
-                <option value="private">Private</option>
-                <option value="public" selected>Public</option>
-            </select>
+
+        <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-semibold text-base-content/70" for="new-group-description">Description</label>
+            <textarea class="textarea textarea-bordered w-full min-h-20" id="new-group-description" name="description" placeholder="What is this group about?"></textarea>
         </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-base-content/70" for="new-group-mode">Access Mode</label>
+                <select class="select select-bordered w-full" id="new-group-mode" name="mode" required>
+                    <option value="private">Private (Invite only)</option>
+                    <option value="public" selected>Public (Discoverable)</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-base-content/70" for="new-group-password">Group Password (Optional)</label>
+                <div class="relative w-full">
+                    <input class="input input-bordered w-full pr-10" type="password" autocomplete="off" id="new-group-password" name="password" placeholder="Leave empty for none">
+                    <button type="button" class="absolute inset-y-0 right-2 inline-flex items-center justify-center p-1 text-base-content/60 hover:text-base-content cursor-pointer" aria-label="Show password" aria-pressed="false" data-toggle-password>
+                        <span class="icon icon-[lucide--eye] size-4" aria-hidden="true" data-password-visible></span>
+                        <span class="icon icon-[lucide--eye-off] size-4" aria-hidden="true" data-password-hidden hidden></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div id="new-group-error"></div>
-        <div class="flex justify-end gap-2 pt-2">
-            <button class="btn btn-ghost" type="button" onclick="history.back()">Cancel</button>
-            <button class="btn btn-primary" form="new-group-form" type="submit">Create</button>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-base-content/10">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="history.back()">Cancel</button>
+            <button class="btn btn-primary btn-sm gap-1.5" form="new-group-form" type="submit">
+                <span class="icon icon-[lucide--plus] size-3.5"></span>
+                Create Group
+            </button>
         </div>
     </form>
 </div>

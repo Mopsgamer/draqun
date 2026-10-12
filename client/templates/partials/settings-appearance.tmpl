@@ -1,14 +1,21 @@
-<div class="flex flex-col gap-4">
-    <h2 class="text-xl font-bold pb-2 border-b border-base-content/10 flex items-center gap-2">
-        <span class="icon icon-[lucide--palette] size-5" aria-hidden="true"></span>
-        Appearance
-    </h2>
-    <div class="flex flex-col gap-1 max-w-sm">
-        <label class="text-sm font-semibold">Theme</label>
-        <select class="select select-bordered w-full">
-            <option value="dark">Dark</option>
-            <option value="light">Light</option>
-            <option value="system">System</option>
+<section class="flex flex-col gap-4">
+    <div class="pb-2 border-b border-base-content/10">
+        <h2 class="text-base font-bold flex items-center gap-2">
+            <span class="icon icon-[lucide--palette] size-4 text-primary" aria-hidden="true"></span>
+            Appearance
+        </h2>
+        <p class="text-xs text-base-content/60">Customize the application visual theme.</p>
+    </div>
+
+    <div class="py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="font-semibold text-sm">Color Theme</div>
+            <div class="text-xs text-base-content/60">Switch between dark mode, light mode, or system default.</div>
+        </div>
+        <select id="theme-select" class="select select-bordered select-sm theme-menu w-full sm:w-48 shrink-0">
+            <option value="dark">Dark Mode</option>
+            <option value="light">Light Mode</option>
+            <option value="system">System Preference</option>
         </select>
     </div>
-</div>
+</section>

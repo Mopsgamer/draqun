@@ -1,91 +1,123 @@
-<div class="p-page max-w-xl mx-auto flex flex-col gap-6">
-    <div class="flex items-center justify-between mb-2">
-        <h1 class="text-2xl font-bold flex items-center gap-2">
-            <span class="icon icon-[lucide--users]" aria-hidden="true"></span>
-            Group settings &middot; {{.Group.Moniker}}
-        </h1>
-        <button class="btn btn-ghost btn-sm gap-1" type="button" onclick="history.back()">
+<div class="max-w-3xl mx-auto w-full px-4 py-8 flex flex-col gap-8">
+    <div class="flex items-center justify-between pb-4 border-b border-base-content/10">
+        <div class="flex items-center gap-3">
+            <span class="icon icon-[lucide--shield-plus] size-6 text-primary" aria-hidden="true"></span>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Create Role</h1>
+                <p class="text-xs text-base-content/60 mt-0.5">Define a new role and permission level for <span class="font-semibold text-base-content/90">{{.Group.Moniker}}</span></p>
+            </div>
+        </div>
+        <button class="btn btn-ghost btn-sm gap-1.5 text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
             <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
             Back
         </button>
     </div>
+
     {{template "partials/group-settings-nav" .}}
-    <div class="flex flex-col gap-4 bg-surface-card p-6 rounded-box border border-base-content/10 shadow-sm">
-        <h2 class="text-xl font-bold pb-2 border-b border-base-content/10 flex items-center gap-2">
-            <span class="icon icon-[lucide--shield]" aria-hidden="true"></span>
-            Create New Role
-        </h2>
-        <form
-            class="flex flex-col gap-4"
-            id="role-create-form"
-            hx-post="/groups/{{.Group.Id}}/roles/create"
-            hx-swap="innerHTML"
-            hx-target="#role-create-error"
-        >
-            <div class="flex flex-col gap-1 w-full">
-                <label class="text-sm font-semibold" for="role-name">Name (e.g. moderator)</label>
-                <input class="input input-bordered w-full" type="text" id="role-name" name="name" required placeholder="moderator">
+
+    <form
+        class="flex flex-col gap-6"
+        id="role-create-form"
+        hx-post="/groups/{{.Group.Id}}/roles/create"
+        hx-swap="innerHTML"
+        hx-target="#role-create-error"
+    >
+        <div class="pb-2 border-b border-base-content/10">
+            <h2 class="text-base font-bold flex items-center gap-2">
+                <span class="icon icon-[lucide--sliders] size-4 text-primary" aria-hidden="true"></span>
+                Role Identity
+            </h2>
+            <p class="text-xs text-base-content/60">Display moniker, system identifier, and color.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-base-content/70" for="role-moniker">Display Moniker</label>
+                <input class="input input-bordered w-full" type="text" id="role-moniker" name="moniker" required placeholder="e.g. Moderator">
             </div>
-            <div class="flex flex-col gap-1 w-full">
-                <label class="text-sm font-semibold" for="role-moniker">Moniker (display name)</label>
-                <input class="input input-bordered w-full" type="text" id="role-moniker" name="moniker" required placeholder="Moderator">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-base-content/70" for="role-name">System Handle</label>
+                <input class="input input-bordered w-full font-mono text-sm" type="text" id="role-name" name="name" required placeholder="e.g. moderator">
             </div>
-            <div class="flex flex-col gap-1 w-full">
-                <label class="text-sm font-semibold" for="role-color">Role Color</label>
-                <input class="input input-bordered h-10 w-24 p-1 cursor-pointer" type="color" id="role-color" name="color" value="#3b82f6">
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-semibold text-base-content/70" for="role-color">Role Color Accent</label>
+            <div class="flex items-center gap-3">
+                <input class="input input-bordered h-9 w-16 p-1 cursor-pointer shrink-0" type="color" id="role-color" name="color" value="#3b82f6">
+                <span class="text-xs text-base-content/60">Badge color used in chat and member lists.</span>
             </div>
-            <div class="divider my-1">Permissions</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="flex flex-col gap-1 w-full">
-                    <label class="text-sm font-semibold" for="perm-messages">Messages Permission</label>
+        </div>
+
+        <div class="pt-4 border-t border-base-content/10 flex flex-col gap-4">
+            <div class="pb-2 border-b border-base-content/10">
+                <h2 class="text-base font-bold flex items-center gap-2">
+                    <span class="icon icon-[lucide--key-round] size-4 text-primary" aria-hidden="true"></span>
+                    Permissions
+                </h2>
+                <p class="text-xs text-base-content/60">Configure access controls for this role.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="perm-messages">Messages</label>
                     <select class="select select-bordered w-full" id="perm-messages" name="perm_messages">
                         <option value="" selected>Neutral / Inherit</option>
                         <option value="write">Write</option>
                         <option value="read">Read</option>
-                        <option value="delete">Delete (manage all)</option>
+                        <option value="delete">Delete (Manage all)</option>
                         <option value="hidden">Hidden</option>
                     </select>
                 </div>
-                <div class="flex flex-col gap-1 w-full">
-                    <label class="text-sm font-semibold" for="perm-roles">Roles Permission</label>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="perm-roles">Roles</label>
                     <select class="select select-bordered w-full" id="perm-roles" name="perm_roles">
                         <option value="" selected>Neutral / Inherit</option>
                         <option value="allow">Allow</option>
                         <option value="disallow">Disallow</option>
                     </select>
                 </div>
-                <div class="flex flex-col gap-1 w-full">
-                    <label class="text-sm font-semibold" for="perm-members">Members Permission</label>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="perm-members">Members</label>
                     <select class="select select-bordered w-full" id="perm-members" name="perm_members">
                         <option value="" selected>Neutral / Inherit</option>
                         <option value="read">Read</option>
                         <option value="invite">Invite</option>
-                        <option value="write">Write (manage monikers)</option>
-                        <option value="delete">Delete (kick & ban)</option>
+                        <option value="write">Write (Manage monikers)</option>
+                        <option value="delete">Delete (Kick & Ban)</option>
                     </select>
                 </div>
-                <div class="flex flex-col gap-1 w-full">
-                    <label class="text-sm font-semibold" for="perm-group-change">Group Settings Change</label>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="perm-group-change">Group Settings</label>
                     <select class="select select-bordered w-full" id="perm-group-change" name="perm_group_change">
                         <option value="" selected>Neutral / Inherit</option>
                         <option value="allow">Allow</option>
                         <option value="disallow">Disallow</option>
                     </select>
                 </div>
-                <div class="flex flex-col gap-1 w-full col-span-full">
-                    <label class="text-sm font-semibold" for="perm-admin">Administrator</label>
+
+                <div class="flex flex-col gap-1.5 sm:col-span-2">
+                    <label class="text-xs font-semibold text-base-content/70" for="perm-admin">Administrator</label>
                     <select class="select select-bordered w-full" id="perm-admin" name="perm_admin">
                         <option value="" selected>Neutral / Inherit</option>
-                        <option value="allow">Allow (all permissions)</option>
+                        <option value="allow">Allow (Full administrative permissions)</option>
                         <option value="disallow">Disallow</option>
                     </select>
                 </div>
             </div>
-            <div id="role-create-error"></div>
-            <div class="flex justify-end gap-2 pt-2">
-                <button class="btn btn-ghost" type="button" onclick="history.back()">Cancel</button>
-                <button class="btn btn-primary" type="submit">Create Role</button>
-            </div>
-        </form>
-    </div>
+        </div>
+
+        <div id="role-create-error"></div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-base-content/10">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="history.back()">Cancel</button>
+            <button class="btn btn-primary btn-sm gap-1.5" type="submit">
+                <span class="icon icon-[lucide--plus] size-3.5"></span>
+                Create Role
+            </button>
+        </div>
+    </form>
 </div>

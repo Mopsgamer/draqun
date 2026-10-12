@@ -1,87 +1,94 @@
-<div class="p-page max-w-xl mx-auto flex flex-col gap-6">
-    <div class="flex items-center justify-between mb-2">
-        <h1 class="text-2xl font-bold flex items-center gap-2">
-            <span class="icon icon-[lucide--users]" aria-hidden="true"></span>
-            Group settings &middot; {{.Group.Moniker}}
-        </h1>
-        <button class="btn btn-ghost btn-sm gap-1" type="button" onclick="history.back()">
+<div class="max-w-3xl mx-auto w-full px-4 py-8 flex flex-col gap-8">
+    <div class="flex items-center justify-between pb-4 border-b border-base-content/10">
+        <div class="flex items-center gap-3">
+            <span class="icon icon-[lucide--shield] size-6 text-primary" aria-hidden="true"></span>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Role Management</h1>
+                <p class="text-xs text-base-content/60 mt-0.5">Role hierarchy and permissions for <span class="font-semibold text-base-content/90">{{.Group.Moniker}}</span></p>
+            </div>
+        </div>
+        <button class="btn btn-ghost btn-sm gap-1.5 text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
             <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
             Back
         </button>
     </div>
+
     {{template "partials/group-settings-nav" .}}
-    <div class="flex flex-col gap-4 bg-surface-card p-6 rounded-box border border-base-content/10 shadow-sm">
+
+    <div class="flex flex-col gap-6">
         <div class="flex items-center justify-between pb-2 border-b border-base-content/10">
-            <h2 class="text-xl font-bold flex items-center gap-2">
-                <span class="icon icon-[lucide--shield]" aria-hidden="true"></span>
-                Roles Management
+            <h2 class="text-base font-bold flex items-center gap-2">
+                <span class="icon icon-[lucide--shield-alert] size-4 text-primary" aria-hidden="true"></span>
+                Role Hierarchy
             </h2>
             {{if or .Role.PermRoles.Has .Role.PermAdmin.Has (eq .Member.UserId .Group.OwnerId)}}
-            <a class="btn btn-primary btn-sm gap-1" href="/groups/{{.Group.Id}}/settings/roles/create">
-                <span class="icon icon-[lucide--plus] size-4" aria-hidden="true"></span>
+            <a class="btn btn-primary btn-xs gap-1.5" href="/groups/{{.Group.Id}}/settings/roles/create">
+                <span class="icon icon-[lucide--plus] size-3.5" aria-hidden="true"></span>
                 Create Role
             </a>
             {{end}}
         </div>
-        <div class="flex flex-col gap-3">
+
+        <div class="divide-y divide-base-content/10">
             {{range $index, $role := .Roles}}
-            <div class="flex items-center justify-between p-3 rounded-lg border border-base-content/10 bg-surface-panel">
-                <div class="flex items-center gap-3">
+            <div class="py-3.5 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5 min-w-0">
                     {{if or $.Role.PermRoles.Has $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)}}
                     <div class="flex flex-col gap-0.5 shrink-0">
                         <button
                             type="button"
-                            class="btn btn-ghost btn-square btn-xs size-5 min-h-0"
+                            class="btn btn-ghost btn-square btn-xs size-4.5 min-h-0"
                             hx-post="/groups/{{$.Group.Id}}/roles/{{$role.Id}}/move?direction=up"
                             title="Move Up"
                         >
-                            <span class="icon icon-[lucide--chevron-up] size-3.5"></span>
+                            <span class="icon icon-[lucide--chevron-up] size-3"></span>
                         </button>
                         <button
                             type="button"
-                            class="btn btn-ghost btn-square btn-xs size-5 min-h-0"
+                            class="btn btn-ghost btn-square btn-xs size-4.5 min-h-0"
                             hx-post="/groups/{{$.Group.Id}}/roles/{{$role.Id}}/move?direction=down"
                             title="Move Down"
                         >
-                            <span class="icon icon-[lucide--chevron-down] size-3.5"></span>
+                            <span class="icon icon-[lucide--chevron-down] size-3"></span>
                         </button>
                     </div>
                     {{end}}
-                    <span class="size-4 rounded-full border border-base-content/20 shrink-0" style="background-color: {{$role.Color.Hex}}"></span>
-                    <div>
-                        <div class="font-bold text-base flex items-center gap-2">
-                            {{$role.Moniker}}
-                            <span class="text-xs font-normal opacity-70">({{$role.Name}})</span>
+
+                    <span class="size-3.5 rounded-full shrink-0" style="background-color: {{$role.Color.Hex}}"></span>
+
+                    <div class="flex flex-col min-w-0">
+                        <div class="font-bold text-sm flex items-center gap-2">
+                            <span>{{$role.Moniker}}</span>
+                            <span class="text-xs text-base-content/50 font-mono">({{$role.Name}})</span>
                         </div>
-                        <div class="text-xs text-base-content/70 flex flex-wrap gap-2 mt-1">
-                            <span>Msg: {{$role.PermMessages}}</span> &middot;
-                            <span>Roles: {{$role.PermRoles}}</span> &middot;
-                            <span>Members: {{$role.PermMembers}}</span> &middot;
+                        <div class="text-[11px] text-base-content/50 flex flex-wrap gap-2 mt-0.5 font-mono">
+                            <span>Msg: {{$role.PermMessages}}</span>
+                            <span>Roles: {{$role.PermRoles}}</span>
+                            <span>Members: {{$role.PermMembers}}</span>
                             <span>Admin: {{$role.PermAdmin}}</span>
                         </div>
                     </div>
                 </div>
+
                 {{if or $.Role.PermRoles.Has $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)}}
-                <div class="flex items-center gap-1">
-                    <a class="btn btn-ghost btn-xs" href="/groups/{{$.Group.Id}}/settings/roles/{{$role.Id}}">
-                        <span class="icon icon-[lucide--pencil] size-4"></span>
-                        Edit
+                <div class="flex items-center gap-1 shrink-0">
+                    <a class="btn btn-ghost btn-xs text-primary hover:bg-primary/10 gap-1" href="/groups/{{$.Group.Id}}/settings/roles/{{$role.Id}}">
+                        <span class="icon icon-[lucide--pencil] size-3"></span> Edit
                     </a>
                     {{if ne $role.Name "@everyone"}}
                     <button
-                        class="btn btn-ghost btn-xs text-error"
+                        class="btn btn-ghost btn-xs text-error hover:bg-error/10 gap-1"
                         hx-delete="/groups/{{$.Group.Id}}/roles/{{$role.Id}}"
                         hx-confirm="Are you sure you want to delete role {{$role.Moniker}}?"
                     >
-                        <span class="icon icon-[lucide--trash-2] size-4"></span>
-                        Delete
+                        <span class="icon icon-[lucide--trash-2] size-3"></span> Delete
                     </button>
                     {{end}}
                 </div>
                 {{end}}
             </div>
             {{else}}
-            <div class="text-sm text-base-content/60 text-center py-4">No roles created yet.</div>
+            <div class="text-sm text-base-content/50 text-center py-6">No custom roles created yet.</div>
             {{end}}
         </div>
     </div>
