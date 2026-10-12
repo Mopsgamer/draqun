@@ -23,6 +23,7 @@ const (
 	TableBans          = "app_group_action_bans"
 	TableKicks         = "app_group_action_kicks"
 	TableMemberships   = "app_group_action_memberships"
+	TableRoleActions   = "app_group_action_roles"
 )
 
 func LoadDB() error {
@@ -37,6 +38,20 @@ func LoadDB() error {
 	if err := Sqlx.Ping(); err != nil {
 		return err
 	}
+
+	_, _ = Sqlx.Exec(`ALTER TABLE app_group_roles ADD COLUMN position INTEGER NOT NULL DEFAULT 0;`)
+
+	_, _ = Sqlx.Exec(`CREATE TABLE IF NOT EXISTS app_group_action_roles (
+    role_id INTEGER NOT NULL,
+    creator_id INTEGER NOT NULL,
+    group_id INTEGER NOT NULL,
+    action TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete', 'assign', 'unassign')),
+    description VARCHAR(510) NOT NULL,
+    acted_at DATETIME NOT NULL,
+    FOREIGN KEY (role_id) REFERENCES app_group_roles (id),
+    FOREIGN KEY (creator_id) REFERENCES app_users (id),
+    FOREIGN KEY (group_id) REFERENCES app_groups (id)
+);`)
 
 	Goqu = goqu.New("sqlite3", Sqlx)
 	return nil

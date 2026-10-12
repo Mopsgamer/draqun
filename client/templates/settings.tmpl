@@ -1,18 +1,20 @@
-<div class="p-page grid grid-cols-1 md:grid-cols-[minmax(0,1.7fr)_minmax(14rem,1fr)] gap-4">
-    <div class="col-span-full flex items-center justify-between mb-2">
-        <h1 class="text-2xl font-bold flex items-center gap-2">
-            <span class="icon icon-[lucide--settings]" aria-hidden="true"></span>
-            Settings
-        </h1>
-        <a class="btn btn-ghost btn-sm gap-1" href="/chat">
+<div class="max-w-3xl mx-auto w-full px-4 py-8 flex flex-col gap-8">
+    <div class="flex items-center justify-between pb-4 border-b border-base-content/10">
+        <div class="flex items-center gap-3">
+            <span class="icon icon-[lucide--settings] size-6 text-primary" aria-hidden="true"></span>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Account Settings</h1>
+                <p class="text-xs text-base-content/60 mt-0.5">Manage your profile details, security preferences, and interface theme.</p>
+            </div>
+        </div>
+        <button class="btn btn-ghost btn-sm gap-1.5 text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
             <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
-            Back to chat
-        </a>
+            Back
+        </button>
     </div>
-    <section class="bg-surface-panel p-4 md:p-6 rounded-box border border-base-content/10 shadow-sm flex flex-col gap-4">
+
+    <div class="flex flex-col gap-10">
         {{- template "partials/settings-account" . -}}
-    </section>
-    <section class="bg-surface-panel p-4 md:p-6 rounded-box border border-base-content/10 shadow-sm flex flex-col gap-4 h-fit">
         {{- template "partials/settings-appearance" . -}}
-    </section>
+    </div>
 </div>

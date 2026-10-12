@@ -9,6 +9,7 @@ out
 
 # project
 client/static
+uploads
 .env
 *.db
 

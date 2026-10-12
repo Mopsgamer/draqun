@@ -72,6 +72,7 @@ func (member Member) Roles() []Role {
 			goqu.I(TableRoleAssignees+".role_id").Eq(goqu.C("id").Table(TableRoles)),
 		)).
 		Where(goqu.Ex{TableRoles + ".group_id": member.GroupId, TableRoleAssignees + ".user_id": member.UserId}).
+		Order(goqu.I(TableRoles+".position").Asc(), goqu.I(TableRoles+".id").Asc()).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
@@ -98,7 +99,11 @@ func (member Member) Role() Role {
 		return everyone
 	}
 
-	everyone.Merge(roleList...)
+	// Reverse roleList so lower priority (higher position) is merged first
+	// and higher priority (lower position) is merged last and takes precedence.
+	for i := len(roleList) - 1; i >= 0; i-- {
+		everyone.Merge(roleList[i])
+	}
 	return everyone
 }
 
@@ -112,7 +117,24 @@ func (member Member) Ban(creatorId uint64, endsAt TimeFuture, description Descri
 		EndsAt:      endsAt,
 	}
 
-	return action.Insert()
+	if err := action.Insert(); err != nil {
+		return err
+	}
+
+	member.IsDeleted = true
+	if err := member.Update(); err != nil {
+		return err
+	}
+
+	roleIds := []uint64{}
+	for _, r := range member.Group().Roles() {
+		roleIds = append(roleIds, r.Id)
+	}
+	if len(roleIds) > 0 {
+		_ = Delete(TableRoleAssignees, goqu.Ex{"user_id": member.UserId, "role_id": roleIds})
+	}
+
+	return nil
 }
 
 func (member Member) Unban(revokerId uint64) error {
@@ -134,7 +156,24 @@ func (member Member) Kick(creatorId uint64, description Description) error {
 		ActedAt:     TimePast(time.Now()),
 	}
 
-	return action.Insert()
+	if err := action.Insert(); err != nil {
+		return err
+	}
+
+	member.IsDeleted = true
+	if err := member.Update(); err != nil {
+		return err
+	}
+
+	roleIds := []uint64{}
+	for _, r := range member.Group().Roles() {
+		roleIds = append(roleIds, r.Id)
+	}
+	if len(roleIds) > 0 {
+		_ = Delete(TableRoleAssignees, goqu.Ex{"user_id": member.UserId, "role_id": roleIds})
+	}
+
+	return nil
 }
 
 func (member Member) LeaveActed() error {
@@ -157,6 +196,47 @@ func (member Member) JoinActed() error {
 	}
 
 	return action.Insert()
+}
+
+func (member Member) LastTimeJoinedAt() TimePast {
+	action := ActionMembership{}
+	sql, args, err := Goqu.From(TableMemberships).
+		Where(goqu.Ex{
+			"group_id": member.GroupId,
+			"user_id":  member.UserId,
+			"is_join":  true,
+		}).
+		Order(goqu.I("acted_at").Desc()).
+		Limit(1).
+		Prepared(true).ToSQL()
+	if err != nil {
+		return member.FirstTimeJoinedAt
+	}
+
+	err = Sqlx.Get(&action, sql, args...)
+	if err != nil || time.Time(action.ActedAt).IsZero() {
+		return member.FirstTimeJoinedAt
+	}
+
+	return action.ActedAt
+}
+
+func (member Member) MessagesCount() uint64 {
+	count := uint64(0)
+	sql, args, err := Goqu.Select(goqu.COUNT("*")).From(TableMessages).
+		Where(goqu.Ex{"group_id": member.GroupId, "author_id": member.UserId}).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return count
+	}
+
+	err = Sqlx.Get(&count, sql, args...)
+	if err != nil {
+		handleErr(err)
+	}
+
+	return count
 }
 
 func (member Member) ActionListPage(page uint, limit uint) []Action {

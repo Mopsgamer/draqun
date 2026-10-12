@@ -1,110 +1,169 @@
-<div class="p-page max-w-xl mx-auto flex flex-col gap-6">
-    <h1 class="text-2xl font-bold flex items-center gap-2">
-        <span class="icon icon-[lucide--users]" aria-hidden="true"></span>
-        Group settings &middot; {{.Group.Moniker}}
-    </h1>
-    <div class="flex flex-col gap-4 bg-surface-card p-6 rounded-box border border-base-content/10 shadow-sm">
-        <h2 class="text-xl font-bold pb-2 border-b border-base-content/10 flex items-center gap-2">
-            <span class="icon icon-[lucide--user-round] size-5" aria-hidden="true"></span>
-            General settings
-        </h2>
-        <div role="alert" class="alert alert-info">
-            <span class="icon icon-[lucide--info] size-5" aria-hidden="true"></span>
-            <span>You can invite more people. Share the link</span>
-            <button id="copy-invite" class="btn btn-ghost btn-sm ml-auto gap-1" type="button" data-copy="{{.Group.UrlJoin .Ctx}}" aria-label="Copy invite link">
-                <span class="icon icon-[lucide--copy] size-4" aria-hidden="true"></span>
-                <span data-copy-label>Copy link</span>
+<div class="max-w-3xl mx-auto w-full px-4 py-8 flex flex-col gap-8">
+    <div class="flex items-center justify-between pb-4 border-b border-base-content/10">
+        <div class="flex items-center gap-3">
+            <span class="icon icon-[lucide--settings-2] size-6 text-primary" aria-hidden="true"></span>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Group Settings</h1>
+                <p class="text-xs text-base-content/60 mt-0.5">Configuration and permissions for <span class="font-semibold text-base-content/90">{{.Group.Moniker}}</span></p>
+            </div>
+        </div>
+        <button class="btn btn-ghost btn-sm gap-1.5 text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
+            <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
+            Back
+        </button>
+    </div>
+
+    {{template "partials/group-settings-nav" .}}
+
+    <div class="flex flex-col gap-8">
+        <!-- Invite link banner -->
+        <div class="flex items-center justify-between gap-4 py-3 px-4 rounded-xl bg-primary/10 border border-primary/20 text-xs">
+            <div class="flex items-center gap-2.5">
+                <span class="icon icon-[lucide--user-plus] size-4 text-primary shrink-0"></span>
+                <span>Invite team members or friends using the direct group invite link.</span>
+            </div>
+            <button id="copy-invite" class="btn btn-primary btn-xs gap-1.5 shrink-0" type="button" data-copy="{{.Group.UrlJoin .Ctx}}" aria-label="Copy invite link">
+                <span class="icon icon-[lucide--copy] size-3.5" aria-hidden="true"></span>
+                <span data-copy-label>Copy Link</span>
             </button>
         </div>
-        <h4 class="text-base font-semibold flex items-center gap-2 text-base-content/80 mt-2">
-            <span class="icon icon-[lucide--pen] size-4" aria-hidden="true"></span>
-            Group profile
-        </h4>
+
+        <!-- Section: General Profile -->
         <form
-            class="flex flex-col gap-4"
+            class="flex flex-col gap-6"
             id="group-change-form"
             hx-put="/groups/{{.Group.Id}}/change"
             hx-encoding="multipart/form-data"
             hx-swap="innerHTML"
             hx-target="#group-change-error"
         >
-            <div class="flex flex-col gap-1 w-full">
-                <label class="text-sm font-semibold" for="change-group-nick">Nick</label>
-                <input class="input input-bordered w-full" type="text" id="change-group-nick" name="nick" required value="{{.Group.Moniker}}" {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>
+            <div class="pb-2 border-b border-base-content/10">
+                <h2 class="text-base font-bold flex items-center gap-2">
+                    <span class="icon icon-[lucide--pen-tool] size-4 text-primary" aria-hidden="true"></span>
+                    Group Identity
+                </h2>
+                <p class="text-xs text-base-content/60">Moniker, avatar, description, and privacy settings.</p>
             </div>
-            <div class="flex flex-col gap-1 w-full">
-                <label class="text-sm font-semibold" for="change-group-name">Name</label>
-                <input class="input input-bordered w-full" type="text" autocomplete="username" id="change-group-name" name="name" required value="{{.Group.Name}}" {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>
-            </div>
-            <div class="flex flex-col gap-1 w-full">
-                <label class="text-sm font-semibold" for="change-group-password">Password</label>
-                <div class="relative w-full">
-                    <input class="input input-bordered w-full pr-12" type="password" autocomplete="new-password" id="change-group-password" name="password" {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>
-                    <button type="button" class="absolute inset-y-0 right-2 inline-flex items-center justify-center p-1 text-base-content/70 hover:text-base-content cursor-pointer" aria-label="Show password" aria-pressed="false" data-toggle-password>
-                        <span class="icon icon-[lucide--eye] size-5" aria-hidden="true" data-password-visible></span>
-                        <span class="icon icon-[lucide--eye-off] size-5" aria-hidden="true" data-password-hidden hidden></span>
-                    </button>
+
+            <div class="divide-y divide-base-content/10">
+                <!-- Group Avatar Row -->
+                <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <label class="relative {{if .Member.Role.PermGroupChange.Has}}cursor-pointer{{end}} group flex items-center justify-center size-16 rounded-xl border border-base-content/20 hover:border-primary text-primary bg-surface-card transition-all overflow-hidden shrink-0" title="Click to upload avatar">
+                            {{if ne .Group.Avatar ""}}
+                                <img id="change-group-avatar-preview" src="{{.Group.Avatar}}" class="size-full object-cover rounded-xl" alt="Group avatar">
+                                {{if .Member.Role.PermGroupChange.Has}}
+                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                    <span class="icon icon-[lucide--camera] size-5"></span>
+                                </div>
+                                {{end}}
+                            {{else}}
+                                <span class="icon icon-[lucide--camera] size-6 text-base-content/60 group-hover:text-primary" id="change-group-avatar-icon"></span>
+                                <img id="change-group-avatar-preview" class="size-full object-cover rounded-xl hidden" alt="Group avatar preview">
+                            {{end}}
+                            {{if .Member.Role.PermGroupChange.Has}}
+                            <input type="file" id="change-group-avatar" name="avatar" accept="image/*" class="hidden" onchange="if(this.files && this.files[0]){ const img=document.getElementById('change-group-avatar-preview'); const icon=document.getElementById('change-group-avatar-icon'); img.src=URL.createObjectURL(this.files[0]); img.classList.remove('hidden'); if(icon) icon.classList.add('hidden'); }">
+                            {{end}}
+                        </label>
+                        <div>
+                            <div class="font-semibold text-sm">Group Icon</div>
+                            <div class="text-xs text-base-content/60">Upload a photo or emblem for this group</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Names Row -->
+                <div class="py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-base-content/70" for="change-group-nick">Display Moniker</label>
+                        <input class="input input-bordered w-full" type="text" id="change-group-nick" name="nick" required value="{{.Group.Moniker}}" {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-base-content/70" for="change-group-name">Unique Handle</label>
+                        <input class="input input-bordered w-full font-mono text-sm" type="text" autocomplete="username" id="change-group-name" name="name" required value="{{.Group.Name}}" {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>
+                    </div>
+                </div>
+
+                <!-- Description Row -->
+                <div class="py-4 flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="change-group-description">Group Description</label>
+                    <textarea class="textarea textarea-bordered w-full min-h-20" id="change-group-description" name="description" placeholder="Group purpose or guidelines..." {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>{{.Group.Description}}</textarea>
+                </div>
+
+                <!-- Privacy & Password Row -->
+                <div class="py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-base-content/70" for="change-group-mode">Access Mode</label>
+                        <select class="select select-bordered w-full" id="change-group-mode" name="mode" required {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>
+                            <option value="private" {{if eq .Group.Mode "private"}}selected{{end}}>Private (Invite only)</option>
+                            <option value="public" {{if eq .Group.Mode "public"}}selected{{end}}>Public (Discoverable)</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-base-content/70" for="change-group-password">Group Password (Optional)</label>
+                        <div class="relative w-full">
+                            <input class="input input-bordered w-full pr-10" type="password" autocomplete="new-password" id="change-group-password" name="password" placeholder="Leave empty for no password" {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>
+                            <button type="button" class="absolute inset-y-0 right-2 inline-flex items-center justify-center p-1 text-base-content/60 hover:text-base-content cursor-pointer" aria-label="Show password" aria-pressed="false" data-toggle-password>
+                                <span class="icon icon-[lucide--eye] size-4" aria-hidden="true" data-password-visible></span>
+                                <span class="icon icon-[lucide--eye-off] size-4" aria-hidden="true" data-password-hidden hidden></span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="flex flex-col gap-1 w-full">
-                <label class="text-sm font-semibold">Avatar</label>
-                <label class="relative {{if .Member.Role.PermGroupChange.Has}}cursor-pointer{{end}} group flex items-center justify-center size-16 rounded-lg border-2 border-dashed border-primary/50 hover:border-primary text-primary bg-primary/5 hover:bg-primary/10 transition-all overflow-hidden shrink-0" title="Click to upload avatar">
-                    {{if ne .Group.Avatar ""}}
-                        <img id="change-group-avatar-preview" src="{{.Group.Avatar}}" class="size-full object-cover rounded-lg" alt="Group avatar">
-                        {{if .Member.Role.PermGroupChange.Has}}
-                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
-                            <span class="icon icon-[lucide--plus] size-6"></span>
-                        </div>
-                        {{end}}
-                    {{else}}
-                        <span class="icon icon-[lucide--plus] size-6" id="change-group-avatar-icon"></span>
-                        <img id="change-group-avatar-preview" class="size-full object-cover rounded-lg hidden" alt="Group avatar preview">
-                    {{end}}
-                    {{if .Member.Role.PermGroupChange.Has}}
-                    <input type="file" id="change-group-avatar" name="avatar" accept="image/*" class="hidden" onchange="if(this.files && this.files[0]){ const img=document.getElementById('change-group-avatar-preview'); const icon=document.getElementById('change-group-avatar-icon'); img.src=URL.createObjectURL(this.files[0]); img.classList.remove('hidden'); if(icon) icon.classList.add('hidden'); }">
-                    {{end}}
-                </label>
-            </div>
-            <div class="flex flex-col gap-1 w-full">
-                <label class="text-sm font-semibold" for="change-group-description">Description</label>
-                <textarea class="textarea textarea-bordered w-full" id="change-group-description" name="description" {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>{{.Group.Description}}</textarea>
-            </div>
-            <div class="flex flex-col gap-1 w-full">
-                <label class="text-sm font-semibold" for="change-group-mode">Mode</label>
-                <select class="select select-bordered w-full" id="change-group-mode" name="mode" required {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>
-                    <option value="private" {{if eq .Group.Mode "private"}}selected{{end}}>Private</option>
-                    <option value="public" {{if eq .Group.Mode "public"}}selected{{end}}>Public</option>
-                </select>
-            </div>
+
             <div id="group-change-error"></div>
-            <div class="flex justify-end gap-2 pt-2">
-                <a class="btn btn-ghost" href="/chat/groups/{{.Group.Id}}">Cancel</a>
-                {{if .Member.Role.PermGroupChange.Has}}
-                <button class="btn btn-primary" type="submit" form="group-change-form">Save</button>
-                {{end}}
+
+            {{if .Member.Role.PermGroupChange.Has}}
+            <div class="flex justify-end gap-2 pt-2 border-t border-base-content/10">
+                <button class="btn btn-ghost btn-sm" type="button" onclick="history.back()">Cancel</button>
+                <button class="btn btn-primary btn-sm gap-1.5" type="submit" form="group-change-form">
+                    <span class="icon icon-[lucide--check] size-3.5"></span>
+                    Save Changes
+                </button>
             </div>
+            {{end}}
         </form>
-        <div class="pt-4 border-t border-base-content/10 flex flex-col gap-3">
-            <h2 class="text-xl font-bold flex items-center gap-2 text-error">
-                <span class="icon icon-[lucide--triangle-alert]" aria-hidden="true"></span>
-                Danger zone
-            </h2>
-            <div id="group-leave-error"></div>
-            <div class="flex justify-end gap-2">
-                <button
-                    class="btn btn-warning btn-sm"
-                    hx-delete="/groups/{{.Group.Id}}/leave"
-                    hx-confirm="Are you sure you want to leave this group?"
-                    hx-target="#group-leave-error"
-                >Leave group</button>
-                {{if .Member.Role.PermGroupChange.Has}}
-                <button
-                    class="btn btn-error btn-sm"
-                    hx-delete="/groups/{{.Group.Id}}"
-                    hx-confirm="Are you sure you want to delete this group? This action cannot be undone."
-                >Delete group</button>
-                {{end}}
+
+        <!-- Section: Danger Zone -->
+        <section class="flex flex-col gap-3 pt-4">
+            <div class="pb-2 border-b border-error/20">
+                <h2 class="text-base font-bold flex items-center gap-2 text-error">
+                    <span class="icon icon-[lucide--triangle-alert] size-4" aria-hidden="true"></span>
+                    Danger Zone
+                </h2>
+                <p class="text-xs text-base-content/60">Actions here affect group membership or permanently delete this group.</p>
             </div>
-        </div>
+
+            <div id="group-leave-error"></div>
+
+            <div class="py-3 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <div class="font-semibold text-sm">Leave or Delete Group</div>
+                    <div class="text-xs text-base-content/60">Leave as a member, or delete the group entirely if permitted.</div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button
+                        class="btn btn-warning btn-xs gap-1"
+                        hx-delete="/groups/{{.Group.Id}}/leave"
+                        hx-confirm="Are you sure you want to leave this group?"
+                        hx-target="#group-leave-error"
+                    >
+                        <span class="icon icon-[lucide--log-out] size-3"></span>
+                        Leave Group
+                    </button>
+                    {{if .Member.Role.PermGroupChange.Has}}
+                    <button
+                        class="btn btn-error btn-xs gap-1"
+                        hx-delete="/groups/{{.Group.Id}}"
+                        hx-confirm="Are you sure you want to delete this group? This action cannot be undone."
+                    >
+                        <span class="icon icon-[lucide--trash-2] size-3"></span>
+                        Delete Group
+                    </button>
+                    {{end}}
+                </div>
+            </div>
+        </section>
     </div>
 </div>

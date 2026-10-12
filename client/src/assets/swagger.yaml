@@ -358,6 +358,257 @@ paths:
    responses:
     "200":
      description: List of members.
+ /groups/{group_id}/settings/roles:
+  get:
+   tags:
+    - Pages
+   summary: Group Roles Page
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Roles management page.
+ /groups/{group_id}/settings/roles/create:
+  get:
+   tags:
+    - Pages
+   summary: Create Group Role Page
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Role creation page.
+ /groups/{group_id}/settings/roles/{role_id}:
+  get:
+   tags:
+    - Pages
+   summary: Edit Group Role Page
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: role_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Role editing page.
+ /groups/{group_id}/settings/members:
+  get:
+   tags:
+    - Pages
+   summary: Group Members Moderation Page
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Members moderation page.
+ /groups/{group_id}/settings/audit:
+  get:
+   tags:
+    - Pages
+   summary: Group Audit Log Page
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Audit log page.
+ /groups/{group_id}/roles/create:
+  post:
+   tags:
+    - Group
+   summary: Create Group Role
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Role created.
+ /groups/{group_id}/roles/{role_id}:
+  put:
+   tags:
+    - Group
+   summary: Update Group Role
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: role_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Role updated.
+  delete:
+   tags:
+    - Group
+   summary: Delete Group Role
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: role_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Role deleted.
+ /groups/{group_id}/roles/{role_id}/move:
+  post:
+   tags:
+    - Group
+   summary: Reorder Group Role Position
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: role_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: direction
+      in: query
+      required: true
+      schema:
+       type: string
+       enum: [up, down]
+   responses:
+    "200":
+     description: Role reordered.
+ /groups/{group_id}/members/{user_id}/roles:
+  post:
+   tags:
+    - Group
+   summary: Assign Role to Member
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: user_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Role assigned.
+ /groups/{group_id}/members/{user_id}/roles/{role_id}:
+  delete:
+   tags:
+    - Group
+   summary: Remove Assigned Role from Member
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: user_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: role_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Role unassigned.
+ /groups/{group_id}/members/{user_id}/kick:
+  post:
+   tags:
+    - Group
+   summary: Kick Member
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: user_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Member kicked.
+ /groups/{group_id}/members/{user_id}/ban:
+  post:
+   tags:
+    - Group
+   summary: Ban Member
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: user_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Member banned.
+ /groups/{group_id}/members/{user_id}/unban:
+  post:
+   tags:
+    - Group
+   summary: Unban Member
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: user_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Member unbanned.
  /groups/ws/{group_id}/:
   get:
    tags:

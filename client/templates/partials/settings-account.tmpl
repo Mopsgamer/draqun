@@ -1,95 +1,152 @@
-<div class="flex flex-col gap-4">
-    <h2 class="text-xl font-bold pb-2 border-b border-base-content/10 flex items-center gap-2">
-        <span class="icon icon-[lucide--user-round] size-5" aria-hidden="true"></span>
-        Account settings
-    </h2>
-    <h4 class="text-base font-semibold flex items-center gap-2 text-base-content/80">
-        <span class="icon icon-[lucide--image] size-4" aria-hidden="true"></span>
-        Avatar
-    </h4>
-    <form
-        id="change-avatar-form"
-        class="flex items-center gap-4 p-3 rounded-lg bg-surface-card border border-base-content/10"
-        hx-put="/account/change/avatar"
-        hx-encoding="multipart/form-data"
-        hx-swap="innerHTML"
-        hx-target="#change-avatar-error"
-    >
-        <label class="relative cursor-pointer group flex items-center justify-center size-16 rounded-full border-2 border-dashed border-primary/50 hover:border-primary text-primary bg-primary/5 hover:bg-primary/10 transition-all overflow-hidden shrink-0" title="Click to upload avatar">
-            {{if ne .User.Avatar ""}}
-                <img src="{{.User.Avatar}}" class="size-full object-cover rounded-full" alt="User avatar">
-                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
-                    <span class="icon icon-[lucide--plus] size-6"></span>
+<div class="flex flex-col gap-6">
+    <!-- Section: Profile Information -->
+    <section class="flex flex-col gap-4">
+        <div class="pb-2 border-b border-base-content/10">
+            <h2 class="text-base font-bold flex items-center gap-2">
+                <span class="icon icon-[lucide--user-round] size-4 text-primary" aria-hidden="true"></span>
+                Profile Info
+            </h2>
+            <p class="text-xs text-base-content/60">This information will be displayed to other users in groups and chat.</p>
+        </div>
+
+        <div class="divide-y divide-base-content/10">
+            <!-- Avatar Row -->
+            <form
+                id="change-avatar-form"
+                class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                hx-put="/account/change/avatar"
+                hx-encoding="multipart/form-data"
+                hx-swap="innerHTML"
+                hx-target="#change-avatar-error"
+            >
+                <div class="flex items-center gap-4">
+                    <label class="relative cursor-pointer group flex items-center justify-center size-16 rounded-full border border-base-content/20 hover:border-primary text-primary bg-surface-card transition-all overflow-hidden shrink-0" title="Click to upload avatar">
+                        {{if ne .User.Avatar ""}}
+                            <img src="{{.User.Avatar}}" class="size-full object-cover rounded-full" alt="User avatar">
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                <span class="icon icon-[lucide--camera] size-5"></span>
+                            </div>
+                        {{else}}
+                            <span class="icon icon-[lucide--camera] size-6 text-base-content/60 group-hover:text-primary"></span>
+                        {{end}}
+                        <input type="file" name="avatar" accept="image/*" class="hidden" onchange="this.form.requestSubmit()">
+                    </label>
+                    <div>
+                        <div class="font-semibold text-sm">Avatar Picture</div>
+                        <div class="text-xs text-base-content/60">PNG, JPG, or WebP up to 5MB</div>
+                    </div>
                 </div>
-            {{else}}
-                <span class="icon icon-[lucide--plus] size-6"></span>
-            {{end}}
-            <input type="file" name="avatar" accept="image/*" class="hidden" onchange="this.form.requestSubmit()">
-        </label>
-        <div class="flex flex-col text-xs text-base-content/70">
-            <span class="font-semibold text-sm text-base-content">Upload avatar</span>
-            <span>Click the circle to choose an image</span>
+                <div id="change-avatar-error"></div>
+            </form>
+
+            <!-- Name / Moniker Form Row -->
+            <form
+                id="change-name-form"
+                class="py-4 flex flex-col gap-4"
+                hx-put="/account/change/name"
+                hx-swap="innerHTML"
+                hx-target="#change-name-error"
+            >
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-base-content/70" for="new-moniker">Display Moniker</label>
+                        <input class="input input-bordered w-full" type="text" id="new-moniker" name="new-moniker" value="{{.User.Moniker}}" placeholder="Display Name">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-base-content/70" for="new-name">Unique Username</label>
+                        <input class="input input-bordered w-full font-mono text-sm" type="text" id="new-name" name="new-name" value="{{.User.Name}}" placeholder="username">
+                    </div>
+                </div>
+                <div id="change-name-error"></div>
+                <div class="flex justify-end pt-1">
+                    <button class="btn btn-primary btn-sm gap-1.5" type="submit" form="change-name-form">
+                        <span class="icon icon-[lucide--check] size-3.5"></span>
+                        Save Profile
+                    </button>
+                </div>
+            </form>
         </div>
-        <div id="change-avatar-error" class="ml-auto"></div>
-    </form>
-    <h4 class="text-base font-semibold flex items-center gap-2 text-base-content/80">
-        <span class="icon icon-[lucide--pen] size-4" aria-hidden="true"></span>
-        Profile
-    </h4>
-    <form
-        id="change-name-form"
-        class="grid grid-cols-1 md:grid-cols-2 gap-3"
-        hx-put="/account/change/name"
-        hx-swap="innerHTML"
-        hx-target="#change-name-error"
-    >
-        <div class="flex flex-col gap-1 w-full">
-            <label class="text-sm font-semibold" for="new-moniker">Moniker</label>
-            <input class="input input-bordered w-full" type="text" id="new-moniker" name="new-moniker" value="{{.User.Moniker}}">
+    </section>
+
+    <!-- Section: Security & Credentials -->
+    <section class="flex flex-col gap-4">
+        <div class="pb-2 border-b border-base-content/10">
+            <h2 class="text-base font-bold flex items-center gap-2">
+                <span class="icon icon-[lucide--shield-check] size-4 text-primary" aria-hidden="true"></span>
+                Security & Contact
+            </h2>
+            <p class="text-xs text-base-content/60">Manage login credentials and contact channels.</p>
         </div>
-        <div class="flex flex-col gap-1 w-full">
-            <label class="text-sm font-semibold" for="new-name">Name</label>
-            <input class="input input-bordered w-full" type="text" id="new-name" name="new-name" value="{{.User.Name}}">
+
+        <div class="divide-y divide-base-content/10">
+            <!-- Email Row -->
+            <div class="py-3.5 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="icon icon-[lucide--mail] size-4 text-base-content/60 shrink-0"></span>
+                    <div class="flex flex-col min-w-0">
+                        <span class="text-xs font-semibold text-base-content/50">Email</span>
+                        <span class="text-sm font-mono truncate">{{- hideEmail .User.Email -}}</span>
+                    </div>
+                </div>
+                <a class="btn btn-ghost btn-xs text-primary hover:bg-primary/10 gap-1 shrink-0" href="/settings/email">
+                    <span class="icon icon-[lucide--pencil] size-3"></span> Change
+                </a>
+            </div>
+
+            <!-- Phone Row -->
+            <div class="py-3.5 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="icon icon-[lucide--phone] size-4 text-base-content/60 shrink-0"></span>
+                    <div class="flex flex-col min-w-0">
+                        <span class="text-xs font-semibold text-base-content/50">Phone</span>
+                        <span class="text-sm font-mono truncate">
+                            {{- if ne .User.Phone "" -}}
+                                {{- hidePhone .User.Phone -}}
+                            {{- else -}}
+                                <span class="text-base-content/40 italic font-sans">Not set</span>
+                            {{- end -}}
+                        </span>
+                    </div>
+                </div>
+                <a class="btn btn-ghost btn-xs text-primary hover:bg-primary/10 gap-1 shrink-0" href="/settings/phone">
+                    <span class="icon icon-[lucide--pencil] size-3"></span> Change
+                </a>
+            </div>
+
+            <!-- Password Row -->
+            <div class="py-3.5 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="icon icon-[lucide--key-round] size-4 text-base-content/60 shrink-0"></span>
+                    <div class="flex flex-col min-w-0">
+                        <span class="text-xs font-semibold text-base-content/50">Password</span>
+                        <span class="text-sm font-mono text-base-content/70">••••••••••••</span>
+                    </div>
+                </div>
+                <a class="btn btn-ghost btn-xs text-primary hover:bg-primary/10 gap-1 shrink-0" href="/settings/password">
+                    <span class="icon icon-[lucide--pencil] size-3"></span> Update
+                </a>
+            </div>
         </div>
-        <div id="change-name-error" class="col-span-full"></div>
-        <div class="col-span-full flex justify-end">
-            <button class="btn btn-primary" type="submit" form="change-name-form">Save</button>
+    </section>
+
+    <!-- Section: Danger Zone -->
+    <section class="flex flex-col gap-3 pt-2">
+        <div class="pb-2 border-b border-error/20">
+            <h2 class="text-base font-bold flex items-center gap-2 text-error">
+                <span class="icon icon-[lucide--triangle-alert] size-4" aria-hidden="true"></span>
+                Danger Zone
+            </h2>
+            <p class="text-xs text-base-content/60">Irreversible actions regarding your user account.</p>
         </div>
-    </form>
-    <h4 class="text-base font-semibold flex items-center gap-2 text-base-content/80">
-        <span class="icon icon-[lucide--mail] size-4" aria-hidden="true"></span>
-        Email
-    </h4>
-    <div class="flex items-center justify-between p-3 rounded-lg bg-surface-card border border-base-content/10">
-        <span>{{- hideEmail .User.Email -}}</span>
-        <a class="btn btn-primary btn-sm" href="/settings/email">Change email</a>
-    </div>
-    <h4 class="text-base font-semibold flex items-center gap-2 text-base-content/80">
-        <span class="icon icon-[lucide--phone] size-4" aria-hidden="true"></span>
-        Phone
-    </h4>
-    <div class="flex items-center justify-between p-3 rounded-lg bg-surface-card border border-base-content/10">
-        <span>
-            {{- if ne .User.Phone "" -}}
-                {{- hidePhone .User.Phone -}}
-            {{- else -}}
-                None
-            {{- end -}}
-        </span>
-        <a class="btn btn-primary btn-sm" href="/settings/phone">Change phone</a>
-    </div>
-    <h4 class="text-base font-semibold flex items-center gap-2 text-base-content/80">
-        <span class="icon icon-[lucide--lock-keyhole] size-4" aria-hidden="true"></span>
-        Password
-    </h4>
-    <div class="flex gap-2">
-        <a class="btn btn-primary btn-sm" href="/settings/password">Change password</a>
-    </div>
-    <h4 class="text-base font-semibold flex items-center gap-2 text-error">
-        <span class="icon icon-[lucide--triangle-alert] size-4" aria-hidden="true"></span>
-        Danger zone
-    </h4>
-    <div class="flex gap-2">
-        <a class="btn btn-error btn-sm" href="/settings/delete">Delete account</a>
-    </div>
+
+        <div class="py-2 flex items-center justify-between gap-4">
+            <div>
+                <div class="font-semibold text-sm">Delete Account</div>
+                <div class="text-xs text-base-content/60">Permanently delete your profile and remove access to all groups.</div>
+            </div>
+            <a class="btn btn-error btn-xs gap-1 shrink-0" href="/settings/delete">
+                <span class="icon icon-[lucide--trash-2] size-3"></span> Delete Account
+            </a>
+        </div>
+    </section>
 </div>

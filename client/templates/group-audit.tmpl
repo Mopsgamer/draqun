@@ -1,0 +1,75 @@
+<div class="max-w-3xl mx-auto w-full px-4 py-8 flex flex-col gap-8">
+    <div class="flex items-center justify-between pb-4 border-b border-base-content/10">
+        <div class="flex items-center gap-3">
+            <span class="icon icon-[lucide--history] size-6 text-primary" aria-hidden="true"></span>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Audit Log</h1>
+                <p class="text-xs text-base-content/60 mt-0.5">Historical record of administrative actions in <span class="font-semibold text-base-content/90">{{.Group.Moniker}}</span></p>
+            </div>
+        </div>
+        <button class="btn btn-ghost btn-sm gap-1.5 text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
+            <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
+            Back
+        </button>
+    </div>
+
+    {{template "partials/group-settings-nav" .}}
+
+    <div class="flex flex-col gap-6">
+        <div class="flex items-center justify-between pb-2 border-b border-base-content/10">
+            <h2 class="text-base font-bold flex items-center gap-2">
+                <span class="icon icon-[lucide--list-filter] size-4 text-primary" aria-hidden="true"></span>
+                Activity Feed ({{len .AuditItems}})
+            </h2>
+        </div>
+
+        <div class="divide-y divide-base-content/10">
+            {{range .AuditItems}}
+            <div class="py-3.5 flex flex-col gap-2">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        {{if ne .Target.Moniker ""}}
+                        <div class="bg-neutral text-neutral-content rounded-full size-7 flex items-center justify-center shrink-0 overflow-hidden">
+                            {{if ne .Target.Avatar ""}}
+                            <img src="{{.Target.Avatar}}" class="size-full object-cover" alt="{{.Target.Moniker}}" />
+                            {{else}}
+                            <span class="icon icon-[lucide--user] size-3.5" aria-hidden="true"></span>
+                            {{end}}
+                        </div>
+                        {{else}}
+                        <span class="size-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <span class="icon icon-[lucide--shield] size-3.5"></span>
+                        </span>
+                        {{end}}
+
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="badge {{if eq .Kind "Ban"}}badge-error{{else if eq .Kind "Kick"}}badge-warning{{else if eq .Kind "Role Action"}}badge-primary{{else}}badge-neutral{{end}} badge-xs font-semibold">
+                                {{.Kind}}
+                            </span>
+                            {{if ne .Target.Moniker ""}}
+                            <span class="font-bold text-xs truncate">{{.Target.Moniker}}</span>
+                            {{end}}
+                            {{if ne .Creator.Moniker ""}}
+                            <span class="text-xs text-base-content/50">by {{.Creator.Moniker}}</span>
+                            {{end}}
+                        </div>
+                    </div>
+                    <span class="text-[11px] text-base-content/40 font-mono shrink-0">{{.ActedAt}}</span>
+                </div>
+
+                {{if ne .Description ""}}
+                <div class="text-xs text-base-content/70 pl-10">
+                    {{if or (eq .Kind "Membership") (eq .Kind "Role Action")}}{{.Description}}{{else}}<span class="font-semibold text-base-content/50">Reason:</span> {{.Description}}{{end}}
+                </div>
+                {{end}}
+
+                {{if ne .Details ""}}
+                <div class="text-xs text-base-content/50 italic pl-10 font-mono">{{.Details}}</div>
+                {{end}}
+            </div>
+            {{else}}
+            <div class="text-sm text-base-content/50 text-center py-6">No audit log entries recorded yet.</div>
+            {{end}}
+        </div>
+    </div>
+</div>

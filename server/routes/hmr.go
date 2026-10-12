@@ -74,6 +74,26 @@ func RouteHMR(app *fiber.App) {
 				return
 			}
 
+			ticker := time.NewTicker(10 * time.Second)
+			defer ticker.Stop()
+
+			done := make(chan struct{})
+			go func() {
+				for {
+					select {
+					case <-ticker.C:
+						if _, err := w.WriteString(": ping\n\n"); err != nil {
+							return
+						}
+						if err := w.Flush(); err != nil {
+							return
+						}
+					case <-done:
+						return
+					}
+				}
+			}()
+
 			for msg := range client {
 				if _, err := w.WriteString(msg); err != nil {
 					break
@@ -82,6 +102,7 @@ func RouteHMR(app *fiber.App) {
 					break
 				}
 			}
+			close(done)
 		})
 	})
 
