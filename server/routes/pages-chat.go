@@ -128,6 +128,7 @@ func routePagesChat(router fiber.Router) fiber.Router {
 type TicketItem struct {
 	Channel         model.Channel
 	Author          model.User
+	Assignees       []model.User
 	Progress        model.TicketProgress
 	CommentCount    int
 	DuplicateTarget *model.Channel
@@ -164,6 +165,7 @@ func enrichTicketContext(ctx fiber.Ctx, activeChannel model.Channel, bind fiber.
 				ticketItems = append(ticketItems, TicketItem{
 					Channel:         sub,
 					Author:          sub.AuthorUser(),
+					Assignees:       sub.Assignees(),
 					Progress:        sub.GetTicketProgress(),
 					CommentCount:    sub.CommentCount(),
 					DuplicateTarget: sub.DuplicateChannel(),
@@ -182,6 +184,7 @@ func enrichTicketContext(ctx fiber.Ctx, activeChannel model.Channel, bind fiber.
 				subTicketItems = append(subTicketItems, TicketItem{
 					Channel:         sub,
 					Author:          sub.AuthorUser(),
+					Assignees:       sub.Assignees(),
 					Progress:        sub.GetTicketProgress(),
 					CommentCount:    sub.CommentCount(),
 					DuplicateTarget: sub.DuplicateChannel(),
@@ -195,6 +198,7 @@ func enrichTicketContext(ctx fiber.Ctx, activeChannel model.Channel, bind fiber.
 
 			bind["IsTicketDetail"] = true
 			bind["TicketAuthor"] = activeChannel.AuthorUser()
+			bind["TicketAssignees"] = activeChannel.Assignees()
 			bind["TicketProgress"] = activeChannel.GetTicketProgress()
 			bind["TicketDuplicateTarget"] = activeChannel.DuplicateChannel()
 			bind["SubTickets"] = subTicketItems

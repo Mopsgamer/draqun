@@ -105,12 +105,26 @@
                     </div>
                 </div>
 
-                {{if gt .CommentCount 0}}
-                <div class="flex items-center gap-1 text-xs text-base-content/60 shrink-0">
-                    <span class="icon icon-[lucide--message-square] size-3.5"></span>
-                    <span>{{.CommentCount}}</span>
+                <div class="flex items-center gap-3 shrink-0">
+                    {{if .Assignees}}
+                    <div class="flex items-center -space-x-1.5 overflow-hidden">
+                        {{range .Assignees}}
+                        <div class="avatar shrink-0" title="Assigned to {{.Moniker}}">
+                            <div class="w-5 h-5 rounded-full ring-1 ring-surface-canvas">
+                                <img src="{{.AvatarUrl}}" class="size-full object-cover rounded-full" alt="{{.Moniker}}">
+                            </div>
+                        </div>
+                        {{end}}
+                    </div>
+                    {{end}}
+
+                    {{if gt .CommentCount 0}}
+                    <div class="flex items-center gap-1 text-xs text-base-content/60">
+                        <span class="icon icon-[lucide--message-square] size-3.5"></span>
+                        <span>{{.CommentCount}}</span>
+                    </div>
+                    {{end}}
                 </div>
-                {{end}}
             </div>
             {{end}}
             {{end}}

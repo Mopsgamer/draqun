@@ -309,4 +309,66 @@ func TestTicketChannelAndIssues(t *testing.T) {
 	if respSearch.StatusCode() != http.StatusOK {
 		t.Errorf("expected 200 for ticket search, got %d", respSearch.StatusCode())
 	}
+
+	// 15. Test Assigning and Unassigning Members for Tickets
+	// Live search members for ticket assignment
+	respSearchAssigneeMember, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		Get(fmt.Sprintf("/groups/%d/members/search?channel_id=%d&q=Ticket", group.Id, issue1.Id))
+	if err != nil {
+		t.Fatalf("GET member search for assignee failed: %v", err)
+	}
+	defer respSearchAssigneeMember.Close()
+
+	if respSearchAssigneeMember.StatusCode() != http.StatusOK {
+		t.Errorf("expected 200 for member search, got %d", respSearchAssigneeMember.StatusCode())
+	}
+	if !strings.Contains(respSearchAssigneeMember.String(), fmt.Sprintf("/groups/%d/channels/%d/assignees", group.Id, issue1.Id)) {
+		t.Errorf("expected member search HTML to contain assignees action URL, got: %s", respSearchAssigneeMember.String())
+	}
+
+	// Assign owner as assignee to issue1
+	respAssign, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"user_id": fmt.Sprintf("%d", owner.Id),
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/assignees", group.Id, issue1.Id))
+	if err != nil {
+		t.Fatalf("assign member failed: %v", err)
+	}
+	respAssign.Close()
+
+	assignees := issue1.Assignees()
+	if len(assignees) != 1 || assignees[0].Id != owner.Id {
+		t.Errorf("expected 1 assignee with ID %d, got %v", owner.Id, assignees)
+	}
+
+	// Verify issue detail page renders assignee moniker
+	respViewDetailAssignee, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Get(fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, issue1.Id))
+	if err != nil {
+		t.Fatalf("GET issue detail page with assignee failed: %v", err)
+	}
+	defer respViewDetailAssignee.Close()
+
+	if !strings.Contains(respViewDetailAssignee.String(), string(owner.Moniker)) {
+		t.Errorf("expected issue detail page to contain assignee moniker '%s', got: %s", owner.Moniker, respViewDetailAssignee.String())
+	}
+
+	// Unassign owner from issue1
+	respUnassign, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Delete(fmt.Sprintf("/groups/%d/channels/%d/assignees/%d", group.Id, issue1.Id, owner.Id))
+	if err != nil {
+		t.Fatalf("unassign member failed: %v", err)
+	}
+	respUnassign.Close()
+
+	assigneesAfter := issue1.Assignees()
+	if len(assigneesAfter) != 0 {
+		t.Errorf("expected 0 assignees after unassigning, got %d", len(assigneesAfter))
+	}
 }

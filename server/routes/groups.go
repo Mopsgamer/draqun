@@ -86,6 +86,10 @@ type TicketEditForm struct {
 	RemoveParentFlag bool     `form:"remove_parent"`
 }
 
+type TicketAssignForm struct {
+	UserId uint64 `form:"user_id"`
+}
+
 type ChannelCreate struct {
 	Name        model.Name        `form:"name"`
 	Moniker     model.Moniker     `form:"moniker"`
@@ -428,12 +432,13 @@ func RouteGroups(app *fiber.App) fiber.Router {
 		).
 		Get("/:group_id/members/search",
 			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
-				return role.PermRoles.Has()
+				return role.PermRoles.Has() || role.PermMembers.CanSee() || role.PermMessages.CanReadMessages()
 			}),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				q := ctx.Query("q")
 				roleId := fiber.Query[uint64](ctx, "role_id")
+				channelId := fiber.Query[uint64](ctx, "channel_id")
 
 				results, err := group.SearchUsers(q, 10)
 				if err != nil {
@@ -447,21 +452,85 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					var htmlStr string
 					for _, u := range results {
 						monikerEscaped := template.HTMLEscapeString(string(u.Moniker))
-						htmlStr += fmt.Sprintf(`
-						<form hx-post="/groups/%d/members/%d/roles" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer">
-							<input type="hidden" name="role_id" value="%d" />
-							<div class="flex items-center gap-2 truncate min-w-0">
-								<div class="avatar shrink-0"><div class="w-4 h-4 rounded-full"><img src="%s" class="size-full object-cover rounded-full" alt="Avatar"></div></div>
-								<span class="truncate font-medium">%s</span>
-								<span class="font-mono text-base-content/40 text-[11px] truncate">@%s</span>
-							</div>
-							<button type="submit" class="btn btn-primary btn-xs shrink-0 cursor-pointer">Assign</button>
-						</form>`, group.Id, u.Id, roleId, u.AvatarUrl(), monikerEscaped, u.Name)
+						if channelId != 0 {
+							htmlStr += fmt.Sprintf(`
+							<form hx-post="/groups/%d/channels/%d/assignees" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer">
+								<input type="hidden" name="user_id" value="%d" />
+								<div class="flex items-center gap-2 truncate min-w-0">
+									<div class="avatar shrink-0"><div class="w-4 h-4 rounded-full"><img src="%s" class="size-full object-cover rounded-full" alt="Avatar"></div></div>
+									<span class="truncate font-medium">%s</span>
+									<span class="font-mono text-base-content/40 text-[11px] truncate">@%s</span>
+								</div>
+								<button type="submit" class="btn btn-primary btn-xs shrink-0 cursor-pointer">Assign</button>
+							</form>`, group.Id, channelId, u.Id, u.AvatarUrl(), monikerEscaped, u.Name)
+						} else {
+							htmlStr += fmt.Sprintf(`
+							<form hx-post="/groups/%d/members/%d/roles" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer">
+								<input type="hidden" name="role_id" value="%d" />
+								<div class="flex items-center gap-2 truncate min-w-0">
+									<div class="avatar shrink-0"><div class="w-4 h-4 rounded-full"><img src="%s" class="size-full object-cover rounded-full" alt="Avatar"></div></div>
+									<span class="truncate font-medium">%s</span>
+									<span class="font-mono text-base-content/40 text-[11px] truncate">@%s</span>
+								</div>
+								<button type="submit" class="btn btn-primary btn-xs shrink-0 cursor-pointer">Assign</button>
+							</form>`, group.Id, u.Id, roleId, u.AvatarUrl(), monikerEscaped, u.Name)
+						}
 					}
 					return ctx.Type("html").SendString(htmlStr)
 				}
 
 				return ctx.JSON(results)
+			},
+		).
+		Post("/:group_id/channels/:channel_id/assignees",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermMessages.CanWriteMessages()
+			}),
+			perms.UseBind[TicketAssignForm](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[TicketAssignForm](ctx, perms.LocalForm)
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() {
+					return htmx.AlertGroupNotFound
+				}
+
+				if request.UserId != 0 {
+					_ = model.AddChannelAssignee(channel.Id, request.UserId)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, channel.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Delete("/:group_id/channels/:channel_id/assignees/:user_id",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermMessages.CanWriteMessages()
+			}),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				targetUserId := fiber.Params[uint64](ctx, "user_id")
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() {
+					return htmx.AlertGroupNotFound
+				}
+
+				_ = model.RemoveChannelAssignee(channel.Id, targetUserId)
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, channel.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
 		Get("/:group_id/tickets/search",

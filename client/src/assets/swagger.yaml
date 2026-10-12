@@ -586,9 +586,61 @@ paths:
       in: query
       schema:
        type: integer
+    - name: channel_id
+      in: query
+      schema:
+       type: integer
    responses:
     "200":
      description: List of matching members.
+ /groups/{group_id}/channels/{channel_id}/assignees:
+  post:
+   tags:
+    - Group
+   summary: Assign Member to Ticket Channel
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: channel_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/TicketAssignForm"
+   responses:
+    "200":
+     description: Member assigned to ticket.
+ /groups/{group_id}/channels/{channel_id}/assignees/{user_id}:
+  delete:
+   tags:
+    - Group
+   summary: Remove Assignee from Ticket Channel
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: channel_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: user_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Member unassigned from ticket.
  /groups/{group_id}/tickets/search:
   get:
    tags:
@@ -1137,6 +1189,13 @@ components:
      type: string
      enum: [completed, not_planned, duplicate]
     duplicate_of_id:
+     type: integer
+  TicketAssignForm:
+   type: object
+   required:
+    - user_id
+   properties:
+    user_id:
      type: integer
   ChannelPermissionForm:
    type: object

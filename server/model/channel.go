@@ -421,6 +421,54 @@ func (channel Channel) MessageFirst() *Message {
 	return message
 }
 
+// Channel Assignees
+type ChannelAssignee struct {
+	checkEmpty
+	ChannelId uint64 `db:"channel_id"`
+	UserId    uint64 `db:"user_id"`
+}
+
+func AddChannelAssignee(channelId, userId uint64) error {
+	ca := ChannelAssignee{
+		ChannelId: channelId,
+		UserId:    userId,
+	}
+	return Insert(TableChannelAssignees, &ca)
+}
+
+func RemoveChannelAssignee(channelId, userId uint64) error {
+	return Delete(TableChannelAssignees, goqu.Ex{"channel_id": channelId, "user_id": userId})
+}
+
+func GetChannelAssignees(channelId uint64) ([]User, error) {
+	users := []User{}
+	sql, args, err := Goqu.Select(TableUsers+".*").From(TableChannelAssignees).
+		Join(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(goqu.I(TableChannelAssignees+".user_id")))).
+		Where(goqu.Ex{
+			TableChannelAssignees + ".channel_id": channelId,
+			TableUsers + ".is_deleted":           false,
+		}).
+		Order(goqu.I(TableUsers + ".id").Asc()).
+		Prepared(true).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	err = Sqlx.Select(&users, sql, args...)
+	for i := range users {
+		users[i].SetFullfilled()
+	}
+	return users, err
+}
+
+func (channel Channel) Assignees() []User {
+	users, err := GetChannelAssignees(channel.Id)
+	if err != nil {
+		return nil
+	}
+	return users
+}
+
 func (channel Channel) IsTicket() bool {
 	return channel.Type == ChannelTypeTicket
 }
