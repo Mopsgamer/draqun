@@ -1,14 +1,9 @@
 <main id="app-content" class="centered-main p-4">
     <div class="flex flex-col items-center text-center p-6 rounded-2xl max-w-md w-full gap-5">
-        <div class="relative shrink-0">
-            <div class="size-20 rounded-full bg-surface-card text-primary border border-base-content/15 flex items-center justify-center overflow-hidden">
-                {{if ne .Group.Avatar ""}}
-                    <img src="{{.Group.Avatar}}" class="size-full object-cover" alt="Group avatar">
-                {{else}}
-                    <span class="icon icon-[lucide--users] size-9"></span>
-                {{end}}
+        <div class="avatar shrink-0">
+            <div class="w-20 rounded-xl">
+                <img src="{{.Group.AvatarUrl}}" alt="Group avatar">
             </div>
-            <span class="size-3.5 rounded-full bg-success absolute bottom-0 right-0 ring-2 ring-surface-canvas"></span>
         </div>
 
         <div class="flex flex-col items-center gap-1">

@@ -21,14 +21,10 @@
             >
                 <div class="flex items-center gap-4">
                     <label class="relative cursor-pointer group flex items-center justify-center size-16 rounded-full border border-base-content/20 hover:border-primary text-primary bg-surface-card transition-all overflow-hidden shrink-0" title="Click to upload avatar">
-                        {{if ne .User.Avatar ""}}
-                            <img src="{{.User.Avatar}}" class="size-full object-cover rounded-full" alt="User avatar">
-                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
-                                <span class="icon icon-[lucide--camera] size-5"></span>
-                            </div>
-                        {{else}}
-                            <span class="icon icon-[lucide--camera] size-6 text-base-content/60 group-hover:text-primary"></span>
-                        {{end}}
+                        <img src="{{.User.AvatarUrl}}" class="size-full object-cover rounded-full" alt="User avatar">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                            <span class="icon icon-[lucide--camera] size-5"></span>
+                        </div>
                         <input type="file" name="avatar" accept="image/*" class="hidden" onchange="this.form.requestSubmit()">
                     </label>
                     <div>

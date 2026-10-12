@@ -1,6 +1,8 @@
 package model
 
 import (
+	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -206,4 +208,18 @@ func (user User) MemberList() []Member {
 
 func (user User) IsOnline() bool {
 	return session.UserSessionMap.IsOnline(user.Id)
+}
+
+func (user User) AvatarUrl() string {
+	if user.Avatar != "" {
+		return string(user.Avatar)
+	}
+	seed := string(user.Moniker)
+	if seed == "" {
+		seed = string(user.Name)
+	}
+	if seed == "" {
+		seed = "user"
+	}
+	return fmt.Sprintf("https://ui-avatars.com/api/?name=%s&background=ffffff&color=000000&bold=true", url.QueryEscape(seed))
 }

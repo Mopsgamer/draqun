@@ -50,19 +50,12 @@
                 <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
                         <label class="relative {{if .Member.Role.PermGroupChange.Has}}cursor-pointer{{end}} group flex items-center justify-center size-16 rounded-xl border border-base-content/20 hover:border-primary text-primary bg-surface-card transition-all overflow-hidden shrink-0" title="Click to upload avatar">
-                            {{if ne .Group.Avatar ""}}
-                                <img id="change-group-avatar-preview" src="{{.Group.Avatar}}" class="size-full object-cover rounded-xl" alt="Group avatar">
-                                {{if .Member.Role.PermGroupChange.Has}}
-                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
-                                    <span class="icon icon-[lucide--camera] size-5"></span>
-                                </div>
-                                {{end}}
-                            {{else}}
-                                <span class="icon icon-[lucide--camera] size-6 text-base-content/60 group-hover:text-primary" id="change-group-avatar-icon"></span>
-                                <img id="change-group-avatar-preview" class="size-full object-cover rounded-xl hidden" alt="Group avatar preview">
-                            {{end}}
+                            <img id="change-group-avatar-preview" src="{{.Group.AvatarUrl}}" class="size-full object-cover rounded-xl" alt="Group avatar">
                             {{if .Member.Role.PermGroupChange.Has}}
-                            <input type="file" id="change-group-avatar" name="avatar" accept="image/*" class="hidden" onchange="if(this.files && this.files[0]){ const img=document.getElementById('change-group-avatar-preview'); const icon=document.getElementById('change-group-avatar-icon'); img.src=URL.createObjectURL(this.files[0]); img.classList.remove('hidden'); if(icon) icon.classList.add('hidden'); }">
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                <span class="icon icon-[lucide--camera] size-5"></span>
+                            </div>
+                            <input type="file" id="change-group-avatar" name="avatar" accept="image/*" class="hidden" onchange="if(this.files && this.files[0]){ const img=document.getElementById('change-group-avatar-preview'); img.src=URL.createObjectURL(this.files[0]); }">
                             {{end}}
                         </label>
                         <div>
@@ -143,24 +136,38 @@
                     <div class="text-xs text-base-content/60">Leave as a member, or delete the group entirely if permitted.</div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                    <button
-                        class="btn btn-warning btn-xs gap-1"
-                        hx-delete="/groups/{{.Group.Id}}/leave"
-                        hx-confirm="Are you sure you want to leave this group?"
-                        hx-target="#group-leave-error"
-                    >
-                        <span class="icon icon-[lucide--log-out] size-3"></span>
-                        Leave Group
-                    </button>
+                    <details class="dropdown dropdown-end">
+                        <summary class="btn btn-warning btn-xs gap-1">
+                            <span class="icon icon-[lucide--log-out] size-3"></span>
+                            Leave Group
+                        </summary>
+                        <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
+                            <span class="font-semibold text-xs">Leave this group?</span>
+                            <p class="text-[11px] text-base-content/60">Are you sure you want to leave this group?</p>
+                            <button
+                                type="button"
+                                class="btn btn-warning btn-xs w-full mt-1"
+                                hx-delete="/groups/{{.Group.Id}}/leave"
+                                hx-target="#group-leave-error"
+                            >Confirm Leave</button>
+                        </div>
+                    </details>
                     {{if .Member.Role.PermGroupChange.Has}}
-                    <button
-                        class="btn btn-error btn-xs gap-1"
-                        hx-delete="/groups/{{.Group.Id}}"
-                        hx-confirm="Are you sure you want to delete this group? This action cannot be undone."
-                    >
-                        <span class="icon icon-[lucide--trash-2] size-3"></span>
-                        Delete Group
-                    </button>
+                    <details class="dropdown dropdown-end">
+                        <summary class="btn btn-error btn-xs gap-1">
+                            <span class="icon icon-[lucide--trash-2] size-3"></span>
+                            Delete Group
+                        </summary>
+                        <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
+                            <span class="font-semibold text-xs text-error">Delete this group?</span>
+                            <p class="text-[11px] text-base-content/60">This action cannot be undone. All messages and data will be permanently deleted.</p>
+                            <button
+                                type="button"
+                                class="btn btn-error btn-xs w-full mt-1"
+                                hx-delete="/groups/{{.Group.Id}}"
+                            >Confirm Delete</button>
+                        </div>
+                    </details>
                     {{end}}
                 </div>
             </div>

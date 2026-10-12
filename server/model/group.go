@@ -1,6 +1,8 @@
 package model
 
 import (
+	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -405,6 +407,20 @@ func (group Group) Url(ctx fiber.Ctx) string {
 	}
 
 	return url
+}
+
+func (group Group) AvatarUrl() string {
+	if group.Avatar != "" {
+		return string(group.Avatar)
+	}
+	seed := string(group.Moniker)
+	if seed == "" {
+		seed = string(group.Name)
+	}
+	if seed == "" {
+		seed = "group"
+	}
+	return fmt.Sprintf("https://ui-avatars.com/api/?name=%s&background=ffffff&color=000000&bold=true", url.QueryEscape(seed))
 }
 
 func (group Group) UrlJoin(ctx fiber.Ctx) string {
