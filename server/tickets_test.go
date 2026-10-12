@@ -372,3 +372,308 @@ func TestTicketChannelAndIssues(t *testing.T) {
 		t.Errorf("expected 0 assignees after unassigning, got %d", len(assigneesAfter))
 	}
 }
+
+func TestTicketPermissionsAndEdgeCases(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	// Register Owner User and create Group
+	cookieOwner, owner := createTestUserCookie(t, ts, "Perm Ticket Owner", "perm_ticket_owner", "perm_ticket_owner@example.com")
+	group := createTestGroupDirectly(t, int64(owner.Id), "Perm Ticket Group", "perm_ticket_group")
+
+	// Register Member User (Read-Only)
+	cookieReadOnly, readOnlyUser := createTestUserCookie(t, ts, "ReadOnly Member", "readonly_member", "readonly_member@example.com")
+	respJoin, err := ts.Client.R().
+		SetHeader("Cookie", cookieReadOnly).
+		Put(fmt.Sprintf("/groups/%d/join", group.Id))
+	if err != nil {
+		t.Fatalf("readonly user join group failed: %v", err)
+	}
+	respJoin.Close()
+
+	// Register Non-Member User
+	cookieNonMember, _ := createTestUserCookie(t, ts, "Non Member User", "non_member_user", "non_member@example.com")
+
+	// Set @everyone role to PermMessagesRead (read-only)
+	everyoneRole := group.Everyone()
+	everyoneRole.PermMessages = model.PermMessagesRead
+	if err := everyoneRole.Update(); err != nil {
+		t.Fatalf("failed to update everyone role to read-only: %v", err)
+	}
+
+	// Create top-level Ticket channel as Owner
+	respCreateTicketCh, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"name":        "issues_perm",
+			"moniker":     "Bug Tracker Perm",
+			"description": "Group issue tracker perms",
+			"type":        "ticket",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/create", group.Id))
+	if err != nil {
+		t.Fatalf("create ticket channel failed: %v", err)
+	}
+	respCreateTicketCh.Close()
+
+	channels, err := model.GetGroupChannels(group.Id)
+	if err != nil || len(channels) != 1 {
+		t.Fatalf("expected 1 ticket channel, got %d (err: %v)", len(channels), err)
+	}
+	ticketChannel := channels[0]
+
+	// 1. Non-member attempts to create a ticket -> 404 Not Found (AlertGroupMemberNotFound)
+	respNonMemberCreate, err := ts.Client.R().
+		SetHeader("Cookie", cookieNonMember).
+		SetFormDataWithMap(map[string]string{
+			"title":   "Non member issue",
+			"content": "This should fail.",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/create", group.Id, ticketChannel.Id))
+	if err != nil {
+		t.Fatalf("non member create ticket failed: %v", err)
+	}
+	if respNonMemberCreate.StatusCode() != http.StatusNotFound {
+		t.Errorf("expected 404 Not Found for non-member creating ticket, got %d", respNonMemberCreate.StatusCode())
+	}
+	respNonMemberCreate.Close()
+
+	// 2. Read-only member attempts to create a ticket -> 403 Forbidden
+	respReadOnlyCreate, err := ts.Client.R().
+		SetHeader("Cookie", cookieReadOnly).
+		SetFormDataWithMap(map[string]string{
+			"title":   "Read only member issue",
+			"content": "This should fail.",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/create", group.Id, ticketChannel.Id))
+	if err != nil {
+		t.Fatalf("readonly create ticket failed: %v", err)
+	}
+	if respReadOnlyCreate.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for read-only member creating ticket, got %d", respReadOnlyCreate.StatusCode())
+	}
+	respReadOnlyCreate.Close()
+
+	// 3. Create ticket as Owner
+	respCreateIssue, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"title":   "Owner Created Ticket",
+			"content": "Valid ticket content.",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/create", group.Id, ticketChannel.Id))
+	if err != nil {
+		t.Fatalf("owner create ticket failed: %v", err)
+	}
+	respCreateIssue.Close()
+
+	issues, _ := model.GetSubchannels(ticketChannel.Id)
+	if len(issues) != 1 {
+		t.Fatalf("expected 1 ticket, got %d", len(issues))
+	}
+	issue1 := issues[0]
+
+	// 4. Read-only member attempts to edit ticket -> 403 Forbidden
+	respReadOnlyEdit, err := ts.Client.R().
+		SetHeader("Cookie", cookieReadOnly).
+		SetFormDataWithMap(map[string]string{
+			"title":      "Attempted edit",
+			"parent_ids": fmt.Sprintf("%d", ticketChannel.Id),
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/edit", group.Id, issue1.Id))
+	if err != nil {
+		t.Fatalf("readonly edit ticket failed: %v", err)
+	}
+	if respReadOnlyEdit.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for read-only member editing ticket, got %d", respReadOnlyEdit.StatusCode())
+	}
+	respReadOnlyEdit.Close()
+
+	// 5. Read-only member attempts to update ticket status -> 403 Forbidden
+	respReadOnlyStatus, err := ts.Client.R().
+		SetHeader("Cookie", cookieReadOnly).
+		SetFormDataWithMap(map[string]string{
+			"status":        "closed",
+			"closed_reason": "completed",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/status", group.Id, issue1.Id))
+	if err != nil {
+		t.Fatalf("readonly status change failed: %v", err)
+	}
+	if respReadOnlyStatus.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for read-only member changing ticket status, got %d", respReadOnlyStatus.StatusCode())
+	}
+	respReadOnlyStatus.Close()
+
+	// 6. Channel Permission Override Test for Ticket Channel
+	// Set ChannelPermission on ticketChannel for @everyone to PermMessagesWrite
+	err = model.SetChannelPermission(model.ChannelPermission{
+		ChannelId:    ticketChannel.Id,
+		RoleId:       everyoneRole.Id,
+		PermMessages: model.PermMessagesWrite,
+		Inherit:      false,
+	})
+	if err != nil {
+		t.Fatalf("failed to set channel permission override: %v", err)
+	}
+
+	// Now read-only user (who has @everyone role) SHOULD be allowed to create a ticket in ticketChannel due to override
+	respOverrideCreate, err := ts.Client.R().
+		SetHeader("Cookie", cookieReadOnly).
+		SetFormDataWithMap(map[string]string{
+			"title":   "Allowed via channel override",
+			"content": "Channel override worked!",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/create", group.Id, ticketChannel.Id))
+	if err != nil {
+		t.Fatalf("override create ticket failed: %v", err)
+	}
+	if respOverrideCreate.StatusCode() != http.StatusOK && respOverrideCreate.StatusCode() != http.StatusSeeOther {
+		t.Errorf("expected 200/303 for user creating ticket with channel write override, got %d", respOverrideCreate.StatusCode())
+	}
+	respOverrideCreate.Close()
+
+	issues, _ = model.GetSubchannels(ticketChannel.Id)
+	if len(issues) != 2 {
+		t.Fatalf("expected 2 tickets after override creation, got %d", len(issues))
+	}
+
+	var issueOverride model.Channel
+	for _, sub := range issues {
+		if sub.Moniker == "Allowed via channel override" {
+			issueOverride = sub
+			break
+		}
+	}
+	if issueOverride.IsEmpty() {
+		t.Fatalf("failed to find ticket created via override")
+	}
+
+	// Test channel permission override blocking write (PermMessagesRead on issueOverride for @everyone)
+	err = model.SetChannelPermission(model.ChannelPermission{
+		ChannelId:    issueOverride.Id,
+		RoleId:       everyoneRole.Id,
+		PermMessages: model.PermMessagesRead,
+		Inherit:      false,
+	})
+	if err != nil {
+		t.Fatalf("failed to set channel permission override on issue: %v", err)
+	}
+
+	// Read-only member attempts to edit issueOverride -> Should be denied (403 Forbidden)
+	respDeniedEditOverride, err := ts.Client.R().
+		SetHeader("Cookie", cookieReadOnly).
+		SetFormDataWithMap(map[string]string{
+			"title":      "Denied edit via channel override",
+			"parent_ids": fmt.Sprintf("%d", ticketChannel.Id),
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/edit", group.Id, issueOverride.Id))
+	if err != nil {
+		t.Fatalf("denied edit override failed: %v", err)
+	}
+	if respDeniedEditOverride.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for member editing ticket with read-only channel override, got %d", respDeniedEditOverride.StatusCode())
+	}
+	respDeniedEditOverride.Close()
+
+	// 7. Additional Status Reason Test: Close ticket as "not_planned"
+	respNotPlanned, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"status":        "closed",
+			"closed_reason": "not_planned",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/status", group.Id, issue1.Id))
+	if err != nil {
+		t.Fatalf("close ticket as not_planned failed: %v", err)
+	}
+	respNotPlanned.Close()
+
+	issue1NotPlanned, _ := model.NewChannelFromId(issue1.Id)
+	if issue1NotPlanned.Status != "closed" || issue1NotPlanned.ClosedReason != "not_planned" {
+		t.Errorf("expected issue 1 to be closed as not_planned, got status='%s', reason='%s'", issue1NotPlanned.Status, issue1NotPlanned.ClosedReason)
+	}
+
+	// 8. Empty Title Validation on Ticket Creation -> Fails with Alert / FormatMoniker
+	respEmptyTitle, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"title":   "   ",
+			"content": "Empty title test",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/create", group.Id, ticketChannel.Id))
+	if err != nil {
+		t.Fatalf("empty title ticket create failed: %v", err)
+	}
+	defer respEmptyTitle.Close()
+
+	if !strings.Contains(respEmptyTitle.String(), "The moniker format is invalid.") && respEmptyTitle.StatusCode() != http.StatusUnprocessableEntity {
+		t.Errorf("expected error message or 422 for empty title ticket creation, got status %d, body: %s", respEmptyTitle.StatusCode(), respEmptyTitle.String())
+	}
+
+	// 9. Ticket Creation on non-existent parent channel -> Alert / 404
+	respInvalidParent, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"title":   "Invalid Parent Ticket",
+			"content": "Parent does not exist",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/999999/tickets/create", group.Id))
+	if err != nil {
+		t.Fatalf("invalid parent create ticket failed: %v", err)
+	}
+	defer respInvalidParent.Close()
+
+	if respInvalidParent.StatusCode() != http.StatusNotFound && !strings.Contains(respInvalidParent.String(), "not found") {
+		t.Errorf("expected 404/not found for ticket creation on non-existent parent, got status %d, body: %s", respInvalidParent.StatusCode(), respInvalidParent.String())
+	}
+
+	// 10. Status Filter Tests: GET /chat/groups/:id/channels/:ticketChannel.Id?status=closed and status=all
+	respClosedFilter, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?status=closed", group.Id, ticketChannel.Id))
+	if err != nil {
+		t.Fatalf("GET status=closed tickets failed: %v", err)
+	}
+	defer respClosedFilter.Close()
+
+	if respClosedFilter.StatusCode() != http.StatusOK {
+		t.Errorf("expected status 200 for status=closed filter, got %d", respClosedFilter.StatusCode())
+	}
+	if !strings.Contains(respClosedFilter.String(), "Owner Created Ticket") {
+		t.Errorf("expected closed filter page to contain closed ticket 'Owner Created Ticket', got: %s", respClosedFilter.String())
+	}
+
+	respAllFilter, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?status=all", group.Id, ticketChannel.Id))
+	if err != nil {
+		t.Fatalf("GET status=all tickets failed: %v", err)
+	}
+	defer respAllFilter.Close()
+
+	if respAllFilter.StatusCode() != http.StatusOK {
+		t.Errorf("expected status 200 for status=all filter, got %d", respAllFilter.StatusCode())
+	}
+
+	// 11. Ticket Search with mode and exclude_id options
+	respSearchDup, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		Get(fmt.Sprintf("/groups/%d/tickets/search?mode=duplicate&exclude_id=%d&q=Owner", group.Id, issueOverride.Id))
+	if err != nil {
+		t.Fatalf("GET duplicate mode ticket search failed: %v", err)
+	}
+	defer respSearchDup.Close()
+
+	if respSearchDup.StatusCode() != http.StatusOK {
+		t.Errorf("expected 200 for duplicate ticket search, got %d", respSearchDup.StatusCode())
+	}
+	if !strings.Contains(respSearchDup.String(), "duplicate_of_id_input") {
+		t.Errorf("expected duplicate mode search result to contain duplicate input handler JS, got: %s", respSearchDup.String())
+	}
+
+	// Unused user parameter check suppressor
+	_ = readOnlyUser
+}

@@ -589,6 +589,10 @@ func RouteGroups(app *fiber.App) fiber.Router {
 		).
 		Post("/:group_id/channels/:parent_id/tickets/create",
 			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				parentId := fiber.Params[uint64](ctx, "parent_id")
+				if parentId != 0 {
+					role = model.EffectiveRolePermission(parentId, role)
+				}
 				return role.PermMessages.CanWriteMessages()
 			}),
 			perms.UseBind[TicketCreateForm](),
@@ -643,6 +647,10 @@ func RouteGroups(app *fiber.App) fiber.Router {
 		).
 		Post("/:group_id/channels/:channel_id/tickets/edit",
 			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				if channelId != 0 {
+					role = model.EffectiveRolePermission(channelId, role)
+				}
 				return role.PermMessages.CanWriteMessages()
 			}),
 			perms.UseBind[TicketEditForm](),
@@ -685,6 +693,10 @@ func RouteGroups(app *fiber.App) fiber.Router {
 		).
 		Post("/:group_id/channels/:channel_id/status",
 			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				if channelId != 0 {
+					role = model.EffectiveRolePermission(channelId, role)
+				}
 				return role.PermMessages.CanWriteMessages()
 			}),
 			perms.UseBind[TicketStatusForm](),
