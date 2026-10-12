@@ -57,7 +57,11 @@
                     href="/chat/groups/{{$groupId}}/channels/{{.Id}}"
                 >
                     <div class="flex items-center gap-2 truncate min-w-0">
+                        {{if eq .Type "ticket"}}
+                        <span class="icon icon-[lucide--circle-dot] size-4 shrink-0 text-primary" aria-hidden="true"></span>
+                        {{else}}
                         <span class="icon icon-[lucide--hash] size-4 shrink-0" aria-hidden="true"></span>
+                        {{end}}
                         <span class="truncate">{{.Moniker}}</span>
                     </div>
                 </a>
@@ -69,7 +73,11 @@
                         class="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors {{if eq .Id $activeId}}bg-primary/15 text-primary font-semibold{{else}}hover:bg-surface-card-hover text-base-content/70{{end}}"
                         href="/chat/groups/{{$groupId}}/channels/{{.Id}}"
                     >
+                        {{if eq .Type "ticket"}}
+                        <span class="icon icon-[lucide--circle-dot] size-3 shrink-0 text-primary/80" aria-hidden="true"></span>
+                        {{else}}
                         <span class="icon icon-[lucide--corner-down-right] size-3 shrink-0 text-base-content/40" aria-hidden="true"></span>
+                        {{end}}
                         <span class="truncate">{{.Moniker}}</span>
                     </a>
                     {{end}}
@@ -98,6 +106,10 @@
             </a>
             {{end}}
         </div>
+        {{else if .IsTicketContainer}}
+        {{- template "partials/ticket-list" .}}
+        {{else if .IsTicketDetail}}
+        {{- template "partials/ticket-detail" .}}
         {{else}}
         <main id="chat">
             <div
@@ -128,7 +140,7 @@
                 <span class="icon icon-[lucide--x] size-5" aria-hidden="true"></span>
             </button>
         </div>
-        {{if and .ActiveChannel (not .ActiveChannel.IsEmpty) (ne .ActiveChannel.Description "")}}
+        {{if and .ActiveChannel (not .ActiveChannel.IsEmpty) (ne .ActiveChannel.Description "") (not .ActiveChannel.IsTicket)}}
         <div class="flex items-center text-sm justify-between min-h-10 pb-2 border-b border-base-content/10 text-base-content/70">
             {{.ActiveChannel.Description}}
         </div>

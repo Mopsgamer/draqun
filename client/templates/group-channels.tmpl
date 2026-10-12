@@ -74,8 +74,8 @@
                     </div>
                 </div>
 
-                <!-- Render Subchannels if any -->
-                {{if gt (len .Subchannels) 0}}
+                <!-- Render Subchannels if any (not for ticket channels) -->
+                {{if and (ne .Channel.Type "ticket") (gt (len .Subchannels) 0)}}
                 <div class="pl-6 border-l-2 border-base-content/10 flex flex-col gap-1.5 mt-1">
                     <div class="text-xs font-semibold text-base-content/60">Subchannels:</div>
                     {{range .Subchannels}}

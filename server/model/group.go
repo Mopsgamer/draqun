@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -311,6 +312,42 @@ func (group Group) UsersPage(page, limit uint) []User {
 	}
 
 	return userList
+}
+
+func (group Group) SearchUsers(query string, limit int) ([]User, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+	userList := []User{}
+	queryTrimmed := strings.TrimSpace(query)
+	if queryTrimmed == "" {
+		return group.UsersPage(1, uint(limit)), nil
+	}
+	queryLower := "%" + strings.ToLower(queryTrimmed) + "%"
+
+	sql, args, err := Goqu.Select(TableUsers+".*").From(TableMembers).
+		Join(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(goqu.I(TableMembers+".user_id")))).
+		Where(goqu.Ex{
+			TableMembers + ".group_id":   group.Id,
+			TableMembers + ".is_deleted": false,
+			TableUsers + ".is_deleted":   false,
+		}, goqu.Or(
+			goqu.I(TableUsers+".moniker").ILike(queryLower),
+			goqu.I(TableUsers+".name").ILike(queryLower),
+		)).
+		Limit(uint(limit)).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return userList, err
+	}
+
+	err = Sqlx.Select(&userList, sql, args...)
+	if err != nil {
+		handleErr(err)
+	}
+
+	return userList, err
 }
 
 func (group Group) MessageFirst() *Message {

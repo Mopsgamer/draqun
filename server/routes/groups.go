@@ -2,8 +2,10 @@ package routes
 
 import (
 	"fmt"
+	"html/template"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -63,6 +65,25 @@ type MemberBanForm struct {
 type MessageCreate struct {
 	Content   string `form:"content"`
 	ChannelId uint64 `form:"channel_id"`
+}
+
+type TicketCreateForm struct {
+	Title     string   `form:"title"`
+	Content   string   `form:"content"`
+	ParentIds []uint64 `form:"parent_ids"`
+}
+
+type TicketStatusForm struct {
+	Status        string `form:"status"`
+	ClosedReason  string `form:"closed_reason"`
+	DuplicateOfId uint64 `form:"duplicate_of_id"`
+}
+
+type TicketEditForm struct {
+	Title            string   `form:"title"`
+	Content          string   `form:"content"`
+	ParentIds        []uint64 `form:"parent_ids"`
+	RemoveParentFlag bool     `form:"remove_parent"`
 }
 
 type ChannelCreate struct {
@@ -405,6 +426,239 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
+		Get("/:group_id/members/search",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermRoles.Has()
+			}),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				q := ctx.Query("q")
+				roleId := fiber.Query[uint64](ctx, "role_id")
+
+				results, err := group.SearchUsers(q, 10)
+				if err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					if len(results) == 0 {
+						return ctx.Type("html").SendString(`<div class="p-2 text-xs text-base-content/50 italic text-center">No matching members found</div>`)
+					}
+					var htmlStr string
+					for _, u := range results {
+						monikerEscaped := template.HTMLEscapeString(string(u.Moniker))
+						htmlStr += fmt.Sprintf(`
+						<form hx-post="/groups/%d/members/%d/roles" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer">
+							<input type="hidden" name="role_id" value="%d" />
+							<div class="flex items-center gap-2 truncate min-w-0">
+								<div class="avatar shrink-0"><div class="w-4 h-4 rounded-full"><img src="%s" class="size-full object-cover rounded-full" alt="Avatar"></div></div>
+								<span class="truncate font-medium">%s</span>
+								<span class="font-mono text-base-content/40 text-[11px] truncate">@%s</span>
+							</div>
+							<button type="submit" class="btn btn-primary btn-xs shrink-0 cursor-pointer">Assign</button>
+						</form>`, group.Id, u.Id, roleId, u.AvatarUrl(), monikerEscaped, u.Name)
+					}
+					return ctx.Type("html").SendString(htmlStr)
+				}
+
+				return ctx.JSON(results)
+			},
+		).
+		Get("/:group_id/tickets/search",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermMessages.CanReadMessages()
+			}),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				q := ctx.Query("q")
+				excludeId := fiber.Query[uint64](ctx, "exclude_id")
+				mode := ctx.Query("mode", "parent")
+
+				results, err := model.SearchTicketChannels(group.Id, q, excludeId, 10)
+				if err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					if len(results) == 0 {
+						return ctx.Type("html").SendString(`<div class="p-2 text-xs text-base-content/50 italic text-center">No matching tickets found</div>`)
+					}
+					var html string
+					for _, ch := range results {
+						iconClass := "icon-[lucide--circle-dot] text-emerald-500"
+						if ch.Status == "closed" {
+							iconClass = "icon-[lucide--check-circle-2] text-purple-500"
+						}
+						monikerEscaped := template.HTMLEscapeString(string(ch.Moniker))
+						jsTitleEscaped := template.JSEscapeString(string(ch.Moniker))
+
+						if mode == "duplicate" {
+							html += fmt.Sprintf(`
+							<button type="button" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer" onclick="var inp=document.getElementById('duplicate_of_id_input'); if(inp){inp.value='%d';} var prev=document.getElementById('duplicate_selected_preview'); if(prev){prev.innerHTML='<span class=\'inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-amber-500/15 text-amber-500 text-xs font-medium\'><span class=\'icon icon-[lucide--copy-x] size-3\'></span>#%d %s</span>';}">
+								<div class="flex items-center gap-2 truncate min-w-0">
+									<span class="icon %s size-3.5 shrink-0"></span>
+									<span class="truncate font-medium">%s</span>
+								</div>
+								<span class="font-mono text-base-content/40 text-[11px] shrink-0 ml-2">#%d</span>
+							</button>`, ch.Id, ch.Id, jsTitleEscaped, iconClass, monikerEscaped, ch.Id)
+						} else {
+							html += fmt.Sprintf(`
+							<button type="button" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer" onclick="var b=document.getElementById('active-parent-badges'); if(b){ var span=document.createElement('span'); span.className='badge badge-primary badge-sm gap-1 font-mono items-center'; span.innerHTML='<input type=\'hidden\' name=\'parent_ids\' value=\'%d\' /><span>#%d %s</span><button type=\'button\' class=\'btn btn-ghost btn-xs btn-circle p-0 h-auto min-h-0 text-white/80 hover:text-white\' onclick=\'this.parentElement.remove()\'>✕</button>'; b.appendChild(span); }">
+								<div class="flex items-center gap-2 truncate min-w-0">
+									<span class="icon %s size-3.5 shrink-0"></span>
+									<span class="truncate font-medium">%s</span>
+								</div>
+								<span class="font-mono text-base-content/40 text-[11px] shrink-0 ml-2">#%d</span>
+							</button>`, ch.Id, ch.Id, jsTitleEscaped, iconClass, monikerEscaped, ch.Id)
+						}
+					}
+					return ctx.Type("html").SendString(html)
+				}
+
+				return ctx.JSON(results)
+			},
+		).
+		Post("/:group_id/channels/:parent_id/tickets/create",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermMessages.CanWriteMessages()
+			}),
+			perms.UseBind[TicketCreateForm](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[TicketCreateForm](ctx, perms.LocalForm)
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				parentId := fiber.Params[uint64](ctx, "parent_id")
+
+				parentChannel, err := model.NewChannelFromId(parentId)
+				if err != nil || !parentChannel.IsAvailable() {
+					return htmx.AlertGroupNotFound
+				}
+
+				if len(strings.TrimSpace(request.Title)) == 0 {
+					return htmx.AlertFormatMoniker
+				}
+
+				nameStr := fmt.Sprintf("ticket_%d", time.Now().UnixNano())
+				channel := model.NewChannel(model.Name(nameStr), model.Moniker(request.Title), model.Description(request.Content), model.ChannelTypeTicket)
+				channel.AuthorId = user.Id
+				channel.Status = "open"
+
+				if err := channel.Validate(); err != nil {
+					return err
+				}
+
+				if err := channel.Insert(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				parentIds := request.ParentIds
+				hasMainParent := false
+				for _, pid := range parentIds {
+					if pid == parentId {
+						hasMainParent = true
+						break
+					}
+				}
+				if !hasMainParent {
+					parentIds = append(parentIds, parentId)
+				}
+				_ = model.SetParentChannels(channel.Id, parentIds)
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, channel.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Post("/:group_id/channels/:channel_id/tickets/edit",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermMessages.CanWriteMessages()
+			}),
+			perms.UseBind[TicketEditForm](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[TicketEditForm](ctx, perms.LocalForm)
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() {
+					return htmx.AlertGroupNotFound
+				}
+
+				if len(strings.TrimSpace(request.Title)) > 0 {
+					channel.Moniker = model.Moniker(request.Title)
+				}
+				channel.Description = model.Description(request.Content)
+				channel.UpdatedAt = model.TimePast(time.Now())
+
+				if err := channel.Validate(); err != nil {
+					return err
+				}
+
+				if len(request.ParentIds) == 0 {
+					return htmx.AlertFormatMoniker
+				}
+				_ = model.SetParentChannels(channel.Id, request.ParentIds)
+
+				if err := channel.Update(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, channel.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Post("/:group_id/channels/:channel_id/status",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermMessages.CanWriteMessages()
+			}),
+			perms.UseBind[TicketStatusForm](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[TicketStatusForm](ctx, perms.LocalForm)
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() {
+					return htmx.AlertGroupNotFound
+				}
+
+				if request.Status == "open" {
+					channel.Status = "open"
+					channel.ClosedReason = ""
+					channel.DuplicateOfId = 0
+				} else if request.Status == "closed" {
+					channel.Status = "closed"
+					reason := request.ClosedReason
+					if reason != "not_planned" && reason != "duplicate" {
+						reason = "completed"
+					}
+					channel.ClosedReason = reason
+					if reason == "duplicate" {
+						channel.DuplicateOfId = request.DuplicateOfId
+					} else {
+						channel.DuplicateOfId = 0
+					}
+				}
+
+				if err := channel.Update(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, channel.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
 		Post("/:group_id/channels/:channel_id/messages/create",
 			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				channelId := fiber.Params[uint64](ctx, "channel_id")
@@ -461,7 +715,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 				channelId := request.ChannelId
 				if channelId == 0 {
-					channels, _ := model.GetGroupChannels(group.Id)
+					channels, _ := model.GetAllGroupChannels(group.Id)
 					if len(channels) > 0 {
 						channelId = channels[0].Id
 					} else {
@@ -605,7 +859,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				page := fiber.Params[uint](ctx, "messages_page")
 				const MessagesPagination uint = 5
 
-				channels, _ := model.GetGroupChannels(group.Id)
+				channels, _ := model.GetAllGroupChannels(group.Id)
 				var messageList []model.Message
 				var activeChannel model.Channel
 
@@ -780,6 +1034,10 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertGroupMemberNotFound
 				}
 
+				if role.Name == "@everyone" {
+					return htmx.AlertUseless
+				}
+
 				if role.Name != "@everyone" && request.Name != "" {
 					role.Name = request.Name
 				}
@@ -908,7 +1166,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				_ = actionRole.Insert()
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
 					return nil
 				}
 
@@ -946,7 +1204,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				_ = actionRole.Insert()
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
 					return nil
 				}
 

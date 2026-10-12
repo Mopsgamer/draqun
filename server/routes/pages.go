@@ -407,7 +407,10 @@ func RoutePages(app *fiber.App) {
 			}
 			channelItems := make([]ChannelItem, len(channels))
 			for i, ch := range channels {
-				subchs, _ := model.GetSubchannels(ch.Id)
+				var subchs []model.Channel
+				if ch.Type != model.ChannelTypeTicket {
+					subchs, _ = model.GetSubchannels(ch.Id)
+				}
 				channelItems[i] = ChannelItem{
 					Channel:     ch,
 					Subchannels: subchs,

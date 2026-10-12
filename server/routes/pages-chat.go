@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"time"
+
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/perms"
@@ -41,8 +43,10 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			channels, _ := model.GetGroupChannels(group.Id)
 			subchannelsMap := make(map[uint64][]model.Channel)
 			for _, ch := range channels {
-				subchs, _ := model.GetSubchannels(ch.Id)
-				subchannelsMap[ch.Id] = subchs
+				if !ch.IsTicket() {
+					subchs, _ := model.GetSubchannels(ch.Id)
+					subchannelsMap[ch.Id] = subchs
+				}
 			}
 
 			var activeChannel model.Channel
@@ -50,13 +54,16 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				activeChannel = channels[0]
 			}
 
-			return htmx.TryRenderPage(ctx, "chat-group", MapPage(ctx, fiber.Map{
+			bind := fiber.Map{
 				"Title":          group.Moniker,
 				"Group":          group,
 				"Channels":       channels,
 				"SubchannelsMap": subchannelsMap,
 				"ActiveChannel":  activeChannel,
-			}), "partials/layout-chat")
+			}
+			enrichTicketContext(ctx, activeChannel, bind)
+
+			return htmx.TryRenderPage(ctx, "chat-group", MapPage(ctx, bind), "partials/layout-chat")
 		},
 	).Name("page.group")
 
@@ -77,17 +84,22 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			channels, _ := model.GetGroupChannels(group.Id)
 			subchannelsMap := make(map[uint64][]model.Channel)
 			for _, ch := range channels {
-				subchs, _ := model.GetSubchannels(ch.Id)
-				subchannelsMap[ch.Id] = subchs
+				if !ch.IsTicket() {
+					subchs, _ := model.GetSubchannels(ch.Id)
+					subchannelsMap[ch.Id] = subchs
+				}
 			}
 
-			return htmx.TryRenderPage(ctx, "chat-group", MapPage(ctx, fiber.Map{
+			bind := fiber.Map{
 				"Title":          activeChannel.Moniker + " - " + group.Moniker,
 				"Group":          group,
 				"Channels":       channels,
 				"SubchannelsMap": subchannelsMap,
 				"ActiveChannel":  activeChannel,
-			}), "partials/layout-chat")
+			}
+			enrichTicketContext(ctx, activeChannel, bind)
+
+			return htmx.TryRenderPage(ctx, "chat-group", MapPage(ctx, bind), "partials/layout-chat")
 		},
 	).Name("page.group.channel")
 
@@ -111,4 +123,86 @@ func routePagesChat(router fiber.Router) fiber.Router {
 	).Name("page.group.join")
 
 	return chat
+}
+
+type TicketItem struct {
+	Channel         model.Channel
+	Author          model.User
+	Progress        model.TicketProgress
+	CommentCount    int
+	DuplicateTarget *model.Channel
+}
+
+func enrichTicketContext(ctx fiber.Ctx, activeChannel model.Channel, bind fiber.Map) {
+	if activeChannel.IsEmpty() {
+		return
+	}
+
+	parentChannels := activeChannel.ParentChannels()
+	var parentChannel *model.Channel
+	if len(parentChannels) > 0 {
+		parentChannel = &parentChannels[0]
+	}
+	bind["ParentChannel"] = parentChannel
+	bind["ParentChannels"] = parentChannels
+
+	statusFilter := ctx.Query("status", "open")
+	if statusFilter != "open" && statusFilter != "closed" && statusFilter != "all" {
+		statusFilter = "open"
+	}
+	bind["StatusFilter"] = statusFilter
+
+	if activeChannel.IsTicket() || (parentChannel != nil && parentChannel.IsTicket()) {
+		if parentChannel == nil && activeChannel.IsTicket() {
+			// Top-level ticket channel (Issues container)
+			openSubchs, _ := model.GetTicketSubchannels(activeChannel.Id, "open")
+			closedSubchs, _ := model.GetTicketSubchannels(activeChannel.Id, "closed")
+			filteredSubchs, _ := model.GetTicketSubchannels(activeChannel.Id, statusFilter)
+
+			var ticketItems []TicketItem
+			for _, sub := range filteredSubchs {
+				ticketItems = append(ticketItems, TicketItem{
+					Channel:         sub,
+					Author:          sub.AuthorUser(),
+					Progress:        sub.GetTicketProgress(),
+					CommentCount:    sub.CommentCount(),
+					DuplicateTarget: sub.DuplicateChannel(),
+				})
+			}
+
+			bind["IsTicketContainer"] = true
+			bind["OpenTicketsCount"] = len(openSubchs)
+			bind["ClosedTicketsCount"] = len(closedSubchs)
+			bind["TicketItems"] = ticketItems
+		} else {
+			// Ticket subchannel (individual issue view)
+			subTickets, _ := model.GetSubchannels(activeChannel.Id)
+			var subTicketItems []TicketItem
+			for _, sub := range subTickets {
+				subTicketItems = append(subTicketItems, TicketItem{
+					Channel:         sub,
+					Author:          sub.AuthorUser(),
+					Progress:        sub.GetTicketProgress(),
+					CommentCount:    sub.CommentCount(),
+					DuplicateTarget: sub.DuplicateChannel(),
+				})
+			}
+
+			parentIdsMap := make(map[uint64]bool)
+			for _, p := range parentChannels {
+				parentIdsMap[p.Id] = true
+			}
+
+			bind["IsTicketDetail"] = true
+			bind["TicketAuthor"] = activeChannel.AuthorUser()
+			bind["TicketProgress"] = activeChannel.GetTicketProgress()
+			bind["TicketDuplicateTarget"] = activeChannel.DuplicateChannel()
+			bind["SubTickets"] = subTicketItems
+			bind["ParentIdsMap"] = parentIdsMap
+
+			if !time.Time(activeChannel.UpdatedAt).IsZero() {
+				bind["TicketEditDateStr"] = time.Time(activeChannel.UpdatedAt).Format("Jan 02, 2006 15:04")
+			}
+		}
+	}
 }

@@ -140,6 +140,32 @@ func (tp TimePast) Value() (driver.Value, error) {
 	return t, nil
 }
 
+func (tp *TimePast) Scan(src interface{}) error {
+	if src == nil {
+		*tp = TimePast(time.Time{})
+		return nil
+	}
+	switch v := src.(type) {
+	case time.Time:
+		*tp = TimePast(v)
+		return nil
+	case string:
+		t, err := time.Parse(time.RFC3339, v)
+		if err != nil {
+			t, err = time.Parse("2006-01-02 15:04:05", v)
+		}
+		if err != nil {
+			t, err = time.Parse("2006-01-02T15:04:05Z", v)
+		}
+		if err == nil {
+			*tp = TimePast(t)
+			return nil
+		}
+		return err
+	}
+	return fmt.Errorf("unsupported Scan, storing %T into TimePast", src)
+}
+
 func (tp TimePast) IsValid() bool {
 	now := time.Now()
 	return time.Time(tp).Before(now) || now.Equal(time.Time(tp))

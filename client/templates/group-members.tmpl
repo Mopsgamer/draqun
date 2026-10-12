@@ -50,36 +50,14 @@
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border" style="border-color: {{.Color.Hex}}40; background-color: {{.Color.Hex}}10; color: {{.Color.Hex}}">
                                     <span class="size-1.5 rounded-full" style="background-color: {{.Color.Hex}}"></span>
                                     {{.Moniker}}
-                                    {{if or $.Role.PermRoles.Has $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)}}
-                                    <button
-                                        type="button"
-                                        class="hover:opacity-100 opacity-60 ml-0.5 cursor-pointer"
-                                        hx-delete="/groups/{{$.Group.Id}}/members/{{$targetUser.Id}}/roles/{{.Id}}"
-                                        title="Remove role"
-                                    ><span class="icon icon-[lucide--x] size-3"></span></button>
-                                    {{end}}
                                 </span>
                                 {{end}}
                             </div>
                         </div>
                     </div>
 
-                    <!-- Role Add & Actions -->
+                    <!-- Actions -->
                     <div class="flex items-center gap-2 shrink-0 self-start sm:self-center">
-                        {{if or $.Role.PermRoles.Has $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)}}
-                        <form class="flex items-center gap-1" hx-post="/groups/{{$.Group.Id}}/members/{{$targetUser.Id}}/roles">
-                            <select name="role_id" class="select select-bordered select-xs" required>
-                                <option value="" disabled selected>+ Role</option>
-                                {{range $.Roles}}
-                                {{if ne .Name "@everyone"}}
-                                <option value="{{.Id}}">{{.Moniker}}</option>
-                                {{end}}
-                                {{end}}
-                            </select>
-                            <button class="btn btn-ghost btn-xs" type="submit">Add</button>
-                        </form>
-                        {{end}}
-
                         {{if and (or $.Role.PermMembers.CanKickBan $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)) (ne .User.Id $.Group.OwnerId)}}
                         <details class="dropdown dropdown-end">
                             <summary class="btn btn-warning btn-xs gap-1">Kick</summary>
