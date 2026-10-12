@@ -420,7 +420,7 @@ func (group Group) AvatarUrl() string {
 	if seed == "" {
 		seed = "group"
 	}
-	return fmt.Sprintf("https://api.dicebear.com/7.x/identicon/png?seed=%s", url.QueryEscape(seed))
+	return fmt.Sprintf("https://api.dicebear.com/7.x/identicon/png?seed=%s&backgroundColor=ffffff", url.QueryEscape(seed))
 }
 
 func (group Group) UrlJoin(ctx fiber.Ctx) string {

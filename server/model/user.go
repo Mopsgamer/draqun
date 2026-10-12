@@ -221,5 +221,5 @@ func (user User) AvatarUrl() string {
 	if seed == "" {
 		seed = "user"
 	}
-	return fmt.Sprintf("https://api.dicebear.com/7.x/identicon/png?seed=%s", url.QueryEscape(seed))
+	return fmt.Sprintf("https://api.dicebear.com/7.x/identicon/png?seed=%s&backgroundColor=ffffff", url.QueryEscape(seed))
 }
