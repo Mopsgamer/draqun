@@ -446,7 +446,7 @@ func GetChannelAssignees(channelId uint64) ([]User, error) {
 		Join(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(goqu.I(TableChannelAssignees+".user_id")))).
 		Where(goqu.Ex{
 			TableChannelAssignees + ".channel_id": channelId,
-			TableUsers + ".is_deleted":           false,
+			TableUsers + ".is_deleted":            false,
 		}).
 		Order(goqu.I(TableUsers + ".id").Asc()).
 		Prepared(true).ToSQL()
