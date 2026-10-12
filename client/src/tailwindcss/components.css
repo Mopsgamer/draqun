@@ -162,49 +162,19 @@ body {
 	display: none;
 }
 
-@media (min-width: 48rem) {
-	#channels-view {
-		width: 14rem;
-		display: flex !important;
-	}
-}
-
 #channels-view.open {
-	display: flex;
+	display: flex !important;
 }
 
-#chat-view {
-	position: relative;
-	min-height: 0;
-	min-width: 0;
-	flex: 1 1 0%;
-	flex-direction: column;
-	gap: 0.5rem;
-	display: none;
-}
-
-:is(.group:not(:has(#channels-view.open)):not(:has(#members-view.open))) #chat-view {
-	display: flex;
+#channels-view.closed {
+	display: none !important;
 }
 
 @media (min-width: 48rem) {
-	#chat-view {
+	#channels-view:not(.closed) {
 		display: flex !important;
+		width: 14rem;
 	}
-}
-
-#chat {
-	position: relative;
-	scroll-snap-type: y mandatory;
-	display: flex;
-	flex: 1 1 0%;
-	min-height: 0;
-	flex-direction: column;
-	width: 100%;
-	padding: 0.5rem 0.75rem 1rem;
-	overflow-y: auto;
-	overflow-x: hidden;
-	background-color: var(--surface-canvas);
 }
 
 #members-view {
@@ -221,14 +191,45 @@ body {
 	display: none;
 }
 
+#members-view.open {
+	display: flex !important;
+}
+
 @media (min-width: 48rem) {
-	#members-view {
+	#members-view.open {
 		width: 14rem;
 	}
 }
 
-#members-view.open {
+#chat-view {
+	position: relative;
+	min-height: 0;
+	min-width: 0;
+	flex: 1 1 0%;
+	flex-direction: column;
+	gap: 0.5rem;
 	display: flex;
+}
+
+@media (max-width: 47.998rem) {
+	#app-content:has(#channels-view.open) #chat-view,
+	#app-content:has(#members-view.open) #chat-view {
+		display: none !important;
+	}
+}
+
+#chat {
+	position: relative;
+	scroll-snap-type: y mandatory;
+	display: flex;
+	flex: 1 1 0%;
+	min-height: 0;
+	flex-direction: column;
+	width: 100%;
+	padding: 0.5rem 0.75rem 1rem;
+	overflow-y: auto;
+	overflow-x: hidden;
+	background-color: var(--surface-canvas);
 }
 
 #members {

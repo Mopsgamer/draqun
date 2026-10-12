@@ -6,18 +6,6 @@ import { domLoaded } from "./lib.ts";
 
 import("htmx-ext-ws");
 
-function closeAllBut(
-	element: HTMLElement,
-	secondaryViewList: HTMLElement[],
-): void {
-	element.classList.toggle("open");
-	for (const secondary of secondaryViewList) {
-		if (secondary !== element) {
-			secondary.classList.remove("open");
-		}
-	}
-}
-
 domLoaded.then(() => {
 	document.addEventListener("click", (event) => {
 		const target = event.target as HTMLElement | null;
@@ -25,13 +13,21 @@ domLoaded.then(() => {
 
 		const channelsBtn = target.closest(".group-channels-toggle");
 		if (channelsBtn) {
+			event.preventDefault();
+			event.stopPropagation();
 			const channelsView = document.getElementById("channels-view");
 			if (channelsView) {
-				const secondaryViewList = Array.from(
-					document.getElementsByClassName("secondary-view"),
-				) as HTMLElement[];
-				closeAllBut(channelsView, secondaryViewList);
-				const isOpen = channelsView.classList.contains("open");
+				const isDesktop = globalThis.innerWidth >= 768;
+				if (isDesktop) {
+					channelsView.classList.toggle("closed");
+				} else {
+					const membersView = document.getElementById("members-view");
+					if (membersView) membersView.classList.remove("open");
+					channelsView.classList.toggle("open");
+				}
+				const isOpen = isDesktop
+					? !channelsView.classList.contains("closed")
+					: channelsView.classList.contains("open");
 				document.querySelectorAll(".group-channels-toggle").forEach((btn) => {
 					btn.setAttribute("aria-expanded", String(isOpen));
 				});
@@ -41,12 +37,15 @@ domLoaded.then(() => {
 
 		const membersBtn = target.closest(".group-members-toggle");
 		if (membersBtn) {
+			event.preventDefault();
+			event.stopPropagation();
 			const membersView = document.getElementById("members-view");
 			if (membersView) {
-				const secondaryViewList = Array.from(
-					document.getElementsByClassName("secondary-view"),
-				) as HTMLElement[];
-				closeAllBut(membersView, secondaryViewList);
+				const channelsView = document.getElementById("channels-view");
+				if (channelsView && globalThis.innerWidth < 768) {
+					channelsView.classList.remove("open");
+				}
+				membersView.classList.toggle("open");
 				const isOpen = membersView.classList.contains("open");
 				document.querySelectorAll(".group-members-toggle").forEach((btn) => {
 					btn.setAttribute("aria-expanded", String(isOpen));
