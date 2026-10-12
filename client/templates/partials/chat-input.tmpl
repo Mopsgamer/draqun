@@ -6,7 +6,11 @@
         hx-target="#send-message-error"
         hx-headers='{"HX-Error-Wrap": false}'
         hx-swap="innerHTML"
+        {{if and .ActiveChannel (not .ActiveChannel.IsEmpty)}}
+        hx-post="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/messages/create"
+        {{else}}
         hx-post="/groups/{{.Group.Id}}/messages/create"
+        {{end}}
     >
         <div class="flex flex-col flex-1 min-w-0">
             <div id="send-message-error" class="w-full text-error text-xs font-semibold pb-1"></div>
@@ -14,7 +18,7 @@
                 class="textarea textarea-bordered w-full h-10 min-h-10 max-h-32 field-sizing-content bg-surface-inset text-base leading-snug rounded-lg"
                 id="new-message-input"
                 form="send-message-form"
-                placeholder="Write to {{.Group.Moniker}}"
+                placeholder="Write to {{if and .ActiveChannel (not .ActiveChannel.IsEmpty)}}#{{.ActiveChannel.Moniker}}{{else}}{{.Group.Moniker}}{{end}}"
                 name="content"
                 rows="1"
                 data-autoresize

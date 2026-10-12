@@ -61,7 +61,33 @@ type MemberBanForm struct {
 }
 
 type MessageCreate struct {
-	Content string `form:"content"`
+	Content   string `form:"content"`
+	ChannelId uint64 `form:"channel_id"`
+}
+
+type ChannelCreate struct {
+	Name        model.Name        `form:"name"`
+	Moniker     model.Moniker     `form:"moniker"`
+	Description model.Description `form:"description"`
+	Type        model.ChannelType `form:"type"`
+	ParentId    uint64            `form:"parent_id"`
+}
+
+type ChannelChange struct {
+	Name        model.Name        `form:"name"`
+	Moniker     model.Moniker     `form:"moniker"`
+	Description model.Description `form:"description"`
+	Type        model.ChannelType `form:"type"`
+}
+
+type ChannelPermissionForm struct {
+	RoleId          uint64             `form:"role_id"`
+	PermMessages    model.PermMessages `form:"perm_messages"`
+	PermRoles       model.PermSwitch   `form:"perm_roles"`
+	PermMembers     model.PermMembers  `form:"perm_members"`
+	PermGroupChange model.PermSwitch   `form:"perm_group_change"`
+	PermAdmin       model.PermSwitch   `form:"perm_admin"`
+	Inherit         bool               `form:"inherit"`
 }
 
 type GroupChange struct {
@@ -240,6 +266,189 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
+		Post("/:group_id/channels/create",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermGroupChange.Has()
+			}),
+			perms.UseBind[ChannelCreate](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[ChannelCreate](ctx, perms.LocalForm)
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+
+				chType := request.Type
+				if chType == "" {
+					chType = model.ChannelTypeText
+				}
+				channel := model.NewChannel(request.Name, request.Moniker, request.Description, chType)
+				if err := channel.Validate(); err != nil {
+					return err
+				}
+
+				if err := channel.Insert(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				groupChannels, _ := model.GetGroupChannels(group.Id)
+				pos := uint(len(groupChannels))
+				_ = model.AddGroupChannel(group.Id, channel.Id, pos)
+
+				if request.ParentId != 0 {
+					_ = model.AddChannelRelation(request.ParentId, channel.Id, "subchannel")
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Put("/:group_id/channels/:channel_id",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermGroupChange.Has()
+			}),
+			perms.UseBind[ChannelChange](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[ChannelChange](ctx, perms.LocalForm)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() {
+					return htmx.AlertGroupNotFound
+				}
+
+				if request.Name != "" {
+					channel.Name = request.Name
+				}
+				if request.Moniker != "" {
+					channel.Moniker = request.Moniker
+				}
+				if request.Description != "" {
+					channel.Description = request.Description
+				}
+				if request.Type != "" {
+					channel.Type = request.Type
+				}
+
+				if err := channel.Validate(); err != nil {
+					return err
+				}
+
+				if err := channel.Update(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Delete("/:group_id/channels/:channel_id",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermGroupChange.Has()
+			}),
+			func(ctx fiber.Ctx) error {
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() {
+					return htmx.AlertGroupNotFound
+				}
+
+				_ = channel.Delete()
+				_ = model.RemoveGroupChannel(group.Id, channelId)
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Post("/:group_id/channels/:channel_id/permissions",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermRoles.Has()
+			}),
+			perms.UseBind[ChannelPermissionForm](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[ChannelPermissionForm](ctx, perms.LocalForm)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+
+				cp := model.ChannelPermission{
+					ChannelId:       channelId,
+					RoleId:          request.RoleId,
+					PermMessages:    request.PermMessages,
+					PermRoles:       request.PermRoles,
+					PermMembers:     request.PermMembers,
+					PermGroupChange: request.PermGroupChange,
+					PermAdmin:       request.PermAdmin,
+					Inherit:         request.Inherit,
+				}
+
+				if err := model.SetChannelPermission(cp); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Post("/:group_id/channels/:channel_id/messages/create",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				if channelId != 0 {
+					role = model.EffectiveRolePermission(channelId, role)
+				}
+				return role.PermMessages.CanWriteMessages()
+			}),
+			perms.UseBind[MessageCreate](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[MessageCreate](ctx, perms.LocalForm)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+
+				message := model.NewMessageFilled(channelId, group.Id, user.Id, request.Content)
+				if err := message.Validate(); err != nil {
+					return err
+				}
+
+				if err := message.Insert(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					buf, err := render.RenderBuffer(app, "partials/chat-messages", fiber.Map{
+						"MessageList": []model.Message{message},
+					})
+					if err != nil {
+						return err
+					}
+					str := buf.String()
+
+					session.UserSessionMap.Push(
+						render.WrapOob("beforeend:#chat", &str),
+						session.PickMessages,
+					)
+
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
 		Post("/:group_id/messages/create",
 			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermMessages.CanWriteMessages()
@@ -250,7 +459,15 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 
-				message := model.NewMessageFilled(group.Id, user.Id, request.Content)
+				channelId := request.ChannelId
+				if channelId == 0 {
+					channels, _ := model.GetGroupChannels(group.Id)
+					if len(channels) > 0 {
+						channelId = channels[0].Id
+					}
+				}
+
+				message := model.NewMessageFilled(channelId, group.Id, user.Id, request.Content)
 				if err := message.Validate(); err != nil {
 					return err
 				}
@@ -343,6 +560,40 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
+		Get("/:group_id/channels/:channel_id/messages/page/:messages_page",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				if channelId != 0 {
+					role = model.EffectiveRolePermission(channelId, role)
+				}
+				return role.PermMessages.CanReadMessages()
+			}),
+			func(ctx fiber.Ctx) error {
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() {
+					return htmx.AlertGroupNotFound
+				}
+
+				page := fiber.Params[uint](ctx, "messages_page")
+				const MessagesPagination uint = 5
+				messageList := channel.MessagesPage(page, MessagesPagination)
+
+				if htmx.IsHtmx(ctx) {
+					bind := fiber.Map{
+						"MessageList":        messageList,
+						"MessagesPage":       page,
+						"MessagesPagination": MessagesPagination,
+						"ActiveChannel":      channel,
+					}
+
+					return ctx.Render("partials/chat-messages", bind)
+				}
+
+				return ctx.JSON(messageList)
+			},
+		).
 		Get("/:group_id/messages/page/:messages_page",
 			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermMessages.CanReadMessages()
@@ -351,13 +602,24 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				page := fiber.Params[uint](ctx, "messages_page")
 				const MessagesPagination uint = 5
-				messageList := group.MessagesPage(page, MessagesPagination)
+
+				channels, _ := model.GetGroupChannels(group.Id)
+				var messageList []model.Message
+				var activeChannel model.Channel
+
+				if len(channels) > 0 {
+					activeChannel = channels[0]
+					messageList = activeChannel.MessagesPage(page, MessagesPagination)
+				} else {
+					messageList = group.MessagesPage(page, MessagesPagination)
+				}
 
 				if htmx.IsHtmx(ctx) {
 					bind := fiber.Map{
 						"MessageList":        messageList,
 						"MessagesPage":       page,
 						"MessagesPagination": MessagesPagination,
+						"ActiveChannel":      activeChannel,
 					}
 
 					return ctx.Render("partials/chat-messages", bind)

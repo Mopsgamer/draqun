@@ -1,6 +1,69 @@
 <div id="app-content" class="group">
+    <div id="channels-view">
+        <div class="flex items-center justify-between min-h-10 pb-2 border-b border-base-content/10">
+            <div class="flex items-center gap-2 font-semibold text-base truncate">
+                <span class="icon icon-[lucide--hash] size-4 shrink-0 text-primary" aria-hidden="true"></span>
+                <span class="truncate">Channels</span>
+            </div>
+            <button
+                class="btn btn-ghost btn-square btn-sm group-channels-toggle md:hidden"
+                type="button"
+                aria-label="Close channels list"
+                aria-controls="channels-view"
+                aria-expanded="false"
+            >
+                <span class="icon icon-[lucide--x] size-5" aria-hidden="true"></span>
+            </button>
+        </div>
+        <div id="channels" class="flex flex-col gap-1 py-1 overflow-y-auto">
+            {{if eq (len .Channels) 0}}
+            <div class="p-3 text-xs text-base-content/60 text-center flex flex-col gap-2">
+                <span>No text channels in this group yet.</span>
+                {{if not .Member.IsEmpty}}
+                <a class="btn btn-primary btn-xs gap-1" href="/groups/{{.Group.Id}}/settings/channels">
+                    <span class="icon icon-[lucide--plus] size-3.5"></span>
+                    Create Channel
+                </a>
+                {{end}}
+            </div>
+            {{else}}
+            {{$activeId := .ActiveChannel.Id}}
+            {{$groupId := .Group.Id}}
+            {{$subMap := .SubchannelsMap}}
+            {{range .Channels}}
+            <div class="flex flex-col gap-0.5">
+                <a
+                    class="member flex items-center justify-between px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors {{if eq .Id $activeId}}bg-primary/15 text-primary font-semibold{{else}}hover:bg-surface-card-hover text-base-content/80{{end}}"
+                    href="/chat/groups/{{$groupId}}/channels/{{.Id}}"
+                >
+                    <div class="flex items-center gap-2 truncate min-w-0">
+                        <span class="icon icon-[lucide--hash] size-4 shrink-0" aria-hidden="true"></span>
+                        <span class="truncate">{{.Moniker}}</span>
+                    </div>
+                </a>
+                {{$subchs := index $subMap .Id}}
+                {{if $subchs}}
+                <div class="pl-4 flex flex-col gap-0.5 border-l border-base-content/10 ml-2 my-0.5">
+                    {{range $subchs}}
+                    <a
+                        class="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors {{if eq .Id $activeId}}bg-primary/15 text-primary font-semibold{{else}}hover:bg-surface-card-hover text-base-content/70{{end}}"
+                        href="/chat/groups/{{$groupId}}/channels/{{.Id}}"
+                    >
+                        <span class="icon icon-[lucide--corner-down-right] size-3 shrink-0 text-base-content/40" aria-hidden="true"></span>
+                        <span class="truncate">{{.Moniker}}</span>
+                    </a>
+                    {{end}}
+                </div>
+                {{end}}
+            </div>
+            {{end}}
+            {{end}}
+        </div>
+    </div>
+
     <div id="chat-view">
         <main id="chat">
+            {{if .ActiveChannel.IsEmpty}}
             <div
                 class="load-scroll"
                 hx-trigger="intersect once"
@@ -8,9 +71,19 @@
                 hx-get="/groups/{{.Group.Id}}/messages/page/1"
             >
             </div>
+            {{else}}
+            <div
+                class="load-scroll"
+                hx-trigger="intersect once"
+                hx-swap="outerHTML"
+                hx-get="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/messages/page/1"
+            >
+            </div>
+            {{end}}
         </main>
         {{- template "partials/chat-input" .}}
     </div>
+
     <div id="members-view">
         <div class="flex items-center justify-between min-h-10 pb-2 border-b border-base-content/10">
             <div class="flex items-center gap-2 font-semibold text-base truncate">
@@ -40,6 +113,7 @@
             </div>
         </div>
     </div>
+
     <div
         id="ws-chat"
         class="collapse"

@@ -148,6 +148,31 @@ body {
 }
 
 /* Chat Layout & Components */
+#channels-view {
+	position: relative;
+	flex: none;
+	flex-direction: column;
+	gap: 0.5rem;
+	padding: 0.75rem;
+	width: 100%;
+	font-size: 1rem;
+	scroll-snap-type: y mandatory;
+	background-color: var(--surface-panel);
+	border-right: 1px solid color-mix(in srgb, var(--color-base-content) 10%, transparent);
+	display: none;
+}
+
+@media (min-width: 48rem) {
+	#channels-view {
+		width: 14rem;
+		display: flex !important;
+	}
+}
+
+#channels-view.open {
+	display: flex;
+}
+
 #chat-view {
 	position: relative;
 	min-height: 0;
@@ -158,7 +183,7 @@ body {
 	display: none;
 }
 
-:is(.group:not(:has(#members-view.open))) #chat-view {
+:is(.group:not(:has(#channels-view.open)):not(:has(#members-view.open))) #chat-view {
 	display: flex;
 }
 
