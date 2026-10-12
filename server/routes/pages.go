@@ -391,5 +391,60 @@ func RoutePages(app *fiber.App) {
 			}), "partials/main")
 		},
 	)
+	app.Get(
+		"/groups/:group_id/settings/channels",
+		func(ctx fiber.Ctx) error {
+			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
+				return ctx.Redirect().To("/chat")
+			}
+			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
+			role := fiber.Locals[model.Role](ctx, perms.LocalRights)
+			channels, _ := model.GetGroupChannels(group.Id)
+			type ChannelItem struct {
+				Channel     model.Channel
+				Subchannels []model.Channel
+			}
+			channelItems := make([]ChannelItem, len(channels))
+			for i, ch := range channels {
+				subchs, _ := model.GetSubchannels(ch.Id)
+				channelItems[i] = ChannelItem{
+					Channel:     ch,
+					Subchannels: subchs,
+				}
+			}
+			roles := group.Roles()
+			return htmx.TryRenderPage(ctx, "group-channels", MapPage(ctx, fiber.Map{
+				"Title":        "Group Channels - " + group.Moniker,
+				"Group":        group,
+				"Member":       member,
+				"Role":         role,
+				"ChannelItems": channelItems,
+				"Channels":     channels,
+				"Roles":        roles,
+				"Tab":          "channels",
+			}), "partials/main")
+		},
+	)
+	app.Get(
+		"/groups/:group_id/settings/channels/create",
+		func(ctx fiber.Ctx) error {
+			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
+				return ctx.Redirect().To("/chat")
+			}
+			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
+			role := fiber.Locals[model.Role](ctx, perms.LocalRights)
+			channels, _ := model.GetGroupChannels(group.Id)
+			return htmx.TryRenderPage(ctx, "group-channel-create", MapPage(ctx, fiber.Map{
+				"Title":    "Create Channel - " + group.Moniker,
+				"Group":    group,
+				"Member":   member,
+				"Role":     role,
+				"Channels": channels,
+				"Tab":      "channels",
+			}), "partials/main")
+		},
+	)
 	routePagesChat(app)
 }

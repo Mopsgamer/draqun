@@ -253,7 +253,7 @@ func TestModelMessageAndPagination(t *testing.T) {
 
 	// Insert messages
 	for i := 1; i <= 5; i++ {
-		msg := NewMessageFilled(group.Id, creator.Id, fmt.Sprintf("Message #%d", i))
+		msg := NewMessageFilled(0, group.Id, creator.Id, fmt.Sprintf("Message #%d", i))
 		if err := msg.Validate(); err != nil {
 			t.Fatalf("message #%d validation failed: %v", i, err)
 		}

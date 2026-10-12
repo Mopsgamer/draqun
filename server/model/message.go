@@ -12,6 +12,7 @@ type Message struct {
 	checkEmpty
 	Id        uint64         `db:"id" goqu:"skipinsert"`
 	GroupId   uint64         `db:"group_id"`
+	ChannelId uint64         `db:"channel_id"`
 	AuthorId  uint64         `db:"author_id"`
 	Content   MessageContent `db:"content"`
 	CreatedAt TimePast       `db:"created_at"`
@@ -19,9 +20,10 @@ type Message struct {
 
 var _ Model = (*Message)(nil)
 
-func NewMessageFilled(groupId, userId uint64, content string) Message {
+func NewMessageFilled(channelId, groupId, userId uint64, content string) Message {
 	return Message{
 		GroupId:   groupId,
+		ChannelId: channelId,
 		AuthorId:  userId,
 		Content:   MessageContent(strings.TrimSpace(content)),
 		CreatedAt: TimePast(time.Now()),

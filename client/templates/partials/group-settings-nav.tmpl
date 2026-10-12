@@ -3,6 +3,10 @@
         <span class="icon icon-[lucide--sliders-horizontal] size-4" aria-hidden="true"></span>
         General
     </a>
+    <a href="/groups/{{.Group.Id}}/settings/channels" class="flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap {{if eq .Tab "channels"}}border-primary text-primary font-semibold{{else}}border-transparent text-base-content/60 hover:text-base-content{{end}}">
+        <span class="icon icon-[lucide--hash] size-4" aria-hidden="true"></span>
+        Channels
+    </a>
     <a href="/groups/{{.Group.Id}}/settings/roles" class="flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap {{if eq .Tab "roles"}}border-primary text-primary font-semibold{{else}}border-transparent text-base-content/60 hover:text-base-content{{end}}">
         <span class="icon icon-[lucide--shield] size-4" aria-hidden="true"></span>
         Roles

@@ -38,9 +38,58 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			}
 
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
-			return htmx.TryRenderPage(ctx, "chat-group", MapPage(ctx, fiber.Map{"Title": group.Moniker}), "partials/layout-chat")
+			channels, _ := model.GetGroupChannels(group.Id)
+			subchannelsMap := make(map[uint64][]model.Channel)
+			for _, ch := range channels {
+				subchs, _ := model.GetSubchannels(ch.Id)
+				subchannelsMap[ch.Id] = subchs
+			}
+
+			var activeChannel model.Channel
+			if len(channels) > 0 {
+				activeChannel = channels[0]
+			}
+
+			return htmx.TryRenderPage(ctx, "chat-group", MapPage(ctx, fiber.Map{
+				"Title":          group.Moniker,
+				"Group":          group,
+				"Channels":       channels,
+				"SubchannelsMap": subchannelsMap,
+				"ActiveChannel":  activeChannel,
+			}), "partials/layout-chat")
 		},
 	).Name("page.group")
+
+	chat.Get(
+		"/groups/:group_id/channels/:channel_id",
+		func(ctx fiber.Ctx) error {
+			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
+				return ctx.Redirect().To("/chat")
+			}
+
+			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+			channelId := fiber.Params[uint64](ctx, "channel_id")
+			activeChannel, err := model.NewChannelFromId(channelId)
+			if err != nil || !activeChannel.IsAvailable() {
+				return ctx.Redirect().To(group.Url(ctx))
+			}
+
+			channels, _ := model.GetGroupChannels(group.Id)
+			subchannelsMap := make(map[uint64][]model.Channel)
+			for _, ch := range channels {
+				subchs, _ := model.GetSubchannels(ch.Id)
+				subchannelsMap[ch.Id] = subchs
+			}
+
+			return htmx.TryRenderPage(ctx, "chat-group", MapPage(ctx, fiber.Map{
+				"Title":          activeChannel.Moniker + " - " + group.Moniker,
+				"Group":          group,
+				"Channels":       channels,
+				"SubchannelsMap": subchannelsMap,
+				"ActiveChannel":  activeChannel,
+			}), "partials/layout-chat")
+		},
+	).Name("page.group.channel")
 
 	chat.Get(
 		"/groups/join/:group_name",

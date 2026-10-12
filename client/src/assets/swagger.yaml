@@ -95,6 +95,27 @@ paths:
      description: Chat page for a specific group.
     "302":
      description: Redirects to /chat if not a member.
+ /chat/groups/{group_id}/channels/{channel_id}:
+  get:
+   tags:
+    - Pages
+   summary: Group Chat Channel Page
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: channel_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Chat page for a specific group channel.
+    "302":
+     description: Redirects to /chat if not a member.
  /chat/groups/join/{group_name}:
   get:
    tags:
@@ -433,6 +454,167 @@ paths:
    responses:
     "200":
      description: Audit log page.
+ /groups/{group_id}/settings/channels:
+  get:
+   tags:
+    - Pages
+   summary: Group Channels Page
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Channels management page.
+ /groups/{group_id}/settings/channels/create:
+  get:
+   tags:
+    - Pages
+   summary: Create Group Channel Page
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Channel creation page.
+ /groups/{group_id}/channels/create:
+  post:
+   tags:
+    - Group
+   summary: Create Channel
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/ChannelCreate"
+   responses:
+    "200":
+     description: Channel created.
+ /groups/{group_id}/channels/{channel_id}:
+  put:
+   tags:
+    - Group
+   summary: Update Channel
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: channel_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/ChannelChange"
+   responses:
+    "200":
+     description: Channel updated.
+  delete:
+   tags:
+    - Group
+   summary: Delete Channel
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: channel_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Channel deleted.
+ /groups/{group_id}/channels/{channel_id}/permissions:
+  post:
+   tags:
+    - Group
+   summary: Set Channel Permission Override
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: channel_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/ChannelPermissionForm"
+   responses:
+    "200":
+     description: Permission override updated.
+ /groups/{group_id}/channels/{channel_id}/messages/create:
+  post:
+   tags:
+    - Group
+   summary: Send Message to Channel
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: channel_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/MessageCreate"
+   responses:
+    "200":
+     description: Message sent.
+ /groups/{group_id}/channels/{channel_id}/messages/page/{messages_page}:
+  get:
+   tags:
+    - Group
+   summary: Get Channel Messages (Paginated)
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: channel_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: messages_page
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: List of messages.
  /groups/{group_id}/roles/create:
   post:
    tags:
@@ -776,3 +958,53 @@ components:
     content:
      type: string
      maxLength: 8000
+    channel_id:
+     type: integer
+  ChannelCreate:
+   type: object
+   required:
+    - name
+    - moniker
+   properties:
+    name:
+     type: string
+    moniker:
+     type: string
+    description:
+     type: string
+    type:
+     type: string
+     enum: [text]
+    parent_id:
+     type: integer
+  ChannelChange:
+   type: object
+   properties:
+    name:
+     type: string
+    moniker:
+     type: string
+    description:
+     type: string
+    type:
+     type: string
+     enum: [text]
+  ChannelPermissionForm:
+   type: object
+   required:
+    - role_id
+   properties:
+    role_id:
+     type: integer
+    perm_messages:
+     type: string
+    perm_roles:
+     type: string
+    perm_members:
+     type: string
+    perm_group_change:
+     type: string
+    perm_admin:
+     type: string
+    inherit:
+     type: boolean

@@ -14,16 +14,22 @@ var Sqlx *sqlx.DB
 type DB = sqlx.DB
 
 const (
-	TableGroups        = "app_groups"
-	TableMembers       = "app_group_members"
-	TableUsers         = "app_users"
-	TableMessages      = "app_group_messages"
-	TableRoles         = "app_group_roles"
-	TableRoleAssignees = "app_group_role_assignees"
-	TableBans          = "app_group_action_bans"
-	TableKicks         = "app_group_action_kicks"
-	TableMemberships   = "app_group_action_memberships"
-	TableRoleActions   = "app_group_action_roles"
+	TableGroups             = "app_groups"
+	TableMembers            = "app_group_members"
+	TableUsers              = "app_users"
+	TableMessages           = "app_group_messages"
+	TableRoles              = "app_group_roles"
+	TableRoleAssignees      = "app_group_role_assignees"
+	TableBans               = "app_group_action_bans"
+	TableKicks              = "app_group_action_kicks"
+	TableMemberships        = "app_group_action_memberships"
+	TableRoleActions        = "app_group_action_roles"
+	TableChannels           = "app_channels"
+	TableGroupChannels      = "app_group_channels"
+	TableChannelRelations   = "app_channel_relations"
+	TableUserChannels       = "app_user_channels"
+	TableDirectChannels     = "app_direct_channels"
+	TableChannelPermissions = "app_channel_permissions"
 )
 
 func LoadDB() error {
@@ -40,6 +46,7 @@ func LoadDB() error {
 	}
 
 	_, _ = Sqlx.Exec(`ALTER TABLE app_group_roles ADD COLUMN position INTEGER NOT NULL DEFAULT 0;`)
+	_, _ = Sqlx.Exec(`ALTER TABLE app_group_messages ADD COLUMN channel_id INTEGER NOT NULL DEFAULT 0;`)
 
 	_, _ = Sqlx.Exec(`CREATE TABLE IF NOT EXISTS app_group_action_roles (
     role_id INTEGER NOT NULL,
@@ -51,6 +58,66 @@ func LoadDB() error {
     FOREIGN KEY (role_id) REFERENCES app_group_roles (id),
     FOREIGN KEY (creator_id) REFERENCES app_users (id),
     FOREIGN KEY (group_id) REFERENCES app_groups (id)
+);`)
+
+	_, _ = Sqlx.Exec(`CREATE TABLE IF NOT EXISTS app_channels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(255) NOT NULL,
+    moniker VARCHAR(255) NOT NULL,
+    description VARCHAR(510) NOT NULL,
+    type VARCHAR(32) NOT NULL DEFAULT 'text',
+    created_at DATETIME NOT NULL,
+    is_deleted BOOLEAN NOT NULL DEFAULT 0
+);`)
+
+	_, _ = Sqlx.Exec(`CREATE TABLE IF NOT EXISTS app_group_channels (
+    group_id INTEGER NOT NULL,
+    channel_id INTEGER NOT NULL,
+    position INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (group_id, channel_id),
+    FOREIGN KEY (group_id) REFERENCES app_groups (id),
+    FOREIGN KEY (channel_id) REFERENCES app_channels (id)
+);`)
+
+	_, _ = Sqlx.Exec(`CREATE TABLE IF NOT EXISTS app_channel_relations (
+    parent_id INTEGER NOT NULL,
+    child_id INTEGER NOT NULL,
+    relation_type VARCHAR(32) NOT NULL DEFAULT 'subchannel',
+    PRIMARY KEY (parent_id, child_id),
+    FOREIGN KEY (parent_id) REFERENCES app_channels (id),
+    FOREIGN KEY (child_id) REFERENCES app_channels (id)
+);`)
+
+	_, _ = Sqlx.Exec(`CREATE TABLE IF NOT EXISTS app_user_channels (
+    user_id INTEGER NOT NULL,
+    channel_id INTEGER NOT NULL,
+    PRIMARY KEY (user_id, channel_id),
+    FOREIGN KEY (user_id) REFERENCES app_users (id),
+    FOREIGN KEY (channel_id) REFERENCES app_channels (id)
+);`)
+
+	_, _ = Sqlx.Exec(`CREATE TABLE IF NOT EXISTS app_direct_channels (
+    user1_id INTEGER NOT NULL,
+    user2_id INTEGER NOT NULL,
+    channel_id INTEGER NOT NULL,
+    PRIMARY KEY (user1_id, user2_id),
+    FOREIGN KEY (user1_id) REFERENCES app_users (id),
+    FOREIGN KEY (user2_id) REFERENCES app_users (id),
+    FOREIGN KEY (channel_id) REFERENCES app_channels (id)
+);`)
+
+	_, _ = Sqlx.Exec(`CREATE TABLE IF NOT EXISTS app_channel_permissions (
+    channel_id INTEGER NOT NULL,
+    role_id INTEGER NOT NULL,
+    perm_messages VARCHAR(32) NOT NULL DEFAULT 'inherit',
+    perm_roles VARCHAR(32) NOT NULL DEFAULT 'inherit',
+    perm_members VARCHAR(32) NOT NULL DEFAULT 'inherit',
+    perm_group_change VARCHAR(32) NOT NULL DEFAULT 'inherit',
+    perm_admin VARCHAR(32) NOT NULL DEFAULT 'inherit',
+    inherit BOOLEAN NOT NULL DEFAULT 1,
+    PRIMARY KEY (channel_id, role_id),
+    FOREIGN KEY (channel_id) REFERENCES app_channels (id),
+    FOREIGN KEY (role_id) REFERENCES app_group_roles (id)
 );`)
 
 	Goqu = goqu.New("sqlite3", Sqlx)

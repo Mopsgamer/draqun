@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS app_group_messages (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     group_id INTEGER NOT NULL,
+    channel_id INTEGER NOT NULL DEFAULT 0,
     author_id INTEGER NOT NULL,
     content TEXT NOT NULL,
     created_at DATETIME NOT NULL,

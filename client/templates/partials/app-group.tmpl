@@ -1,17 +1,120 @@
 <div id="app-content" class="group">
+    <div id="channels-view" class="secondary-view">
+        <div class="flex items-center justify-between pb-3 border-b border-base-content/10 gap-2">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <span class="inline-flex size-8 items-center justify-center rounded-xl bg-primary/20 text-primary overflow-hidden shrink-0" aria-hidden="true">
+                    {{if ne .Group.Avatar ""}}
+                        <img src="{{.Group.Avatar}}" class="size-full object-cover rounded-xl" alt="Group avatar">
+                    {{else}}
+                        <span class="icon icon-[lucide--users] size-4"></span>
+                    {{end}}
+                </span>
+                <div class="flex flex-col min-w-0 flex-1">
+                    <span class="font-bold text-sm truncate leading-tight">{{.Group.Moniker}}</span>
+                    <span class="text-xs font-mono text-base-content/60 truncate">@{{.Group.Name}}</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-0.5 shrink-0">
+                {{if not .Member.IsEmpty}}
+                <a
+                    class="btn btn-ghost btn-square btn-sm text-base-content/70 hover:text-base-content"
+                    href="/groups/{{.Group.Id}}/settings"
+                    aria-label="Group settings"
+                    title="Group settings"
+                >
+                    <span class="icon icon-[lucide--settings] size-4" aria-hidden="true"></span>
+                </a>
+                {{end}}
+                <button
+                    class="btn btn-ghost btn-square btn-sm text-base-content/70 hover:text-base-content group-channels-toggle"
+                    type="button"
+                    aria-label="Close channels view"
+                    title="Close channels"
+                    aria-controls="channels-view"
+                    aria-expanded="false"
+                >
+                    <span class="icon icon-[lucide--x] size-4" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+        <div id="channels" class="flex flex-col gap-1 py-1 overflow-y-auto flex-1">
+            {{if eq (len .Channels) 0}}
+            <div class="p-3 text-xs text-base-content/60 text-center flex flex-col gap-2 my-auto">
+                <span>No channels in this group yet.</span>
+                {{if not .Member.IsEmpty}}
+                <a class="btn btn-primary btn-xs gap-1" href="/groups/{{.Group.Id}}/settings/channels/create">
+                    <span class="icon icon-[lucide--plus] size-3.5"></span>
+                    Create Channel
+                </a>
+                {{end}}
+            </div>
+            {{else}}
+            {{$activeId := .ActiveChannel.Id}}
+            {{$groupId := .Group.Id}}
+            {{$subMap := .SubchannelsMap}}
+            {{range .Channels}}
+            <div class="flex flex-col gap-0.5">
+                <a
+                    class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors {{if eq .Id $activeId}}bg-primary/15 text-primary font-semibold{{else}}hover:bg-surface-card-hover text-base-content/80{{end}}"
+                    href="/chat/groups/{{$groupId}}/channels/{{.Id}}"
+                >
+                    <div class="flex items-center gap-2 truncate min-w-0">
+                        <span class="icon icon-[lucide--hash] size-4 shrink-0" aria-hidden="true"></span>
+                        <span class="truncate">{{.Moniker}}</span>
+                    </div>
+                </a>
+                {{$subchs := index $subMap .Id}}
+                {{if $subchs}}
+                <div class="pl-4 flex flex-col gap-0.5 border-l border-base-content/10 ml-2 my-0.5">
+                    {{range $subchs}}
+                    <a
+                        class="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors {{if eq .Id $activeId}}bg-primary/15 text-primary font-semibold{{else}}hover:bg-surface-card-hover text-base-content/70{{end}}"
+                        href="/chat/groups/{{$groupId}}/channels/{{.Id}}"
+                    >
+                        <span class="icon icon-[lucide--corner-down-right] size-3 shrink-0 text-base-content/40" aria-hidden="true"></span>
+                        <span class="truncate">{{.Moniker}}</span>
+                    </a>
+                    {{end}}
+                </div>
+                {{end}}
+            </div>
+            {{end}}
+            {{end}}
+        </div>
+    </div>
+
     <div id="chat-view">
+        {{if .ActiveChannel.IsEmpty}}
+        <div class="flex-1 flex flex-col items-center justify-center p-8 text-center gap-4 bg-surface-canvas">
+            <span class="inline-flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary" aria-hidden="true">
+                <span class="icon icon-[lucide--hash] size-8"></span>
+            </span>
+            <div class="flex flex-col gap-1 max-w-sm">
+                <h3 class="font-bold text-lg">No channels yet</h3>
+                <p class="text-xs text-base-content/60">This group has no channels. Create a channel to start messaging with members.</p>
+            </div>
+            {{if not .Member.IsEmpty}}
+            <a class="btn btn-primary btn-sm gap-1.5 mt-2" href="/groups/{{.Group.Id}}/settings/channels/create">
+                <span class="icon icon-[lucide--plus] size-4"></span>
+                Create First Channel
+            </a>
+            {{end}}
+        </div>
+        {{else}}
         <main id="chat">
             <div
                 class="load-scroll"
                 hx-trigger="intersect once"
                 hx-swap="outerHTML"
-                hx-get="/groups/{{.Group.Id}}/messages/page/1"
+                hx-get="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/messages/page/1"
             >
             </div>
         </main>
         {{- template "partials/chat-input" .}}
+        {{end}}
     </div>
-    <div id="members-view">
+
+    <div id="members-view" class="secondary-view">
         <div class="flex items-center justify-between min-h-10 pb-2 border-b border-base-content/10">
             <div class="flex items-center gap-2 font-semibold text-base truncate">
                 <span class="icon icon-[lucide--users] size-4 shrink-0" aria-hidden="true"></span>
@@ -40,6 +143,7 @@
             </div>
         </div>
     </div>
+
     <div
         id="ws-chat"
         class="collapse"

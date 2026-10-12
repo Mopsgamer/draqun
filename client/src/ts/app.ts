@@ -2,43 +2,56 @@ import "./main.ts";
 
 import "./chat-mutate.ts";
 import "./chat-send.ts";
-import "./chat-mutate.ts";
 import { domLoaded } from "./lib.ts";
 
 import("htmx-ext-ws");
 
-function closeAllBut(
-	element: HTMLElement,
-	secondaryViewList: HTMLElement[],
-): void {
-	element.classList.toggle("open");
-	for (const secondary of secondaryViewList) {
-		if (secondary !== element) {
-			secondary.classList.remove("open");
-		}
-	}
-}
-
 domLoaded.then(() => {
-	const membersTogglers = Array.from(
-		document.getElementsByClassName("group-members-toggle"),
-	).filter((element): element is HTMLButtonElement =>
-		element instanceof HTMLButtonElement
-	);
-	const secondaryViewList = Array.from(
-		document.getElementsByClassName("secondary-view"),
-	) as HTMLElement[];
+	document.addEventListener("click", (event) => {
+		const target = event.target as HTMLElement | null;
+		if (!target) return;
 
-	const membersView = document.getElementById("members-view");
-	if (membersTogglers.length === 0 || !membersView) return;
-
-	for (const membersToggler of membersTogglers) {
-		membersToggler.addEventListener("click", () => {
-			closeAllBut(membersView, secondaryViewList);
-			const isOpen = membersView.classList.contains("open");
-			for (const toggler of membersTogglers) {
-				toggler.setAttribute("aria-expanded", String(isOpen));
+		const channelsBtn = target.closest(".group-channels-toggle");
+		if (channelsBtn) {
+			event.preventDefault();
+			event.stopPropagation();
+			const channelsView = document.getElementById("channels-view");
+			if (channelsView) {
+				const isDesktop = globalThis.innerWidth >= 768;
+				if (isDesktop) {
+					channelsView.classList.toggle("closed");
+				} else {
+					const membersView = document.getElementById("members-view");
+					if (membersView) membersView.classList.remove("open");
+					channelsView.classList.toggle("open");
+				}
+				const isOpen = isDesktop
+					? !channelsView.classList.contains("closed")
+					: channelsView.classList.contains("open");
+				document.querySelectorAll(".group-channels-toggle").forEach((btn) => {
+					btn.setAttribute("aria-expanded", String(isOpen));
+				});
 			}
-		});
-	}
+			return;
+		}
+
+		const membersBtn = target.closest(".group-members-toggle");
+		if (membersBtn) {
+			event.preventDefault();
+			event.stopPropagation();
+			const membersView = document.getElementById("members-view");
+			if (membersView) {
+				const channelsView = document.getElementById("channels-view");
+				if (channelsView && globalThis.innerWidth < 768) {
+					channelsView.classList.remove("open");
+				}
+				membersView.classList.toggle("open");
+				const isOpen = membersView.classList.contains("open");
+				document.querySelectorAll(".group-members-toggle").forEach((btn) => {
+					btn.setAttribute("aria-expanded", String(isOpen));
+				});
+			}
+			return;
+		}
+	});
 });

@@ -1,0 +1,154 @@
+<div class="max-w-3xl mx-auto w-full px-4 py-8 flex flex-col gap-8">
+    <div class="flex items-center justify-between pb-4 border-b border-base-content/10">
+        <div class="flex items-center gap-3">
+            <span class="icon icon-[lucide--settings-2] size-6 text-primary" aria-hidden="true"></span>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Group Settings</h1>
+                <p class="text-xs text-base-content/60 mt-0.5">Manage channels and permissions for <span class="font-semibold text-base-content/90">{{.Group.Moniker}}</span></p>
+            </div>
+        </div>
+        <button class="btn btn-ghost btn-sm gap-1.5 text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
+            <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
+            Back
+        </button>
+    </div>
+
+    {{template "partials/group-settings-nav" .}}
+
+    <div class="flex flex-col gap-6">
+        <!-- Section: Channels Header with Create Action -->
+        <div class="pb-2 border-b border-base-content/10 flex items-center justify-between">
+            <div>
+                <h2 class="text-base font-bold flex items-center gap-2">
+                    <span class="icon icon-[lucide--hash] size-4 text-primary" aria-hidden="true"></span>
+                    Group Channels ({{len .ChannelItems}})
+                </h2>
+                <p class="text-xs text-base-content/60">Manage channels, subchannels, and channel permission overrides.</p>
+            </div>
+            {{if .Member.Role.PermGroupChange.Has}}
+            <a class="btn btn-primary btn-sm gap-1.5" href="/groups/{{.Group.Id}}/settings/channels/create">
+                <span class="icon icon-[lucide--plus] size-3.5"></span>
+                Create Channel
+            </a>
+            {{end}}
+        </div>
+
+        {{if eq (len .ChannelItems) 0}}
+        <div class="py-8 text-center text-sm text-base-content/60 flex flex-col items-center gap-3">
+            <span>No channels in this group yet.</span>
+            {{if .Member.Role.PermGroupChange.Has}}
+            <a class="btn btn-primary btn-sm gap-1.5" href="/groups/{{.Group.Id}}/settings/channels/create">
+                <span class="icon icon-[lucide--plus] size-3.5"></span>
+                Create First Channel
+            </a>
+            {{end}}
+        </div>
+        {{else}}
+        <div class="flex flex-col divide-y divide-base-content/10">
+            {{range .ChannelItems}}
+            <div class="py-4 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <span class="icon icon-[lucide--hash] size-5 text-primary shrink-0"></span>
+                        <div>
+                            <span class="font-semibold text-sm">{{.Channel.Moniker}}</span>
+                            <span class="text-xs font-mono text-base-content/60 ml-2">#{{.Channel.Name}}</span>
+                            {{if .Channel.Description}}
+                            <div class="text-xs text-base-content/60 mt-0.5">{{.Channel.Description}}</div>
+                            {{end}}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a class="btn btn-ghost btn-xs gap-1" href="/chat/groups/{{$.Group.Id}}/channels/{{.Channel.Id}}">
+                            <span class="icon icon-[lucide--external-link] size-3"></span>
+                            View
+                        </a>
+                        {{if $.Member.Role.PermGroupChange.Has}}
+                        <button
+                            class="btn btn-error btn-xs gap-1"
+                            hx-delete="/groups/{{$.Group.Id}}/channels/{{.Channel.Id}}"
+                            hx-confirm="Are you sure you want to delete this channel?"
+                        >
+                            <span class="icon icon-[lucide--trash-2] size-3"></span>
+                            Delete
+                        </button>
+                        {{end}}
+                    </div>
+                </div>
+
+                <!-- Render Subchannels if any -->
+                {{if gt (len .Subchannels) 0}}
+                <div class="pl-6 border-l-2 border-base-content/10 flex flex-col gap-1.5 mt-1">
+                    <div class="text-xs font-semibold text-base-content/60">Subchannels:</div>
+                    {{range .Subchannels}}
+                    <div class="flex items-center justify-between py-1">
+                        <div class="flex items-center gap-2">
+                            <span class="icon icon-[lucide--corner-down-right] size-3.5 text-base-content/40"></span>
+                            <span class="text-xs font-medium">{{.Moniker}}</span>
+                            <span class="text-xs font-mono text-base-content/50">#{{.Name}}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <a class="btn btn-ghost btn-xs text-xs" href="/chat/groups/{{$.Group.Id}}/channels/{{.Id}}">View</a>
+                            {{if $.Member.Role.PermGroupChange.Has}}
+                            <button
+                                class="btn btn-ghost btn-xs text-error text-xs"
+                                hx-delete="/groups/{{$.Group.Id}}/channels/{{.Id}}"
+                                hx-confirm="Delete subchannel?"
+                            >
+                                Delete
+                            </button>
+                            {{end}}
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+                {{end}}
+
+                <!-- Permission Overrides Section for Channel -->
+                {{if $.Member.Role.PermRoles.Has}}
+                <details class="mt-1 pt-2 text-xs">
+                    <summary class="cursor-pointer text-xs text-primary font-medium hover:underline flex items-center gap-1">
+                        <span class="icon icon-[lucide--shield-alert] size-3.5"></span>
+                        Configure Role Permission Overrides
+                    </summary>
+                    <form
+                        class="mt-2 flex flex-col gap-3 py-3 px-4 rounded-lg bg-surface-inset"
+                        hx-post="/groups/{{$.Group.Id}}/channels/{{.Channel.Id}}/permissions"
+                    >
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block font-semibold mb-1">Target Role</label>
+                                <select class="select select-bordered select-xs w-full" name="role_id" required>
+                                    {{range $.Roles}}
+                                    <option value="{{.Id}}">{{.Moniker}}</option>
+                                    {{end}}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-semibold mb-1">Messages Permission</label>
+                                <select class="select select-bordered select-xs w-full" name="perm_messages">
+                                    <option value="write">Allow Write</option>
+                                    <option value="read">Read Only</option>
+                                    <option value="hidden">Hidden</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-semibold mb-1">Inherit Server Rights</label>
+                                <select class="select select-bordered select-xs w-full" name="inherit">
+                                    <option value="false">Override</option>
+                                    <option value="true">Inherit</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex justify-end mt-1">
+                            <button class="btn btn-primary btn-xs" type="submit">Save Override</button>
+                        </div>
+                    </form>
+                </details>
+                {{end}}
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+</div>

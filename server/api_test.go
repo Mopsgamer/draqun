@@ -219,6 +219,15 @@ func TestAPIGroupLifecycle(t *testing.T) {
 		t.Errorf("expected redirect or OK on group join, got %d", respJoin.StatusCode())
 	}
 
+	// Create a text channel for the test group
+	ch := model.NewChannel("general", "General Chat", "General", model.ChannelTypeText)
+	if err := ch.Insert(); err != nil {
+		t.Fatalf("failed to insert channel: %v", err)
+	}
+	if err := model.AddGroupChannel(group.Id, ch.Id, 0); err != nil {
+		t.Fatalf("failed to add group channel: %v", err)
+	}
+
 	// Post Message to Group (as joiner)
 	respMsg, err := ts.Client.R().
 		SetHeader("Cookie", cookieJoiner).

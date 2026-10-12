@@ -93,6 +93,7 @@ body {
 	background-color: var(--surface-canvas);
 }
 
+#real-body:has(.secondary-view),
 #real-body:has(#chat) {
 	height: 100svh;
 	min-height: 0;
@@ -111,6 +112,7 @@ body {
 	background-color: var(--surface-canvas);
 }
 
+#app-content:has(.secondary-view),
 #app-content:has(#chat) {
 	flex-direction: row;
 	overflow: hidden;
@@ -148,38 +150,33 @@ body {
 }
 
 /* Chat Layout & Components */
-#chat-view {
+#channels-view {
 	position: relative;
-	min-height: 0;
-	min-width: 0;
-	flex: 1 1 0%;
+	flex: none;
 	flex-direction: column;
 	gap: 0.5rem;
+	padding: 0.75rem;
+	width: 100%;
+	font-size: 1rem;
+	scroll-snap-type: y mandatory;
+	background-color: var(--surface-panel);
+	border-right: 1px solid color-mix(in srgb, var(--color-base-content) 10%, transparent);
 	display: none;
 }
 
-:is(.group:not(:has(#members-view.open))) #chat-view {
-	display: flex;
+#channels-view.open {
+	display: flex !important;
+}
+
+#channels-view.closed {
+	display: none !important;
 }
 
 @media (min-width: 48rem) {
-	#chat-view {
+	#channels-view:not(.closed) {
 		display: flex !important;
+		width: 14rem;
 	}
-}
-
-#chat {
-	position: relative;
-	scroll-snap-type: y mandatory;
-	display: flex;
-	flex: 1 1 0%;
-	min-height: 0;
-	flex-direction: column;
-	width: 100%;
-	padding: 0.5rem 0.75rem 1rem;
-	overflow-y: auto;
-	overflow-x: hidden;
-	background-color: var(--surface-canvas);
 }
 
 #members-view {
@@ -196,14 +193,45 @@ body {
 	display: none;
 }
 
+#members-view.open {
+	display: flex !important;
+}
+
 @media (min-width: 48rem) {
-	#members-view {
+	#members-view.open {
 		width: 14rem;
 	}
 }
 
-#members-view.open {
+#chat-view {
+	position: relative;
+	min-height: 0;
+	min-width: 0;
+	flex: 1 1 0%;
+	flex-direction: column;
+	gap: 0.5rem;
 	display: flex;
+}
+
+@media (max-width: 47.998rem) {
+	#app-content:has(#channels-view.open) #chat-view,
+	#app-content:has(#members-view.open) #chat-view {
+		display: none !important;
+	}
+}
+
+#chat {
+	position: relative;
+	scroll-snap-type: y mandatory;
+	display: flex;
+	flex: 1 1 0%;
+	min-height: 0;
+	flex-direction: column;
+	width: 100%;
+	padding: 0.5rem 0.75rem 1rem;
+	overflow-y: auto;
+	overflow-x: hidden;
+	background-color: var(--surface-canvas);
 }
 
 #members {
