@@ -2,13 +2,9 @@
 {{- range $i, $member := $this.MemberList -}}
 <div id="member-{{$member.Id}}" class="member flex items-center justify-between gap-2">
     <div class="flex items-center gap-2 min-w-0 flex-1">
-        <div class="avatar {{if $member.IsOnline}}avatar-online{{else}}avatar-offline{{end}} {{if eq $member.Avatar ""}}avatar-placeholder{{end}} shrink-0" title="{{if $member.IsOnline}}Online{{else}}Offline{{end}}">
-            <div class="w-7 rounded-full {{if eq $member.Avatar ""}}bg-neutral text-neutral-content flex items-center justify-center{{end}}">
-                {{if ne $member.Avatar ""}}
-                    <img src="{{$member.Avatar}}" alt="{{$member.Moniker}} avatar">
-                {{else}}
-                    <span class="icon icon-[lucide--user] size-4"></span>
-                {{end}}
+        <div class="avatar {{if $member.IsOnline}}avatar-online{{else}}avatar-offline{{end}} shrink-0" title="{{if $member.IsOnline}}Online{{else}}Offline{{end}}">
+            <div class="w-7 rounded-full">
+                <img src="{{$member.AvatarUrl}}" alt="{{$member.Moniker}} avatar">
             </div>
         </div>
         <span

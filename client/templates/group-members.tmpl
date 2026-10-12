@@ -31,13 +31,9 @@
             <div class="py-4 flex flex-col gap-3">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-3.5">
-                        <div class="avatar {{if .IsOnline}}avatar-online{{else}}avatar-offline{{end}} {{if eq .User.Avatar ""}}avatar-placeholder{{end}} shrink-0" title="{{if .IsOnline}}Online{{else}}Offline{{end}}">
-                            <div class="w-10 rounded-full {{if eq .User.Avatar ""}}bg-neutral text-neutral-content flex items-center justify-center{{end}}">
-                                {{if ne .User.Avatar ""}}
-                                <img src="{{.User.Avatar}}" alt="{{.User.Moniker}}" />
-                                {{else}}
-                                <span class="icon icon-[lucide--user] size-5" aria-hidden="true"></span>
-                                {{end}}
+                        <div class="avatar {{if .IsOnline}}avatar-online{{else}}avatar-offline{{end}} shrink-0" title="{{if .IsOnline}}Online{{else}}Offline{{end}}">
+                            <div class="w-10 rounded-full">
+                                <img src="{{.User.AvatarUrl}}" alt="{{.User.Moniker}}" />
                             </div>
                         </div>
                         <div class="flex flex-col">

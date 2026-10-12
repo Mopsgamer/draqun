@@ -22,13 +22,9 @@
         hx-target="#new-group-error"
     >
         <div class="flex items-center gap-4 py-2 border-b border-base-content/10">
-            <label class="relative cursor-pointer group flex items-center justify-center shrink-0" title="Click to upload avatar">
-                <div class="avatar avatar-placeholder">
-                    <div class="w-14 rounded-xl bg-neutral text-neutral-content flex items-center justify-center">
-                        <span class="icon icon-[lucide--users] size-5 text-base-content/60 group-hover:text-primary" id="new-group-avatar-icon"></span>
-                        <img id="new-group-avatar-preview" class="size-full object-cover rounded-xl hidden" alt="Group avatar preview">
-                    </div>
-                </div>
+            <label class="relative cursor-pointer group flex items-center justify-center size-14 rounded-xl border border-base-content/20 hover:border-primary text-primary bg-surface-card transition-all overflow-hidden shrink-0" title="Click to upload avatar">
+                <span class="icon icon-[lucide--camera] size-5 text-base-content/60 group-hover:text-primary" id="new-group-avatar-icon"></span>
+                <img id="new-group-avatar-preview" class="size-full object-cover rounded-xl hidden" alt="Group avatar preview">
                 <input type="file" id="new-group-avatar" name="avatar" accept="image/*" class="hidden" onchange="if(this.files && this.files[0]){ const img=document.getElementById('new-group-avatar-preview'); const icon=document.getElementById('new-group-avatar-icon'); img.src=URL.createObjectURL(this.files[0]); img.classList.remove('hidden'); icon.classList.add('hidden'); }">
             </label>
             <div>

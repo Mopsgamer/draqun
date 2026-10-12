@@ -49,24 +49,13 @@
                 <!-- Group Avatar Row -->
                 <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
-                        <label class="relative {{if .Member.Role.PermGroupChange.Has}}cursor-pointer{{end}} group flex items-center justify-center shrink-0" title="Click to upload avatar">
-                            <div class="avatar {{if eq .Group.Avatar ""}}avatar-placeholder{{end}}">
-                                <div class="w-16 rounded-xl {{if eq .Group.Avatar ""}}bg-neutral text-neutral-content flex items-center justify-center{{end}}">
-                                    {{if ne .Group.Avatar ""}}
-                                        <img id="change-group-avatar-preview" src="{{.Group.Avatar}}" alt="Group avatar">
-                                        {{if .Member.Role.PermGroupChange.Has}}
-                                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
-                                            <span class="icon icon-[lucide--camera] size-5"></span>
-                                        </div>
-                                        {{end}}
-                                    {{else}}
-                                        <span class="icon icon-[lucide--users] size-6 text-base-content/60 group-hover:text-primary" id="change-group-avatar-icon"></span>
-                                        <img id="change-group-avatar-preview" class="size-full object-cover rounded-xl hidden" alt="Group avatar preview">
-                                    {{end}}
-                                </div>
-                            </div>
+                        <label class="relative {{if .Member.Role.PermGroupChange.Has}}cursor-pointer{{end}} group flex items-center justify-center size-16 rounded-xl border border-base-content/20 hover:border-primary text-primary bg-surface-card transition-all overflow-hidden shrink-0" title="Click to upload avatar">
+                            <img id="change-group-avatar-preview" src="{{.Group.AvatarUrl}}" class="size-full object-cover rounded-xl" alt="Group avatar">
                             {{if .Member.Role.PermGroupChange.Has}}
-                            <input type="file" id="change-group-avatar" name="avatar" accept="image/*" class="hidden" onchange="if(this.files && this.files[0]){ const img=document.getElementById('change-group-avatar-preview'); const icon=document.getElementById('change-group-avatar-icon'); img.src=URL.createObjectURL(this.files[0]); img.classList.remove('hidden'); if(icon) icon.classList.add('hidden'); }">
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                <span class="icon icon-[lucide--camera] size-5"></span>
+                            </div>
+                            <input type="file" id="change-group-avatar" name="avatar" accept="image/*" class="hidden" onchange="if(this.files && this.files[0]){ const img=document.getElementById('change-group-avatar-preview'); img.src=URL.createObjectURL(this.files[0]); }">
                             {{end}}
                         </label>
                         <div>

@@ -1,6 +1,8 @@
 package model
 
 import (
+	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -206,4 +208,18 @@ func (user User) MemberList() []Member {
 
 func (user User) IsOnline() bool {
 	return session.UserSessionMap.IsOnline(user.Id)
+}
+
+func (user User) AvatarUrl() string {
+	if user.Avatar != "" {
+		return string(user.Avatar)
+	}
+	seed := string(user.Name)
+	if seed == "" {
+		seed = string(user.Moniker)
+	}
+	if seed == "" {
+		seed = "user"
+	}
+	return fmt.Sprintf("https://api.dicebear.com/7.x/identicon/png?seed=%s", url.QueryEscape(seed))
 }
