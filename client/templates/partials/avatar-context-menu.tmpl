@@ -1,6 +1,6 @@
 <details class="dropdown dropdown-end">
     <summary id="avatar-button" class="btn btn-ghost normal-case flex items-center gap-2 cursor-pointer list-none">
-        <span class="truncate max-w-44 flex items-center gap-1 font-semibold" title={{with .User.Moniker}}{{.}}{{end}}>
+        <span class="hidden sm:inline truncate max-w-44 flex items-center gap-1 font-semibold" title={{with .User.Moniker}}{{.}}{{end}}>
             {{if not .User.IsEmpty}}{{.User.Moniker}}{{else}}Guest{{end}}
         </span>
         <div class="avatar shrink-0" aria-hidden="true">

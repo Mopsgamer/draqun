@@ -4,10 +4,9 @@
             <span class="icon icon-[lucide--settings-2] size-6 text-primary" aria-hidden="true"></span>
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">Group Settings</h1>
-                <p class="text-xs text-base-content/60 mt-0.5">Edit <span class="font-semibold text-base-content/90">{{.TargetRole.Moniker}}</span> in <span class="font-semibold text-base-content/90">{{.Group.Moniker}}</span></p>
             </div>
         </div>
-        <button class="btn btn-ghost btn-sm gap-1.5 text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
+        <button class="btn btn-ghost btn-sm text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
             <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
             Back
         </button>
@@ -135,7 +134,7 @@
             <div class="flex gap-2">
                 <button class="btn btn-ghost btn-sm" type="button" onclick="history.back()">Cancel</button>
                 {{if or .Role.PermRoles.Has .Role.PermAdmin.Has (eq .Member.UserId .Group.OwnerId)}}
-                <button class="btn btn-primary btn-sm gap-1.5" type="submit">
+                <button class="btn btn-primary btn-sm" type="submit">
                     <span class="icon icon-[lucide--check] size-3.5"></span>
                     Save Changes
                 </button>

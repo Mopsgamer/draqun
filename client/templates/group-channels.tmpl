@@ -4,10 +4,9 @@
             <span class="icon icon-[lucide--settings-2] size-6 text-primary" aria-hidden="true"></span>
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">Group Settings</h1>
-                <p class="text-xs text-base-content/60 mt-0.5">Manage channels and permissions for <span class="font-semibold text-base-content/90">{{.Group.Moniker}}</span></p>
             </div>
         </div>
-        <button class="btn btn-ghost btn-sm gap-1.5 text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
+        <button class="btn btn-ghost btn-sm text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
             <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
             Back
         </button>
@@ -23,10 +22,9 @@
                     <span class="icon icon-[lucide--hash] size-4 text-primary" aria-hidden="true"></span>
                     Group Channels ({{len .ChannelItems}})
                 </h2>
-                <p class="text-xs text-base-content/60">Manage channels, subchannels, and channel permission overrides.</p>
             </div>
             {{if .Member.Role.PermGroupChange.Has}}
-            <a class="btn btn-primary btn-sm gap-1.5" href="/groups/{{.Group.Id}}/settings/channels/create">
+            <a class="btn btn-primary btn-xs" href="/groups/{{.Group.Id}}/settings/channels/create">
                 <span class="icon icon-[lucide--plus] size-3.5"></span>
                 Create Channel
             </a>
@@ -37,7 +35,7 @@
         <div class="py-8 text-center text-sm text-base-content/60 flex flex-col items-center gap-3">
             <span>No channels in this group yet.</span>
             {{if .Member.Role.PermGroupChange.Has}}
-            <a class="btn btn-primary btn-sm gap-1.5" href="/groups/{{.Group.Id}}/settings/channels/create">
+            <a class="btn btn-primary btn-sm" href="/groups/{{.Group.Id}}/settings/channels/create">
                 <span class="icon icon-[lucide--plus] size-3.5"></span>
                 Create First Channel
             </a>

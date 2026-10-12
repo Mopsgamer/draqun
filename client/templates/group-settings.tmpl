@@ -4,10 +4,9 @@
             <span class="icon icon-[lucide--settings-2] size-6 text-primary" aria-hidden="true"></span>
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">Group Settings</h1>
-                <p class="text-xs text-base-content/60 mt-0.5">Configuration and permissions for <span class="font-semibold text-base-content/90">{{.Group.Moniker}}</span></p>
             </div>
         </div>
-        <button class="btn btn-ghost btn-sm gap-1.5 text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
+        <button class="btn btn-ghost btn-sm text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
             <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
             Back
         </button>
@@ -42,7 +41,6 @@
                     <span class="icon icon-[lucide--pen-tool] size-4 text-primary" aria-hidden="true"></span>
                     Group Identity
                 </h2>
-                <p class="text-xs text-base-content/60">Moniker, avatar, description, and privacy settings.</p>
             </div>
 
             <div class="divide-y divide-base-content/10">
@@ -110,7 +108,7 @@
             {{if .Member.Role.PermGroupChange.Has}}
             <div class="flex justify-end gap-2 pt-2 border-t border-base-content/10">
                 <button class="btn btn-ghost btn-sm" type="button" onclick="history.back()">Cancel</button>
-                <button class="btn btn-primary btn-sm gap-1.5" type="submit" form="group-change-form">
+                <button class="btn btn-primary btn-sm" type="submit" form="group-change-form">
                     <span class="icon icon-[lucide--check] size-3.5"></span>
                     Save Changes
                 </button>

@@ -5,6 +5,12 @@
                 <span class="icon icon-[lucide--menu] size-5" aria-hidden="true"></span>
             </summary>
             <ul class="dropdown-content menu menu-sm w-56 z-30 mt-2 p-1 rounded-box">
+                <li>
+                    <a href="/chat">
+                        <span class="icon icon-logo size-4" aria-hidden="true"></span>
+                        Open {{.AppName}}
+                    </a>
+                </li>
                 {{if ne .Ctx.Path "/"}}
                 <li>
                     <a href="/">
@@ -13,12 +19,6 @@
                     </a>
                 </li>
                 {{end}}
-                <li>
-                    <a href="/chat">
-                        <span class="brand-logo size-4" aria-hidden="true"></span>
-                        Open {{.AppName}}
-                    </a>
-                </li>
                 <li>
                     <a href="/docs">
                         <span class="icon icon-[lucide--code-xml] size-4" aria-hidden="true"></span>
@@ -34,7 +34,7 @@
             </ul>
         </details>
         <a class="btn btn-ghost text-base font-bold gap-2 normal-case text-white hover:text-white" href="/" aria-label="{{.AppName}} home">
-            <span class="brand-logo" aria-hidden="true"></span>
+            <span class="icon icon-logo size-8" aria-hidden="true"></span>
             <span>{{.AppName}}</span>
         </a>
     </nav>

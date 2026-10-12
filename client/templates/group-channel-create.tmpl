@@ -7,7 +7,7 @@
                 <p class="text-xs text-base-content/60 mt-0.5">Add a new channel or subchannel for <span class="font-semibold text-base-content/90">{{.Group.Moniker}}</span></p>
             </div>
         </div>
-        <button class="btn btn-ghost btn-sm gap-1.5 text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
+        <button class="btn btn-ghost btn-sm text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
             <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
             Back
         </button>
@@ -16,7 +16,7 @@
     {{template "partials/group-settings-nav" .}}
 
     <form
-        class="flex flex-col gap-6 p-6 rounded-xl bg-surface-card border border-base-content/10"
+        class="flex flex-col gap-6"
         id="create-channel-form"
         hx-post="/groups/{{.Group.Id}}/channels/create"
         hx-swap="innerHTML"
@@ -64,7 +64,7 @@
 
         <div class="flex justify-end gap-2 pt-2 border-t border-base-content/10">
             <a class="btn btn-ghost btn-sm" href="/groups/{{.Group.Id}}/settings/channels">Cancel</a>
-            <button class="btn btn-primary btn-sm gap-1.5" type="submit">
+            <button class="btn btn-primary btn-sm" type="submit">
                 <span class="icon icon-[lucide--plus] size-3.5"></span>
                 Create Channel
             </button>

@@ -41,12 +41,17 @@ domLoaded.then(() => {
 			event.stopPropagation();
 			const membersView = document.getElementById("members-view");
 			if (membersView) {
-				const channelsView = document.getElementById("channels-view");
-				if (channelsView && globalThis.innerWidth < 768) {
-					channelsView.classList.remove("open");
+				const isDesktop = globalThis.innerWidth >= 768;
+				if (isDesktop) {
+					membersView.classList.toggle("closed");
+				} else {
+					const channelsView = document.getElementById("channels-view");
+					if (channelsView) channelsView.classList.remove("open");
+					membersView.classList.toggle("open");
 				}
-				membersView.classList.toggle("open");
-				const isOpen = membersView.classList.contains("open");
+				const isOpen = isDesktop
+					? !membersView.classList.contains("closed")
+					: membersView.classList.contains("open");
 				document.querySelectorAll(".group-members-toggle").forEach((btn) => {
 					btn.setAttribute("aria-expanded", String(isOpen));
 				});

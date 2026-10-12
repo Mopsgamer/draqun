@@ -12,8 +12,17 @@
         hx-post="/groups/{{.Group.Id}}/messages/create"
         {{end}}
     >
+        <button
+            class="btn btn-ghost btn-square shrink-0"
+            type="button"
+            title="Upload file (disabled)"
+            aria-label="Upload file"
+            disabled
+        >
+            <span class="icon icon-[lucide--paperclip] size-5" aria-hidden="true"></span>
+        </button>
         <div class="flex flex-col flex-1 min-w-0">
-            <div id="send-message-error" class="w-full text-error text-xs font-semibold pb-1"></div>
+            <div id="send-message-error" class="w-full text-error text-xs font-semibold pb-1 empty:pb-0"></div>
             <textarea
                 class="textarea textarea-bordered w-full h-10 min-h-10 max-h-32 field-sizing-content bg-surface-inset text-base leading-snug rounded-lg"
                 id="new-message-input"
@@ -35,35 +44,4 @@
             </button>
         </div>
     </form>
-    <div class="flex flex-row items-center w-full text-xs">
-        <nav class="breadcrumbs text-xs py-0">
-            <ul>
-                <li>
-                    <a href="/chat" class="flex items-center gap-1">
-                        <span class="icon icon-[lucide--house] size-3.5" aria-hidden="true"></span>
-                        {{.AppName}}
-                    </a>
-                </li>
-            {{- if not .Group.IsEmpty -}}
-                <li>
-                    <button
-                        class="btn btn-ghost btn-xs gap-1 normal-case group-members-toggle cursor-pointer"
-                        type="button"
-                        aria-label="Toggle members for {{.Group.Moniker}}"
-                        aria-controls="members-view"
-                        aria-expanded="false"
-                    >
-                        <span class="icon icon-[lucide--users] size-3.5" aria-hidden="true"></span>
-                        <span>{{- .Group.Moniker -}}</span>
-                    </button>
-                {{- if not .Member.IsEmpty -}}
-                    <span class="inline-flex items-center ml-1">
-                        {{template "partials/group-actions" .Group}}
-                    </span>
-                {{- end -}}
-                </li>
-            {{- end -}}
-            </ul>
-        </nav>
-    </div>
 </div>
