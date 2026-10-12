@@ -5,6 +5,9 @@
 	/* Distinct background steps */
 	--surface-canvas: #eef3f1;
 	--surface-chrome: #073b3a;
+	--surface-chrome-content: #f0fdfa;
+	--surface-chrome-hover: color-mix(in srgb, white 14%, var(--surface-chrome));
+	--surface-chrome-muted: #99f6e4;
 	--surface-hover: color-mix(in srgb, var(--surface-chrome) 25%, var(--color-primary));
 	--surface-panel: #f8faf9;
 	--surface-card: #ffffff;
@@ -24,6 +27,9 @@
 [data-theme="dark"] {
 	--surface-canvas: #0d1211;
 	--surface-chrome: #062e2d;
+	--surface-chrome-content: #f0fdfa;
+	--surface-chrome-hover: color-mix(in srgb, white 14%, var(--surface-chrome));
+	--surface-chrome-muted: #99f6e4;
 	--surface-panel: #151b1a;
 	--surface-card: #1e2625;
 	--surface-card-hover: color-mix(in srgb, var(--color-primary) 15%, #1e2625);
@@ -120,13 +126,27 @@ body {
 
 #header {
 	background-color: var(--surface-chrome);
-	color: white;
+	color: var(--surface-chrome-content);
 	flex-shrink: 0;
 	position: relative;
 	z-index: 20;
 	height: 3.5rem !important;
 	min-height: 3.5rem !important;
-	--btn-color: var(--surface-hover);
+	--btn-color: var(--surface-chrome-content);
+}
+
+#header :where(.btn-ghost, .btn) {
+	color: var(--surface-chrome-content);
+}
+
+#header :where(.btn-ghost, .btn):hover {
+	background-color: var(--surface-chrome-hover);
+	color: #ffffff;
+}
+
+#header :where(.btn-ghost, .btn):focus-visible {
+	outline: 2px solid var(--surface-chrome-muted);
+	outline-offset: 2px;
 }
 
 #footer {

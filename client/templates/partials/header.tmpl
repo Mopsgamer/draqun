@@ -1,7 +1,7 @@
-<header id="header" class="navbar">
-    <nav class="navbar-start gap-1">
+<header id="header" class="navbar px-2 gap-2">
+    <nav class="navbar-start items-center gap-1">
         <details class="dropdown">
-            <summary class="btn btn-ghost btn-square cursor-pointer list-none flex items-center justify-center" id="page-nav" aria-label="Open navigation">
+            <summary class="btn btn-ghost btn-square btn-sm cursor-pointer list-none flex items-center justify-center" id="page-nav" aria-label="Open navigation">
                 <span class="icon icon-[lucide--menu] size-5" aria-hidden="true"></span>
             </summary>
             <ul class="dropdown-content menu menu-sm w-56 z-30 mt-2 p-1 rounded-box">
@@ -33,12 +33,12 @@
                 </li>
             </ul>
         </details>
-        <a class="btn btn-ghost text-base font-bold gap-2 normal-case text-white hover:text-white" href="/" aria-label="{{.AppName}} home">
-            <span class="icon icon-logo size-8" aria-hidden="true"></span>
+        <a class="btn btn-ghost text-base font-bold gap-2 normal-case shrink-0 px-2" href="/" aria-label="{{.AppName}} home">
+            <span class="icon icon-logo size-7" aria-hidden="true"></span>
             <span>{{.AppName}}</span>
         </a>
     </nav>
-    <nav class="navbar-end">
+    <nav class="navbar-end items-center gap-1">
         {{- template "partials/avatar-context-menu" .}}
     </nav>
 </header>

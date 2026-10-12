@@ -1,7 +1,7 @@
 <header id="header" class="navbar px-2 gap-2">
     <nav class="navbar-start items-center gap-1">
-        <a class="btn btn-ghost text-base font-bold gap-2 normal-case text-white hover:text-white shrink-0 px-2" href="/chat" aria-label="{{.AppName}} home">
-            <span class="icon icon-logo size-8" aria-hidden="true"></span>
+        <a class="btn btn-ghost text-base font-bold gap-2 normal-case shrink-0 px-2" href="/chat" aria-label="{{.AppName}} home">
+            <span class="icon icon-logo size-7" aria-hidden="true"></span>
             <span class="hidden sm:inline">{{.AppName}}</span>
         </a>
         <button
@@ -15,13 +15,15 @@
             <span class="icon icon-[lucide--panel-left] size-5" aria-hidden="true"></span>
         </button>
         {{if and .ActiveChannel (not .ActiveChannel.IsEmpty)}}
-        <span
+        <button
+            type="button"
             onclick="document.getElementById('channel-description-modal')?.showModal()"
-            class="font-bold text-white flex items-center gap-1 text-sm truncate"
+            class="btn btn-ghost btn-sm font-bold gap-1 text-sm truncate max-w-44 sm:max-w-64 px-2"
+            title="Channel details"
         >
-            <span class="icon icon-[lucide--hash] size-4" aria-hidden="true"></span>
+            <span class="icon icon-[lucide--hash] size-4 shrink-0" aria-hidden="true"></span>
             <span class="truncate hidden sm:inline">{{.ActiveChannel.Moniker}}</span>
-        </span>
+        </button>
         {{end}}
     </nav>
     <nav class="navbar-end items-center gap-1">
