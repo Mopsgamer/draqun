@@ -40,7 +40,7 @@
         <div id="channels" class="flex flex-col gap-1 py-1 overflow-y-auto flex-1">
             {{if eq (len .Channels) 0}}
             <div class="p-3 text-xs text-base-content/60 text-center flex flex-col gap-2 my-auto">
-                <span>No text channels in this group yet.</span>
+                <span>No channels in this group yet.</span>
                 {{if not .Member.IsEmpty}}
                 <a class="btn btn-primary btn-xs gap-1" href="/groups/{{.Group.Id}}/settings/channels/create">
                     <span class="icon icon-[lucide--plus] size-3.5"></span>
@@ -90,8 +90,8 @@
                 <span class="icon icon-[lucide--hash] size-8"></span>
             </span>
             <div class="flex flex-col gap-1 max-w-sm">
-                <h3 class="font-bold text-lg">No text channels yet</h3>
-                <p class="text-xs text-base-content/60">This group has no text channels. Create a channel to start messaging with members.</p>
+                <h3 class="font-bold text-lg">No channels yet</h3>
+                <p class="text-xs text-base-content/60">This group has no channels. Create a channel to start messaging with members.</p>
             </div>
             {{if not .Member.IsEmpty}}
             <a class="btn btn-primary btn-sm gap-1.5 mt-2" href="/groups/{{.Group.Id}}/settings/channels/create">

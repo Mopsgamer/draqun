@@ -35,7 +35,7 @@
 
         {{if eq (len .ChannelItems) 0}}
         <div class="py-8 text-center text-sm text-base-content/60 flex flex-col items-center gap-3">
-            <span>No text channels in this group yet.</span>
+            <span>No channels in this group yet.</span>
             {{if .Member.Role.PermGroupChange.Has}}
             <a class="btn btn-primary btn-sm gap-1.5" href="/groups/{{.Group.Id}}/settings/channels/create">
                 <span class="icon icon-[lucide--plus] size-3.5"></span>

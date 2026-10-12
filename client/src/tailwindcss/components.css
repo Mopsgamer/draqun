@@ -93,6 +93,7 @@ body {
 	background-color: var(--surface-canvas);
 }
 
+#real-body:has(.secondary-view),
 #real-body:has(#chat) {
 	height: 100svh;
 	min-height: 0;
@@ -111,6 +112,7 @@ body {
 	background-color: var(--surface-canvas);
 }
 
+#app-content:has(.secondary-view),
 #app-content:has(#chat) {
 	flex-direction: row;
 	overflow: hidden;

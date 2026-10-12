@@ -69,8 +69,12 @@ func (channel Channel) Validate() htmx.Alert {
 	return nil
 }
 
+func (channel Channel) IsEmpty() bool {
+	return channel.Id == 0
+}
+
 func (channel Channel) IsAvailable() bool {
-	return !channel.IsEmpty() && !channel.IsDeleted
+	return channel.Id != 0 && !channel.IsDeleted
 }
 
 func (channel *Channel) Insert() error {
@@ -119,6 +123,9 @@ func GetGroupChannels(groupId uint64) ([]Channel, error) {
 	}
 
 	err = Sqlx.Select(&channels, sql, args...)
+	for i := range channels {
+		channels[i].SetFullfilled()
+	}
 	return channels, err
 }
 
@@ -137,6 +144,9 @@ func GetAllGroupChannels(groupId uint64) ([]Channel, error) {
 	}
 
 	err = Sqlx.Select(&channels, sql, args...)
+	for i := range channels {
+		channels[i].SetFullfilled()
+	}
 	return channels, err
 }
 
