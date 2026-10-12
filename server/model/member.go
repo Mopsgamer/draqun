@@ -223,7 +223,7 @@ func (member Member) LastTimeJoinedAt() TimePast {
 
 func (member Member) MessagesCount() uint64 {
 	count := uint64(0)
-	sql, args, err := Goqu.Select(goqu.COUNT("*")).From(TableMessages).
+	sql, args, err := Goqu.Select(goqu.COUNT("*").As("count")).From(TableMessages).
 		Where(goqu.Ex{"group_id": member.GroupId, "author_id": member.UserId}).
 		Prepared(true).ToSQL()
 	if err != nil {

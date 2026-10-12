@@ -464,6 +464,8 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					channels, _ := model.GetGroupChannels(group.Id)
 					if len(channels) > 0 {
 						channelId = channels[0].Id
+					} else {
+						return htmx.AlertGroupNotFound
 					}
 				}
 
@@ -611,7 +613,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					activeChannel = channels[0]
 					messageList = activeChannel.MessagesPage(page, MessagesPagination)
 				} else {
-					messageList = group.MessagesPage(page, MessagesPagination)
+					return htmx.AlertGroupNotFound
 				}
 
 				if htmx.IsHtmx(ctx) {

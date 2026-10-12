@@ -17,6 +17,15 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 	cookieOwner, owner := createTestUserCookie(t, ts, "Owner User", "role_owner", "role_owner@example.com")
 	group := createTestGroupDirectly(t, int64(owner.Id), "Roles Test Group", "roles_test_group")
 
+	// Create a text channel for the test group
+	ch := model.NewChannel("general", "General Chat", "General text chat", model.ChannelTypeText)
+	if err := ch.Insert(); err != nil {
+		t.Fatalf("failed to insert channel: %v", err)
+	}
+	if err := model.AddGroupChannel(group.Id, ch.Id, 0); err != nil {
+		t.Fatalf("failed to add group channel: %v", err)
+	}
+
 	// Register Second User (Member/Target)
 	cookieMember, memberUser := createTestUserCookie(t, ts, "Member User", "role_member", "role_member@example.com")
 
