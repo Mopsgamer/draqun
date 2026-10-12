@@ -19,47 +19,40 @@ function closeAllBut(
 }
 
 domLoaded.then(() => {
-	const membersTogglers = Array.from(
-		document.getElementsByClassName("group-members-toggle"),
-	).filter((element): element is HTMLButtonElement =>
-		element instanceof HTMLButtonElement
-	);
-	const channelsTogglers = Array.from(
-		document.getElementsByClassName("group-channels-toggle"),
-	).filter((element): element is HTMLButtonElement =>
-		element instanceof HTMLButtonElement
-	);
-	const secondaryViewList = Array.from(
-		document.getElementsByClassName("secondary-view"),
-	) as HTMLElement[];
+	document.addEventListener("click", (event) => {
+		const target = event.target as HTMLElement | null;
+		if (!target) return;
 
-	const membersView = document.getElementById("members-view");
-	const channelsView = document.getElementById("channels-view");
+		const channelsBtn = target.closest(".group-channels-toggle");
+		if (channelsBtn) {
+			const channelsView = document.getElementById("channels-view");
+			if (channelsView) {
+				const secondaryViewList = Array.from(
+					document.getElementsByClassName("secondary-view"),
+				) as HTMLElement[];
+				closeAllBut(channelsView, secondaryViewList);
+				const isOpen = channelsView.classList.contains("open");
+				document.querySelectorAll(".group-channels-toggle").forEach((btn) => {
+					btn.setAttribute("aria-expanded", String(isOpen));
+				});
+			}
+			return;
+		}
 
-	if (membersView && membersTogglers.length > 0) {
-		for (const membersToggler of membersTogglers) {
-			membersToggler.addEventListener("click", () => {
-				if (channelsView) channelsView.classList.remove("open");
+		const membersBtn = target.closest(".group-members-toggle");
+		if (membersBtn) {
+			const membersView = document.getElementById("members-view");
+			if (membersView) {
+				const secondaryViewList = Array.from(
+					document.getElementsByClassName("secondary-view"),
+				) as HTMLElement[];
 				closeAllBut(membersView, secondaryViewList);
 				const isOpen = membersView.classList.contains("open");
-				for (const toggler of membersTogglers) {
-					toggler.setAttribute("aria-expanded", String(isOpen));
-				}
-			});
+				document.querySelectorAll(".group-members-toggle").forEach((btn) => {
+					btn.setAttribute("aria-expanded", String(isOpen));
+				});
+			}
+			return;
 		}
-	}
-
-	if (channelsView && channelsTogglers.length > 0) {
-		for (const channelsToggler of channelsTogglers) {
-			channelsToggler.addEventListener("click", () => {
-				if (membersView) membersView.classList.remove("open");
-				channelsView.classList.toggle("open");
-				channelsView.classList.toggle("closed");
-				const isOpen = channelsView.classList.contains("open");
-				for (const toggler of channelsTogglers) {
-					toggler.setAttribute("aria-expanded", String(isOpen));
-				}
-			});
-		}
-	}
+	});
 });
