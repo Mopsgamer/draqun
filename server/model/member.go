@@ -72,7 +72,7 @@ func (member Member) Roles() []Role {
 			goqu.I(TableRoleAssignees+".role_id").Eq(goqu.C("id").Table(TableRoles)),
 		)).
 		Where(goqu.Ex{TableRoles + ".group_id": member.GroupId, TableRoleAssignees + ".user_id": member.UserId}).
-		Order(goqu.I(TableRoles + ".position").Asc(), goqu.I(TableRoles + ".id").Asc()).
+		Order(goqu.I(TableRoles+".position").Asc(), goqu.I(TableRoles+".id").Asc()).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
