@@ -116,7 +116,7 @@ func GetGroupChannels(groupId uint64) ([]Channel, error) {
 			goqu.I(TableChannels+".is_deleted").Eq(false),
 			goqu.I(TableChannelRelations+".child_id").Is(nil),
 		)).
-		Order(goqu.I(TableGroupChannels + ".position").Asc(), goqu.I(TableChannels + ".id").Asc()).
+		Order(goqu.I(TableGroupChannels+".position").Asc(), goqu.I(TableChannels+".id").Asc()).
 		Prepared(true).ToSQL()
 	if err != nil {
 		return nil, err
@@ -135,9 +135,9 @@ func GetAllGroupChannels(groupId uint64) ([]Channel, error) {
 		Join(goqu.I(TableChannels), goqu.On(goqu.I(TableChannels+".id").Eq(goqu.I(TableGroupChannels+".channel_id")))).
 		Where(goqu.Ex{
 			TableGroupChannels + ".group_id": groupId,
-			TableChannels + ".is_deleted":   false,
+			TableChannels + ".is_deleted":    false,
 		}).
-		Order(goqu.I(TableGroupChannels + ".position").Asc(), goqu.I(TableChannels + ".id").Asc()).
+		Order(goqu.I(TableGroupChannels+".position").Asc(), goqu.I(TableChannels+".id").Asc()).
 		Prepared(true).ToSQL()
 	if err != nil {
 		return nil, err
@@ -238,7 +238,7 @@ func GetUserWallChannel(userId uint64) (*Channel, error) {
 		Join(goqu.I(TableChannels), goqu.On(goqu.I(TableChannels+".id").Eq(goqu.I(TableUserChannels+".channel_id")))).
 		Where(goqu.Ex{
 			TableUserChannels + ".user_id": userId,
-			TableChannels + ".is_deleted": false,
+			TableChannels + ".is_deleted":  false,
 		}).
 		Limit(1).
 		Prepared(true).ToSQL()
