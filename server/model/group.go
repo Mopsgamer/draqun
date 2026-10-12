@@ -413,14 +413,14 @@ func (group Group) AvatarUrl() string {
 	if group.Avatar != "" {
 		return string(group.Avatar)
 	}
-	seed := string(group.Name)
+	seed := string(group.Moniker)
 	if seed == "" {
-		seed = string(group.Moniker)
+		seed = string(group.Name)
 	}
 	if seed == "" {
 		seed = "group"
 	}
-	return fmt.Sprintf("https://api.dicebear.com/7.x/identicon/png?seed=%s&backgroundColor=ffffff", url.QueryEscape(seed))
+	return fmt.Sprintf("https://ui-avatars.com/api/?name=%s&background=ffffff&color=000000&bold=true", url.QueryEscape(seed))
 }
 
 func (group Group) UrlJoin(ctx fiber.Ctx) string {

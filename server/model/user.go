@@ -214,12 +214,12 @@ func (user User) AvatarUrl() string {
 	if user.Avatar != "" {
 		return string(user.Avatar)
 	}
-	seed := string(user.Name)
+	seed := string(user.Moniker)
 	if seed == "" {
-		seed = string(user.Moniker)
+		seed = string(user.Name)
 	}
 	if seed == "" {
 		seed = "user"
 	}
-	return fmt.Sprintf("https://api.dicebear.com/7.x/identicon/png?seed=%s&backgroundColor=ffffff", url.QueryEscape(seed))
+	return fmt.Sprintf("https://ui-avatars.com/api/?name=%s&background=ffffff&color=000000&bold=true", url.QueryEscape(seed))
 }
