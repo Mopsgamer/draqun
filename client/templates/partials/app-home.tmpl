@@ -47,13 +47,15 @@
                     href="/chat/groups/{{$group.Id}}"
                     class="card bg-surface-card hover:bg-[var(--surface-card-hover)] p-4 min-h-36 flex flex-col justify-between border border-base-content/10 transition-colors"
                 >
-                    <span class="inline-flex size-10 items-center justify-center rounded-lg border border-dashed border-primary-content bg-primary/20 text-primary-content overflow-hidden shrink-0" aria-hidden="true">
-                        {{if ne $group.Avatar ""}}
-                            <img src="{{$group.Avatar}}" class="size-full object-cover rounded-lg" alt="Group avatar">
-                        {{else}}
-                            <span class="icon icon-[lucide--users] size-5"></span>
-                        {{end}}
-                    </span>
+                    <div class="avatar {{if eq $group.Avatar ""}}avatar-placeholder{{end}} shrink-0" aria-hidden="true">
+                        <div class="w-10 rounded-xl {{if eq $group.Avatar ""}}bg-neutral text-neutral-content flex items-center justify-center{{end}}">
+                            {{if ne $group.Avatar ""}}
+                                <img src="{{$group.Avatar}}" alt="{{$group.Moniker}} avatar">
+                            {{else}}
+                                <span class="icon icon-[lucide--users] size-5"></span>
+                            {{end}}
+                        </div>
+                    </div>
                     <div class="flex flex-col gap-0.5">
                         <span class="font-bold truncate text-base" title="{{$group.Moniker}}">
                             {{- $group.Moniker -}}

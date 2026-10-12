@@ -1,4 +1,4 @@
-<nav class="flex items-center border-b border-base-content/10 gap-6 mb-8 overflow-x-auto" hx-boost="true">
+<nav class="flex items-center border-b border-base-content/10 gap-6 mb-8 overflow-x-auto" hx-boost="true" hx-replace-url="true">
     <a href="/groups/{{.Group.Id}}/settings" class="flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap {{if eq .Tab "general"}}border-primary text-primary font-semibold{{else}}border-transparent text-base-content/60 hover:text-base-content{{end}}">
         <span class="icon icon-[lucide--sliders-horizontal] size-4" aria-hidden="true"></span>
         General

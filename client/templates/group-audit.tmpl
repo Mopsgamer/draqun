@@ -29,12 +29,14 @@
                 <div class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3 min-w-0">
                         {{if ne .Target.Moniker ""}}
-                        <div class="bg-neutral text-neutral-content rounded-full size-7 flex items-center justify-center shrink-0 overflow-hidden">
-                            {{if ne .Target.Avatar ""}}
-                            <img src="{{.Target.Avatar}}" class="size-full object-cover" alt="{{.Target.Moniker}}" />
-                            {{else}}
-                            <span class="icon icon-[lucide--user] size-3.5" aria-hidden="true"></span>
-                            {{end}}
+                        <div class="avatar {{if eq .Target.Avatar ""}}avatar-placeholder{{end}} shrink-0">
+                            <div class="w-7 rounded-full {{if eq .Target.Avatar ""}}bg-neutral text-neutral-content flex items-center justify-center{{end}}">
+                                {{if ne .Target.Avatar ""}}
+                                <img src="{{.Target.Avatar}}" alt="{{.Target.Moniker}}" />
+                                {{else}}
+                                <span class="icon icon-[lucide--user] size-3.5" aria-hidden="true"></span>
+                                {{end}}
+                            </div>
                         </div>
                         {{else}}
                         <span class="size-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">

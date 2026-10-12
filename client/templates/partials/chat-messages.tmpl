@@ -20,13 +20,15 @@
 >
     <div class="header">
         <div class="prefix">
-            <span class="inline-flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0 overflow-hidden" aria-hidden="true">
-                {{if ne $message.Author.Avatar ""}}
-                    <img src="{{$message.Author.Avatar}}" class="size-full object-cover rounded-full" alt="Author avatar">
-                {{else}}
-                    <span class="icon icon-[lucide--user-round] size-4"></span>
-                {{end}}
-            </span>
+            <div class="avatar {{if eq $message.Author.Avatar ""}}avatar-placeholder{{end}} shrink-0" aria-hidden="true">
+                <div class="w-7 rounded-full {{if eq $message.Author.Avatar ""}}bg-neutral text-neutral-content flex items-center justify-center{{end}}">
+                    {{if ne $message.Author.Avatar ""}}
+                        <img src="{{$message.Author.Avatar}}" alt="Author avatar">
+                    {{else}}
+                        <span class="icon icon-[lucide--user] size-4"></span>
+                    {{end}}
+                </div>
+            </div>
             <span class="font-bold text-sm truncate max-w-52">{{$message.Author.Moniker}}</span>
         </div>
         <div class="suffix">

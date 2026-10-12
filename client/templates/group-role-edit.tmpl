@@ -114,15 +114,20 @@
 
         <div class="flex justify-between items-center pt-2 border-t border-base-content/10">
             {{if and (ne .TargetRole.Name "@everyone") (or .Role.PermRoles.Has .Role.PermAdmin.Has (eq .Member.UserId .Group.OwnerId))}}
-            <button
-                type="button"
-                class="btn btn-error btn-xs gap-1"
-                hx-delete="/groups/{{.Group.Id}}/roles/{{.TargetRole.Id}}"
-                hx-confirm="Are you sure you want to delete this role?"
-            >
-                <span class="icon icon-[lucide--trash-2] size-3"></span>
-                Delete Role
-            </button>
+            <details class="dropdown dropdown-start">
+                <summary class="btn btn-error btn-xs gap-1">
+                    <span class="icon icon-[lucide--trash-2] size-3"></span>
+                    Delete Role
+                </summary>
+                <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-56 mt-1 flex flex-col gap-2">
+                    <span class="font-semibold text-xs text-error">Delete role?</span>
+                    <button
+                        type="button"
+                        class="btn btn-error btn-xs w-full"
+                        hx-delete="/groups/{{.Group.Id}}/roles/{{.TargetRole.Id}}"
+                    >Confirm Delete</button>
+                </div>
+            </details>
             {{else}}
             <div></div>
             {{end}}

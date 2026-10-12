@@ -31,19 +31,14 @@
             <div class="py-4 flex flex-col gap-3">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-3.5">
-                        <div class="relative shrink-0">
-                            <div class="bg-neutral text-neutral-content rounded-full size-10 flex items-center justify-center overflow-hidden">
+                        <div class="avatar {{if .IsOnline}}avatar-online{{else}}avatar-offline{{end}} {{if eq .User.Avatar ""}}avatar-placeholder{{end}} shrink-0" title="{{if .IsOnline}}Online{{else}}Offline{{end}}">
+                            <div class="w-10 rounded-full {{if eq .User.Avatar ""}}bg-neutral text-neutral-content flex items-center justify-center{{end}}">
                                 {{if ne .User.Avatar ""}}
-                                <img src="{{.User.Avatar}}" class="size-full object-cover" alt="{{.User.Moniker}}" />
+                                <img src="{{.User.Avatar}}" alt="{{.User.Moniker}}" />
                                 {{else}}
                                 <span class="icon icon-[lucide--user] size-5" aria-hidden="true"></span>
                                 {{end}}
                             </div>
-                            {{if .IsOnline}}
-                            <span class="size-2.5 rounded-full bg-success absolute bottom-0 right-0 ring-2 ring-surface-canvas" title="Online"></span>
-                            {{else}}
-                            <span class="size-2.5 rounded-full bg-base-content/30 absolute bottom-0 right-0 ring-2 ring-surface-canvas" title="Offline"></span>
-                            {{end}}
                         </div>
                         <div class="flex flex-col">
                             <div class="flex items-center gap-2">
