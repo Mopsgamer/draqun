@@ -47,7 +47,7 @@
             <div class="py-4 flex flex-col gap-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
-                        <span class="icon icon-[lucide--hash] size-5 text-primary shrink-0"></span>
+                        <span class="icon {{template "partials/channel-icon-class" .Channel.Type}} size-5 text-primary shrink-0"></span>
                         <div>
                             <span class="font-semibold text-sm">{{.Channel.Moniker}}</span>
                             <span class="text-xs font-mono text-base-content/60 ml-2">#{{.Channel.Name}}</span>
