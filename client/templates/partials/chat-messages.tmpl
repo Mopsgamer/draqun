@@ -36,10 +36,10 @@
         </div>
     </div>
     {{if ne $message.Content ""}}
-    <div class="text text-sm">{{$message.Content}}</div>
+    <div class="text">{{$message.Content}}</div>
     {{end}}
     {{if ne $message.AttachmentUrl ""}}
-    <div class="attachment mt-2">
+    <div class="attachment">
         {{if $message.IsImageAttachment}}
         <div class="relative group/img inline-block max-w-sm rounded-lg overflow-hidden border border-base-content/10">
             <a href="{{$message.AttachmentUrl}}" target="_blank" rel="noopener noreferrer" class="block hover:opacity-90 transition-opacity" title="View image">

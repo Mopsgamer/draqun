@@ -234,7 +234,6 @@ body {
 	min-width: 0;
 	flex: 1 1 0%;
 	flex-direction: column;
-	gap: 0.5rem;
 	display: flex;
 }
 
@@ -314,8 +313,16 @@ body {
 }
 
 .message .text {
-	padding-left: 2.25rem;
+	@apply text-sm;
 	line-height: 1.35;
+}
+
+.message .attachment {
+	@apply mt-2;
+}
+
+.message > :not(.header) {
+	padding-left: 2.25rem;
 }
 
 .message.same-date .header {
