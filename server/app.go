@@ -51,6 +51,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	routes.RoutePages(app)
 	routes.RouteAccount(app)
 	routes.RouteGroups(app)
+	routes.RouteNotifications(app)
 
 	app.Hooks().OnPreStartupMessage(func(sm *fiber.PreStartupMessageData) error {
 		sm.AddInfo("app-version", "Version", "\t\t"+versionString(clientEmbedded), 9)

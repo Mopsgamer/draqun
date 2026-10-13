@@ -39,6 +39,9 @@
         </a>
     </nav>
     <nav class="navbar-end items-center gap-1">
+        {{if and .User (not .User.IsEmpty)}}
+        {{- template "partials/notification-bell" .}}
+        {{end}}
         {{- template "partials/avatar-context-menu" .}}
     </nav>
 </header>

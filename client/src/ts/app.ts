@@ -2,6 +2,7 @@ import "./main.ts";
 
 import "./chat-mutate.ts";
 import "./chat-send.ts";
+import "./notifications.ts";
 import { domLoaded } from "./lib.ts";
 
 import("htmx-ext-ws");

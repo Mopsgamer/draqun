@@ -31,6 +31,7 @@ const (
 	TableDirectChannels     = "app_direct_channels"
 	TableChannelPermissions = "app_channel_permissions"
 	TableChannelAssignees   = "app_channel_assignees"
+	TableNotifications      = "app_notifications"
 )
 
 func LoadDB() error {
@@ -141,6 +142,25 @@ func LoadDB() error {
     PRIMARY KEY (channel_id, user_id),
     FOREIGN KEY (channel_id) REFERENCES app_channels (id),
     FOREIGN KEY (user_id) REFERENCES app_users (id)
+);`)
+
+	_, _ = Sqlx.Exec(`CREATE TABLE IF NOT EXISTS app_notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    actor_id INTEGER NOT NULL,
+    group_id INTEGER NOT NULL,
+    channel_id INTEGER NOT NULL,
+    message_id INTEGER NOT NULL,
+    type VARCHAR(32) NOT NULL DEFAULT 'mention',
+    title VARCHAR(255) NOT NULL,
+    content VARCHAR(510) NOT NULL,
+    is_read BOOLEAN NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES app_users (id),
+    FOREIGN KEY (actor_id) REFERENCES app_users (id),
+    FOREIGN KEY (group_id) REFERENCES app_groups (id),
+    FOREIGN KEY (channel_id) REFERENCES app_channels (id),
+    FOREIGN KEY (message_id) REFERENCES app_group_messages (id)
 );`)
 
 	Goqu = goqu.New("sqlite3", Sqlx)

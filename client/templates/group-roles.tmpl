@@ -1,7 +1,7 @@
 <div class="max-w-3xl mx-auto w-full px-4 py-8 flex flex-col gap-8">
     <div class="flex items-center justify-between pb-4 border-b border-base-content/10">
         <div class="flex items-center gap-3">
-            <span class="icon icon-[lucide--settings-2] size-6 text-primary" aria-hidden="true"></span>
+            <span class="icon icon-[lucide--settings-2] size-6 text-base-content/80" aria-hidden="true"></span>
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">Group Settings</h1>
             </div>
@@ -17,7 +17,7 @@
     <div class="flex flex-col gap-6">
         <div class="flex items-center justify-between pb-2 border-b border-base-content/10">
             <h2 class="text-base font-bold flex items-center gap-2">
-                <span class="icon icon-[lucide--shield-alert] size-4 text-primary" aria-hidden="true"></span>
+                <span class="icon icon-[lucide--shield-alert] size-4 text-base-content/70" aria-hidden="true"></span>
                 Role Hierarchy
             </h2>
             {{if or .Role.PermRoles.Has .Role.PermAdmin.Has (eq .Member.UserId .Group.OwnerId)}}
@@ -70,9 +70,9 @@
                         <!-- Assigned members for this role -->
                         {{$roleAssignees := $role.Assignees}}
                         {{if $roleAssignees}}
-                        <div class="flex flex-wrap gap-1 mt-2">
+                        <div class="flex flex-wrap gap-1.5 mt-2">
                             {{range $roleAssignees}}
-                            <span class="badge badge-sm gap-1 bg-surface-card border border-base-content/10">
+                            <span class="badge badge-sm gap-1 bg-surface-overlay border border-base-content/10 text-xs">
                                 <div class="avatar shrink-0"><div class="w-4 h-4 rounded-full"><img src="{{.AvatarUrl}}" class="size-full object-cover rounded-full" alt="Avatar"></div></div>
                                 <span>{{.Moniker}}</span>
                                 {{if or $.Role.PermRoles.Has $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)}}
@@ -93,11 +93,11 @@
                 {{if and (ne $role.Name "@everyone") (or $.Role.PermRoles.Has $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId))}}
                 <div class="flex items-center gap-1 shrink-0">
                     <details class="dropdown dropdown-end">
-                        <summary class="btn btn-outline btn-xs gap-1 cursor-pointer">
-                            <span class="icon icon-[lucide--user-plus] size-3"></span> Assign Member
+                        <summary class="btn btn-ghost btn-xs gap-1 cursor-pointer">
+                            <span class="icon icon-[lucide--user-plus] size-3"></span> Assign
                         </summary>
-                        <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-72 mt-1 flex flex-col gap-2">
-                            <span class="font-semibold text-xs text-primary">Assign Member to {{$role.Moniker}}</span>
+                        <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-overlay rounded-lg border border-base-content/10 w-72 mt-1 flex flex-col gap-2">
+                            <span class="font-semibold text-xs text-base-content">Assign Member to {{$role.Moniker}}</span>
                             <input
                                 type="text"
                                 name="q"
@@ -107,20 +107,20 @@
                                 hx-trigger="keyup changed delay:200ms, focus"
                                 hx-target="#role-member-search-{{$role.Id}}"
                             />
-                            <div id="role-member-search-{{$role.Id}}" class="max-h-36 overflow-y-auto border border-base-content/10 rounded-lg p-1 bg-surface-overlay flex flex-col gap-0.5 mt-1">
+                            <div id="role-member-search-{{$role.Id}}" class="max-h-36 overflow-y-auto border border-base-content/10 rounded-lg p-1 flex flex-col gap-0.5 mt-1">
                                 <div class="p-2 text-xs text-base-content/50 italic text-center">Type above to search members</div>
                             </div>
                         </div>
                     </details>
-                    <a class="btn btn-ghost btn-xs text-primary hover:bg-primary/10 gap-1" href="/groups/{{$.Group.Id}}/settings/roles/{{$role.Id}}">
+                    <a class="btn btn-ghost btn-xs gap-1 text-base-content/70 hover:text-base-content" href="/groups/{{$.Group.Id}}/settings/roles/{{$role.Id}}">
                         <span class="icon icon-[lucide--pencil] size-3"></span> Edit
                     </a>
                     {{if ne $role.Name "@everyone"}}
                     <details class="dropdown dropdown-end">
-                        <summary class="btn btn-ghost btn-xs text-error hover:bg-error/10 gap-1">
+                        <summary class="btn btn-ghost btn-xs text-base-content/50 hover:text-error gap-1">
                             <span class="icon icon-[lucide--trash-2] size-3"></span> Delete
                         </summary>
-                        <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-56 mt-1 flex flex-col gap-2">
+                        <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-overlay rounded-lg border border-base-content/10 w-56 mt-1 flex flex-col gap-2">
                             <span class="font-semibold text-xs text-error">Delete {{$role.Moniker}}?</span>
                             <button
                                 type="button"

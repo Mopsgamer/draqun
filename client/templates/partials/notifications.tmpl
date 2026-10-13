@@ -1,0 +1,59 @@
+{{- $this := . -}}
+{{- if eq (len $this.Notifications) 0 -}}
+<div class="p-6 text-center text-xs text-base-content/50 italic flex w-full flex-col items-center gap-2">
+    <span class="icon icon-[lucide--bell-off] size-5 text-base-content/30" aria-hidden="true"></span>
+    <span>No notifications</span>
+</div>
+{{- else -}}
+<div class="divide-y divide-base-content/10 max-h-96 overflow-y-auto w-full">
+    {{- range $n := $this.Notifications -}}
+    <div class="py-2.5 px-1 text-xs flex flex-col gap-1 w-full">
+        <div class="flex items-center justify-between gap-2 w-full">
+            <div class="flex items-center gap-1.5 min-w-0 flex-1 truncate">
+                {{if not $n.IsRead}}
+                <span class="size-2 rounded-full bg-error shrink-0" title="Unread"></span>
+                {{end}}
+                <a
+                    href="{{if ne $n.ChannelId 0}}/chat/groups/{{$n.GroupId}}/channels/{{$n.ChannelId}}{{else}}/chat/groups/{{$n.GroupId}}{{end}}"
+                    class="font-medium hover:underline truncate min-w-0 text-base-content"
+                    title="{{$n.Title}}"
+                >
+                    {{$n.Title}}
+                </a>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+                <span class="text-[10px] text-base-content/40 truncate shrink-0" datetime="{{jsonTime $n.CreatedAt.Value}}" data-format-date>{{jsonTime $n.CreatedAt.Value}}</span>
+                {{if not $n.IsRead}}
+                <button
+                    type="button"
+                    hx-post="/notifications/{{$n.Id}}/read"
+                    hx-target="#dropdown-notification-list"
+                    hx-swap="innerHTML"
+                    class="btn btn-ghost btn-xs btn-circle p-0 size-5 min-h-0 text-base-content/50 hover:text-base-content"
+                    title="Mark as read"
+                >
+                    <span class="icon icon-[lucide--check] size-3.5"></span>
+                </button>
+                {{end}}
+                <button
+                    type="button"
+                    hx-delete="/notifications/{{$n.Id}}"
+                    hx-target="#dropdown-notification-list"
+                    hx-swap="innerHTML"
+                    class="btn btn-ghost btn-xs btn-circle p-0 size-5 min-h-0 text-base-content/40 hover:text-error"
+                    title="Delete notification"
+                >
+                    <span class="icon icon-[lucide--trash-2] size-3.5"></span>
+                </button>
+            </div>
+        </div>
+        <a
+            href="{{if ne $n.ChannelId 0}}/chat/groups/{{$n.GroupId}}/channels/{{$n.ChannelId}}{{else}}/chat/groups/{{$n.GroupId}}{{end}}"
+            class="text-base-content/60 line-clamp-2 text-[11px] font-normal break-words hover:text-base-content {{if not $n.IsRead}}pl-3.5{{end}}"
+        >
+            {{$n.Content}}
+        </a>
+    </div>
+    {{- end -}}
+</div>
+{{- end -}}

@@ -1,0 +1,56 @@
+<details class="dropdown dropdown-end">
+    <summary class="btn btn-ghost btn-square btn-sm cursor-pointer list-none flex items-center justify-center relative" aria-label="Notifications" title="Notifications">
+        <div class="indicator">
+            <span class="icon icon-[lucide--bell] size-5" aria-hidden="true"></span>
+            <span id="notification-indicator" class="badge badge-error badge-xs indicator-item {{if eq .UnreadCount 0}}hidden{{end}}">
+                {{- if gt .UnreadCount 99}}99+{{else if gt .UnreadCount 0}}{{.UnreadCount}}{{end -}}
+            </span>
+        </div>
+    </summary>
+    <div class="dropdown-content menu z-50 p-2 shadow-lg bg-surface-overlay rounded-box w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] text-base-content border border-base-content/10 mt-2">
+        <div class="flex items-center w-full justify-between px-2 py-1.5 border-b border-base-content/10 mb-1">
+            <span class="font-bold text-xs uppercase tracking-wider text-base-content/70">Notifications</span>
+            <div class="flex items-center gap-1">
+                <button
+                    type="button"
+                    id="btn-enable-browser-notifications"
+                    onclick="if(window.requestBrowserNotificationsPermission){window.requestBrowserNotificationsPermission();}"
+                    class="btn btn-ghost btn-xs text-[11px] gap-1 text-base-content/60 hover:text-base-content"
+                    title="Enable desktop notifications"
+                >
+                    <span class="icon icon-[lucide--bell-ring] size-3"></span>
+                </button>
+                {{if gt .UnreadCount 0}}
+                <button
+                    type="button"
+                    hx-post="/notifications/read-all"
+                    hx-target="#dropdown-notification-list"
+                    hx-swap="innerHTML"
+                    class="btn btn-ghost btn-xs text-[11px] text-base-content/70 hover:text-base-content"
+                >
+                    Mark read
+                </button>
+                {{end}}
+            </div>
+        </div>
+        <div id="dropdown-notification-list" class="w-full" hx-get="/notifications" hx-trigger="intersect once" hx-swap="innerHTML">
+            {{template "partials/notifications" .}}
+        </div>
+        <div class="flex items-center w-full justify-between pt-1.5 px-2 border-t border-base-content/10 mt-1">
+            <a href="/notifications" class="text-[11px] font-medium text-base-content/70 hover:text-base-content hover:underline flex items-center gap-1">
+                <span>View all notifications</span>
+                <span class="icon icon-[lucide--arrow-right] size-3"></span>
+            </a>
+            <button
+                type="button"
+                hx-delete="/notifications/all"
+                hx-target="#dropdown-notification-list"
+                hx-swap="innerHTML"
+                class="btn btn-ghost btn-xs text-[11px] text-base-content/50 hover:text-error"
+                title="Clear all notifications"
+            >
+                Clear all
+            </button>
+        </div>
+    </div>
+</details>
