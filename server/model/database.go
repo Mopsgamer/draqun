@@ -48,6 +48,10 @@ func LoadDB() error {
 
 	_, _ = Sqlx.Exec(`ALTER TABLE app_group_roles ADD COLUMN position INTEGER NOT NULL DEFAULT 0;`)
 	_, _ = Sqlx.Exec(`ALTER TABLE app_group_messages ADD COLUMN channel_id INTEGER NOT NULL DEFAULT 0;`)
+	_, _ = Sqlx.Exec(`ALTER TABLE app_group_messages ADD COLUMN attachment_url TEXT NOT NULL DEFAULT '';`)
+	_, _ = Sqlx.Exec(`ALTER TABLE app_group_messages ADD COLUMN attachment_name TEXT NOT NULL DEFAULT '';`)
+	_, _ = Sqlx.Exec(`ALTER TABLE app_group_messages ADD COLUMN attachment_size INTEGER NOT NULL DEFAULT 0;`)
+	_, _ = Sqlx.Exec(`ALTER TABLE app_group_messages ADD COLUMN attachment_type TEXT NOT NULL DEFAULT '';`)
 	_, _ = Sqlx.Exec(`ALTER TABLE app_channels ADD COLUMN status VARCHAR(32) NOT NULL DEFAULT 'open';`)
 	_, _ = Sqlx.Exec(`ALTER TABLE app_channels ADD COLUMN closed_reason VARCHAR(32) NOT NULL DEFAULT '';`)
 	_, _ = Sqlx.Exec(`ALTER TABLE app_channels ADD COLUMN author_id INTEGER NOT NULL DEFAULT 0;`)

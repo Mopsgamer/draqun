@@ -10,6 +10,13 @@ domLoaded.then(() => {
 	const input = form.querySelector<HTMLTextAreaElement>(
 		"textarea[data-autoresize]",
 	);
+	const fileInput = document.getElementById(
+		"file-attachment-input",
+	) as HTMLInputElement | null;
+	const previewContainer = document.getElementById("attachment-preview");
+	const previewName = document.getElementById("attachment-preview-name");
+	const removeBtn = document.getElementById("attachment-preview-remove");
+
 	const resizeInput = () => {
 		if (!input) return;
 		input.style.height = "auto";
@@ -20,10 +27,33 @@ domLoaded.then(() => {
 		resizeInput();
 	}
 
+	const updatePreview = () => {
+		if (fileInput && fileInput.files && fileInput.files.length > 0) {
+			const file = fileInput.files[0];
+			if (previewName) previewName.textContent = file.name;
+			if (previewContainer) previewContainer.classList.remove("hidden");
+		} else {
+			if (previewContainer) previewContainer.classList.add("hidden");
+			if (previewName) previewName.textContent = "";
+		}
+	};
+
+	if (fileInput) {
+		fileInput.addEventListener("change", updatePreview);
+	}
+
+	if (removeBtn) {
+		removeBtn.addEventListener("click", () => {
+			if (fileInput) fileInput.value = "";
+			updatePreview();
+		});
+	}
+
 	form.addEventListener(
 		"htmx:afterRequest",
 		() => {
 			form.reset();
+			updatePreview();
 			requestAnimationFrame(resizeInput);
 		},
 	);
