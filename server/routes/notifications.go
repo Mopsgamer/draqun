@@ -29,7 +29,7 @@ func RouteNotifications(app *fiber.App) fiber.Router {
 				return ctx.Render("partials/notifications", bind)
 			}
 
-			return htmx.TryRenderPage(ctx, "notifications", MapPage(ctx, bind), "partials/layout-chat")
+			return htmx.TryRenderPage(ctx, "notifications", MapPage(ctx, bind), "partials/main")
 		}).
 		Post("/:id/read", func(ctx fiber.Ctx) error {
 			user := fiber.Locals[model.User](ctx, perms.LocalAuth)
