@@ -1,7 +1,7 @@
 <div class="max-w-3xl mx-auto w-full px-4 py-8 flex flex-col gap-6">
     <div class="flex items-center justify-between pb-4 border-b border-base-content/10">
         <div class="flex items-center gap-3">
-            <span class="icon icon-[lucide--bell] size-6 text-primary" aria-hidden="true"></span>
+            <span class="icon icon-[lucide--bell] size-6 text-base-content/80" aria-hidden="true"></span>
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">Notifications</h1>
                 <p class="text-xs text-base-content/60 mt-0.5">View and manage all your notifications and mention activity.</p>
@@ -11,9 +11,9 @@
             <button
                 type="button"
                 hx-post="/notifications/read-all"
-                hx-target="#notification-list"
+                hx-target="#page-notification-list"
                 hx-swap="innerHTML"
-                class="btn btn-outline btn-sm font-medium gap-1.5"
+                class="btn btn-ghost btn-sm font-medium gap-1.5 text-base-content/70 hover:text-base-content"
             >
                 <span class="icon icon-[lucide--check-check] size-4"></span>
                 Mark all read
@@ -21,9 +21,9 @@
             <button
                 type="button"
                 hx-delete="/notifications/all"
-                hx-target="#notification-list"
+                hx-target="#page-notification-list"
                 hx-swap="innerHTML"
-                class="btn btn-error btn-outline btn-sm font-medium gap-1.5"
+                class="btn btn-ghost btn-sm font-medium gap-1.5 text-base-content/50 hover:text-error"
             >
                 <span class="icon icon-[lucide--trash-2] size-4"></span>
                 Delete all
@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <div id="notification-list" class="bg-base-100 rounded-box border border-base-content/10 p-2 shadow-sm">
+    <div id="page-notification-list" class="w-full">
         {{template "partials/notifications" .}}
     </div>
 </div>

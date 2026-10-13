@@ -80,7 +80,8 @@ func renderNotificationStateResponse(app *fiber.App, ctx fiber.Ctx, user model.U
 		return err
 	}
 	s := buf.String()
-	listOob := render.WrapOob("innerHTML:#notification-list", &s)
+	dropdownOob := render.WrapOob("innerHTML:#dropdown-notification-list", &s)
+	pageOob := render.WrapOob("innerHTML:#page-notification-list", &s)
 
-	return ctx.Type("html").SendString(badgeOob + listOob)
+	return ctx.Type("html").SendString(badgeOob + dropdownOob + pageOob)
 }

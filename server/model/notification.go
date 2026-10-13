@@ -134,7 +134,9 @@ func CreateAndPushNotification(app *fiber.App, notif Notification) error {
 		var listOob string
 		if errRender == nil {
 			s := buf.String()
-			listOob = render.WrapOob("innerHTML:#notification-list", &s)
+			dropdownOob := render.WrapOob("innerHTML:#dropdown-notification-list", &s)
+			pageOob := render.WrapOob("innerHTML:#page-notification-list", &s)
+			listOob = dropdownOob + pageOob
 		}
 
 		targetUrl := fmt.Sprintf("/chat/groups/%d", notif.GroupId)
