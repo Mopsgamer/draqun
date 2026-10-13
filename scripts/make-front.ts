@@ -7,24 +7,8 @@ import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
 import { format, type TaskRunnerReturn } from "@m234/logger";
 import { showHelp } from "./tool/help.ts";
 
-const isWatch = Deno.args.includes("watch");
-const isQuiet = Deno.args.includes("quiet");
-
 type BuildOptions = esbuild.BuildOptions & {
 	whenChange?: string[];
-};
-
-const minify = Deno.args.includes("min");
-
-const options: esbuild.BuildOptions = {
-	bundle: true,
-	minify: minify,
-	minifyIdentifiers: minify,
-	minifySyntax: minify,
-	minifyWhitespace: minify,
-	platform: "browser",
-	format: "esm",
-	target: "esnext",
 };
 
 async function notifyHMR(type: "css" | "reload"): Promise<void> {
@@ -38,12 +22,11 @@ async function notifyHMR(type: "css" | "reload"): Promise<void> {
 	}
 }
 
-let buildCalls = 0;
 async function build(
 	options: BuildOptions,
+	isWatch: boolean,
 ): Promise<TaskRunnerReturn> {
 	const { outdir, outfile, entryPoints = [], whenChange = [] } = options;
-	buildCalls++;
 
 	const entryPointsNormalized = Array.isArray(entryPoints)
 		? entryPoints
@@ -127,13 +110,7 @@ async function build(
 		return "failed";
 	}
 
-	// this callback won't block the process.
-	// buildTask will return while ignoring loop
 	(async () => {
-		const task = isQuiet
-			? undefined
-			: logClientComp.task({ text: "Watching for file changes" }).start();
-
 		let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 		let pendingPaths: string[] = [];
 
@@ -174,17 +151,10 @@ async function build(
 				} else x = " (" + currentPaths.length + " files)";
 
 				try {
-					if (task) {
-						task.text = "Building at " + new Date().toLocaleTimeString() + x;
-					}
 					await ctx.rebuild();
-					if (task) {
-						task.text = "Updated at " + new Date().toLocaleTimeString() + x;
-					} else {
-						logClientComp.info(
-							"Frontend rebuilt at " + new Date().toLocaleTimeString() + x,
-						);
-					}
+					logClientComp.info(
+						"Frontend rebuilt at " + new Date().toLocaleTimeString() + x,
+					);
 
 					const isCssOnly = currentPaths.every((p) => p.endsWith(".css"));
 					await notifyHMR(isCssOnly ? "css" : "reload");
@@ -192,8 +162,7 @@ async function build(
 					const message = "Frontend build failed at " +
 						new Date().toLocaleTimeString() + x + ": " +
 						(error as Error).message;
-					if (task) task.text = message;
-					else logClientComp.error(message);
+					logClientComp.error(message);
 				}
 			}, 150);
 		}
@@ -203,114 +172,142 @@ async function build(
 	return "completed";
 }
 
-const calls: [() => Promise<TaskRunnerReturn>, string, string[]][] = [
-	[
-		() =>
-			cp(
-				"client/src/assets",
-				distFolder + "/static/assets",
-				{ recursive: true },
-			),
-		distFolder + "/static/assets",
-		["assets"],
-	],
+export async function runMakeFront(
+	args: string[] = Deno.args,
+): Promise<void> {
+	const isWatch = args.includes("watch");
+	const isQuiet = args.includes("quiet");
+	const minify = args.includes("min");
 
-	[
-		() =>
-			build({
-				...options,
-				outdir: distFolder + "/static/js",
-				entryPoints: ["client/src/ts/**/*"],
-				whenChange: [
-					"client/src/ts",
-				],
-				plugins: [denoPlugin()],
-			}),
-		distFolder + "/static/js",
-		["js"],
-	],
+	const options: esbuild.BuildOptions = {
+		bundle: true,
+		minify: minify,
+		minifyIdentifiers: minify,
+		minifySyntax: minify,
+		minifyWhitespace: minify,
+		platform: "browser",
+		format: "esm",
+		target: "esnext",
+	};
 
-	[
-		() =>
-			build({
-				...options,
-				outdir: distFolder + "/static/css",
-				entryPoints: ["client/src/tailwindcss/**/*.css"],
-				whenChange: [
-					"client/templates",
-					"client/src/tailwindcss",
-				],
-				external: ["/static/assets/*"],
-				plugins: [
-					tailwindcssPlugin(),
-				],
-			}),
-		distFolder + "/static/css",
-		["css"],
-	],
-];
-
-const existingGroups = Array.from(new Set(calls.flatMap((c) => c[2])));
-const extraGroups = ["min", "watch", "quiet", "all"];
-const availableGroups = [...extraGroups, ...existingGroups];
-
-if (
-	showHelp({
-		name: "front",
-		description: "Build client assets.",
-		usage: "deno task front [group ...] [options]",
-		options: [
-			"-h, --help  Show this help.",
-			`Groups: ${availableGroups.join(", ")}.`,
-			"min         Minify JavaScript and CSS.",
-			"watch       Watch for client CSS changes and rebuild.",
-			"quiet       Suppress progress output while building.",
-			"all         Build all asset groups (the default).",
+	const calls: [() => Promise<TaskRunnerReturn>, string, string[]][] = [
+		[
+			() =>
+				cp(
+					"client/src/assets",
+					distFolder + "/static/assets",
+					{ recursive: true },
+				),
+			distFolder + "/static/assets",
+			["assets"],
 		],
-	}, true)
-) {
-	Deno.exit();
-}
 
-const unknownGroups = Deno.args.filter(
-	(a) => !availableGroups.includes(a),
-);
-if (unknownGroups.length > 0) {
-	logClientComp.warn(
-		`Unknown groups: ${unknownGroups.join(", ")}\n` +
-			"Available groups: " +
-			availableGroups.join(", ") + ".",
+		[
+			() =>
+				build({
+					...options,
+					outdir: distFolder + "/static/js",
+					entryPoints: ["client/src/ts/**/*"],
+					whenChange: [
+						"client/src/ts",
+					],
+					plugins: [denoPlugin()],
+				}, isWatch),
+			distFolder + "/static/js",
+			["js"],
+		],
+
+		[
+			() =>
+				build({
+					...options,
+					outdir: distFolder + "/static/css",
+					entryPoints: ["client/src/tailwindcss/**/*.css"],
+					whenChange: [
+						"client/templates",
+						"client/src/tailwindcss",
+					],
+					external: ["/static/assets/*"],
+					plugins: [
+						tailwindcssPlugin(),
+					],
+				}, isWatch),
+			distFolder + "/static/css",
+			["css"],
+		],
+	];
+
+	const existingGroups = Array.from(new Set(calls.flatMap((c) => c[2])));
+	const extraGroups = ["min", "watch", "quiet", "all"];
+	const availableGroups = [...extraGroups, ...existingGroups];
+
+	const unknownGroups = args.filter(
+		(a) => !availableGroups.includes(a),
 	);
+	if (unknownGroups.length > 0) {
+		logClientComp.warn(
+			`Unknown groups: ${unknownGroups.join(", ")}\n` +
+				"Available groups: " +
+				availableGroups.join(", ") + ".",
+		);
+	}
+
+	const existingGroupsUsed = !args.includes("all") &&
+		existingGroups.some((g) => args.includes(g));
+
+	if (existingGroupsUsed) {
+		calls.splice(
+			0,
+			calls.length,
+			...calls.filter(
+				([, , groups]) => {
+					return groups.some((g) => {
+						const includes = args.includes(g);
+						return includes;
+					});
+				},
+			),
+		);
+	}
+
+	await Promise.allSettled(calls.map(([builder, directory]) => {
+		const text = `Bundling '${directory}'`;
+		if (!isQuiet) return logClientComp.task({ text }).startRunner(builder);
+		return builder()
+			.then((result) => {
+				if (result === "failed") logClientComp.error(`${text} failed.`);
+			})
+			.catch((error) => logClientComp.error(`${text} failed: ${format(error)}`));
+	}));
+
+	if (isWatch && !isQuiet) {
+		logClientComp.info("Frontend watching for changes.");
+	}
+
+	if (!isWatch) {
+		Deno.exit(0);
+	}
 }
 
-const existingGroupsUsed = !Deno.args.includes("all") &&
-	existingGroups.some((g) => Deno.args.includes(g));
+if (import.meta.main) {
+	const extraGroups = ["min", "watch", "quiet", "all", "assets", "js", "css"];
+	if (
+		showHelp({
+			name: "front",
+			description: "Build client assets.",
+			usage: "deno task front [group ...] [options]",
+			options: [
+				"-h, --help  Show this help.",
+				`Groups: ${extraGroups.join(", ")}.`,
+				"min         Minify JavaScript and CSS.",
+				"watch       Watch for client CSS changes and rebuild.",
+				"quiet       Suppress progress output while building.",
+				"all         Build all asset groups (the default).",
+			],
+		}, true)
+	) {
+		Deno.exit();
+	}
 
-if (existingGroupsUsed) {
-	calls.splice(
-		0,
-		calls.length,
-		...calls.filter(
-			([, , groups]) => {
-				return groups.some((g) => {
-					const includes = Deno.args.includes(g);
-					return includes;
-				});
-			},
-		),
-	);
-}
-
-await Promise.allSettled(calls.map(([builder, directory]) => {
-	const text = `Bundling '${directory}'`;
-	if (!isQuiet) return logClientComp.task({ text }).startRunner(builder);
-	return builder()
-		.then((result) => {
-			if (result === "failed") logClientComp.error(`${text} failed.`);
-		})
-		.catch((error) => logClientComp.error(`${text} failed: ${format(error)}`));
-}));
-
-if (!isWatch) {
-	Deno.exit(0);
+	await runMakeFront();
 }

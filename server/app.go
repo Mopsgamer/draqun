@@ -3,7 +3,10 @@ package internal
 import (
 	_ "embed"
 	"errors"
+	"fmt"
 	"io/fs"
+	"os"
+	"strings"
 
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -11,6 +14,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/mattn/go-colorable"
 )
 
 // Initialize gofiber application, including DB and view engine.
@@ -20,6 +24,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		AppName:           environment.AppName,
 		Views:             engine,
 		PassLocalsToViews: true,
+		ColorScheme:       fiber.DefaultColors,
 		ErrorHandler: func(ctx fiber.Ctx, err error) error {
 			if htmx.IsHtmx(ctx) {
 				return htmx.HandleHTMXError(ctx, err)
@@ -44,7 +49,9 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		},
 	})
 
-	app.Use(logger.New())
+	app.Use(logger.New(logger.Config{
+		ForceColors: true,
+	}))
 
 	routes.RouteHMR(app)
 	routes.RouteStatic(embedFS, clientEmbedded, app)
@@ -56,6 +63,22 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	app.Hooks().OnPreStartupMessage(func(sm *fiber.PreStartupMessageData) error {
 		sm.AddInfo("app-version", "Version", "\t\t"+versionString(clientEmbedded), 9)
 		sm.AddInfo("app-version-git", "Git", "\t\t"+gitString(), 9)
+
+		if os.Getenv("FORCE_COLOR") == "1" || os.Getenv("CLICOLOR_FORCE") == "1" {
+			sm.PreventDefault = true
+			out := colorable.NewColorableStdout()
+			colors := fiber.DefaultColors
+
+			fmt.Fprintf(out, "%s\n", fmt.Sprintf("\n    _______ __\n   / ____(_) /_  ___  _____\n  / /_  / / __ \\/ _ \\/ ___/\n / __/ / / /_/ /  __/ /\n/_/   /_/_.___/\\___/_/          %s", colors.Red+"v"+fiber.Version+colors.Reset))
+			fmt.Fprintln(out, strings.Repeat("-", 50))
+
+			fmt.Fprintf(out, "%sINFO%s Server started on: \t%shttp://127.0.0.1:%s (bound on host 0.0.0.0 and port %s)%s\n", colors.Green, colors.Reset, colors.Blue, environment.Port, environment.Port, colors.Reset)
+			fmt.Fprintf(out, "%sINFO%s Application name: \t%s%s%s\n", colors.Green, colors.Reset, colors.Blue, environment.AppName, colors.Reset)
+			fmt.Fprintf(out, "%sINFO%s Version: \t\t%s%s%s\n", colors.Green, colors.Reset, colors.Blue, versionString(clientEmbedded), colors.Reset)
+			fmt.Fprintf(out, "%sINFO%s Git: \t\t\t%s%s%s\n", colors.Green, colors.Reset, colors.Blue, gitString(), colors.Reset)
+			fmt.Fprintf(out, "%sINFO%s PID: \t\t\t%s%d%s\n", colors.Green, colors.Reset, colors.Blue, os.Getpid(), colors.Reset)
+			fmt.Fprintln(out)
+		}
 		return nil
 	})
 

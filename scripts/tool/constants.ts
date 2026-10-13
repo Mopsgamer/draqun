@@ -5,7 +5,10 @@ import {
 } from "@m234/logger";
 import { ensureDir } from "@std/fs/ensure-dir";
 
-const defaultTaskOptions: DefaultTaskOptions = { suffixDuration: 0n };
+const defaultTaskOptions: DefaultTaskOptions = {
+	suffixDuration: 0n,
+	interactive: false,
+};
 const lopts: LoggerOptions = { prefix: "🐉", defaultTaskOptions };
 
 lopts.prefix = "🧑‍💻 Dev";
