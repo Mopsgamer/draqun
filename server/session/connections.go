@@ -24,6 +24,15 @@ func (conns *userSessionMap) Push(data string, pick EventPick) {
 	}
 }
 
+// Push data to all active connections for a specific user id.
+func (conns *userSessionMap) PushUser(userId uint64, data string) {
+	sessionMu.RLock()
+	defer sessionMu.RUnlock()
+	for _, ws := range (*conns)[userId] {
+		ws.Push(data)
+	}
+}
+
 // Push data to all active connections in a group.
 func (conns *userSessionMap) PushGroup(groupId uint64, data string) {
 	sessionMu.RLock()

@@ -1,0 +1,54 @@
+{{- $this := . -}}
+{{- if eq (len $this.Notifications) 0 -}}
+<div class="p-6 text-center text-xs text-base-content/50 italic flex flex-col items-center gap-2">
+    <span class="icon icon-[lucide--bell-off] size-6 text-base-content/30" aria-hidden="true"></span>
+    <span>No notifications</span>
+</div>
+{{- else -}}
+<div class="divide-y divide-base-content/10 max-h-96 overflow-y-auto">
+    {{- range $n := $this.Notifications -}}
+    <div class="p-2.5 text-xs flex flex-col gap-1 hover:bg-base-200/50 transition-colors {{if not $n.IsRead}}bg-primary/5 font-medium{{end}}">
+        <div class="flex items-center justify-between gap-2">
+            <a
+                href="{{if ne $n.ChannelId 0}}/chat/groups/{{$n.GroupId}}/channels/{{$n.ChannelId}}{{else}}/chat/groups/{{$n.GroupId}}{{end}}"
+                class="font-bold hover:underline truncate shrink min-w-0"
+                title="{{$n.Title}}"
+            >
+                {{$n.Title}}
+            </a>
+            <div class="flex items-center gap-1 shrink-0">
+                <span class="text-[10px] text-base-content/40" datetime="{{jsonTime $n.CreatedAt.Value}}" data-format-date>{{jsonTime $n.CreatedAt.Value}}</span>
+                {{if not $n.IsRead}}
+                <button
+                    type="button"
+                    hx-post="/notifications/{{$n.Id}}/read"
+                    hx-target="#notification-list"
+                    hx-swap="innerHTML"
+                    class="btn btn-ghost btn-xs btn-circle p-0 size-5 min-h-0 text-primary hover:text-primary-focus"
+                    title="Mark as read"
+                >
+                    <span class="icon icon-[lucide--check] size-3.5"></span>
+                </button>
+                {{end}}
+                <button
+                    type="button"
+                    hx-delete="/notifications/{{$n.Id}}"
+                    hx-target="#notification-list"
+                    hx-swap="innerHTML"
+                    class="btn btn-ghost btn-xs btn-circle p-0 size-5 min-h-0 text-base-content/40 hover:text-error"
+                    title="Delete notification"
+                >
+                    <span class="icon icon-[lucide--trash-2] size-3.5"></span>
+                </button>
+            </div>
+        </div>
+        <a
+            href="{{if ne $n.ChannelId 0}}/chat/groups/{{$n.GroupId}}/channels/{{$n.ChannelId}}{{else}}/chat/groups/{{$n.GroupId}}{{end}}"
+            class="text-base-content/70 line-clamp-2 text-[11px] font-normal break-words hover:text-base-content"
+        >
+            {{$n.Content}}
+        </a>
+    </div>
+    {{- end -}}
+</div>
+{{- end -}}

@@ -19,14 +19,23 @@ func MapPage(ctx fiber.Ctx, bind fiber.Map) fiber.Map {
 	// empty values
 	fiber.Locals(ctx, perms.LocalAuth, model.User{})
 	// actually fill
-	_, err := perms.UserByAuthFromCtx(ctx)
+	user, err := perms.UserByAuthFromCtx(ctx)
 	if err != nil && errors.Is(err, htmx.ErrToken) {
 		log.Error(err)
 	}
 
+	var unreadCount int
+	var notifications []model.Notification
+	if !user.IsEmpty() {
+		unreadCount, _ = model.GetUnreadNotificationCount(user.Id)
+		notifications, _ = model.GetUserNotifications(user.Id, 20)
+	}
+
 	// other values
 	bindx := fiber.Map{
-		"Ctx": ctx,
+		"Ctx":           ctx,
+		"UnreadCount":   unreadCount,
+		"Notifications": notifications,
 
 		"AppName":      environment.AppName,
 		"GitHubRepo":   environment.GitHubRepo,

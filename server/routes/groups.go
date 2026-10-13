@@ -499,6 +499,18 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 				if request.UserId != 0 {
 					_ = model.AddChannelAssignee(channel.Id, request.UserId)
+					caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
+					notif := model.NewNotification(
+						request.UserId,
+						caller.Id,
+						group.Id,
+						channel.Id,
+						0,
+						"ticket_assigned",
+						fmt.Sprintf("You were assigned to ticket #%s in %s", channel.Moniker, group.Moniker),
+						fmt.Sprintf("%s assigned you to ticket #%s", caller.Moniker, channel.Moniker),
+					)
+					_ = model.CreateAndPushNotification(app, notif)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -524,6 +536,18 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				_ = model.RemoveChannelAssignee(channel.Id, targetUserId)
+				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				notif := model.NewNotification(
+					targetUserId,
+					caller.Id,
+					group.Id,
+					channel.Id,
+					0,
+					"ticket_unassigned",
+					fmt.Sprintf("You were unassigned from ticket #%s in %s", channel.Moniker, group.Moniker),
+					fmt.Sprintf("%s unassigned you from ticket #%s", caller.Moniker, channel.Moniker),
+				)
+				_ = model.CreateAndPushNotification(app, notif)
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, channel.Id))
@@ -764,6 +788,8 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertDatabase.Join(err)
 				}
 
+				model.ProcessMessageMentions(app, message)
+
 				if htmx.IsHtmx(ctx) {
 					buf, err := render.RenderBuffer(app, "partials/chat-messages", fiber.Map{
 						"MessageList": []model.Message{message},
@@ -812,6 +838,8 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				if err := message.Insert(); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
+
+				model.ProcessMessageMentions(app, message)
 
 				if htmx.IsHtmx(ctx) {
 					buf, err := render.RenderBuffer(app, "partials/chat-messages", fiber.Map{
@@ -1246,6 +1274,20 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 				_ = actionRole.Insert()
 
+				if userId != caller.Id {
+					notif := model.NewNotification(
+						userId,
+						caller.Id,
+						group.Id,
+						0,
+						0,
+						"role_assigned",
+						fmt.Sprintf("You were assigned role %s in %s", role.Moniker, group.Moniker),
+						fmt.Sprintf("%s assigned you role %s in %s", caller.Moniker, role.Moniker, group.Moniker),
+					)
+					_ = model.CreateAndPushNotification(app, notif)
+				}
+
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
 					return nil
@@ -1284,6 +1326,20 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 				_ = actionRole.Insert()
 
+				if userId != caller.Id {
+					notif := model.NewNotification(
+						userId,
+						caller.Id,
+						group.Id,
+						0,
+						0,
+						"role_unassigned",
+						fmt.Sprintf("Role %s was removed in %s", role.Moniker, group.Moniker),
+						fmt.Sprintf("%s removed role %s from you in %s", caller.Moniker, role.Moniker, group.Moniker),
+					)
+					_ = model.CreateAndPushNotification(app, notif)
+				}
+
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
 					return nil
@@ -1315,6 +1371,18 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				if err := targetMember.Kick(caller.Id, request.Description); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
+
+				notif := model.NewNotification(
+					targetUserId,
+					caller.Id,
+					group.Id,
+					0,
+					0,
+					"kicked",
+					fmt.Sprintf("You were kicked from %s", group.Moniker),
+					fmt.Sprintf("Reason: %s", request.Description),
+				)
+				_ = model.CreateAndPushNotification(app, notif)
 
 				broadcastGroupMemberLeave(app, group, targetUserId)
 
@@ -1355,6 +1423,18 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				if err := targetMember.Ban(caller.Id, endsAt, request.Description); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
+
+				notif := model.NewNotification(
+					targetUserId,
+					caller.Id,
+					group.Id,
+					0,
+					0,
+					"banned",
+					fmt.Sprintf("You were banned from %s", group.Moniker),
+					fmt.Sprintf("Reason: %s", request.Description),
+				)
+				_ = model.CreateAndPushNotification(app, notif)
 
 				broadcastGroupMemberLeave(app, group, targetUserId)
 
