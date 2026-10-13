@@ -756,6 +756,11 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				channelId := fiber.Params[uint64](ctx, "channel_id")
 
 				message := model.NewMessageFilled(channelId, group.Id, user.Id, request.Content)
+
+				if err := saveMessageAttachment(ctx, group.Id, &message); err != nil {
+					return err
+				}
+
 				if err := message.Validate(); err != nil {
 					return err
 				}
@@ -805,6 +810,11 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				message := model.NewMessageFilled(channelId, group.Id, user.Id, request.Content)
+
+				if err := saveMessageAttachment(ctx, group.Id, &message); err != nil {
+					return err
+				}
+
 				if err := message.Validate(); err != nil {
 					return err
 				}
@@ -1473,4 +1483,28 @@ func broadcastGroupMemberLeave(app *fiber.App, group model.Group, userId uint64)
 	countOob := render.WrapOob("innerHTML:#members-count", &countStr)
 
 	session.UserSessionMap.PushGroup(group.Id, deleteOob+membersOob+countOob)
+}
+
+func saveMessageAttachment(ctx fiber.Ctx, groupId uint64, message *model.Message) error {
+	file, errFile := ctx.FormFile("attachment")
+	if errFile != nil {
+		file, errFile = ctx.FormFile("file")
+	}
+	if errFile == nil && file != nil {
+		if err := os.MkdirAll("uploads", 0755); err != nil {
+			return htmx.AlertDatabase.Join(err)
+		}
+		ext := filepath.Ext(file.Filename)
+		sanitizedName := filepath.Base(file.Filename)
+		filename := fmt.Sprintf("file-%d-%d%s", groupId, time.Now().UnixNano(), ext)
+		dst := filepath.Join("uploads", filename)
+		if err := ctx.SaveFile(file, dst); err != nil {
+			return htmx.AlertDatabase.Join(err)
+		}
+		message.AttachmentUrl = "/uploads/" + filename
+		message.AttachmentName = sanitizedName
+		message.AttachmentSize = file.Size
+		message.AttachmentType = file.Header.Get("Content-Type")
+	}
+	return nil
 }

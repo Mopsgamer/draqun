@@ -5,6 +5,7 @@
         hx-trigger="submit, keydown[key=='Enter'&&ctrlKey] from:#new-message-input"
         hx-target="#send-message-error"
         hx-headers='{"HX-Error-Wrap": false}'
+        hx-encoding="multipart/form-data"
         hx-swap="innerHTML"
         {{if and .ActiveChannel (not .ActiveChannel.IsEmpty)}}
         hx-post="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/messages/create"
@@ -13,15 +14,33 @@
         {{end}}
     >
         <button
-            class="btn btn-ghost btn-square shrink-0"
+            class="btn btn-ghost btn-square shrink-0 cursor-pointer"
             type="button"
-            title="Upload file (disabled)"
+            title="Upload file"
             aria-label="Upload file"
-            disabled
+            onclick="document.getElementById('file-attachment-input').click()"
         >
             <span class="icon icon-[lucide--paperclip] size-5" aria-hidden="true"></span>
         </button>
+        <input
+            type="file"
+            id="file-attachment-input"
+            name="attachment"
+            class="hidden"
+        />
         <div class="flex flex-col flex-1 min-w-0">
+            <div id="attachment-preview" class="hidden pb-2">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-base-content/15 text-xs font-medium text-base-content/90">
+                    <span class="icon icon-[lucide--paperclip] size-3.5 text-primary"></span>
+                    <span id="attachment-preview-name" class="truncate max-w-xs"></span>
+                    <button
+                        type="button"
+                        id="attachment-preview-remove"
+                        class="btn btn-ghost btn-xs btn-circle p-0 size-4 min-h-0 text-base-content/50 hover:text-error ml-1 cursor-pointer"
+                        title="Remove attachment"
+                    >✕</button>
+                </span>
+            </div>
             <div id="send-message-error" class="w-full text-error text-xs font-semibold pb-1 empty:pb-0"></div>
             <textarea
                 class="textarea textarea-bordered w-full h-10 min-h-10 max-h-32 field-sizing-content bg-surface-inset text-base leading-snug rounded-lg"
@@ -35,7 +54,7 @@
         </div>
         <div>
             <button
-                class="btn btn-ghost btn-square"
+                class="btn btn-ghost btn-square cursor-pointer"
                 title="Send"
                 form="send-message-form"
                 type="submit"

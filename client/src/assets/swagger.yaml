@@ -335,6 +335,9 @@ paths:
        type: integer
    requestBody:
     content:
+     multipart/form-data:
+      schema:
+       $ref: "#/components/schemas/MessageCreate"
      application/x-www-form-urlencoded:
       schema:
        $ref: "#/components/schemas/MessageCreate"
@@ -753,6 +756,9 @@ paths:
        type: integer
    requestBody:
     content:
+     multipart/form-data:
+      schema:
+       $ref: "#/components/schemas/MessageCreate"
      application/x-www-form-urlencoded:
       schema:
        $ref: "#/components/schemas/MessageCreate"
@@ -1120,14 +1126,40 @@ components:
      format: uri
   MessageCreate:
    type: object
-   required:
-    - content
    properties:
     content:
      type: string
      maxLength: 8000
     channel_id:
      type: integer
+    attachment:
+     type: string
+     format: binary
+     description: Optional file attachment.
+  Message:
+   type: object
+   properties:
+    id:
+     type: integer
+    group_id:
+     type: integer
+    channel_id:
+     type: integer
+    author_id:
+     type: integer
+    content:
+     type: string
+    attachment_url:
+     type: string
+    attachment_name:
+     type: string
+    attachment_size:
+     type: integer
+    attachment_type:
+     type: string
+    created_at:
+     type: string
+     format: date-time
   ChannelCreate:
    type: object
    required:

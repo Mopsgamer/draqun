@@ -3,6 +3,8 @@ package routes
 import (
 	"io/fs"
 	"log"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/environment"
@@ -42,8 +44,18 @@ func RouteStatic(embedFS fs.FS, clientEmbedded bool, app *fiber.App) {
 		app.Use("/static", static.New("", cfg))
 	}
 
-	app.Use("/uploads", static.New("uploads", static.Config{
-		Browse:        false,
-		CacheDuration: time.Minute,
-	}))
+	_ = os.MkdirAll("uploads", 0755)
+	app.Get("/uploads/:filename", func(c fiber.Ctx) error {
+		filename := filepath.Base(c.Params("filename"))
+		filePath := filepath.Join("uploads", filename)
+		content, err := os.ReadFile(filePath)
+		if err != nil {
+			return c.Status(fiber.StatusNotFound).SendString("File not found")
+		}
+		c.Set("X-Content-Type-Options", "nosniff")
+		c.Set("Content-Security-Policy", "default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'")
+		c.Set("X-Frame-Options", "DENY")
+		c.Type(filepath.Ext(filename))
+		return c.Send(content)
+	})
 }

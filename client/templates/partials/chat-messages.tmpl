@@ -35,6 +35,37 @@
             >{{jsonTime $message.CreatedAt.Value}}</time>
         </div>
     </div>
+    {{if ne $message.Content ""}}
     <div class="text text-sm">{{$message.Content}}</div>
+    {{end}}
+    {{if ne $message.AttachmentUrl ""}}
+    <div class="attachment mt-2">
+        {{if $message.IsImageAttachment}}
+        <div class="relative group/img inline-block max-w-sm rounded-lg overflow-hidden border border-base-content/10">
+            <a href="{{$message.AttachmentUrl}}" target="_blank" rel="noopener noreferrer" class="block hover:opacity-90 transition-opacity" title="View image">
+                <img src="{{$message.AttachmentUrl}}" alt="{{$message.AttachmentName}}" class="max-h-64 object-cover rounded-lg" />
+            </a>
+            <a
+                href="{{$message.AttachmentUrl}}"
+                download="{{$message.AttachmentName}}"
+                class="absolute top-2 right-2 btn btn-xs btn-circle btn-neutral opacity-0 group-hover/img:opacity-100 transition-opacity shadow-md"
+                title="Download {{$message.AttachmentName}}"
+                aria-label="Download {{$message.AttachmentName}}"
+            >
+                <span class="icon icon-[lucide--download] size-3.5" aria-hidden="true"></span>
+            </a>
+        </div>
+        {{else}}
+        <a href="{{$message.AttachmentUrl}}" download="{{$message.AttachmentName}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2.5 p-2.5 rounded-lg border border-base-content/15 hover:bg-surface-card-hover transition-colors text-xs font-medium max-w-sm" title="Download {{$message.AttachmentName}}">
+            <span class="icon icon-[lucide--file-text] size-6 text-primary shrink-0" aria-hidden="true"></span>
+            <div class="flex flex-col min-w-0 flex-1">
+                <span class="truncate font-semibold text-base-content">{{$message.AttachmentName}}</span>
+                <span class="text-[11px] text-base-content/50 font-mono">{{$message.FormattedSize}}</span>
+            </div>
+            <span class="icon icon-[lucide--download] size-4 text-base-content/60 shrink-0 ml-1" aria-hidden="true"></span>
+        </a>
+        {{end}}
+    </div>
+    {{end}}
 </div>
 {{- end}}
