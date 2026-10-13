@@ -147,16 +147,16 @@ body {
 	--btn-color: var(--surface-chrome-content);
 }
 
-#header :where(.btn-ghost, .btn) {
+#header > nav > :where(.btn-ghost, .btn, summary.btn) {
 	color: var(--surface-chrome-content);
 }
 
-#header :where(.btn-ghost, .btn):hover {
+#header > nav > :where(.btn-ghost, .btn, summary.btn):hover {
 	background-color: var(--surface-chrome-hover);
 	color: #ffffff;
 }
 
-#header :where(.btn-ghost, .btn):focus-visible {
+#header > nav > :where(.btn-ghost, .btn, summary.btn):focus-visible {
 	outline: 2px solid var(--surface-chrome-muted);
 	outline-offset: 2px;
 }
