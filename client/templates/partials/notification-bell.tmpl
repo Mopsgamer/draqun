@@ -8,7 +8,7 @@
         </div>
     </summary>
     <div class="dropdown-content menu z-50 p-2 shadow-lg bg-surface-overlay rounded-box w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] text-base-content border border-base-content/10 mt-2">
-        <div class="flex items-center justify-between px-2 py-1.5 border-b border-base-content/10 mb-1">
+        <div class="flex items-center w-full justify-between px-2 py-1.5 border-b border-base-content/10 mb-1">
             <span class="font-bold text-xs uppercase tracking-wider text-base-content/70">Notifications</span>
             <div class="flex items-center gap-1">
                 <button
@@ -33,10 +33,10 @@
                 {{end}}
             </div>
         </div>
-        <div id="dropdown-notification-list" hx-get="/notifications" hx-trigger="intersect once" hx-swap="innerHTML">
+        <div id="dropdown-notification-list" class="w-full" hx-get="/notifications" hx-trigger="intersect once" hx-swap="innerHTML">
             {{template "partials/notifications" .}}
         </div>
-        <div class="flex items-center justify-between pt-1.5 px-2 border-t border-base-content/10 mt-1">
+        <div class="flex items-center w-full justify-between pt-1.5 px-2 border-t border-base-content/10 mt-1">
             <a href="/notifications" class="text-[11px] font-medium text-base-content/70 hover:text-base-content hover:underline flex items-center gap-1">
                 <span>View all notifications</span>
                 <span class="icon icon-[lucide--arrow-right] size-3"></span>

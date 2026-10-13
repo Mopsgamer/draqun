@@ -1,14 +1,14 @@
 {{- $this := . -}}
 {{- if eq (len $this.Notifications) 0 -}}
-<div class="p-6 text-center text-xs text-base-content/50 italic flex flex-col items-center gap-2">
+<div class="p-6 text-center text-xs text-base-content/50 italic flex w-full flex-col items-center gap-2">
     <span class="icon icon-[lucide--bell-off] size-5 text-base-content/30" aria-hidden="true"></span>
     <span>No notifications</span>
 </div>
 {{- else -}}
-<div class="divide-y divide-base-content/10 max-h-96 overflow-y-auto w-full max-w-full overflow-x-hidden">
+<div class="divide-y divide-base-content/10 max-h-96 overflow-y-auto w-full">
     {{- range $n := $this.Notifications -}}
-    <div class="py-2.5 px-1 text-xs flex flex-col gap-1 w-full min-w-0 max-w-full overflow-hidden">
-        <div class="flex items-center justify-between gap-2 w-full min-w-0">
+    <div class="py-2.5 px-1 text-xs flex flex-col gap-1 w-full">
+        <div class="flex items-center justify-between gap-2 w-full">
             <div class="flex items-center gap-1.5 min-w-0 flex-1 truncate">
                 {{if not $n.IsRead}}
                 <span class="size-2 rounded-full bg-error shrink-0" title="Unread"></span>
@@ -22,7 +22,7 @@
                 </a>
             </div>
             <div class="flex items-center gap-1 shrink-0">
-                <span class="text-[10px] text-base-content/40 truncate max-w-20 shrink-0" datetime="{{jsonTime $n.CreatedAt.Value}}" data-format-date>{{jsonTime $n.CreatedAt.Value}}</span>
+                <span class="text-[10px] text-base-content/40 truncate shrink-0" datetime="{{jsonTime $n.CreatedAt.Value}}" data-format-date>{{jsonTime $n.CreatedAt.Value}}</span>
                 {{if not $n.IsRead}}
                 <button
                     type="button"
