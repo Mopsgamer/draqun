@@ -1,0 +1,168 @@
+<div class="flex-1 flex flex-col h-full overflow-y-auto p-4 md:p-6 gap-6 bg-surface-canvas">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-base-content/10">
+        <div class="flex flex-col gap-1 min-w-0">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <span class="icon icon-[lucide--circle-dot] size-4"></span>
+                </span>
+                <h2 class="text-xl font-bold truncate tracking-tight">{{.ActiveChannel.Moniker}}</h2>
+            </div>
+            {{if ne .ActiveChannel.Description ""}}
+            <p class="text-xs text-base-content/70 truncate">{{.ActiveChannel.Description}}</p>
+            {{end}}
+        </div>
+        {{if not .Member.IsEmpty}}
+        <button
+            class="btn btn-primary btn-sm gap-1.5 shrink-0"
+            onclick="document.getElementById('new-ticket-modal').showModal()"
+        >
+            <span class="icon icon-[lucide--plus] size-4"></span>
+            New Ticket
+        </button>
+        {{end}}
+    </div>
+
+    <!-- Tickets Filter Tabs & Box -->
+    <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between py-2 text-xs font-medium">
+            <div class="flex items-center gap-4">
+                <a
+                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=open"
+                    class="flex items-center gap-1.5 transition-colors {{if eq .StatusFilter "open"}}text-base-content font-bold{{else}}text-base-content/60 hover:text-base-content{{end}}"
+                >
+                    <span class="icon icon-[lucide--circle-dot] size-4 text-emerald-500"></span>
+                    <span>{{.OpenTicketsCount}} Open</span>
+                </a>
+                <a
+                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=closed"
+                    class="flex items-center gap-1.5 transition-colors {{if eq .StatusFilter "closed"}}text-base-content font-bold{{else}}text-base-content/60 hover:text-base-content{{end}}"
+                >
+                    <span class="icon icon-[lucide--check-circle-2] size-4 text-purple-500"></span>
+                    <span>{{.ClosedTicketsCount}} Closed</span>
+                </a>
+                <a
+                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=all"
+                    class="transition-colors {{if eq .StatusFilter "all"}}text-base-content font-bold{{else}}text-base-content/60 hover:text-base-content{{end}}"
+                >
+                    All
+                </a>
+            </div>
+        </div>
+
+        <div class="flex flex-col">
+            {{if eq (len .TicketItems) 0}}
+            <div class="py-8 text-center flex flex-col items-center justify-center gap-2">
+                <span class="icon icon-[lucide--circle-dot] size-8 text-base-content/30"></span>
+                <span class="text-sm font-semibold text-base-content/70">No tickets found</span>
+                <p class="text-xs text-base-content/50">There are no {{.StatusFilter}} tickets in this channel.</p>
+            </div>
+            {{else}}
+            {{$groupId := .Group.Id}}
+            {{range .TicketItems}}
+            <div class="flex items-start justify-between py-3 transition-colors gap-3">
+                <div class="flex items-start gap-3 min-w-0 flex-1">
+                    <div class="mt-0.5 shrink-0">
+                        {{if eq .Channel.Status "closed"}}
+                            {{if eq .Channel.ClosedReason "not_planned"}}
+                            <span class="icon icon-[lucide--circle-slash] size-4 text-base-content/50" title="Closed as not planned"></span>
+                            {{else if eq .Channel.ClosedReason "duplicate"}}
+                            <span class="icon icon-[lucide--copy-x] size-4 text-amber-500" title="Closed as duplicate"></span>
+                            {{else}}
+                            <span class="icon icon-[lucide--check-circle-2] size-4 text-purple-500" title="Closed"></span>
+                            {{end}}
+                        {{else}}
+                        <span class="icon icon-[lucide--circle-dot] size-4 text-emerald-500" title="Open"></span>
+                        {{end}}
+                    </div>
+                    <div class="flex flex-col gap-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <a
+                                class="font-bold text-sm text-base-content hover:text-primary transition-colors truncate"
+                                href="/chat/groups/{{$groupId}}/channels/{{.Channel.Id}}"
+                            >
+                                {{.Channel.Moniker}}
+                            </a>
+                            {{if eq .Channel.Status "closed"}}
+                                {{if eq .Channel.ClosedReason "not_planned"}}
+                                <span class="badge badge-ghost badge-xs">not planned</span>
+                                {{else if eq .Channel.ClosedReason "duplicate"}}
+                                <span class="badge badge-warning badge-xs">duplicate</span>
+                                {{else}}
+                                <span class="badge badge-primary badge-xs">completed</span>
+                                {{end}}
+                            {{end}}
+                        </div>
+                        <div class="text-xs text-base-content/60 flex items-center gap-2 flex-wrap">
+                            <span>#{{.Channel.Id}} opened by <span class="font-medium text-base-content/80">{{if .Author.IsEmpty}}Anonymous{{else}}{{.Author.Moniker}}{{end}}</span></span>
+                            {{if gt .Progress.TotalCount 0}}
+                            <span>&middot;</span>
+                            <span class="inline-flex items-center gap-1 font-mono text-emerald-500 font-medium">
+                                <span class="icon icon-[lucide--check-square] size-3"></span>
+                                {{.Progress.ClosedCount}}/{{.Progress.TotalCount}} sub-tickets ({{.Progress.Percentage}}%)
+                            </span>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 shrink-0">
+                    {{if .Assignees}}
+                    <div class="flex items-center -space-x-1.5 overflow-hidden">
+                        {{range .Assignees}}
+                        <div class="avatar shrink-0" title="Assigned to {{.Moniker}}">
+                            <div class="w-5 h-5 rounded-full ring-1 ring-surface-canvas">
+                                <img src="{{.AvatarUrl}}" class="size-full object-cover rounded-full" alt="{{.Moniker}}">
+                            </div>
+                        </div>
+                        {{end}}
+                    </div>
+                    {{end}}
+
+                    {{if gt .CommentCount 0}}
+                    <div class="flex items-center gap-1 text-xs text-base-content/60">
+                        <span class="icon icon-[lucide--message-square] size-3.5"></span>
+                        <span>{{.CommentCount}}</span>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+            {{end}}
+            {{end}}
+        </div>
+    </div>
+
+    <!-- New Ticket Modal -->
+    {{if not .Member.IsEmpty}}
+    <dialog id="new-ticket-modal" class="modal">
+        <div class="modal-box bg-surface-overlay border border-base-content/10 max-w-lg">
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="Close modal">✕</button>
+            </form>
+            <h3 class="font-bold text-lg flex items-center gap-2 pb-2 border-b border-base-content/10">
+                <span class="icon icon-[lucide--plus-circle] size-5 text-primary" aria-hidden="true"></span>
+                <span>Create New Ticket</span>
+            </h3>
+            <form
+                class="py-4 flex flex-col gap-4"
+                hx-post="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/tickets/create"
+            >
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="ticket-title">Title</label>
+                    <input class="input input-bordered w-full" type="text" id="ticket-title" name="title" placeholder="Ticket title..." required>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="ticket-content">Description / Content</label>
+                    <textarea class="textarea textarea-bordered w-full h-32" id="ticket-content" name="content" placeholder="Describe the ticket..."></textarea>
+                </div>
+                <div class="modal-action border-t border-base-content/10 pt-3">
+                    <button class="btn btn-sm btn-ghost" type="button" onclick="document.getElementById('new-ticket-modal').close()">Cancel</button>
+                    <button class="btn btn-sm btn-primary" type="submit">Submit New Ticket</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+    {{end}}
+</div>

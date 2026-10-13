@@ -176,6 +176,19 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 		t.Errorf("expected 200 or 303 for role move action, got %d", respMoveRole.StatusCode())
 	}
 
+	// 5b. GET /groups/:id/members/search -> Test Live Member Search for Role Assignment
+	respSearchMember, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Get(fmt.Sprintf("/groups/%d/members/search?role_id=%d&q=Member", group.Id, modRole.Id))
+	if err != nil {
+		t.Fatalf("GET member search failed: %v", err)
+	}
+	defer respSearchMember.Close()
+
+	if respSearchMember.StatusCode() != http.StatusOK {
+		t.Errorf("expected status 200 for member search, got %d", respSearchMember.StatusCode())
+	}
+
 	// 6. POST /groups/:id/members/:user_id/roles -> Assign Senior Moderator role to memberUser
 	respAssignRole, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).

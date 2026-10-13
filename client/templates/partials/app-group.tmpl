@@ -57,7 +57,7 @@
                     href="/chat/groups/{{$groupId}}/channels/{{.Id}}"
                 >
                     <div class="flex items-center gap-2 truncate min-w-0">
-                        <span class="icon icon-[lucide--hash] size-4 shrink-0" aria-hidden="true"></span>
+                        <span class="icon {{template "partials/channel-icon-class" .Type}} size-4 shrink-0" aria-hidden="true"></span>
                         <span class="truncate">{{.Moniker}}</span>
                     </div>
                 </a>
@@ -98,6 +98,10 @@
             </a>
             {{end}}
         </div>
+        {{else if .IsTicketContainer}}
+        {{- template "partials/ticket-list" .}}
+        {{else if .IsTicketDetail}}
+        {{- template "partials/ticket-detail" .}}
         {{else}}
         <main id="chat">
             <div
@@ -115,7 +119,7 @@
     <div id="members-view" class="secondary-view">
         <div class="flex items-center justify-between min-h-10">
             <div class="flex items-center gap-2 font-semibold text-base truncate">
-                <span class="icon icon-[lucide--hash] size-4 shrink-0" aria-hidden="true"></span>
+                <span class="icon {{template "partials/channel-icon-class" .ActiveChannel.Type}} size-4 shrink-0" aria-hidden="true"></span>
                 <span class="truncate">{{.ActiveChannel.Moniker}}</span>
             </div>
             <button
@@ -128,7 +132,7 @@
                 <span class="icon icon-[lucide--x] size-5" aria-hidden="true"></span>
             </button>
         </div>
-        {{if and .ActiveChannel (not .ActiveChannel.IsEmpty) (ne .ActiveChannel.Description "")}}
+        {{if and .ActiveChannel (not .ActiveChannel.IsEmpty) (ne .ActiveChannel.Description "") (not .ActiveChannel.IsTicket)}}
         <div class="flex items-center text-sm justify-between min-h-10 pb-2 border-b border-base-content/10 text-base-content/70">
             {{.ActiveChannel.Description}}
         </div>

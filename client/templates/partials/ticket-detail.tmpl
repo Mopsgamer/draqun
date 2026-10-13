@@ -1,0 +1,386 @@
+<div class="flex-1 flex flex-col h-full overflow-hidden bg-surface-canvas">
+    <!-- Scrollable content area with padding -->
+    <div class="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col gap-6">
+        <!-- Breadcrumb & Back buttons for Parent Channels -->
+        {{if .ParentChannels}}
+        <div class="flex items-center gap-2 flex-wrap">
+            {{$groupId := .Group.Id}}
+            {{range .ParentChannels}}
+            <a
+                class="btn btn-ghost btn-xs text-base-content/70 hover:text-base-content gap-1 cursor-pointer"
+                href="/chat/groups/{{$groupId}}/channels/{{.Id}}"
+            >
+                <span class="icon icon-[lucide--arrow-left] size-3.5"></span>
+                Back to {{.Moniker}}
+            </a>
+            {{end}}
+        </div>
+        {{end}}
+
+        <!-- Ticket Header -->
+        <div class="flex flex-col gap-3 pb-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <h1 class="text-2xl font-bold tracking-tight text-base-content flex items-center gap-2">
+                    <span>{{.ActiveChannel.Moniker}}</span>
+                    <span class="text-base-content/40 font-mono font-normal">#{{.ActiveChannel.Id}}</span>
+                </h1>
+
+                <!-- Action buttons -->
+                {{if not .Member.IsEmpty}}
+                <div class="flex items-center gap-2 shrink-0 flex-wrap">
+                    <button
+                        class="btn btn-ghost btn-sm gap-1 cursor-pointer"
+                        onclick="document.getElementById('edit-ticket-modal').showModal()"
+                        title="Edit ticket"
+                    >
+                        <span class="icon icon-[lucide--pencil] size-3.5"></span>
+                        Edit
+                    </button>
+
+                    <button
+                        class="btn btn-outline btn-sm gap-1 cursor-pointer"
+                        onclick="document.getElementById('new-subticket-modal').showModal()"
+                    >
+                        <span class="icon icon-[lucide--plus] size-3.5"></span>
+                        Sub-Ticket
+                    </button>
+
+                    <details class="dropdown dropdown-end">
+                        <summary class="btn btn-ghost btn-sm gap-1 cursor-pointer" title="Assign member">
+                            <span class="icon icon-[lucide--user-plus] size-3.5"></span>
+                            Assignee
+                        </summary>
+                        <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-overlay rounded-xl border border-base-content/10 w-72 mt-1 flex flex-col gap-2">
+                            <span class="font-semibold text-xs text-primary">Assign Member to Ticket</span>
+                            <input
+                                type="text"
+                                name="q"
+                                class="input input-bordered w-full text-xs"
+                                placeholder="Search member by name..."
+                                hx-get="/groups/{{$.Group.Id}}/members/search?channel_id={{$.ActiveChannel.Id}}"
+                                hx-trigger="keyup changed delay:200ms, focus"
+                                hx-target="#ticket-member-search"
+                            />
+                            <div id="ticket-member-search" class="max-h-36 overflow-y-auto border border-base-content/10 rounded-lg p-1 bg-surface-overlay flex flex-col gap-0.5 mt-1">
+                                <div class="p-2 text-xs text-base-content/50 italic text-center">Type above to search members</div>
+                            </div>
+                        </div>
+                    </details>
+
+                    {{if eq .ActiveChannel.Status "closed"}}
+                    <button
+                        class="btn btn-success btn-sm gap-1.5 cursor-pointer"
+                        hx-post="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/status"
+                        hx-vals='{"status": "open"}'
+                    >
+                        <span class="icon icon-[lucide--rotate-ccw] size-3.5"></span>
+                        Reopen Ticket
+                    </button>
+                    {{else}}
+                    <button
+                        class="btn btn-primary btn-sm gap-1.5 cursor-pointer"
+                        hx-post="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/status"
+                        hx-vals='{"status": "closed", "closed_reason": "completed"}'
+                    >
+                        <span class="icon icon-[lucide--check-circle-2] size-3.5"></span>
+                        Close Ticket
+                    </button>
+
+                    <!-- Context Menu for Close Options -->
+                    <details class="dropdown dropdown-end">
+                        <summary class="btn btn-ghost btn-square btn-sm cursor-pointer">
+                            <span class="icon icon-[lucide--more-vertical] size-4"></span>
+                        </summary>
+                        <div class="dropdown-content z-30 p-2 shadow-xl bg-surface-overlay rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-1">
+                            <button
+                                type="button"
+                                class="w-full text-left flex items-center gap-2 py-1.5 px-2 hover:bg-surface-card-hover rounded text-xs cursor-pointer"
+                                hx-post="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/status"
+                                hx-vals='{"status": "closed", "closed_reason": "not_planned"}'
+                            >
+                                <span class="icon icon-[lucide--circle-slash] size-4"></span>
+                                Close as Not Planned
+                            </button>
+
+                            <button
+                                type="button"
+                                class="w-full text-left flex items-center gap-2 py-1.5 px-2 hover:bg-surface-card-hover rounded text-xs cursor-pointer text-amber-500"
+                                onclick="var f=document.getElementById('duplicate-miniprompt-form'); if(f){f.classList.toggle('hidden');}"
+                            >
+                                <span class="icon icon-[lucide--copy-x] size-4 text-amber-500"></span>
+                                Close as Duplicate...
+                            </button>
+
+                            <form
+                                id="duplicate-miniprompt-form"
+                                class="hidden p-2.5 bg-surface-card rounded-lg border border-base-content/10 flex flex-col gap-2 mt-1"
+                                hx-post="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/status"
+                            >
+                                <input type="hidden" name="status" value="closed" />
+                                <input type="hidden" name="closed_reason" value="duplicate" />
+                                <input type="hidden" id="duplicate_of_id_input" name="duplicate_of_id" value="0" required />
+
+                                <span class="font-semibold text-xs text-amber-500">Close as Duplicate</span>
+
+                                <div id="duplicate_selected_preview" class="empty:hidden min-h-0"></div>
+
+                                <div class="flex flex-col gap-1">
+                                    <label class="text-[10px] font-semibold text-base-content/70">Search Original Ticket</label>
+                                    <input
+                                        type="text"
+                                        name="q"
+                                        class="input input-bordered w-full text-xs h-7"
+                                        placeholder="Type ID or title..."
+                                        hx-get="/groups/{{.Group.Id}}/tickets/search?mode=duplicate&exclude_id={{.ActiveChannel.Id}}"
+                                        hx-trigger="keyup changed delay:200ms, focus"
+                                        hx-target="#duplicate-results-list"
+                                    />
+                                    <div id="duplicate-results-list" class="max-h-36 overflow-y-auto bg-transparent flex flex-col mt-1">
+                                        <div class="p-2 text-xs text-base-content/50 italic text-center">Type above to search tickets</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-warning btn-xs w-full mt-1 cursor-pointer" type="submit">
+                                    Confirm Duplicate
+                                </button>
+                            </form>
+                        </div>
+                    </details>
+                    {{end}}
+                </div>
+                {{end}}
+            </div>
+
+            <!-- Status Meta Row -->
+            <div class="flex items-center gap-3 text-xs flex-wrap">
+                {{if eq .ActiveChannel.Status "closed"}}
+                    {{if eq .ActiveChannel.ClosedReason "not_planned"}}
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-base-content/15 text-base-content">
+                        <span class="icon icon-[lucide--circle-slash] size-3.5"></span>
+                        Closed (Not Planned)
+                    </span>
+                    {{else if eq .ActiveChannel.ClosedReason "duplicate"}}
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-500">
+                        <span class="icon icon-[lucide--copy-x] size-3.5"></span>
+                        Closed (Duplicate{{if .TicketDuplicateTarget}} of <a href="/chat/groups/{{$.Group.Id}}/channels/{{.TicketDuplicateTarget.Id}}" class="underline hover:text-amber-400 font-mono">#{{.TicketDuplicateTarget.Id}}</a>{{end}})
+                    </span>
+                    {{else}}
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-500">
+                        <span class="icon icon-[lucide--check-circle-2] size-3.5"></span>
+                        Closed
+                    </span>
+                    {{end}}
+                {{else}}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-500">
+                    <span class="icon icon-[lucide--circle-dot] size-3.5"></span>
+                    Open
+                </span>
+                {{end}}
+
+                <span class="text-base-content/70">
+                    <span class="font-semibold text-base-content">{{if .TicketAuthor.IsEmpty}}Anonymous{{else}}{{.TicketAuthor.Moniker}}{{end}}</span>
+                    opened this ticket
+                    {{if .TicketEditDateStr}}
+                    &middot; <span class="italic text-base-content/50">edited on {{.TicketEditDateStr}}</span>
+                    {{end}}
+                </span>
+
+                {{if .TicketAssignees}}
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-base-content/50 text-xs font-semibold">Assignees:</span>
+                    {{range .TicketAssignees}}
+                    <span class="badge badge-sm gap-1 bg-surface-card border border-base-content/10">
+                        <div class="avatar shrink-0"><div class="w-4 h-4 rounded-full"><img src="{{.AvatarUrl}}" class="size-full object-cover rounded-full" alt="Avatar"></div></div>
+                        <span>{{.Moniker}}</span>
+                        {{if not $.Member.IsEmpty}}
+                        <button
+                            type="button"
+                            class="text-base-content/50 hover:text-error ml-0.5 cursor-pointer"
+                            hx-delete="/groups/{{$.Group.Id}}/channels/{{$.ActiveChannel.Id}}/assignees/{{.Id}}"
+                            title="Remove assignee"
+                        >✕</button>
+                        {{end}}
+                    </span>
+                    {{end}}
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- Main Ticket Description Block -->
+        <div class="text-sm leading-relaxed text-base-content/90 break-words py-1">
+            {{if ne .ActiveChannel.Description ""}}
+                {{.ActiveChannel.Description}}
+            {{else}}
+                <span class="italic text-base-content/40">No description provided.</span>
+            {{end}}
+        </div>
+
+        <!-- Sub-Tickets Progress & Task List (AFTER Description) -->
+        {{if gt .TicketProgress.TotalCount 0}}
+        <div class="flex flex-col gap-3 py-2">
+            <div class="flex items-center justify-between text-xs">
+                <span class="font-bold flex items-center gap-1.5">
+                    <span class="icon icon-[lucide--check-square] size-4 text-emerald-500"></span>
+                    Sub-Tickets Progress
+                </span>
+                <span class="font-mono text-base-content/70">
+                    {{.TicketProgress.ClosedCount}} of {{.TicketProgress.TotalCount}} closed ({{.TicketProgress.Percentage}}%)
+                </span>
+            </div>
+            <div class="w-full bg-base-content/10 h-2 rounded-full overflow-hidden">
+                <div class="bg-emerald-500 h-full rounded-full transition-all" style="width: {{.TicketProgress.Percentage}}%;"></div>
+            </div>
+            <div class="flex flex-col pt-1">
+                {{$groupId := .Group.Id}}
+                {{range .SubTickets}}
+                <div class="flex items-center justify-between py-2 text-xs">
+                    <div class="flex items-center gap-2 truncate min-w-0">
+                        {{if eq .Channel.Status "closed"}}
+                        <span class="icon icon-[lucide--check-circle-2] size-3.5 text-purple-500 shrink-0"></span>
+                        {{else}}
+                        <span class="icon icon-[lucide--circle-dot] size-3.5 text-emerald-500 shrink-0"></span>
+                        {{end}}
+                        <a
+                            href="/chat/groups/{{$groupId}}/channels/{{.Channel.Id}}"
+                            class="font-medium hover:text-primary transition-colors truncate"
+                        >
+                            {{.Channel.Moniker}}
+                        </a>
+                        <span class="text-base-content/40 font-mono">#{{.Channel.Id}}</span>
+                    </div>
+                    <div class="shrink-0">
+                        {{if eq .Channel.Status "closed"}}
+                            {{if eq .Channel.ClosedReason "not_planned"}}
+                            <span class="badge badge-ghost badge-xs">closed (not planned)</span>
+                            {{else if eq .Channel.ClosedReason "duplicate"}}
+                            <span class="badge badge-warning badge-xs">closed (duplicate)</span>
+                            {{else}}
+                            <span class="badge badge-primary badge-xs">closed (completed)</span>
+                            {{end}}
+                        {{else}}
+                        <span class="badge badge-ghost badge-xs">open</span>
+                        {{end}}
+                    </div>
+                </div>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+
+        <!-- Ticket Comments Section -->
+        <div class="flex flex-col gap-4">
+            <h3 class="text-xs font-bold text-base-content/60 uppercase tracking-wider">Comments</h3>
+            <main id="chat" class="flex flex-col gap-3">
+                <div
+                    class="load-scroll"
+                    hx-trigger="intersect once"
+                    hx-swap="outerHTML"
+                    hx-get="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/messages/page/1"
+                >
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Pinned Chat Input at bottom outside padded scroll area -->
+    {{- template "partials/chat-input" .}}
+
+    <!-- Modals -->
+    {{if not .Member.IsEmpty}}
+    <!-- Edit Ticket Modal -->
+    <dialog id="edit-ticket-modal" class="modal">
+        <div class="modal-box bg-surface-overlay border border-base-content/10 max-w-lg">
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="Close modal">✕</button>
+            </form>
+            <h3 class="font-bold text-lg flex items-center gap-2 pb-2 border-b border-base-content/10">
+                <span class="icon icon-[lucide--pencil] size-5 text-primary" aria-hidden="true"></span>
+                <span>Edit Ticket</span>
+            </h3>
+            <form
+                class="py-4 flex flex-col gap-4"
+                hx-post="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/tickets/edit"
+            >
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="edit-title">Title</label>
+                    <input class="input input-bordered w-full" type="text" id="edit-title" name="title" value="{{.ActiveChannel.Moniker}}" required>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="edit-content">Description / Content</label>
+                    <textarea class="textarea textarea-bordered w-full h-32" id="edit-content" name="content">{{.ActiveChannel.Description}}</textarea>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70">Parent Ticket Channels</label>
+                    <div id="active-parent-badges" class="flex flex-wrap gap-1.5 py-1 min-h-8 items-center">
+                        {{range .ParentChannels}}
+                        <span class="badge badge-primary badge-sm gap-1 font-mono items-center">
+                            <input type="hidden" name="parent_ids" value="{{.Id}}" />
+                            <span>#{{.Id}} {{.Moniker}}</span>
+                            <button type="button" class="btn btn-ghost btn-xs btn-circle p-0 h-auto min-h-0 text-white/80 hover:text-white cursor-pointer" onclick="this.parentElement.remove()">✕</button>
+                        </span>
+                        {{end}}
+                    </div>
+                    <div class="flex flex-col gap-1 mt-1">
+                        <span class="text-[10px] text-base-content/50">Live search to add additional parent channel:</span>
+                        <input
+                            type="text"
+                            name="q"
+                            class="input input-bordered w-full text-xs"
+                            placeholder="Type ticket ID or title to search..."
+                            hx-get="/groups/{{.Group.Id}}/tickets/search?mode=parent&exclude_id={{.ActiveChannel.Id}}"
+                            hx-trigger="keyup changed delay:200ms, focus"
+                            hx-target="#parent-results-list"
+                        />
+                        <div id="parent-results-list" class="max-h-36 overflow-y-auto bg-transparent flex flex-col mt-1">
+                            <div class="p-2 text-xs text-base-content/50 italic text-center">Type above to search tickets</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-action border-t border-base-content/10 pt-3">
+                    <button class="btn btn-sm btn-ghost cursor-pointer" type="button" onclick="document.getElementById('edit-ticket-modal').close()">Cancel</button>
+                    <button class="btn btn-sm btn-primary cursor-pointer" type="submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Sub-ticket modal -->
+    <dialog id="new-subticket-modal" class="modal">
+        <div class="modal-box bg-surface-overlay border border-base-content/10 max-w-lg">
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="Close modal">✕</button>
+            </form>
+            <h3 class="font-bold text-lg flex items-center gap-2 pb-2 border-b border-base-content/10">
+                <span class="icon icon-[lucide--plus-circle] size-5 text-primary" aria-hidden="true"></span>
+                <span>Add Sub-Ticket</span>
+            </h3>
+            <form
+                class="py-4 flex flex-col gap-4"
+                hx-post="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/tickets/create"
+            >
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="subticket-title">Title</label>
+                    <input class="input input-bordered w-full" type="text" id="subticket-title" name="title" placeholder="Sub-ticket title..." required>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-base-content/70" for="subticket-content">Description</label>
+                    <textarea class="textarea textarea-bordered w-full h-24" id="subticket-content" name="content" placeholder="Describe sub-task..."></textarea>
+                </div>
+
+                <div class="modal-action border-t border-base-content/10 pt-3">
+                    <button class="btn btn-sm btn-ghost cursor-pointer" type="button" onclick="document.getElementById('new-subticket-modal').close()">Cancel</button>
+                    <button class="btn btn-sm btn-primary cursor-pointer" type="submit">Create Sub-Ticket</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+    {{end}}
+</div>

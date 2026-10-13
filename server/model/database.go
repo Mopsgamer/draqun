@@ -30,6 +30,7 @@ const (
 	TableUserChannels       = "app_user_channels"
 	TableDirectChannels     = "app_direct_channels"
 	TableChannelPermissions = "app_channel_permissions"
+	TableChannelAssignees   = "app_channel_assignees"
 )
 
 func LoadDB() error {
@@ -47,6 +48,11 @@ func LoadDB() error {
 
 	_, _ = Sqlx.Exec(`ALTER TABLE app_group_roles ADD COLUMN position INTEGER NOT NULL DEFAULT 0;`)
 	_, _ = Sqlx.Exec(`ALTER TABLE app_group_messages ADD COLUMN channel_id INTEGER NOT NULL DEFAULT 0;`)
+	_, _ = Sqlx.Exec(`ALTER TABLE app_channels ADD COLUMN status VARCHAR(32) NOT NULL DEFAULT 'open';`)
+	_, _ = Sqlx.Exec(`ALTER TABLE app_channels ADD COLUMN closed_reason VARCHAR(32) NOT NULL DEFAULT '';`)
+	_, _ = Sqlx.Exec(`ALTER TABLE app_channels ADD COLUMN author_id INTEGER NOT NULL DEFAULT 0;`)
+	_, _ = Sqlx.Exec(`ALTER TABLE app_channels ADD COLUMN duplicate_of_id INTEGER NOT NULL DEFAULT 0;`)
+	_, _ = Sqlx.Exec(`ALTER TABLE app_channels ADD COLUMN updated_at DATETIME;`)
 
 	_, _ = Sqlx.Exec(`CREATE TABLE IF NOT EXISTS app_group_action_roles (
     role_id INTEGER NOT NULL,
@@ -66,6 +72,11 @@ func LoadDB() error {
     moniker VARCHAR(255) NOT NULL,
     description VARCHAR(510) NOT NULL,
     type VARCHAR(32) NOT NULL DEFAULT 'text',
+    status VARCHAR(32) NOT NULL DEFAULT 'open',
+    closed_reason VARCHAR(32) NOT NULL DEFAULT '',
+    author_id INTEGER NOT NULL DEFAULT 0,
+    duplicate_of_id INTEGER NOT NULL DEFAULT 0,
+    updated_at DATETIME,
     created_at DATETIME NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT 0
 );`)
@@ -118,6 +129,14 @@ func LoadDB() error {
     PRIMARY KEY (channel_id, role_id),
     FOREIGN KEY (channel_id) REFERENCES app_channels (id),
     FOREIGN KEY (role_id) REFERENCES app_group_roles (id)
+);`)
+
+	_, _ = Sqlx.Exec(`CREATE TABLE IF NOT EXISTS app_channel_assignees (
+    channel_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    PRIMARY KEY (channel_id, user_id),
+    FOREIGN KEY (channel_id) REFERENCES app_channels (id),
+    FOREIGN KEY (user_id) REFERENCES app_users (id)
 );`)
 
 	Goqu = goqu.New("sqlite3", Sqlx)

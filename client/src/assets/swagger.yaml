@@ -567,6 +567,174 @@ paths:
    responses:
     "200":
      description: Permission override updated.
+ /groups/{group_id}/members/search:
+  get:
+   tags:
+    - Group
+   summary: Search Group Members
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: q
+      in: query
+      schema:
+       type: string
+    - name: role_id
+      in: query
+      schema:
+       type: integer
+    - name: channel_id
+      in: query
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: List of matching members.
+ /groups/{group_id}/channels/{channel_id}/assignees:
+  post:
+   tags:
+    - Group
+   summary: Assign Member to Ticket Channel
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: channel_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/TicketAssignForm"
+   responses:
+    "200":
+     description: Member assigned to ticket.
+ /groups/{group_id}/channels/{channel_id}/assignees/{user_id}:
+  delete:
+   tags:
+    - Group
+   summary: Remove Assignee from Ticket Channel
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: channel_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: user_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: Member unassigned from ticket.
+ /groups/{group_id}/tickets/search:
+  get:
+   tags:
+    - Group
+   summary: Search Ticket Channels
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: q
+      in: query
+      schema:
+       type: string
+    - name: exclude_id
+      in: query
+      schema:
+       type: integer
+   responses:
+    "200":
+     description: List of matching ticket channels.
+ /groups/{group_id}/channels/{parent_id}/tickets/create:
+  post:
+   tags:
+    - Group
+   summary: Create Ticket Subchannel
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: parent_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/TicketCreateForm"
+   responses:
+    "200":
+     description: Ticket created.
+ /groups/{group_id}/channels/{channel_id}/tickets/edit:
+  post:
+   tags:
+    - Group
+   summary: Edit Ticket Subchannel
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: channel_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/TicketEditForm"
+   responses:
+    "200":
+     description: Ticket updated.
+ /groups/{group_id}/channels/{channel_id}/status:
+  post:
+   tags:
+    - Group
+   summary: Update Ticket Status
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+    - name: channel_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/TicketStatusForm"
+   responses:
+    "200":
+     description: Ticket status updated.
  /groups/{group_id}/channels/{channel_id}/messages/create:
   post:
    tags:
@@ -974,7 +1142,7 @@ components:
      type: string
     type:
      type: string
-     enum: [text]
+     enum: [text, ticket]
     parent_id:
      type: integer
   ChannelChange:
@@ -988,7 +1156,47 @@ components:
      type: string
     type:
      type: string
-     enum: [text]
+     enum: [text, ticket]
+  TicketCreateForm:
+   type: object
+   required:
+    - title
+   properties:
+    title:
+     type: string
+    content:
+     type: string
+  TicketEditForm:
+   type: object
+   properties:
+    title:
+     type: string
+    content:
+     type: string
+    parent_ids:
+     type: array
+     items:
+      type: integer
+  TicketStatusForm:
+   type: object
+   required:
+    - status
+   properties:
+    status:
+     type: string
+     enum: [open, closed]
+    closed_reason:
+     type: string
+     enum: [completed, not_planned, duplicate]
+    duplicate_of_id:
+     type: integer
+  TicketAssignForm:
+   type: object
+   required:
+    - user_id
+   properties:
+    user_id:
+     type: integer
   ChannelPermissionForm:
    type: object
    required:

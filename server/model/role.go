@@ -229,3 +229,31 @@ func (role Role) Update() error {
 func (role Role) Delete() error {
 	return Delete(TableRoles, goqu.Ex{"id": role.Id, "group_id": role.GroupId})
 }
+
+func (role Role) Assignees() []User {
+	userList := []User{}
+	sql, args, err := Goqu.Select(TableUsers+".*").From(TableRoleAssignees).
+		Join(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(goqu.I(TableRoleAssignees+".user_id")))).
+		Join(goqu.I(TableMembers), goqu.On(goqu.I(TableMembers+".user_id").Eq(goqu.I(TableRoleAssignees+".user_id")))).
+		Where(goqu.Ex{
+			TableRoleAssignees + ".role_id": role.Id,
+			TableMembers + ".group_id":      role.GroupId,
+			TableMembers + ".is_deleted":    false,
+			TableUsers + ".is_deleted":      false,
+		}).
+		Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return userList
+	}
+
+	err = Sqlx.Select(&userList, sql, args...)
+	if err != nil {
+		handleErr(err)
+	}
+
+	for i := range userList {
+		userList[i].SetFullfilled()
+	}
+	return userList
+}
