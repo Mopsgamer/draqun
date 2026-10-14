@@ -1,9 +1,8 @@
 import type { TaskStateEnd } from "@m234/logger";
 import { binaryInfo, compile, machineInfo } from "./tool/compile-binary.ts";
-import { distFolder, logProd } from "./tool/constants.ts";
+import { logProd } from "./tool/constants.ts";
 import kill from "tree-kill";
 import { compileDist } from "./tool/compile-dist.ts";
-import { existsSync } from "@std/fs/exists";
 import { showHelp } from "./tool/help.ts";
 
 if (
@@ -20,9 +19,7 @@ if (
 const [os, arch] = machineInfo();
 const { filePath } = binaryInfo(os, arch);
 
-if (!existsSync(distFolder) || !existsSync(distFolder + "/static")) {
-	await compileDist(true);
-}
+await compileDist(true, "min");
 
 if (!await compile(os, arch)) {
 	Deno.exit(1);
@@ -53,7 +50,7 @@ async function start(): Promise<TaskStateEnd> {
 		stderr: "piped",
 	}).output();
 
-	await compileDist(true);
+	await compileDist(true, "min");
 	if (!await compile(os, arch)) {
 		await logProd.warn("Compilation failed, keeping the old version running.");
 		return "aborted";
@@ -62,8 +59,8 @@ async function start(): Promise<TaskStateEnd> {
 	if (pid > 0) kill(pid);
 
 	pid = new Deno.Command(filePath, {
-		stdout: "piped",
-		stderr: "piped",
+		stdout: "inherit",
+		stderr: "inherit",
 	}).spawn().pid;
 
 	return "completed";
