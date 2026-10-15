@@ -43,13 +43,11 @@ func routeAccountChange(router fiber.Router) fiber.Router {
 				request := fiber.Locals[UserChangeName](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
-				if request.NewNickname == user.Moniker &&
-					request.NewName == user.Name {
-					return htmx.AlertUseless
-				}
-
-				existingUser, _ := model.NewUserFromName(request.NewName)
-				if !existingUser.IsEmpty() {
+				if request.NewName == user.Name {
+					if request.NewNickname == user.Moniker {
+						return htmx.AlertUseless
+					}
+				} else if existingUser, _ := model.NewUserFromName(request.NewName); !existingUser.IsEmpty() {
 					return htmx.AlertUserExistsName
 				}
 
