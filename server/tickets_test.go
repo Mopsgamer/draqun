@@ -824,3 +824,129 @@ func TestNewValidationRules(t *testing.T) {
 		t.Errorf("expected error for empty parent_ids edit, got status %d, body: %s", respEmptyParents.StatusCode(), respEmptyParents.String())
 	}
 }
+
+func TestTicketChannelHeaderRefactor(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookieOwner, owner := createTestUserCookie(t, ts, "Header Owner", "header_owner", "header_owner@example.com")
+	group := createTestGroupDirectly(t, int64(owner.Id), "Header Test Group", "header_test_group")
+
+	// Create Ticket Channel
+	ch := model.NewChannel("bugs", "Bug Tracker", "Tracker Description In Sidebar", model.ChannelTypeTicket)
+	_ = ch.Insert()
+	_ = model.AddGroupChannel(group.Id, ch.Id, 1)
+
+	// Create Root Ticket 1
+	root1 := model.NewChannel("root_1", "Root Ticket Alpha", "First root ticket", model.ChannelTypeTicket)
+	root1.AuthorId = owner.Id
+	root1.Status = "open"
+	_ = root1.Insert()
+	_ = model.SetParentChannels(root1.Id, []uint64{ch.Id})
+
+	// Create Sub-ticket 1 under Root Ticket 1
+	sub1 := model.NewChannel("sub_1", "Sub Ticket Beta", "Child issue", model.ChannelTypeTicket)
+	sub1.AuthorId = owner.Id
+	sub1.Status = "open"
+	_ = sub1.Insert()
+	_ = model.SetParentChannels(sub1.Id, []uint64{root1.Id})
+
+	// 1. GET ticket channel page default: should show BOTH Root Ticket Alpha AND Sub Ticket Beta (all tickets by default)
+	respDefault, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Get(fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, ch.Id))
+	if err != nil {
+		t.Fatalf("GET ticket channel page failed: %v", err)
+	}
+	bodyDefault := respDefault.String()
+	respDefault.Close()
+
+	if !strings.Contains(bodyDefault, "Root Ticket Alpha") {
+		t.Errorf("expected root ticket 'Root Ticket Alpha' in default view, got: %s", bodyDefault)
+	}
+	if !strings.Contains(bodyDefault, "Sub Ticket Beta") {
+		t.Errorf("expected sub ticket 'Sub Ticket Beta' in default view, got: %s", bodyDefault)
+	}
+	if !strings.Contains(bodyDefault, "Tracker Description In Sidebar") {
+		t.Errorf("expected channel description in right sidebar, got: %s", bodyDefault)
+	}
+
+	// 2. GET ticket channel page with only_parents=true: should show Root Ticket Alpha, but NOT Sub Ticket Beta
+	respParentsOnly, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?only_parents=true", group.Id, ch.Id))
+	if err != nil {
+		t.Fatalf("GET ticket channel page with only_parents=true failed: %v", err)
+	}
+	bodyParentsOnly := respParentsOnly.String()
+	respParentsOnly.Close()
+
+	if !strings.Contains(bodyParentsOnly, "Root Ticket Alpha") {
+		t.Errorf("expected 'Root Ticket Alpha' in only_parents=true view, got: %s", bodyParentsOnly)
+	}
+	if strings.Contains(bodyParentsOnly, "Sub Ticket Beta") {
+		t.Errorf("expected 'Sub Ticket Beta' to NOT be in only_parents=true view, got: %s", bodyParentsOnly)
+	}
+
+	// 3. GET ticket channel search with q=Beta and default (all tickets): should match Sub Ticket Beta
+	respSearchAll, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?q=Beta", group.Id, ch.Id))
+	if err != nil {
+		t.Fatalf("GET ticket channel search with q=Beta failed: %v", err)
+	}
+	bodySearchAll := respSearchAll.String()
+	respSearchAll.Close()
+
+	if !strings.Contains(bodySearchAll, "Sub Ticket Beta") {
+		t.Errorf("expected 'Sub Ticket Beta' when searching with q=Beta, got: %s", bodySearchAll)
+	}
+
+	// 4. GET ticket channel search with q=Beta and only_parents=true: should NOT match Sub Ticket Beta
+	respSearchRoot, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?only_parents=true&q=Beta", group.Id, ch.Id))
+	if err != nil {
+		t.Fatalf("GET ticket channel search with q=Beta and only_parents=true failed: %v", err)
+	}
+	bodySearchRoot := respSearchRoot.String()
+	respSearchRoot.Close()
+
+	if strings.Contains(bodySearchRoot, "Sub Ticket Beta") {
+		t.Errorf("expected 'Sub Ticket Beta' to NOT be found in only_parents search for Beta, got: %s", bodySearchRoot)
+	}
+	if !strings.Contains(bodySearchRoot, "No tickets matching \"Beta\"") {
+		t.Errorf("expected 'No tickets matching \"Beta\"' message, got: %s", bodySearchRoot)
+	}
+
+	// 5. GET ticket channel with created_by_me=true: should match tickets created by owner
+	respCreatedBy, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?created_by_me=true", group.Id, ch.Id))
+	if err != nil {
+		t.Fatalf("GET ticket channel created_by_me failed: %v", err)
+	}
+	bodyCreatedBy := respCreatedBy.String()
+	respCreatedBy.Close()
+
+	if !strings.Contains(bodyCreatedBy, "Root Ticket Alpha") {
+		t.Errorf("expected 'Root Ticket Alpha' for created_by_me=true, got: %s", bodyCreatedBy)
+	}
+
+	// Assign owner to root1
+	_ = model.AddChannelAssignee(root1.Id, owner.Id)
+
+	// 6. GET ticket channel with assigned_to_me=true: should match root1
+	respAssignedTo, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?assigned_to_me=true", group.Id, ch.Id))
+	if err != nil {
+		t.Fatalf("GET ticket channel assigned_to_me failed: %v", err)
+	}
+	bodyAssignedTo := respAssignedTo.String()
+	respAssignedTo.Close()
+
+	if !strings.Contains(bodyAssignedTo, "Root Ticket Alpha") {
+		t.Errorf("expected 'Root Ticket Alpha' for assigned_to_me=true, got: %s", bodyAssignedTo)
+	}
+}

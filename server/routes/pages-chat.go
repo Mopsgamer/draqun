@@ -1,6 +1,9 @@
 package routes
 
 import (
+	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -156,12 +159,100 @@ func enrichTicketContext(ctx fiber.Ctx, activeChannel model.Channel, bind fiber.
 	}
 	bind["StatusFilter"] = statusFilter
 
+	onlyParentsParam := ctx.FormValue("only_parents")
+	if onlyParentsParam == "" {
+		onlyParentsParam = ctx.Query("only_parents", "")
+	}
+	allParam := ctx.FormValue("all")
+	if allParam == "" {
+		allParam = ctx.Query("all", "")
+	}
+
+	var isOnlyParents bool
+	if onlyParentsParam != "" {
+		isOnlyParents = onlyParentsParam == "true" || onlyParentsParam == "1"
+	} else if allParam != "" {
+		isOnlyParents = !(allParam == "true" || allParam == "1")
+	} else {
+		isOnlyParents = false
+	}
+	bind["OnlyParentsFilter"] = isOnlyParents
+
+	qQuery := ctx.FormValue("q")
+	if qQuery == "" {
+		qQuery = ctx.Query("q", "")
+	}
+	bind["SearchQuery"] = qQuery
+
+	assignedParam := ctx.FormValue("assigned_to_me")
+	if assignedParam == "" {
+		assignedParam = ctx.Query("assigned_to_me", "")
+	}
+	isAssignedToMe := assignedParam == "true" || assignedParam == "1"
+	bind["AssignedToMeFilter"] = isAssignedToMe
+
+	createdByParam := ctx.FormValue("created_by_me")
+	if createdByParam == "" {
+		createdByParam = ctx.Query("created_by_me", "")
+	}
+	isCreatedByMe := createdByParam == "true" || createdByParam == "1"
+	bind["CreatedByMeFilter"] = isCreatedByMe
+
+	currentUser, _ := perms.UserByAuthFromCtx(ctx)
+
 	if activeChannel.IsTicket() || (parentChannel != nil && parentChannel.IsTicket()) {
 		if parentChannel == nil && activeChannel.IsTicket() {
 			// Top-level ticket channel (Issues container)
-			openSubchs, _ := model.GetTicketSubchannels(activeChannel.Id, "open")
-			closedSubchs, _ := model.GetTicketSubchannels(activeChannel.Id, "closed")
-			filteredSubchs, _ := model.GetTicketSubchannels(activeChannel.Id, statusFilter)
+			var candidates []model.Channel
+			if isOnlyParents {
+				candidates, _ = model.GetSubchannels(activeChannel.Id)
+			} else {
+				candidates, _ = model.GetAllDescendantTickets(activeChannel.Id)
+			}
+
+			sort.Slice(candidates, func(i, j int) bool {
+				return candidates[i].Id > candidates[j].Id
+			})
+
+			openCount := 0
+			closedCount := 0
+			for _, sub := range candidates {
+				if sub.Status == "closed" {
+					closedCount++
+				} else {
+					openCount++
+				}
+			}
+
+			qLower := strings.ToLower(strings.TrimSpace(qQuery))
+			var filteredSubchs []model.Channel
+			for _, sub := range candidates {
+				if statusFilter == "open" && sub.Status != "open" {
+					continue
+				}
+				if statusFilter == "closed" && sub.Status != "closed" {
+					continue
+				}
+				if isAssignedToMe {
+					if currentUser.IsEmpty() || !model.IsChannelAssignee(sub.Id, currentUser.Id) {
+						continue
+					}
+				}
+				if isCreatedByMe {
+					if currentUser.IsEmpty() || sub.AuthorId != currentUser.Id {
+						continue
+					}
+				}
+				if qLower != "" {
+					idStr := fmt.Sprintf("%d", sub.Id)
+					monikerLower := strings.ToLower(string(sub.Moniker))
+					descLower := strings.ToLower(string(sub.Description))
+					if !strings.Contains(monikerLower, qLower) && !strings.Contains(idStr, qLower) && !strings.Contains(descLower, qLower) {
+						continue
+					}
+				}
+				filteredSubchs = append(filteredSubchs, sub)
+			}
 
 			var ticketItems []TicketItem
 			for _, sub := range filteredSubchs {
@@ -176,8 +267,8 @@ func enrichTicketContext(ctx fiber.Ctx, activeChannel model.Channel, bind fiber.
 			}
 
 			bind["IsTicketContainer"] = true
-			bind["OpenTicketsCount"] = len(openSubchs)
-			bind["ClosedTicketsCount"] = len(closedSubchs)
+			bind["OpenTicketsCount"] = openCount
+			bind["ClosedTicketsCount"] = closedCount
 			bind["TicketItems"] = ticketItems
 		} else {
 			// Ticket subchannel (individual issue view)

@@ -138,7 +138,7 @@
                 </button>
             </div>
         </div>
-        {{if and .ActiveChannel (not .ActiveChannel.IsEmpty) (ne .ActiveChannel.Description "") (not .ActiveChannel.IsTicket)}}
+        {{if and .ActiveChannel (not .ActiveChannel.IsEmpty) (ne .ActiveChannel.Description "") (not .IsTicketDetail)}}
         <div class="flex items-center text-sm justify-between min-h-10 pb-2 border-b border-base-content/10 text-base-content/70">
             {{.ActiveChannel.Description}}
         </div>

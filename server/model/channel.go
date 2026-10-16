@@ -572,6 +572,32 @@ func SearchTicketChannels(groupId uint64, query string, excludeId uint64, limit 
 	return results, nil
 }
 
+func GetAllDescendantTickets(parentId uint64) ([]Channel, error) {
+	seen := make(map[uint64]bool)
+	seen[parentId] = true
+	var descendants []Channel
+
+	var traverse func(id uint64)
+	traverse = func(id uint64) {
+		subchs, err := GetSubchannels(id)
+		if err != nil {
+			return
+		}
+		for _, sub := range subchs {
+			if !seen[sub.Id] {
+				seen[sub.Id] = true
+				if sub.IsTicket() {
+					descendants = append(descendants, sub)
+				}
+				traverse(sub.Id)
+			}
+		}
+	}
+
+	traverse(parentId)
+	return descendants, nil
+}
+
 func GetAllTicketChannelsForGroup(groupId uint64) ([]Channel, error) {
 	groupChs, err := GetAllGroupChannels(groupId)
 	if err != nil {

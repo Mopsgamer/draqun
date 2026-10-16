@@ -8,7 +8,7 @@
             {{range .ParentChannels}}
             <a
                 class="btn btn-ghost btn-xs text-base-content/70 hover:text-base-content gap-1 cursor-pointer"
-                href="/chat/groups/{{$groupId}}/channels/{{.Id}}"
+                href="/chat/groups/{{$groupId}}/channels/{{.Id}}?status={{$.StatusFilter}}{{if $.OnlyParentsFilter}}&only_parents=true{{end}}{{if $.AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if $.CreatedByMeFilter}}&created_by_me=true{{end}}{{if $.SearchQuery}}&q={{$.SearchQuery}}{{end}}"
             >
                 <span class="icon icon-[lucide--arrow-left] size-3.5"></span>
                 Back to {{.Moniker}}
@@ -37,37 +37,6 @@
                         Edit
                     </button>
 
-                    <button
-                        class="btn btn-outline btn-sm gap-1 cursor-pointer"
-                        onclick="document.getElementById('new-subticket-modal').showModal()"
-                    >
-                        <span class="icon icon-[lucide--plus] size-3.5"></span>
-                        Sub-Ticket
-                    </button>
-
-                    <details class="dropdown dropdown-end">
-                        <summary class="btn btn-ghost btn-sm gap-1 cursor-pointer" title="Assign member">
-                            <span class="icon icon-[lucide--user-plus] size-3.5"></span>
-                            Assignee
-                        </summary>
-                        <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-overlay rounded-xl border border-base-content/10 w-72 mt-1 flex flex-col gap-2">
-                            <span class="font-semibold text-xs text-primary">Assign Member to Ticket</span>
-                            <input
-                                type="text"
-                                name="q"
-                                class="input input-bordered w-full text-xs"
-                                placeholder="Search member by name..."
-                                hx-post="/groups/{{$.Group.Id}}/members/search"
-                                hx-trigger="input changed delay:200ms, keyup changed delay:200ms"
-                                hx-target="#ticket-member-search"
-                                hx-vals='{"channel_id": "{{$.ActiveChannel.Id}}"}'
-                            />
-                            <div id="ticket-member-search" class="max-h-36 overflow-y-auto border border-base-content/10 rounded-lg p-1 bg-surface-overlay flex flex-col gap-0.5 mt-1">
-                                <div class="p-2 text-xs text-base-content/50 italic text-center">Type above to search members</div>
-                            </div>
-                        </div>
-                    </details>
-
                     {{if eq .ActiveChannel.Status "closed"}}
                     <button
                         class="btn btn-success btn-sm gap-1.5 cursor-pointer"
@@ -86,13 +55,49 @@
                         <span class="icon icon-[lucide--check-circle-2] size-3.5"></span>
                         Close Ticket
                     </button>
+                    {{end}}
 
-                    <!-- Context Menu for Close Options -->
+                    <!-- Context Menu -->
                     <details class="dropdown dropdown-end">
-                        <summary class="btn btn-ghost btn-square btn-sm cursor-pointer">
+                        <summary class="btn btn-ghost btn-square btn-sm cursor-pointer" title="More options">
                             <span class="icon icon-[lucide--more-vertical] size-4"></span>
                         </summary>
                         <div class="dropdown-content z-30 p-2 shadow-xl bg-surface-overlay rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-1">
+                            <button
+                                type="button"
+                                class="w-full text-left flex items-center gap-2 py-1.5 px-2 hover:bg-surface-card-hover rounded text-xs cursor-pointer"
+                                onclick="document.getElementById('new-subticket-modal').showModal()"
+                            >
+                                <span class="icon icon-[lucide--plus] size-4"></span>
+                                Add Sub-Ticket
+                            </button>
+
+                            <details class="group/assign">
+                                <summary class="w-full text-left flex items-center gap-2 py-1.5 px-2 hover:bg-surface-card-hover rounded text-xs cursor-pointer list-none">
+                                    <span class="icon icon-[lucide--user-plus] size-4"></span>
+                                    <span>Assignee...</span>
+                                </summary>
+                                <div class="p-2.5 bg-surface-card rounded-lg border border-base-content/10 flex flex-col gap-2 mt-1">
+                                    <span class="font-semibold text-xs text-primary">Assign Member to Ticket</span>
+                                    <input
+                                        type="text"
+                                        name="q"
+                                        class="input input-bordered w-full text-xs h-7"
+                                        placeholder="Search member by name..."
+                                        hx-post="/groups/{{$.Group.Id}}/members/search"
+                                        hx-trigger="input changed delay:200ms, keyup changed delay:200ms"
+                                        hx-target="#ticket-member-search"
+                                        hx-vals='{"channel_id": "{{$.ActiveChannel.Id}}"}'
+                                    />
+                                    <div id="ticket-member-search" class="max-h-36 overflow-y-auto border border-base-content/10 rounded-lg p-1 bg-surface-overlay flex flex-col gap-0.5 mt-1">
+                                        <div class="p-2 text-xs text-base-content/50 italic text-center">Type above to search members</div>
+                                    </div>
+                                </div>
+                            </details>
+
+                            {{if ne .ActiveChannel.Status "closed"}}
+                            <div class="divider my-0.5"></div>
+
                             <button
                                 type="button"
                                 class="w-full text-left flex items-center gap-2 py-1.5 px-2 hover:bg-surface-card-hover rounded text-xs cursor-pointer"
@@ -243,7 +248,7 @@
                         <span class="icon icon-[lucide--circle-dot] size-3.5 text-emerald-500 shrink-0"></span>
                         {{end}}
                         <a
-                            href="/chat/groups/{{$groupId}}/channels/{{.Channel.Id}}"
+                            href="/chat/groups/{{$groupId}}/channels/{{.Channel.Id}}?status={{$.StatusFilter}}{{if $.OnlyParentsFilter}}&only_parents=true{{end}}{{if $.AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if $.CreatedByMeFilter}}&created_by_me=true{{end}}{{if $.SearchQuery}}&q={{$.SearchQuery}}{{end}}"
                             class="font-medium hover:text-primary transition-colors truncate"
                         >
                             {{.Channel.Moniker}}

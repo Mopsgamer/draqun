@@ -111,6 +111,41 @@ paths:
       required: true
       schema:
        type: integer
+    - name: status
+      in: query
+      required: false
+      description: Filter tickets by status (open, closed, all) for ticket channels.
+      schema:
+       type: string
+       enum: [open, closed, all]
+       default: open
+    - name: only_parents
+      in: query
+      required: false
+      description: Whether to show only parent/root tickets for ticket channels.
+      schema:
+       type: boolean
+       default: false
+    - name: q
+      in: query
+      required: false
+      description: Search query to filter tickets by title, ID, or description for ticket channels.
+      schema:
+       type: string
+    - name: assigned_to_me
+      in: query
+      required: false
+      description: Filter tickets assigned to the logged-in user.
+      schema:
+       type: boolean
+       default: false
+    - name: created_by_me
+      in: query
+      required: false
+      description: Filter tickets created by the logged-in user.
+      schema:
+       type: boolean
+       default: false
    responses:
     "200":
      description: Chat page for a specific group channel.
