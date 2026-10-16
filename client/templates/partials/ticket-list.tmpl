@@ -1,47 +1,100 @@
 <div class="flex-1 flex flex-col h-full overflow-y-auto p-4 md:p-6 gap-6 bg-surface-canvas">
-    <div class="section-header pb-4">
-        <div class="flex-row-start">
-            <span class="inline-flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-                <span class="icon icon-[lucide--circle-dot] size-4"></span>
-            </span>
-            <div class="min-w-0">
-                <h2 class="text-xl font-bold truncate tracking-tight">{{.ActiveChannel.Moniker}}</h2>
-                {{if ne .ActiveChannel.Description ""}}
-                <p class="text-xs text-base-content/70 truncate mt-0.5">{{.ActiveChannel.Description}}</p>
+    <div class="section-header pb-4 flex items-center justify-between gap-3 flex-wrap">
+        <div class="flex items-center gap-3 flex-wrap flex-1">
+            <!-- Clearable Search Input -->
+            <form
+                method="GET"
+                action="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}"
+                class="relative flex items-center min-w-48 sm:min-w-64 max-w-xs"
+            >
+                <input type="hidden" name="status" value="{{.StatusFilter}}">
+                {{if .OnlyParentsFilter}}<input type="hidden" name="only_parents" value="true">{{end}}
+                {{if .AssignedToMeFilter}}<input type="hidden" name="assigned_to_me" value="true">{{end}}
+                {{if .CreatedByMeFilter}}<input type="hidden" name="created_by_me" value="true">{{end}}
+                <span class="absolute left-2.5 z-10 icon icon-[lucide--search] size-3.5 text-base-content/50 pointer-events-none"></span>
+                <input
+                    type="text"
+                    name="q"
+                    value="{{.SearchQuery}}"
+                    placeholder="Search tickets..."
+                    class="input input-xs input-bordered w-full pl-8 {{if .SearchQuery}}pr-7{{else}}pr-3{{end}} h-8 text-xs rounded-lg bg-surface-card focus:outline-none focus:border-primary"
+                />
+                {{if .SearchQuery}}
+                <a
+                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status={{.StatusFilter}}{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}"
+                    class="absolute right-2 z-10 text-base-content/50 hover:text-base-content text-xs p-0.5 font-bold cursor-pointer"
+                    title="Clear search"
+                >
+                    ✕
+                </a>
                 {{end}}
+            </form>
+
+            {{if not .Member.IsEmpty}}
+            <button
+                class="btn btn-primary btn-sm gap-1.5 shrink-0"
+                onclick="document.getElementById('new-ticket-modal').showModal()"
+            >
+                <span class="icon icon-[lucide--plus] size-4"></span>
+                New Ticket
+            </button>
+            {{end}}
+
+            <!-- Switchers -->
+            <div class="flex items-center gap-3.5 flex-wrap ml-auto">
+                <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        class="toggle toggle-primary toggle-sm"
+                        {{if .OnlyParentsFilter}}checked{{end}}
+                        onchange="window.location.href='/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status={{.StatusFilter}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}' + (this.checked ? '&only_parents=true' : '')"
+                    />
+                    <span class="text-xs font-medium text-base-content/80">Parents only</span>
+                </label>
+
+                <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        class="toggle toggle-primary toggle-sm"
+                        {{if .AssignedToMeFilter}}checked{{end}}
+                        onchange="window.location.href='/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status={{.StatusFilter}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}' + (this.checked ? '&assigned_to_me=true' : '')"
+                    />
+                    <span class="text-xs font-medium text-base-content/80">Assigned to me</span>
+                </label>
+
+                <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        class="toggle toggle-primary toggle-sm"
+                        {{if .CreatedByMeFilter}}checked{{end}}
+                        onchange="window.location.href='/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status={{.StatusFilter}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}' + (this.checked ? '&created_by_me=true' : '')"
+                    />
+                    <span class="text-xs font-medium text-base-content/80">Created by me</span>
+                </label>
             </div>
         </div>
-        {{if not .Member.IsEmpty}}
-        <button
-            class="btn btn-primary btn-sm gap-1.5 shrink-0"
-            onclick="document.getElementById('new-ticket-modal').showModal()"
-        >
-            <span class="icon icon-[lucide--plus] size-4"></span>
-            New Ticket
-        </button>
-        {{end}}
     </div>
 
     <!-- Tickets Filter Tabs & Box -->
     <div class="flex flex-col gap-2">
-        <div class="flex items-center justify-between py-2 text-xs font-medium">
-            <div class="flex items-center gap-4">
+        <div class="flex items-center justify-between py-2 text-xs font-medium flex-wrap gap-3">
+            <div class="flex items-center gap-4 shrink-0">
                 <a
-                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=open"
+                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=open{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}"
                     class="flex items-center gap-1.5 transition-colors {{if eq .StatusFilter "open"}}text-base-content font-bold{{else}}text-base-content/60 hover:text-base-content{{end}}"
                 >
                     <span class="icon icon-[lucide--circle-dot] size-4 text-emerald-500"></span>
                     <span>{{.OpenTicketsCount}} Open</span>
                 </a>
                 <a
-                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=closed"
+                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=closed{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}"
                     class="flex items-center gap-1.5 transition-colors {{if eq .StatusFilter "closed"}}text-base-content font-bold{{else}}text-base-content/60 hover:text-base-content{{end}}"
                 >
                     <span class="icon icon-[lucide--check-circle-2] size-4 text-purple-500"></span>
                     <span>{{.ClosedTicketsCount}} Closed</span>
                 </a>
                 <a
-                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=all"
+                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=all{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}"
                     class="transition-colors {{if eq .StatusFilter "all"}}text-base-content font-bold{{else}}text-base-content/60 hover:text-base-content{{end}}"
                 >
                     All
@@ -54,7 +107,13 @@
             <div class="py-8 text-center flex flex-col items-center justify-center gap-2">
                 <span class="icon icon-[lucide--circle-dot] size-8 text-base-content/30"></span>
                 <span class="text-sm font-semibold text-base-content/70">No tickets found</span>
-                <p class="text-xs text-base-content/50">There are no {{.StatusFilter}} tickets in this channel.</p>
+                <p class="text-xs text-base-content/50">
+                    {{if .SearchQuery}}
+                    No tickets matching "{{.SearchQuery}}".
+                    {{else}}
+                    There are no {{.StatusFilter}} tickets in this channel.
+                    {{end}}
+                </p>
             </div>
             {{else}}
             {{$groupId := .Group.Id}}
@@ -78,7 +137,7 @@
                         <div class="flex items-center gap-2 flex-wrap">
                             <a
                                 class="font-bold text-sm text-base-content hover:text-primary transition-colors truncate"
-                                href="/chat/groups/{{$groupId}}/channels/{{.Channel.Id}}"
+                                href="/chat/groups/{{$groupId}}/channels/{{.Channel.Id}}?status={{$.StatusFilter}}{{if $.OnlyParentsFilter}}&only_parents=true{{end}}{{if $.AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if $.CreatedByMeFilter}}&created_by_me=true{{end}}{{if $.SearchQuery}}&q={{$.SearchQuery}}{{end}}"
                             >
                                 {{.Channel.Moniker}}
                             </a>

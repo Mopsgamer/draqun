@@ -632,8 +632,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertFormatMoniker
 				}
 
-				nameStr := fmt.Sprintf("ticket_%d", time.Now().UnixNano())
-				channel := model.NewChannel(model.Name(nameStr), model.Moniker(request.Title), model.Description(request.Content), model.ChannelTypeTicket)
+				channel := model.NewChannel(model.Name("ticket_0"), model.Moniker(request.Title), model.Description(request.Content), model.ChannelTypeTicket)
 				channel.AuthorId = user.Id
 				channel.Status = "open"
 
@@ -642,6 +641,11 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if err := channel.Insert(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				channel.Name = model.Name(fmt.Sprintf("ticket_%d", channel.Id))
+				if err := channel.Update(); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
 
@@ -1628,6 +1632,16 @@ func handleTicketSearch(ctx fiber.Ctx) error {
 			}
 			results = filtered
 		}
+	}
+
+	if mode == "duplicate" {
+		var filtered []model.Channel
+		for _, ch := range results {
+			if len(ch.ParentChannels()) > 0 {
+				filtered = append(filtered, ch)
+			}
+		}
+		results = filtered
 	}
 
 	if htmx.IsHtmx(ctx) {
