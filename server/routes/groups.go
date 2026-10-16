@@ -291,6 +291,56 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
+		Post("/:group_id/channels/:channel_id/move",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermGroupChange.Has()
+			}),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				direction := ctx.Query("direction", "up")
+
+				channels, err := model.GetGroupChannels(group.Id)
+				if err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				targetIdx := -1
+				for i, ch := range channels {
+					if ch.Id == channelId {
+						targetIdx = i
+						break
+					}
+				}
+
+				if targetIdx == -1 {
+					return htmx.AlertGroupNotFound
+				}
+
+				swapIdx := -1
+				if direction == "up" && targetIdx > 0 {
+					swapIdx = targetIdx - 1
+				} else if direction == "down" && targetIdx < len(channels)-1 {
+					swapIdx = targetIdx + 1
+				}
+
+				if swapIdx != -1 {
+					for i, ch := range channels {
+						_ = model.UpdateGroupChannelPosition(group.Id, ch.Id, uint(i))
+					}
+
+					_ = model.UpdateGroupChannelPosition(group.Id, channels[targetIdx].Id, uint(swapIdx))
+					_ = model.UpdateGroupChannelPosition(group.Id, channels[swapIdx].Id, uint(targetIdx))
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
 		Post("/:group_id/channels/create",
 			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermGroupChange.Has()

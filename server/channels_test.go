@@ -112,6 +112,57 @@ func TestChannelsManagementAndMessaging(t *testing.T) {
 		t.Errorf("expected subchannel moniker 'Announcements Subchannel', got '%s'", subChannel.Moniker)
 	}
 
+	// 3b. Create another top-level channel to test moving/reordering
+	respCreateSecond, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"name":        "random",
+			"moniker":     "Random Chat",
+			"description": "Random discussion",
+			"type":        "text",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/create", group.Id))
+	if err != nil {
+		t.Fatalf("create second channel failed: %v", err)
+	}
+	respCreateSecond.Close()
+
+	topChannels, err := model.GetGroupChannels(group.Id)
+	if err != nil || len(topChannels) != 2 {
+		t.Fatalf("expected 2 top-level channels, got %d", len(topChannels))
+	}
+	if topChannels[0].Id != mainChannel.Id {
+		t.Errorf("expected first channel to be mainChannel (%d), got %d", mainChannel.Id, topChannels[0].Id)
+	}
+
+	// Move mainChannel down
+	respMoveDown, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/move?direction=down", group.Id, mainChannel.Id))
+	if err != nil {
+		t.Fatalf("move channel down failed: %v", err)
+	}
+	respMoveDown.Close()
+
+	topChannelsAfterMove, _ := model.GetGroupChannels(group.Id)
+	if len(topChannelsAfterMove) == 2 && topChannelsAfterMove[0].Id == mainChannel.Id {
+		t.Errorf("expected mainChannel to move down to index 1, but it's still at index 0")
+	}
+
+	// Move mainChannel back up
+	respMoveUp, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/move?direction=up", group.Id, mainChannel.Id))
+	if err != nil {
+		t.Fatalf("move channel up failed: %v", err)
+	}
+	respMoveUp.Close()
+
+	topChannelsBackUp, _ := model.GetGroupChannels(group.Id)
+	if len(topChannelsBackUp) == 2 && topChannelsBackUp[0].Id != mainChannel.Id {
+		t.Errorf("expected mainChannel to move back up to index 0")
+	}
+
 	// 4. POST /groups/:id/channels/:channel_id/messages/create -> Post message to main channel
 	respMsg, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).

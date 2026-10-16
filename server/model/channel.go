@@ -166,6 +166,10 @@ func RemoveGroupChannel(groupId, channelId uint64) error {
 	return Delete(TableGroupChannels, goqu.Ex{"group_id": groupId, "channel_id": channelId})
 }
 
+func UpdateGroupChannelPosition(groupId, channelId uint64, position uint) error {
+	return Update(TableGroupChannels, goqu.Record{"position": position}, goqu.Ex{"group_id": groupId, "channel_id": channelId})
+}
+
 // Channel Relations (subchannels / threads)
 type ChannelRelation struct {
 	ParentId     uint64 `db:"parent_id"`

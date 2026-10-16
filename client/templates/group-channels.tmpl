@@ -46,7 +46,27 @@
             {{range .ChannelItems}}
             <div class="py-4 flex flex-col gap-3">
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        {{if $.Member.Role.PermGroupChange.Has}}
+                        <div class="flex flex-col gap-0.5 shrink-0">
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-square btn-xs size-4.5 min-h-0"
+                                hx-post="/groups/{{$.Group.Id}}/channels/{{.Channel.Id}}/move?direction=up"
+                                title="Move Up"
+                            >
+                                <span class="icon icon-[lucide--chevron-up] size-3"></span>
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-square btn-xs size-4.5 min-h-0"
+                                hx-post="/groups/{{$.Group.Id}}/channels/{{.Channel.Id}}/move?direction=down"
+                                title="Move Down"
+                            >
+                                <span class="icon icon-[lucide--chevron-down] size-3"></span>
+                            </button>
+                        </div>
+                        {{end}}
                         <span class="icon {{template "partials/channel-icon-class" .Channel.Type}} size-5 text-primary shrink-0"></span>
                         <div>
                             <span class="font-semibold text-sm">{{.Channel.Moniker}}</span>
@@ -62,14 +82,19 @@
                             View
                         </a>
                         {{if $.Member.Role.PermGroupChange.Has}}
-                        <button
-                            class="btn btn-error btn-xs gap-1"
-                            hx-delete="/groups/{{$.Group.Id}}/channels/{{.Channel.Id}}"
-                            hx-confirm="Are you sure you want to delete this channel?"
-                        >
-                            <span class="icon icon-[lucide--trash-2] size-3"></span>
-                            Delete
-                        </button>
+                        <details class="dropdown dropdown-end">
+                            <summary class="btn btn-error btn-xs gap-1 cursor-pointer">
+                                <span class="icon icon-[lucide--trash-2] size-3"></span> Delete
+                            </summary>
+                            <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-overlay rounded-lg border border-base-content/10 w-56 mt-1 flex flex-col gap-2">
+                                <span class="font-semibold text-xs text-error">Delete {{.Channel.Moniker}}?</span>
+                                <button
+                                    type="button"
+                                    class="btn btn-error btn-xs w-full"
+                                    hx-delete="/groups/{{$.Group.Id}}/channels/{{.Channel.Id}}"
+                                >Confirm Delete</button>
+                            </div>
+                        </details>
                         {{end}}
                     </div>
                 </div>
@@ -88,13 +113,19 @@
                         <div class="flex items-center gap-1.5">
                             <a class="btn btn-ghost btn-xs text-xs" href="/chat/groups/{{$.Group.Id}}/channels/{{.Id}}">View</a>
                             {{if $.Member.Role.PermGroupChange.Has}}
-                            <button
-                                class="btn btn-ghost btn-xs text-error text-xs"
-                                hx-delete="/groups/{{$.Group.Id}}/channels/{{.Id}}"
-                                hx-confirm="Delete subchannel?"
-                            >
-                                Delete
-                            </button>
+                            <details class="dropdown dropdown-end">
+                                <summary class="btn btn-ghost btn-xs text-error text-xs cursor-pointer">
+                                    Delete
+                                </summary>
+                                <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-overlay rounded-lg border border-base-content/10 w-56 mt-1 flex flex-col gap-2">
+                                    <span class="font-semibold text-xs text-error">Delete subchannel {{.Moniker}}?</span>
+                                    <button
+                                        type="button"
+                                        class="btn btn-error btn-xs w-full"
+                                        hx-delete="/groups/{{$.Group.Id}}/channels/{{.Id}}"
+                                    >Confirm Delete</button>
+                                </div>
+                            </details>
                             {{end}}
                         </div>
                     </div>
