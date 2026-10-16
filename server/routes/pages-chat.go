@@ -147,7 +147,10 @@ func enrichTicketContext(ctx fiber.Ctx, activeChannel model.Channel, bind fiber.
 	bind["ParentChannel"] = parentChannel
 	bind["ParentChannels"] = parentChannels
 
-	statusFilter := ctx.Query("status", "open")
+	statusFilter := ctx.FormValue("status")
+	if statusFilter == "" {
+		statusFilter = ctx.Query("status", "open")
+	}
 	if statusFilter != "open" && statusFilter != "closed" && statusFilter != "all" {
 		statusFilter = "open"
 	}

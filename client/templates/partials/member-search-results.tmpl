@@ -1,0 +1,30 @@
+{{if eq (len .Results) 0}}
+<div class="p-2 text-xs text-base-content/50 italic text-center">No matching members found</div>
+{{else}}
+{{$groupId := .Group.Id}}
+{{$channelId := .ChannelId}}
+{{$roleId := .RoleId}}
+{{range .Results}}
+{{if ne $channelId 0}}
+<form hx-post="/groups/{{$groupId}}/channels/{{$channelId}}/assignees" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer">
+    <input type="hidden" name="user_id" value="{{.Id}}" />
+    <div class="flex items-center gap-2 truncate min-w-0">
+        <div class="avatar shrink-0"><div class="w-4 h-4 rounded-full"><img src="{{.AvatarUrl}}" class="size-full object-cover rounded-full" alt="Avatar"></div></div>
+        <span class="truncate font-medium">{{.Moniker}}</span>
+        <span class="font-mono text-base-content/40 text-[11px] truncate">@{{.Name}}</span>
+    </div>
+    <button type="submit" class="btn btn-primary btn-xs shrink-0 cursor-pointer">Assign</button>
+</form>
+{{else}}
+<form hx-post="/groups/{{$groupId}}/members/{{.Id}}/roles" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer">
+    <input type="hidden" name="role_id" value="{{$roleId}}" />
+    <div class="flex items-center gap-2 truncate min-w-0">
+        <div class="avatar shrink-0"><div class="w-4 h-4 rounded-full"><img src="{{.AvatarUrl}}" class="size-full object-cover rounded-full" alt="Avatar"></div></div>
+        <span class="truncate font-medium">{{.Moniker}}</span>
+        <span class="font-mono text-base-content/40 text-[11px] truncate">@{{.Name}}</span>
+    </div>
+    <button type="submit" class="btn btn-primary btn-xs shrink-0 cursor-pointer">Assign</button>
+</form>
+{{end}}
+{{end}}
+{{end}}

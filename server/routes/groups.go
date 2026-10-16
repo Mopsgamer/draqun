@@ -2,7 +2,6 @@ package routes
 
 import (
 	"fmt"
-	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
@@ -88,6 +87,18 @@ type TicketEditForm struct {
 
 type TicketAssignForm struct {
 	UserId uint64 `form:"user_id"`
+}
+
+type MemberSearchForm struct {
+	Q         string `form:"q" query:"q"`
+	RoleId    uint64 `form:"role_id" query:"role_id"`
+	ChannelId uint64 `form:"channel_id" query:"channel_id"`
+}
+
+type TicketSearchForm struct {
+	Q         string `form:"q" query:"q"`
+	ExcludeId uint64 `form:"exclude_id" query:"exclude_id"`
+	Mode      string `form:"mode" query:"mode"`
 }
 
 type ChannelCreate struct {
@@ -177,7 +188,10 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				roleId := fiber.Params[uint64](ctx, "role_id")
-				direction := ctx.Query("direction", "up")
+				direction := ctx.FormValue("direction")
+				if direction == "" {
+					direction = ctx.Query("direction", "up")
+				}
 
 				roles := group.Roles()
 				targetIdx := -1
@@ -434,52 +448,18 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermRoles.Has() || role.PermMembers.CanSee() || role.PermMessages.CanReadMessages()
 			}),
+			perms.UseBind[MemberSearchForm](),
 			func(ctx fiber.Ctx) error {
-				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
-				q := ctx.Query("q")
-				roleId := fiber.Query[uint64](ctx, "role_id")
-				channelId := fiber.Query[uint64](ctx, "channel_id")
-
-				results, err := group.SearchUsers(q, 10)
-				if err != nil {
-					return htmx.AlertDatabase.Join(err)
-				}
-
-				if htmx.IsHtmx(ctx) {
-					if len(results) == 0 {
-						return ctx.Type("html").SendString(`<div class="p-2 text-xs text-base-content/50 italic text-center">No matching members found</div>`)
-					}
-					var htmlStr string
-					for _, u := range results {
-						monikerEscaped := template.HTMLEscapeString(string(u.Moniker))
-						if channelId != 0 {
-							htmlStr += fmt.Sprintf(`
-							<form hx-post="/groups/%d/channels/%d/assignees" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer">
-								<input type="hidden" name="user_id" value="%d" />
-								<div class="flex items-center gap-2 truncate min-w-0">
-									<div class="avatar shrink-0"><div class="w-4 h-4 rounded-full"><img src="%s" class="size-full object-cover rounded-full" alt="Avatar"></div></div>
-									<span class="truncate font-medium">%s</span>
-									<span class="font-mono text-base-content/40 text-[11px] truncate">@%s</span>
-								</div>
-								<button type="submit" class="btn btn-primary btn-xs shrink-0 cursor-pointer">Assign</button>
-							</form>`, group.Id, channelId, u.Id, u.AvatarUrl(), monikerEscaped, u.Name)
-						} else {
-							htmlStr += fmt.Sprintf(`
-							<form hx-post="/groups/%d/members/%d/roles" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer">
-								<input type="hidden" name="role_id" value="%d" />
-								<div class="flex items-center gap-2 truncate min-w-0">
-									<div class="avatar shrink-0"><div class="w-4 h-4 rounded-full"><img src="%s" class="size-full object-cover rounded-full" alt="Avatar"></div></div>
-									<span class="truncate font-medium">%s</span>
-									<span class="font-mono text-base-content/40 text-[11px] truncate">@%s</span>
-								</div>
-								<button type="submit" class="btn btn-primary btn-xs shrink-0 cursor-pointer">Assign</button>
-							</form>`, group.Id, u.Id, roleId, u.AvatarUrl(), monikerEscaped, u.Name)
-						}
-					}
-					return ctx.Type("html").SendString(htmlStr)
-				}
-
-				return ctx.JSON(results)
+				return handleMemberSearch(ctx)
+			},
+		).
+		Post("/:group_id/members/search",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermRoles.Has() || role.PermMembers.CanSee() || role.PermMessages.CanReadMessages()
+			}),
+			perms.UseBind[MemberSearchForm](),
+			func(ctx fiber.Ctx) error {
+				return handleMemberSearch(ctx)
 			},
 		).
 		Post("/:group_id/channels/:channel_id/assignees",
@@ -498,6 +478,9 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if request.UserId != 0 {
+					if model.IsChannelAssignee(channel.Id, request.UserId) {
+						return htmx.AlertUseless
+					}
 					_ = model.AddChannelAssignee(channel.Id, request.UserId)
 					caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
 					notif := model.NewNotification(
@@ -561,54 +544,18 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermMessages.CanReadMessages()
 			}),
+			perms.UseBind[TicketSearchForm](),
 			func(ctx fiber.Ctx) error {
-				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
-				q := ctx.Query("q")
-				excludeId := fiber.Query[uint64](ctx, "exclude_id")
-				mode := ctx.Query("mode", "parent")
-
-				results, err := model.SearchTicketChannels(group.Id, q, excludeId, 10)
-				if err != nil {
-					return htmx.AlertDatabase.Join(err)
-				}
-
-				if htmx.IsHtmx(ctx) {
-					if len(results) == 0 {
-						return ctx.Type("html").SendString(`<div class="p-2 text-xs text-base-content/50 italic text-center">No matching tickets found</div>`)
-					}
-					var html string
-					for _, ch := range results {
-						iconClass := "icon-[lucide--circle-dot] text-emerald-500"
-						if ch.Status == "closed" {
-							iconClass = "icon-[lucide--check-circle-2] text-purple-500"
-						}
-						monikerEscaped := template.HTMLEscapeString(string(ch.Moniker))
-						jsTitleEscaped := template.JSEscapeString(string(ch.Moniker))
-
-						if mode == "duplicate" {
-							html += fmt.Sprintf(`
-							<button type="button" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer" onclick="var inp=document.getElementById('duplicate_of_id_input'); if(inp){inp.value='%d';} var prev=document.getElementById('duplicate_selected_preview'); if(prev){prev.innerHTML='<span class=\'inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-amber-500/15 text-amber-500 text-xs font-medium\'><span class=\'icon icon-[lucide--copy-x] size-3\'></span>#%d %s</span>';}">
-								<div class="flex items-center gap-2 truncate min-w-0">
-									<span class="icon %s size-3.5 shrink-0"></span>
-									<span class="truncate font-medium">%s</span>
-								</div>
-								<span class="font-mono text-base-content/40 text-[11px] shrink-0 ml-2">#%d</span>
-							</button>`, ch.Id, ch.Id, jsTitleEscaped, iconClass, monikerEscaped, ch.Id)
-						} else {
-							html += fmt.Sprintf(`
-							<button type="button" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer" onclick="var b=document.getElementById('active-parent-badges'); if(b){ var span=document.createElement('span'); span.className='badge badge-primary badge-sm gap-1 font-mono items-center'; span.innerHTML='<input type=\'hidden\' name=\'parent_ids\' value=\'%d\' /><span>#%d %s</span><button type=\'button\' class=\'btn btn-ghost btn-xs btn-circle p-0 h-auto min-h-0 text-white/80 hover:text-white\' onclick=\'this.parentElement.remove()\'>✕</button>'; b.appendChild(span); }">
-								<div class="flex items-center gap-2 truncate min-w-0">
-									<span class="icon %s size-3.5 shrink-0"></span>
-									<span class="truncate font-medium">%s</span>
-								</div>
-								<span class="font-mono text-base-content/40 text-[11px] shrink-0 ml-2">#%d</span>
-							</button>`, ch.Id, ch.Id, jsTitleEscaped, iconClass, monikerEscaped, ch.Id)
-						}
-					}
-					return ctx.Type("html").SendString(html)
-				}
-
-				return ctx.JSON(results)
+				return handleTicketSearch(ctx)
+			},
+		).
+		Post("/:group_id/tickets/search",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermMessages.CanReadMessages()
+			}),
+			perms.UseBind[TicketSearchForm](),
+			func(ctx fiber.Ctx) error {
+				return handleTicketSearch(ctx)
 			},
 		).
 		Post("/:group_id/channels/:parent_id/tickets/create",
@@ -701,7 +648,9 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				if len(request.ParentIds) == 0 {
 					return htmx.AlertFormatMoniker
 				}
-				_ = model.SetParentChannels(channel.Id, request.ParentIds)
+				if err := model.SetParentChannels(channel.Id, request.ParentIds); err != nil {
+					return err
+				}
 
 				if err := channel.Update(); err != nil {
 					return htmx.AlertDatabase.Join(err)
@@ -1266,6 +1215,10 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertGroupMemberNotFound
 				}
 
+				if model.IsRoleAssigned(userId, role.Id) {
+					return htmx.AlertUseless
+				}
+
 				roleAssignee := model.RoleAssignee{
 					UserId: userId,
 					RoleId: role.Id,
@@ -1563,6 +1516,78 @@ func broadcastGroupMemberLeave(app *fiber.App, group model.Group, userId uint64)
 	countOob := render.WrapOob("innerHTML:#members-count", &countStr)
 
 	session.UserSessionMap.PushGroup(group.Id, deleteOob+membersOob+countOob)
+}
+
+func handleMemberSearch(ctx fiber.Ctx) error {
+	group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+	request := fiber.Locals[MemberSearchForm](ctx, perms.LocalForm)
+
+	results, err := group.SearchUsers(request.Q, 10)
+	if err != nil {
+		return htmx.AlertDatabase.Join(err)
+	}
+
+	var filtered []model.User
+	for _, u := range results {
+		if request.RoleId != 0 && model.IsRoleAssigned(u.Id, request.RoleId) {
+			continue
+		}
+		if request.ChannelId != 0 && model.IsChannelAssignee(request.ChannelId, u.Id) {
+			continue
+		}
+		filtered = append(filtered, u)
+	}
+
+	if htmx.IsHtmx(ctx) {
+		return ctx.Render("partials/member-search-results", fiber.Map{
+			"Group":     group,
+			"Results":   filtered,
+			"ChannelId": request.ChannelId,
+			"RoleId":    request.RoleId,
+		})
+	}
+
+	return ctx.JSON(filtered)
+}
+
+func handleTicketSearch(ctx fiber.Ctx) error {
+	group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+	request := fiber.Locals[TicketSearchForm](ctx, perms.LocalForm)
+	mode := request.Mode
+	if mode == "" {
+		mode = "parent"
+	}
+
+	results, err := model.SearchTicketChannels(group.Id, request.Q, request.ExcludeId, 10)
+	if err != nil {
+		return htmx.AlertDatabase.Join(err)
+	}
+
+	if request.ExcludeId != 0 && mode == "parent" {
+		existingParents, _ := model.GetParentChannels(request.ExcludeId)
+		if len(existingParents) > 0 {
+			parentMap := make(map[uint64]bool)
+			for _, p := range existingParents {
+				parentMap[p.Id] = true
+			}
+			var filtered []model.Channel
+			for _, ch := range results {
+				if !parentMap[ch.Id] {
+					filtered = append(filtered, ch)
+				}
+			}
+			results = filtered
+		}
+	}
+
+	if htmx.IsHtmx(ctx) {
+		return ctx.Render("partials/ticket-search-results", fiber.Map{
+			"Results": results,
+			"Mode":    mode,
+		})
+	}
+
+	return ctx.JSON(results)
 }
 
 func saveMessageAttachment(ctx fiber.Ctx, groupId uint64, message *model.Message) error {

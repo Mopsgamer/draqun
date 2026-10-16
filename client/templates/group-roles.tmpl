@@ -103,9 +103,10 @@
                                 name="q"
                                 class="input input-bordered w-full text-xs"
                                 placeholder="Search member by name..."
-                                hx-get="/groups/{{$.Group.Id}}/members/search?role_id={{$role.Id}}"
-                                hx-trigger="keyup changed delay:200ms, focus"
+                                hx-post="/groups/{{$.Group.Id}}/members/search"
+                                hx-trigger="input changed delay:200ms, keyup changed delay:200ms"
                                 hx-target="#role-member-search-{{$role.Id}}"
+                                hx-vals='{"role_id": "{{$role.Id}}"}'
                             />
                             <div id="role-member-search-{{$role.Id}}" class="max-h-36 overflow-y-auto border border-base-content/10 rounded-lg p-1 flex flex-col gap-0.5 mt-1">
                                 <div class="p-2 text-xs text-base-content/50 italic text-center">Type above to search members</div>
