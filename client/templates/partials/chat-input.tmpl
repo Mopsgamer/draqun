@@ -43,7 +43,7 @@
             </div>
             <div id="send-message-error" class="w-full text-error text-xs font-semibold pb-1 empty:pb-0"></div>
             <textarea
-                class="textarea textarea-bordered w-full h-10 min-h-10 max-h-32 field-sizing-content bg-surface-inset text-base leading-snug rounded-lg"
+                class="textarea textarea-bordered w-full h-10 min-h-10 max-h-32 field-sizing-content text-base leading-snug rounded-lg"
                 id="new-message-input"
                 form="send-message-form"
                 placeholder="Write to {{if and .ActiveChannel (not .ActiveChannel.IsEmpty)}}#{{.ActiveChannel.Moniker}}{{else}}{{.Group.Moniker}}{{end}}"

@@ -6,7 +6,7 @@
 	name: "light";
 	default: true;
 	--color-primary: hsl(175 100% 29%);
-	--color-primary-content: white;
+	--color-primary-content: #021a19;
 }
 
 @plugin "daisyui/theme" {

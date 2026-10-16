@@ -1,43 +1,43 @@
 <div class="p-page max-w-md mx-auto">
-    <h1 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <h1 class="text-2xl font-bold mb-4 flex-row-center">
         <span class="icon icon-[lucide--user-round-plus]" aria-hidden="true"></span>
         Sign Up
     </h1>
     <form
-        class="flex flex-col gap-4 bg-surface-card p-6 rounded-box border border-base-content/10 shadow-sm"
+        class="form-card"
         id="signup-form"
         name="signup-form"
         hx-post="/account"
         hx-swap="innerHTML"
         hx-target="#signup-error"
     >
-        <div class="flex flex-col gap-1 w-full">
-            <label class="text-sm font-semibold" for="signup-moniker">Nick</label>
+        <div class="form-group">
+            <label class="form-label" for="signup-moniker">Nick</label>
             <input class="input input-bordered w-full" autofocus type="text" id="signup-moniker" name="moniker" required>
         </div>
-        <div class="flex flex-col gap-1 w-full">
-            <label class="text-sm font-semibold" for="signup-name">Name</label>
+        <div class="form-group">
+            <label class="form-label" for="signup-name">Name</label>
             <input class="input input-bordered w-full" type="text" id="signup-name" name="name" required>
         </div>
-        <div class="flex flex-col gap-1 w-full">
-            <label class="text-sm font-semibold" for="signup-email">Email</label>
+        <div class="form-group">
+            <label class="form-label" for="signup-email">Email</label>
             <input class="input input-bordered w-full" type="email" id="signup-email" name="email" inputmode="email" required>
         </div>
-        <div class="flex flex-col gap-1 w-full">
-            <label class="text-sm font-semibold" for="signup-password">Password</label>
+        <div class="form-group">
+            <label class="form-label" for="signup-password">Password</label>
             <div class="relative w-full">
                 <input class="input input-bordered w-full pr-12" type="password" id="signup-password" name="password" required>
-                <button type="button" class="absolute inset-y-0 right-2 inline-flex items-center justify-center p-1 text-base-content/70 hover:text-base-content cursor-pointer" aria-label="Show password" aria-pressed="false" data-toggle-password>
+                <button type="button" class="password-toggle-btn" aria-label="Show password" aria-pressed="false" data-toggle-password>
                     <span class="icon icon-[lucide--eye] size-5" aria-hidden="true" data-password-visible></span>
                     <span class="icon icon-[lucide--eye-off] size-5" aria-hidden="true" data-password-hidden hidden></span>
                 </button>
             </div>
         </div>
-        <div class="flex flex-col gap-1 w-full">
-            <label class="text-sm font-semibold" for="signup-confirm-password">Confirm password</label>
+        <div class="form-group">
+            <label class="form-label" for="signup-confirm-password">Confirm password</label>
             <div class="relative w-full">
                 <input class="input input-bordered w-full pr-12" type="password" id="signup-confirm-password" name="confirm-password" required>
-                <button type="button" class="absolute inset-y-0 right-2 inline-flex items-center justify-center p-1 text-base-content/70 hover:text-base-content cursor-pointer" aria-label="Show password" aria-pressed="false" data-toggle-password>
+                <button type="button" class="password-toggle-btn" aria-label="Show password" aria-pressed="false" data-toggle-password>
                     <span class="icon icon-[lucide--eye] size-5" aria-hidden="true" data-password-visible></span>
                     <span class="icon icon-[lucide--eye-off] size-5" aria-hidden="true" data-password-hidden hidden></span>
                 </button>

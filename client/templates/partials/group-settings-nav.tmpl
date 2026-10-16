@@ -1,21 +1,21 @@
-<nav class="flex items-center border-b border-base-content/10 gap-6 overflow-x-auto" hx-boost="true" hx-replace-url="true">
-    <a href="/groups/{{.Group.Id}}/settings" class="flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap {{if eq .Tab "general"}}border-primary text-primary font-semibold{{else}}border-transparent text-base-content/60 hover:text-base-content{{end}}">
+<nav class="settings-nav-container" hx-boost="true" hx-replace-url="true">
+    <a href="/groups/{{.Group.Id}}/settings" class="nav-tab {{if eq .Tab "general"}}nav-tab-active{{end}}">
         <span class="icon icon-[lucide--sliders-horizontal] size-4" aria-hidden="true"></span>
         General
     </a>
-    <a href="/groups/{{.Group.Id}}/settings/channels" class="flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap {{if eq .Tab "channels"}}border-primary text-primary font-semibold{{else}}border-transparent text-base-content/60 hover:text-base-content{{end}}">
+    <a href="/groups/{{.Group.Id}}/settings/channels" class="nav-tab {{if eq .Tab "channels"}}nav-tab-active{{end}}">
         <span class="icon icon-[lucide--hash] size-4" aria-hidden="true"></span>
         Channels
     </a>
-    <a href="/groups/{{.Group.Id}}/settings/roles" class="flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap {{if eq .Tab "roles"}}border-primary text-primary font-semibold{{else}}border-transparent text-base-content/60 hover:text-base-content{{end}}">
+    <a href="/groups/{{.Group.Id}}/settings/roles" class="nav-tab {{if eq .Tab "roles"}}nav-tab-active{{end}}">
         <span class="icon icon-[lucide--shield] size-4" aria-hidden="true"></span>
         Roles
     </a>
-    <a href="/groups/{{.Group.Id}}/settings/members" class="flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap {{if eq .Tab "members"}}border-primary text-primary font-semibold{{else}}border-transparent text-base-content/60 hover:text-base-content{{end}}">
+    <a href="/groups/{{.Group.Id}}/settings/members" class="nav-tab {{if eq .Tab "members"}}nav-tab-active{{end}}">
         <span class="icon icon-[lucide--users] size-4" aria-hidden="true"></span>
         Members
     </a>
-    <a href="/groups/{{.Group.Id}}/settings/audit" class="flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap {{if eq .Tab "audit"}}border-primary text-primary font-semibold{{else}}border-transparent text-base-content/60 hover:text-base-content{{end}}">
+    <a href="/groups/{{.Group.Id}}/settings/audit" class="nav-tab {{if eq .Tab "audit"}}nav-tab-active{{end}}">
         <span class="icon icon-[lucide--history] size-4" aria-hidden="true"></span>
         Audit Log
     </a>

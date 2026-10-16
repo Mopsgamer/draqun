@@ -1,6 +1,6 @@
-<div class="max-w-3xl mx-auto w-full px-4 py-8 flex flex-col gap-8">
-    <div class="flex items-center justify-between pb-4 border-b border-base-content/10">
-        <div class="flex items-center gap-3">
+<div class="page-container-lg">
+    <div class="section-header pb-4">
+        <div class="flex-row-start">
             <span class="icon icon-[lucide--settings-2] size-6 text-primary" aria-hidden="true"></span>
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">Group Settings</h1>
@@ -30,18 +30,18 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-semibold text-base-content/70" for="role-moniker">Display Moniker</label>
+            <div class="form-group">
+                <label class="form-label" for="role-moniker">Display Moniker</label>
                 <input class="input input-bordered w-full" type="text" id="role-moniker" name="moniker" required value="{{.TargetRole.Moniker}}">
             </div>
-            <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-semibold text-base-content/70" for="role-name">System Handle</label>
+            <div class="form-group">
+                <label class="form-label" for="role-name">System Handle</label>
                 <input class="input input-bordered w-full font-mono text-sm" type="text" id="role-name" name="name" required value="{{.TargetRole.Name}}" {{if eq .TargetRole.Name "@everyone"}}readonly{{end}}>
             </div>
         </div>
 
-        <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-semibold text-base-content/70" for="role-color">Role Color Accent</label>
+        <div class="form-group">
+            <label class="form-label" for="role-color">Role Color Accent</label>
             <div class="flex items-center gap-3">
                 <input class="input input-bordered h-9 w-16 p-1 cursor-pointer shrink-0" type="color" id="role-color" name="color" value="{{.TargetRole.Color.Hex}}">
                 <span class="text-xs text-base-content/60">Badge color used in chat and member lists.</span>
@@ -58,8 +58,8 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-xs font-semibold text-base-content/70" for="perm-messages">Messages</label>
+                <div class="form-group">
+                    <label class="form-label" for="perm-messages">Messages</label>
                     <select class="select select-bordered w-full" id="perm-messages" name="perm_messages">
                         <option value="" {{if eq .TargetRole.PermMessages ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="write" {{if eq .TargetRole.PermMessages "write"}}selected{{end}}>Write</option>
@@ -69,8 +69,8 @@
                     </select>
                 </div>
 
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-xs font-semibold text-base-content/70" for="perm-roles">Roles</label>
+                <div class="form-group">
+                    <label class="form-label" for="perm-roles">Roles</label>
                     <select class="select select-bordered w-full" id="perm-roles" name="perm_roles">
                         <option value="" {{if eq .TargetRole.PermRoles ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="allow" {{if eq .TargetRole.PermRoles "allow"}}selected{{end}}>Allow</option>
@@ -78,8 +78,8 @@
                     </select>
                 </div>
 
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-xs font-semibold text-base-content/70" for="perm-members">Members</label>
+                <div class="form-group">
+                    <label class="form-label" for="perm-members">Members</label>
                     <select class="select select-bordered w-full" id="perm-members" name="perm_members">
                         <option value="" {{if eq .TargetRole.PermMembers ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="read" {{if eq .TargetRole.PermMembers "read"}}selected{{end}}>Read</option>
@@ -89,8 +89,8 @@
                     </select>
                 </div>
 
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-xs font-semibold text-base-content/70" for="perm-group-change">Group Settings</label>
+                <div class="form-group">
+                    <label class="form-label" for="perm-group-change">Group Settings</label>
                     <select class="select select-bordered w-full" id="perm-group-change" name="perm_group_change">
                         <option value="" {{if eq .TargetRole.PermGroupChange ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="allow" {{if eq .TargetRole.PermGroupChange "allow"}}selected{{end}}>Allow</option>
@@ -98,8 +98,8 @@
                     </select>
                 </div>
 
-                <div class="flex flex-col gap-1.5 sm:col-span-2">
-                    <label class="text-xs font-semibold text-base-content/70" for="perm-admin">Administrator</label>
+                <div class="form-group sm:col-span-2">
+                    <label class="form-label" for="perm-admin">Administrator</label>
                     <select class="select select-bordered w-full" id="perm-admin" name="perm_admin">
                         <option value="" {{if eq .TargetRole.PermAdmin ""}}selected{{end}}>Neutral / Inherit</option>
                         <option value="allow" {{if eq .TargetRole.PermAdmin "allow"}}selected{{end}}>Allow (Full administrative permissions)</option>
@@ -118,7 +118,7 @@
                     <span class="icon icon-[lucide--trash-2] size-3"></span>
                     Delete Role
                 </summary>
-                <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-56 mt-1 flex flex-col gap-2">
+                <div class="dropdown-card">
                     <span class="font-semibold text-xs text-error">Delete role?</span>
                     <button
                         type="button"

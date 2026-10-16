@@ -117,20 +117,26 @@
     </div>
 
     <div id="members-view" class="secondary-view">
-        <div class="flex items-center justify-between min-h-10">
-            <div class="flex items-center gap-2 font-semibold text-base truncate">
-                <span class="icon {{template "partials/channel-icon-class" .ActiveChannel.Type}} size-4 shrink-0" aria-hidden="true"></span>
-                <span class="truncate">{{.ActiveChannel.Moniker}}</span>
+        <div class="flex items-center justify-between pb-3 border-b border-base-content/10 gap-2">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <span class="icon {{template "partials/channel-icon-class" .ActiveChannel.Type}} size-5 text-primary shrink-0" aria-hidden="true"></span>
+                <div class="flex flex-col min-w-0 flex-1">
+                    <span class="font-bold text-sm truncate leading-tight">{{.ActiveChannel.Moniker}}</span>
+                    <span class="text-xs font-mono text-base-content/60 truncate">#{{.ActiveChannel.Name}}</span>
+                </div>
             </div>
-            <button
-                class="btn btn-ghost btn-square btn-sm group-members-toggle"
-                type="button"
-                aria-label="Close members list"
-                aria-controls="members-view"
-                aria-expanded="false"
-            >
-                <span class="icon icon-[lucide--x] size-5" aria-hidden="true"></span>
-            </button>
+            <div class="flex items-center gap-0.5 shrink-0">
+                <button
+                    class="btn btn-ghost btn-square btn-sm text-base-content/70 hover:text-base-content group-members-toggle"
+                    type="button"
+                    aria-label="Close members view"
+                    title="Close members"
+                    aria-controls="members-view"
+                    aria-expanded="false"
+                >
+                    <span class="icon icon-[lucide--x] size-4" aria-hidden="true"></span>
+                </button>
+            </div>
         </div>
         {{if and .ActiveChannel (not .ActiveChannel.IsEmpty) (ne .ActiveChannel.Description "") (not .ActiveChannel.IsTicket)}}
         <div class="flex items-center text-sm justify-between min-h-10 pb-2 border-b border-base-content/10 text-base-content/70">
@@ -151,34 +157,6 @@
         </div>
     </div>
 
-    {{if and .ActiveChannel (not .ActiveChannel.IsEmpty)}}
-    <dialog id="channel-description-modal" class="modal">
-        <div class="modal-box bg-surface-overlay border border-base-content/10 max-w-md">
-            <form method="dialog">
-                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="Close modal">✕</button>
-            </form>
-            <h3 class="font-bold text-lg flex items-center gap-2">
-                <span class="icon icon-[lucide--hash] size-5 text-primary" aria-hidden="true"></span>
-                <span>{{.ActiveChannel.Moniker}}</span>
-            </h3>
-            <div class="py-4 text-sm text-base-content/80 leading-relaxed break-words">
-                {{if ne .ActiveChannel.Description ""}}
-                    {{.ActiveChannel.Description}}
-                {{else}}
-                    <span class="italic text-base-content/50">No description provided for this channel.</span>
-                {{end}}
-            </div>
-            <div class="modal-action">
-                <form method="dialog">
-                    <button class="btn btn-sm btn-primary">Close</button>
-                </form>
-            </div>
-        </div>
-        <form method="dialog" class="modal-backdrop">
-            <button>close</button>
-        </form>
-    </dialog>
-    {{end}}
 
     <div
         id="ws-chat"

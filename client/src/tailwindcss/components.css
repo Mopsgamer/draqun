@@ -77,6 +77,113 @@
 	@apply flex flex-col w-full min-h-svh justify-center items-center;
 }
 
+/* Page Layout Components */
+@utility page-container-sm {
+	@apply max-w-lg mx-auto w-full px-4 py-12 flex flex-col gap-6;
+}
+
+@utility page-container-md {
+	@apply max-w-2xl mx-auto w-full px-4 py-8 flex flex-col gap-6;
+}
+
+@utility page-container-lg {
+	@apply max-w-3xl mx-auto w-full px-4 py-8 flex flex-col gap-8;
+}
+
+@utility section-header {
+	@apply flex items-center justify-between pb-3 border-b border-base-content/10;
+}
+
+/* Form Components */
+@utility form-card {
+	@apply flex flex-col gap-5 bg-surface-card p-6 rounded-box border border-base-content/10;
+}
+
+@utility form-group {
+	@apply flex flex-col gap-1.5 w-full;
+}
+
+@utility form-label {
+	@apply text-xs font-semibold text-base-content/70;
+}
+
+@utility form-actions {
+	@apply flex items-center justify-end gap-2 pt-3 border-t border-base-content/10;
+}
+
+@utility password-toggle-btn {
+	@apply absolute inset-y-0 right-2 inline-flex items-center justify-center p-1 text-base-content/60 hover:text-base-content cursor-pointer;
+}
+
+@utility avatar-upload-box {
+	@apply relative cursor-pointer flex items-center justify-center size-14 rounded-xl border border-base-content/20 hover:border-primary text-primary bg-surface-card transition-all overflow-hidden shrink-0;
+}
+
+@utility invite-banner {
+	@apply flex items-center justify-between gap-4 py-3 px-4 rounded-xl bg-primary/10 border border-primary/20 text-xs;
+}
+
+@utility danger-zone-header {
+	@apply pb-2 border-b border-error/20;
+}
+
+/* Settings & Sub-navigation Components */
+@utility settings-nav-container {
+	@apply flex gap-1 border-b border-base-content/10 overflow-x-auto pb-1;
+}
+
+@utility nav-tab {
+	@apply flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg text-base-content/70 hover:text-base-content hover:bg-surface-card transition-all whitespace-nowrap;
+}
+
+@utility nav-tab-active {
+	@apply text-primary bg-primary/10 hover:bg-primary/15;
+}
+
+/* Card & List Item Components */
+@utility settings-card {
+	@apply flex flex-col gap-6 bg-surface-card p-6 rounded-box border border-base-content/10 shadow-sm;
+}
+
+@utility list-item-card {
+	@apply flex items-center justify-between gap-4 p-3 rounded-xl bg-surface-card border border-base-content/10 transition-colors;
+}
+
+@utility audit-log-item {
+	@apply flex flex-col gap-1 p-3 rounded-xl bg-surface-card border border-base-content/10 text-xs;
+}
+
+/* Modal & Dropdown Components */
+@utility dropdown-card {
+	@apply z-20 p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2;
+}
+
+@utility modal-actions-box {
+	@apply pt-4 flex justify-end gap-2;
+}
+
+/* Search Input Components */
+@utility search-input-box {
+	@apply relative w-full flex items-center;
+}
+
+@utility search-icon {
+	@apply absolute left-3 size-4 text-base-content/50 pointer-events-none z-10;
+}
+
+/* Flex Row Alignment Utilities */
+@utility flex-row-center {
+	@apply flex items-center gap-2;
+}
+
+@utility flex-row-between {
+	@apply flex items-center justify-between gap-2;
+}
+
+@utility flex-row-start {
+	@apply flex items-center gap-3;
+}
+
 /* Global Reset & Base Elements */
 *,
 *::before,

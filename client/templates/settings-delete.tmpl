@@ -1,4 +1,4 @@
-<div class="max-w-md mx-auto w-full px-4 py-12 flex flex-col gap-6">
+<div class="page-container-sm">
     <div class="flex items-center justify-between pb-3 border-b border-error/20 text-error">
         <div class="flex items-center gap-2.5">
             <span class="icon icon-[lucide--triangle-alert] size-5 shrink-0" aria-hidden="true"></span>
@@ -21,25 +21,25 @@
         hx-swap="innerHTML"
         hx-target="#account-delete-error"
     >
-        <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-semibold text-base-content/70" for="account-delete-current-password">Current Password</label>
+        <div class="form-group">
+            <label class="form-label" for="account-delete-current-password">Current Password</label>
             <div class="relative w-full">
                 <input class="input input-bordered w-full pr-10" autofocus type="password" id="account-delete-current-password" name="current-password" required autocomplete="password" placeholder="Password">
-                <button type="button" class="absolute inset-y-0 right-2 inline-flex items-center justify-center p-1 text-base-content/60 hover:text-base-content cursor-pointer" aria-label="Show password" aria-pressed="false" data-toggle-password>
+                <button type="button" class="password-toggle-btn" aria-label="Show password" aria-pressed="false" data-toggle-password>
                     <span class="icon icon-[lucide--eye] size-4" aria-hidden="true" data-password-visible></span>
                     <span class="icon icon-[lucide--eye-off] size-4" aria-hidden="true" data-password-hidden hidden></span>
                 </button>
             </div>
         </div>
 
-        <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-semibold text-base-content/70" for="account-delete-confirm-name">Confirm Username (<span class="text-error font-mono font-bold">{{.User.Name}}</span>)</label>
+        <div class="form-group">
+            <label class="form-label" for="account-delete-confirm-name">Confirm Username (<span class="text-error font-mono font-bold">{{.User.Name}}</span>)</label>
             <input class="input input-bordered w-full font-mono text-sm" id="account-delete-confirm-name" name="confirm-name" required type="text" autocomplete="off" placeholder="Type {{.User.Name}} to confirm">
         </div>
 
         <div id="account-delete-error"></div>
 
-        <div class="flex justify-end gap-2 pt-2 border-t border-error/20">
+        <div class="form-actions">
             <button class="btn btn-ghost btn-sm" type="button" onclick="history.back()">Cancel</button>
             <button class="btn btn-error btn-sm" form="account-delete-form" type="submit">
                 <span class="icon icon-[lucide--trash-2] size-3.5"></span>

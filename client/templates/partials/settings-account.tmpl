@@ -44,12 +44,12 @@
                 hx-target="#change-name-error"
             >
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1.5">
-                        <label class="text-xs font-semibold text-base-content/70" for="new-moniker">Display Moniker</label>
+                    <div class="form-group">
+                        <label class="form-label" for="new-moniker">Display Moniker</label>
                         <input class="input input-bordered w-full" type="text" id="new-moniker" name="new-moniker" value="{{.User.Moniker}}" placeholder="Display Name">
                     </div>
-                    <div class="flex flex-col gap-1.5">
-                        <label class="text-xs font-semibold text-base-content/70" for="new-name">Unique Username</label>
+                    <div class="form-group">
+                        <label class="form-label" for="new-name">Unique Username</label>
                         <input class="input input-bordered w-full font-mono text-sm" type="text" id="new-name" name="new-name" value="{{.User.Name}}" placeholder="username">
                     </div>
                 </div>
