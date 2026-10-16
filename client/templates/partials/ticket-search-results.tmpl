@@ -1,0 +1,33 @@
+{{if eq (len .Results) 0}}
+<div class="p-2 text-xs text-base-content/50 italic text-center">No matching tickets found</div>
+{{else}}
+{{$mode := .Mode}}
+{{range .Results}}
+{{$isClosed := eq .Status "closed"}}
+{{if eq $mode "duplicate"}}
+<button type="button" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer" onclick="var inp=document.getElementById('duplicate_of_id_input'); if(inp){inp.value='{{.Id}}';} var prev=document.getElementById('duplicate_selected_preview'); if(prev){prev.innerHTML='<span class=\'inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-amber-500/15 text-amber-500 text-xs font-medium\'><span class=\'icon icon-[lucide--copy-x] size-3\'></span>#{{.Id}} {{.Moniker}}</span>';}">
+    <div class="flex items-center gap-2 truncate min-w-0">
+        {{if $isClosed}}
+        <span class="icon icon-[lucide--check-circle-2] text-purple-500 size-3.5 shrink-0"></span>
+        {{else}}
+        <span class="icon icon-[lucide--circle-dot] text-emerald-500 size-3.5 shrink-0"></span>
+        {{end}}
+        <span class="truncate font-medium">{{.Moniker}}</span>
+    </div>
+    <span class="font-mono text-base-content/40 text-[11px] shrink-0 ml-2">#{{.Id}}</span>
+</button>
+{{else}}
+<button type="button" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer" onclick="addParentBadge(this, '{{.Id}}', '{{.Moniker}}')">
+    <div class="flex items-center gap-2 truncate min-w-0">
+        {{if $isClosed}}
+        <span class="icon icon-[lucide--check-circle-2] text-purple-500 size-3.5 shrink-0"></span>
+        {{else}}
+        <span class="icon icon-[lucide--circle-dot] text-emerald-500 size-3.5 shrink-0"></span>
+        {{end}}
+        <span class="truncate font-medium">{{.Moniker}}</span>
+    </div>
+    <span class="font-mono text-base-content/40 text-[11px] shrink-0 ml-2">#{{.Id}}</span>
+</button>
+{{end}}
+{{end}}
+{{end}}

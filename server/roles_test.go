@@ -176,7 +176,7 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 		t.Errorf("expected 200 or 303 for role move action, got %d", respMoveRole.StatusCode())
 	}
 
-	// 5b. GET /groups/:id/members/search -> Test Live Member Search for Role Assignment
+	// 5b. GET & POST /groups/:id/members/search -> Test Live Member Search for Role Assignment
 	respSearchMember, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
 		Get(fmt.Sprintf("/groups/%d/members/search?role_id=%d&q=Member", group.Id, modRole.Id))
@@ -186,7 +186,42 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 	defer respSearchMember.Close()
 
 	if respSearchMember.StatusCode() != http.StatusOK {
-		t.Errorf("expected status 200 for member search, got %d", respSearchMember.StatusCode())
+		t.Errorf("expected status 200 for member search GET, got %d", respSearchMember.StatusCode())
+	}
+
+	// Test POST form member search
+	respSearchMemberPost, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"role_id": fmt.Sprintf("%d", modRole.Id),
+			"q":       "Member",
+		}).
+		Post(fmt.Sprintf("/groups/%d/members/search", group.Id))
+	if err != nil {
+		t.Fatalf("POST member search failed: %v", err)
+	}
+	defer respSearchMemberPost.Close()
+
+	if respSearchMemberPost.StatusCode() != http.StatusOK {
+		t.Errorf("expected status 200 for member search POST form, got %d", respSearchMemberPost.StatusCode())
+	}
+	if !strings.Contains(respSearchMemberPost.String(), "Member User") {
+		t.Errorf("expected POST member search response to contain member moniker, got: %s", respSearchMemberPost.String())
+	}
+
+	// Test non-matching member search
+	respSearchNoMatch, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		Get(fmt.Sprintf("/groups/%d/members/search?role_id=%d&q=djskdbsidb", group.Id, modRole.Id))
+	if err != nil {
+		t.Fatalf("non-matching member search failed: %v", err)
+	}
+	defer respSearchNoMatch.Close()
+
+	if !strings.Contains(respSearchNoMatch.String(), "No matching members found") {
+		t.Errorf("expected 'No matching members found' for non-matching query, got: %s", respSearchNoMatch.String())
 	}
 
 	// 6. POST /groups/:id/members/:user_id/roles -> Assign Senior Moderator role to memberUser

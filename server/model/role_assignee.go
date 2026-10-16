@@ -46,3 +46,9 @@ func (roleAssign *RoleAssignee) Member() Member {
 	}
 	return member
 }
+
+func IsRoleAssigned(userId, roleId uint64) bool {
+	ra := RoleAssignee{}
+	err := First(TableRoleAssignees, goqu.Ex{"user_id": userId, "role_id": roleId}, &ra)
+	return err == nil && ra.UserId != 0
+}

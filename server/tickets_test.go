@@ -297,7 +297,7 @@ func TestTicketChannelAndIssues(t *testing.T) {
 		t.Errorf("expected subTask to have 1 parent (%d), got %v", ticketChannel.Id, parents)
 	}
 
-	// 14. Test Live Search route /groups/:id/tickets/search
+	// 14. Test Live Search route /groups/:id/tickets/search via GET and POST
 	respSearch, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
 		Get(fmt.Sprintf("/groups/%d/tickets/search?q=Fix", group.Id))
@@ -307,7 +307,42 @@ func TestTicketChannelAndIssues(t *testing.T) {
 	defer respSearch.Close()
 
 	if respSearch.StatusCode() != http.StatusOK {
-		t.Errorf("expected 200 for ticket search, got %d", respSearch.StatusCode())
+		t.Errorf("expected 200 for ticket search GET, got %d", respSearch.StatusCode())
+	}
+
+	// Test POST form ticket search
+	respSearchPost, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"q":    "Fix",
+			"mode": "parent",
+		}).
+		Post(fmt.Sprintf("/groups/%d/tickets/search", group.Id))
+	if err != nil {
+		t.Fatalf("POST ticket search failed: %v", err)
+	}
+	defer respSearchPost.Close()
+
+	if respSearchPost.StatusCode() != http.StatusOK {
+		t.Errorf("expected 200 for ticket search POST form, got %d", respSearchPost.StatusCode())
+	}
+	if !strings.Contains(respSearchPost.String(), "Fix login button glitch") {
+		t.Errorf("expected POST ticket search response to contain ticket moniker, got: %s", respSearchPost.String())
+	}
+
+	// Test non-matching ticket search
+	respSearchNoMatchTicket, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		Get(fmt.Sprintf("/groups/%d/tickets/search?q=djskdbsidb", group.Id))
+	if err != nil {
+		t.Fatalf("non-matching ticket search failed: %v", err)
+	}
+	defer respSearchNoMatchTicket.Close()
+
+	if !strings.Contains(respSearchNoMatchTicket.String(), "No matching tickets found") {
+		t.Errorf("expected 'No matching tickets found' for non-matching query, got: %s", respSearchNoMatchTicket.String())
 	}
 
 	// 15. Test Assigning and Unassigning Members for Tickets
@@ -676,4 +711,116 @@ func TestTicketPermissionsAndEdgeCases(t *testing.T) {
 
 	// Unused user parameter check suppressor
 	_ = readOnlyUser
+}
+
+func TestNewValidationRules(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	// Setup Owner and Group
+	cookieOwner, owner := createTestUserCookie(t, ts, "Validation Owner", "val_owner", "val_owner@example.com")
+	group := createTestGroupDirectly(t, int64(owner.Id), "Validation Group", "val_group")
+
+	// Create custom Role
+	role := model.Role{
+		GroupId:      group.Id,
+		Name:         "mod",
+		Moniker:      "Moderator",
+		PermMessages: model.PermMessagesWrite,
+	}
+	if err := role.Insert(); err != nil {
+		t.Fatalf("failed to insert role: %v", err)
+	}
+
+	// 1. Assign role to owner
+	respAssign, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"role_id": fmt.Sprintf("%d", role.Id),
+		}).
+		Post(fmt.Sprintf("/groups/%d/members/%d/roles", group.Id, owner.Id))
+	if err != nil {
+		t.Fatalf("assign role failed: %v", err)
+	}
+	respAssign.Close()
+
+	// 2. Attempting to assign the SAME role again should return AlertUseless
+	respAssignDup, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"role_id": fmt.Sprintf("%d", role.Id),
+		}).
+		Post(fmt.Sprintf("/groups/%d/members/%d/roles", group.Id, owner.Id))
+	if err != nil {
+		t.Fatalf("duplicate role assign failed: %v", err)
+	}
+	defer respAssignDup.Close()
+
+	if !strings.Contains(respAssignDup.String(), "This action is useless.") && respAssignDup.StatusCode() != http.StatusUnprocessableEntity {
+		t.Errorf("expected AlertUseless/422 for duplicate role assign, got status %d, body: %s", respAssignDup.StatusCode(), respAssignDup.String())
+	}
+
+	// 3. Member search for role_id should filter out owner (since owner already has role)
+	respSearchRoleMember, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"q":       "Validation",
+			"role_id": fmt.Sprintf("%d", role.Id),
+		}).
+		Post(fmt.Sprintf("/groups/%d/members/search", group.Id))
+	if err != nil {
+		t.Fatalf("search member for role failed: %v", err)
+	}
+	defer respSearchRoleMember.Close()
+
+	if strings.Contains(respSearchRoleMember.String(), string(owner.Moniker)) {
+		t.Errorf("expected member search to filter out user with existing role, got: %s", respSearchRoleMember.String())
+	}
+
+	// Create ticket channel & ticket
+	ch := model.NewChannel("issues_val", "Issues Val", "Desc", model.ChannelTypeTicket)
+	_ = ch.Insert()
+	_ = model.AddGroupChannel(group.Id, ch.Id, 1)
+
+	ticket := model.NewChannel("ticket_val", "Ticket Val", "Desc", model.ChannelTypeTicket)
+	_ = ticket.Insert()
+	_ = model.SetParentChannels(ticket.Id, []uint64{ch.Id})
+
+	// 4. Ticket parent search for exclude_id=ticket.Id should filter out ch.Id (already assigned parent)
+	respParentSearch, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"q":          "Issues",
+			"mode":       "parent",
+			"exclude_id": fmt.Sprintf("%d", ticket.Id),
+		}).
+		Post(fmt.Sprintf("/groups/%d/tickets/search", group.Id))
+	if err != nil {
+		t.Fatalf("parent search failed: %v", err)
+	}
+	defer respParentSearch.Close()
+
+	if strings.Contains(respParentSearch.String(), "Issues Val") {
+		t.Errorf("expected ticket search to filter out already assigned parent channel, got: %s", respParentSearch.String())
+	}
+
+	// 5. Attempting to edit ticket with empty parent_ids should fail with error
+	respEmptyParents, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"title": "Ticket Val Updated",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/edit", group.Id, ticket.Id))
+	if err != nil {
+		t.Fatalf("empty parents edit failed: %v", err)
+	}
+	defer respEmptyParents.Close()
+
+	if !strings.Contains(respEmptyParents.String(), "The moniker format is invalid.") && respEmptyParents.StatusCode() != http.StatusUnprocessableEntity {
+		t.Errorf("expected error for empty parent_ids edit, got status %d, body: %s", respEmptyParents.StatusCode(), respEmptyParents.String())
+	}
 }

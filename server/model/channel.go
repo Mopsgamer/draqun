@@ -247,13 +247,21 @@ func GetParentChannels(childId uint64) ([]Channel, error) {
 }
 
 func SetParentChannels(childId uint64, parentIds []uint64) error {
-	_ = Delete(TableChannelRelations, goqu.Ex{"child_id": childId})
+	var validParentIds []uint64
 	seen := make(map[uint64]bool)
 	for _, pid := range parentIds {
 		if pid != 0 && pid != childId && !seen[pid] {
 			seen[pid] = true
-			_ = AddChannelRelation(pid, childId, "subchannel")
+			validParentIds = append(validParentIds, pid)
 		}
+	}
+	if len(validParentIds) == 0 {
+		return htmx.AlertFormatMoniker
+	}
+
+	_ = Delete(TableChannelRelations, goqu.Ex{"child_id": childId})
+	for _, pid := range validParentIds {
+		_ = AddChannelRelation(pid, childId, "subchannel")
 	}
 	return nil
 }
@@ -430,6 +438,12 @@ type ChannelAssignee struct {
 	checkEmpty
 	ChannelId uint64 `db:"channel_id"`
 	UserId    uint64 `db:"user_id"`
+}
+
+func IsChannelAssignee(channelId, userId uint64) bool {
+	ca := ChannelAssignee{}
+	err := First(TableChannelAssignees, goqu.Ex{"channel_id": channelId, "user_id": userId}, &ca)
+	return err == nil && ca.UserId != 0
 }
 
 func AddChannelAssignee(channelId, userId uint64) error {

@@ -596,6 +596,24 @@ paths:
    responses:
     "200":
      description: List of matching members.
+  post:
+   tags:
+    - Group
+   summary: Search Group Members
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/MemberSearchForm"
+   responses:
+    "200":
+     description: List of matching members.
  /groups/{group_id}/channels/{channel_id}/assignees:
   post:
    tags:
@@ -663,6 +681,28 @@ paths:
       in: query
       schema:
        type: integer
+    - name: mode
+      in: query
+      schema:
+       type: string
+   responses:
+    "200":
+     description: List of matching ticket channels.
+  post:
+   tags:
+    - Group
+   summary: Search Ticket Channels
+   parameters:
+    - name: group_id
+      in: path
+      required: true
+      schema:
+       type: integer
+   requestBody:
+    content:
+     application/x-www-form-urlencoded:
+      schema:
+       $ref: "#/components/schemas/TicketSearchForm"
    responses:
     "200":
      description: List of matching ticket channels.
@@ -1248,3 +1288,21 @@ components:
      type: string
     inherit:
      type: boolean
+  MemberSearchForm:
+   type: object
+   properties:
+    q:
+     type: string
+    role_id:
+     type: integer
+    channel_id:
+     type: integer
+  TicketSearchForm:
+   type: object
+   properties:
+    q:
+     type: string
+    exclude_id:
+     type: integer
+    mode:
+     type: string

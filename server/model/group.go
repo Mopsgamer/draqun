@@ -327,14 +327,17 @@ func (group Group) SearchUsers(query string, limit int) ([]User, error) {
 
 	sql, args, err := Goqu.Select(TableUsers+".*").From(TableMembers).
 		Join(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(goqu.I(TableMembers+".user_id")))).
-		Where(goqu.Ex{
-			TableMembers + ".group_id":   group.Id,
-			TableMembers + ".is_deleted": false,
-			TableUsers + ".is_deleted":   false,
-		}, goqu.Or(
-			goqu.I(TableUsers+".moniker").ILike(queryLower),
-			goqu.I(TableUsers+".name").ILike(queryLower),
-		)).
+		Where(
+			goqu.Ex{
+				TableMembers + ".group_id":   group.Id,
+				TableMembers + ".is_deleted": false,
+				TableUsers + ".is_deleted":   false,
+			},
+			goqu.Or(
+				goqu.L("LOWER("+TableUsers+".moniker) LIKE ?", queryLower),
+				goqu.L("LOWER("+TableUsers+".name) LIKE ?", queryLower),
+			),
+		).
 		Limit(uint(limit)).
 		Prepared(true).ToSQL()
 	if err != nil {

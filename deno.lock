@@ -30,6 +30,7 @@
     "npm:is-ci@^4.1.0": "4.1.0",
     "npm:is-interactive@2": "2.0.0",
     "npm:log-update@8": "8.0.0",
+    "npm:playwright@*": "1.64.0",
     "npm:semver@^7.8.5": "7.8.5",
     "npm:swagger-ui-dist@^5.33.0": "5.33.0",
     "npm:tailwindcss@^4.3.3": "4.3.3",
@@ -1053,6 +1054,17 @@
     },
     "picocolors@1.1.1": {
       "integrity": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="
+    },
+    "playwright-core@1.64.0": {
+      "integrity": "sha512-T9r+MZkTECl2+oUcZ26YgZzTrYidTsIhYYkJix+6iDOymOb1FB2RLLSOxRGnZGv5DStt+aduIVbt+E8WygXYpg==",
+      "bin": true
+    },
+    "playwright@1.64.0": {
+      "integrity": "sha512-kVzTnYFYEyQ9RGzBjNCd2+yEqWmVbxl3AHPynv3qQ6JTjv4a+kwRcnqQwIpuP3NnrnIrE/Q6wWAIAvMfIE2/Yg==",
+      "dependencies": [
+        "playwright-core"
+      ],
+      "bin": true
     },
     "postcss-modules-extract-imports@3.1.0_postcss@8.5.16": {
       "integrity": "sha512-k3kNe0aNFQDAZGbin48pL2VNidTF0w4/eASDsxlyspobzU3wZQLOGj7L9gfRe0Jo9/4uud09DsjFNH7winGv8Q==",
