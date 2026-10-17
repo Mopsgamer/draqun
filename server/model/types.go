@@ -136,7 +136,7 @@ func (tp TimePast) Value() (driver.Value, error) {
 	if t.IsZero() {
 		return nil, nil
 	}
-	return t.Format(time.RFC3339), nil
+	return t.Format(time.RFC3339Nano), nil
 }
 
 func (tp *TimePast) Scan(src interface{}) error {

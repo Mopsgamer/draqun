@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/fasthttp/websocket"
@@ -652,6 +653,9 @@ func TestAPIMemberJoinLeaveWebSocketBroadcast(t *testing.T) {
 	}
 	defer wsConn.Close()
 
+	// Set read deadline so test doesn't hang if WS read blocks
+	wsConn.SetReadDeadline(time.Now().Add(5 * time.Second))
+
 	// Read initial connection broadcast
 	_, initialMsg, err := wsConn.ReadMessage()
 	if err != nil {
@@ -671,6 +675,7 @@ func TestAPIMemberJoinLeaveWebSocketBroadcast(t *testing.T) {
 	respJoin.Close()
 
 	// Read message from WS connection
+	wsConn.SetReadDeadline(time.Now().Add(5 * time.Second))
 	_, joinMsgBytes, err := wsConn.ReadMessage()
 	if err != nil {
 		t.Fatalf("failed to read ws join message: %v", err)
@@ -692,6 +697,7 @@ func TestAPIMemberJoinLeaveWebSocketBroadcast(t *testing.T) {
 	respLeave.Close()
 
 	// Read message from WS connection
+	wsConn.SetReadDeadline(time.Now().Add(5 * time.Second))
 	_, leaveMsgBytes, err := wsConn.ReadMessage()
 	if err != nil {
 		t.Fatalf("failed to read ws leave message: %v", err)
