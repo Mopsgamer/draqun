@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -231,6 +232,25 @@ func RouteUsers(app *fiber.App) {
 			}
 
 			model.RecordUserLog(targetUser.Id, caller.Id, "suspend", "Account suspended: "+form.Reason)
+
+			reasonStr := strings.TrimSpace(form.Reason)
+			var notifContent string
+			if reasonStr != "" {
+				notifContent = fmt.Sprintf("Reason: %s (Duration: Indefinite / Permanent)", reasonStr)
+			} else {
+				notifContent = "Duration: Indefinite / Permanent"
+			}
+			notif := model.NewNotification(
+				targetUser.Id,
+				caller.Id,
+				form.GroupId,
+				0,
+				0,
+				"banned",
+				"Your account has been suspended",
+				notifContent,
+			)
+			_ = model.CreateAndPushNotification(app, notif)
 
 			if htmx.IsHtmx(ctx) {
 				return renderUserProfileModal(ctx, targetUser.Id)

@@ -380,7 +380,71 @@ func TestBannedUserRedirectAndJoinPageReason(t *testing.T) {
 	if !strings.Contains(bodyStr, "Rule breaking in chat") {
 		t.Errorf("expected ban reason 'Rule breaking in chat', got: %s", bodyStr)
 	}
-	if !strings.Contains(bodyStr, "Ban Expiration") {
-		t.Errorf("expected ban duration/expiration date on join page, got: %s", bodyStr)
+	if !strings.Contains(bodyStr, "Duration:") || !strings.Contains(bodyStr, "30 days") {
+		t.Errorf("expected duration '30 days' on join page, got: %s", bodyStr)
 	}
+	if !strings.Contains(bodyStr, "Ban Expiration:") {
+		t.Errorf("expected ban expiration date on join page, got: %s", bodyStr)
+	}
+
+	// Verify ban notification for target user
+	notifs, errN := model.GetUserNotifications(targetUser.Id, 10)
+	if errN != nil || len(notifs) == 0 {
+		t.Fatalf("expected ban notification for target user, got err: %v, count: %d", errN, len(notifs))
+	}
+	foundBanNotif := false
+	for _, n := range notifs {
+		if n.Type == "banned" && strings.Contains(n.Content, "Rule breaking in chat") && strings.Contains(n.Content, "30 days") {
+			foundBanNotif = true
+			break
+		}
+	}
+	if !foundBanNotif {
+		t.Errorf("expected notification containing reason 'Rule breaking in chat' and duration '30 days', got notifs: %+v", notifs)
+	}
+
+	// Test banning without a reason -> should NOT display Reason: on join page or in notification
+	_, noReasonUser := createTestUserCookie(t, ts, "NoReason User", "noreasonuser", "noreason@example.com")
+	respBanNoReason, err := ts.Client.R().
+		SetHeader("Cookie", cookieAdmin).
+		SetFormDataWithMap(map[string]string{
+			"duration_days": "10",
+		}).
+		Post(fmt.Sprintf("/groups/%d/members/%d/ban", group.Id, noReasonUser.Id))
+	if err != nil {
+		t.Fatalf("POST /groups/:id/members/:id/ban without reason failed: %v", err)
+	}
+	defer respBanNoReason.Close()
+
+	respJoinNoReason, err := ts.Client.R().
+		SetHeader("Cookie", createTestUserCookieHeader(t, ts, noReasonUser)).
+		Get(fmt.Sprintf("/chat/groups/join/%s", group.Name))
+	if err != nil {
+		t.Fatalf("GET /groups/join/:name failed: %v", err)
+	}
+	defer respJoinNoReason.Close()
+
+	bodyNoReason := respJoinNoReason.String()
+	if strings.Contains(bodyNoReason, "Reason:") {
+		t.Errorf("expected join page NOT to contain 'Reason:' when no reason was provided, got: %s", bodyNoReason)
+	}
+	if !strings.Contains(bodyNoReason, "Duration:") || !strings.Contains(bodyNoReason, "10 days") {
+		t.Errorf("expected join page to contain duration '10 days', got: %s", bodyNoReason)
+	}
+
+	notifsNoReason, _ := model.GetUserNotifications(noReasonUser.Id, 10)
+	if len(notifsNoReason) == 0 {
+		t.Fatalf("expected notification for noReasonUser")
+	}
+	if strings.Contains(notifsNoReason[0].Content, "Reason:") {
+		t.Errorf("expected notification NOT to contain 'Reason:', got: %s", notifsNoReason[0].Content)
+	}
+	if !strings.Contains(notifsNoReason[0].Content, "Duration: 10 days") {
+		t.Errorf("expected notification to contain 'Duration: 10 days', got: %s", notifsNoReason[0].Content)
+	}
+}
+
+func createTestUserCookieHeader(t *testing.T, ts *TestServer, user model.User) string {
+	token, _ := user.GenerateToken()
+	return fmt.Sprintf("Authorization=%s", token)
 }

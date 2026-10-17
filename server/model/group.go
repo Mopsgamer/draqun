@@ -213,8 +213,11 @@ func (group Group) GetActiveBan(userId uint64) *ActionBan {
 		Order(goqu.I("acted_at").Desc()).
 		Limit(1).
 		Prepared(true).ToSQL()
-	if err == nil && Sqlx.Get(&ban, sql, args...) == nil && !ban.IsEmpty() {
-		return &ban
+	if err == nil && Sqlx.Get(&ban, sql, args...) == nil {
+		ban.SetFullfilled()
+		if !ban.IsEmpty() {
+			return &ban
+		}
 	}
 
 	draqunGroup, err := NewGroupFromName("draqun")
@@ -232,8 +235,11 @@ func (group Group) GetActiveBan(userId uint64) *ActionBan {
 			Order(goqu.I("acted_at").Desc()).
 			Limit(1).
 			Prepared(true).ToSQL()
-		if Sqlx.Get(&draqunBan, dSql, dArgs...) == nil && !draqunBan.IsEmpty() {
-			return &draqunBan
+		if Sqlx.Get(&draqunBan, dSql, dArgs...) == nil {
+			draqunBan.SetFullfilled()
+			if !draqunBan.IsEmpty() {
+				return &draqunBan
+			}
 		}
 	}
 	return nil

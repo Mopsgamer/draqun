@@ -1440,17 +1440,21 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					targetMember = model.NewMember(group.Id, targetUserId, "")
 				}
 
-				if err := targetMember.Ban(caller.Id, endsAt, request.Description); err != nil {
+				banReason := request.Description
+
+				if err := targetMember.Ban(caller.Id, endsAt, banReason); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
 
-				model.RecordUserLog(targetUserId, caller.Id, "ban_group", fmt.Sprintf("Banned from group %s (%s)", group.Moniker, request.Description))
+				model.RecordUserLog(targetUserId, caller.Id, "ban_group", fmt.Sprintf("Banned from group %s (%s)", group.Moniker, banReason))
 
-				notifReason := string(request.Description)
-				if notifReason == "" {
-					notifReason = "Violation of group rules"
+				var notifContent string
+				reasonStr := strings.TrimSpace(string(banReason))
+				if reasonStr != "" {
+					notifContent = fmt.Sprintf("Reason: %s (Duration: %d days)", reasonStr, durationDays)
+				} else {
+					notifContent = fmt.Sprintf("Duration: %d days", durationDays)
 				}
-				notifContent := fmt.Sprintf("Reason: %s (Duration: %d days)", notifReason, durationDays)
 
 				notif := model.NewNotification(
 					targetUserId,

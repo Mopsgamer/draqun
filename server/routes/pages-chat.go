@@ -131,30 +131,33 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			isBanned := group.IsBanned(user.Id)
 			var banReason string
 			var banEndsAtStr string
+			var banDurationStr string
 			if isBanned {
 				if user.IsSuspended {
 					banReason = user.SuspensionReason
-					if banReason == "" {
-						banReason = "Global account suspension"
-					}
 					banEndsAtStr = "Indefinite / Permanent"
+					banDurationStr = "Indefinite / Permanent"
 				} else {
 					ban := group.GetActiveBan(user.Id)
 					if ban != nil {
-						if ban.Description != "" {
-							banReason = string(ban.Description)
-						} else {
-							banReason = "Banned by group moderators"
-						}
+						banReason = string(ban.Description)
 						tEnds := time.Time(ban.EndsAt)
+						tActed := time.Time(ban.ActedAt)
 						if !tEnds.IsZero() {
 							banEndsAtStr = tEnds.Format("Jan 02, 2006 15:04")
+							if !tActed.IsZero() && tEnds.After(tActed) {
+								days := int(tEnds.Sub(tActed).Hours()/24 + 0.5)
+								banDurationStr = fmt.Sprintf("%d days", days)
+							} else {
+								banDurationStr = "Indefinite / Permanent"
+							}
 						} else {
 							banEndsAtStr = "Indefinite / Permanent"
+							banDurationStr = "Indefinite / Permanent"
 						}
 					} else {
-						banReason = "Banned by group moderators"
 						banEndsAtStr = "Indefinite / Permanent"
+						banDurationStr = "Indefinite / Permanent"
 					}
 				}
 			} else {
@@ -166,11 +169,12 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			}
 
 			bind := fiber.Map{
-				"Title":        "Join " + group.Moniker,
-				"Group":        group,
-				"IsBanned":     isBanned,
-				"BanReason":    banReason,
-				"BanEndsAtStr": banEndsAtStr,
+				"Title":          "Join " + group.Moniker,
+				"Group":          group,
+				"IsBanned":       isBanned,
+				"BanReason":      banReason,
+				"BanDurationStr": banDurationStr,
+				"BanEndsAtStr":   banEndsAtStr,
 			}
 
 			return htmx.TryRenderPage(ctx, "chat-group-join", MapPage(ctx, bind), "partials/layout-chat")
