@@ -184,7 +184,15 @@
                 {{end}}
 
                 <span class="text-base-content/70">
-                    <span class="font-semibold text-base-content">{{if .TicketAuthor.IsEmpty}}Anonymous{{else}}{{.TicketAuthor.Moniker}}{{end}}</span>
+                    <span
+                        class="font-semibold text-base-content cursor-pointer hover:underline"
+                        {{if not .TicketAuthor.IsEmpty}}
+                        hx-get="/users/{{.TicketAuthor.Id}}/profile{{if .Group}}?group_id={{.Group.Id}}{{end}}"
+                        hx-target="#user-profile-modal-content"
+                        hx-swap="innerHTML"
+                        onclick="document.getElementById('user-profile-modal').showModal()"
+                        {{end}}
+                    >{{if .TicketAuthor.IsEmpty}}Anonymous{{else}}{{.TicketAuthor.Moniker}}{{end}}</span>
                     opened this ticket
                     {{if .TicketEditDateStr}}
                     &middot; <span class="italic text-base-content/50">edited on {{.TicketEditDateStr}}</span>
@@ -195,7 +203,13 @@
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="text-base-content/50 text-xs font-semibold">Assignees:</span>
                     {{range .TicketAssignees}}
-                    <span class="badge badge-sm gap-1 bg-surface-card border border-base-content/10">
+                    <span
+                        class="badge badge-sm gap-1 bg-surface-card border border-base-content/10 cursor-pointer hover:opacity-80"
+                        hx-get="/users/{{.Id}}/profile{{if $.Group}}?group_id={{$.Group.Id}}{{end}}"
+                        hx-target="#user-profile-modal-content"
+                        hx-swap="innerHTML"
+                        onclick="document.getElementById('user-profile-modal').showModal()"
+                    >
                         <div class="avatar shrink-0"><div class="w-4 h-4 rounded-full"><img src="{{.AvatarUrl}}" class="size-full object-cover rounded-full" alt="Avatar"></div></div>
                         <span>{{.Moniker}}</span>
                         {{if not $.Member.IsEmpty}}
@@ -203,6 +217,7 @@
                             type="button"
                             class="text-base-content/50 hover:text-error ml-0.5 cursor-pointer"
                             hx-delete="/groups/{{$.Group.Id}}/channels/{{$.ActiveChannel.Id}}/assignees/{{.Id}}"
+                            onclick="event.stopPropagation()"
                             title="Remove assignee"
                         >✕</button>
                         {{end}}

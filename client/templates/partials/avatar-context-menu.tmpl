@@ -12,6 +12,18 @@
     <ul class="dropdown-content menu menu-sm w-56 z-30 mt-2 p-1 rounded-box">
         {{- if not .User.IsEmpty -}}
         <li>
+            <button
+                type="button"
+                hx-get="/users/{{.User.Id}}/profile{{if .Group}}?group_id={{.Group.Id}}{{end}}"
+                hx-target="#user-profile-modal-content"
+                hx-swap="innerHTML"
+                onclick="document.getElementById('user-profile-modal').showModal()"
+            >
+                <span class="icon icon-[lucide--user] size-4" aria-hidden="true"></span>
+                My Profile
+            </button>
+        </li>
+        <li>
             <a href="/settings">
                 <span class="icon icon-[lucide--settings] size-4" aria-hidden="true"></span>
                 Settings

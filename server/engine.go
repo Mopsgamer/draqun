@@ -51,8 +51,33 @@ func NewAppHtmlEngine(embedFS fs.FS, clientEmbedded bool, directory string) *htm
 			}
 			return before + after
 		},
-		"jsonTime": func(t time.Time) string {
-			return t.Format(time.RFC3339)
+		"jsonTime": func(val any) string {
+			if val == nil {
+				return ""
+			}
+			switch v := val.(type) {
+			case time.Time:
+				if v.IsZero() {
+					return ""
+				}
+				return v.Format(time.RFC3339)
+			case model.TimePast:
+				t := time.Time(v)
+				if t.IsZero() {
+					return ""
+				}
+				return t.Format(time.RFC3339)
+			case model.TimeFuture:
+				t := time.Time(v)
+				if t.IsZero() {
+					return ""
+				}
+				return t.Format(time.RFC3339)
+			case string:
+				return v
+			default:
+				return ""
+			}
 		},
 		"hidePhone": func(phone model.Phone) string {
 			if len(phone) > 5 {

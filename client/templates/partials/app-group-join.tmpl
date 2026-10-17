@@ -17,6 +17,21 @@
         </div>
         {{- end -}}
 
+        {{if .IsBanned}}
+        <div class="alert alert-error shadow-sm flex items-start gap-3 p-4 text-xs w-full rounded-xl">
+            <span class="icon icon-[lucide--ban] size-6 shrink-0 mt-0.5" aria-hidden="true"></span>
+            <div class="flex flex-col min-w-0 text-left gap-1">
+                <span class="font-bold text-sm">You are banned from this group</span>
+                <span class="text-base-content/90 font-medium"><span class="font-semibold text-base-content">Reason:</span> {{if .BanReason}}{{.BanReason}}{{else}}Banned by group moderators{{end}}</span>
+                <span class="text-base-content/70 font-mono text-[11px]"><span class="font-semibold text-base-content">Ban Expiration:</span> {{.BanEndsAtStr}}</span>
+            </div>
+        </div>
+        <div class="flex items-center justify-center w-full pt-2">
+            <a class="btn btn-ghost btn-sm w-full" href="/chat">
+                Back to Home
+            </a>
+        </div>
+        {{else}}
         <div class="flex items-center justify-center gap-3 w-full pt-2" hx-target="#error-group-join">
             <button
                 class="btn btn-primary btn-sm gap-2 flex-1"
@@ -30,5 +45,6 @@
             </a>
         </div>
         <div id="error-group-join" class="w-full"></div>
+        {{end}}
     </div>
 </main>

@@ -140,7 +140,12 @@ func CreateAndPushNotification(app *fiber.App, notif Notification) error {
 		}
 
 		targetUrl := fmt.Sprintf("/chat/groups/%d", notif.GroupId)
-		if notif.ChannelId != 0 {
+		if notif.Type == "banned" {
+			targetGroup := notif.TargetGroup()
+			if !targetGroup.IsEmpty() {
+				targetUrl = fmt.Sprintf("/chat/groups/join/%s", targetGroup.Name)
+			}
+		} else if notif.ChannelId != 0 {
 			targetUrl = fmt.Sprintf("/chat/groups/%d/channels/%d", notif.GroupId, notif.ChannelId)
 		}
 

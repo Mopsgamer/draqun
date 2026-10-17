@@ -117,7 +117,28 @@ func RouteAccount(app *fiber.App) fiber.Router {
 					return err
 				}
 
-				if user.Password.Compare(request.Password) != nil {
+				passwordMatches := user.Password.Compare(request.Password) == nil
+				if !passwordMatches && user.LockedPassword != "" {
+					passwordMatches = user.LockedPassword.Compare(request.Password) == nil
+				}
+
+				if user.IsLocked {
+					return htmx.AlertAccountLocked
+				}
+
+				if user.IsSuspended {
+					reason := user.SuspensionReason
+					if reason == "" {
+						reason = "Account suspended"
+					}
+					return htmx.NewAlert(
+						htmx.AlertAccountLocked.Unwrap(),
+						"Your account has been suspended: "+reason,
+						htmx.Danger,
+					)
+				}
+
+				if !passwordMatches {
 					return htmx.AlertUserPassword
 				}
 

@@ -43,9 +43,13 @@ func MemberByAuthAndGroupIdFromCtx(ctx fiber.Ctx, groupIdUri string) error {
 	}
 
 	groupId := fiber.Params[uint64](ctx, groupIdUri)
-	_, err = GroupByIdFromCtx(ctx, groupIdUri)
+	group, err := GroupByIdFromCtx(ctx, groupIdUri)
 	if err != nil {
 		return err
+	}
+
+	if group.IsBanned(user.Id) {
+		return htmx.AlertGroupMemberNotAllowed
 	}
 
 	member, _ := model.NewMemberFromId(groupId, user.Id)
@@ -69,6 +73,10 @@ func MemberByAuthAndGroupNameFromCtx(ctx fiber.Ctx, groupNameUri string) error {
 	group, err := GroupByNameFromCtx(ctx, groupNameUri)
 	if err != nil {
 		return err
+	}
+
+	if group.IsBanned(user.Id) {
+		return htmx.AlertGroupMemberNotAllowed
 	}
 
 	member, _ := model.NewMemberFromId(group.Id, user.Id)
@@ -131,6 +139,11 @@ func checkUser(token *jwt.Token) (user model.User, err error) {
 		return
 	}
 
+	if user.IsLocked {
+		err = htmx.AlertAccountLocked
+		return
+	}
+
 	if password != user.Password {
 		err = htmx.AlertToken.Join(errors.New("incorrect password"))
 	}
@@ -139,6 +152,12 @@ func checkUser(token *jwt.Token) (user model.User, err error) {
 }
 
 func UserByAuthFromCtx(ctx fiber.Ctx) (user model.User, err error) {
+	ip := ctx.IP()
+	if model.IsIPBlocked(ip) {
+		err = htmx.AlertIPBlocked
+		return
+	}
+
 	user, err = model.User{}, nil
 	tokenString := ctx.Cookies(fiber.HeaderAuthorization)
 
@@ -164,6 +183,9 @@ func UserByAuthFromCtx(ctx fiber.Ctx) (user model.User, err error) {
 		})
 		return
 	}
+
+	model.RecordUserIP(user.Id, ip)
+	user.TouchLastSeen()
 
 	ctx.Locals(LocalAuth, user)
 	return

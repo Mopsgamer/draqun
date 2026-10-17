@@ -12,16 +12,21 @@ import (
 
 type User struct {
 	checkEmpty
-	Id         uint64         `db:"id" goqu:"skipinsert"`
-	Moniker    Moniker        `db:"moniker"` // Nick is customizable name. Can contain emojis and special characters.
-	Name       Name           `db:"name"`    // Name is a simple identificator, which can be used to create friend links.
-	Email      Email          `db:"email"`
-	Phone      Phone          `db:"phone"`
-	Password   PasswordHashed `db:"password"`
-	Avatar     Avatar         `db:"avatar"`
-	CreatedAt  TimePast       `db:"created_at"`
-	LastSeenAt TimePast       `db:"last_seen_at"`
-	IsDeleted  bool           `db:"is_deleted"`
+	Id               uint64         `db:"id" goqu:"skipinsert"`
+	Moniker          Moniker        `db:"moniker"` // Nick is customizable name. Can contain emojis and special characters.
+	Name             Name           `db:"name"`    // Name is a simple identificator, which can be used to create friend links.
+	Email            Email          `db:"email"`
+	Phone            Phone          `db:"phone"`
+	Password         PasswordHashed `db:"password"`
+	Avatar           Avatar         `db:"avatar"`
+	CreatedAt        TimePast       `db:"created_at" goqu:"skipupdate"`
+	LastSeenAt       TimePast       `db:"last_seen_at"`
+	IsDeleted        bool           `db:"is_deleted"`
+	IsSuspended      bool           `db:"is_suspended"`
+	SuspensionReason string         `db:"suspension_reason"`
+	IsLocked         bool           `db:"is_locked"`
+	LockedPassword   PasswordHashed `db:"locked_password"`
+	LastIp           string         `db:"last_ip"`
 }
 
 var _ Model = (*User)(nil)
@@ -208,6 +213,12 @@ func (user User) MemberList() []Member {
 
 func (user User) IsOnline() bool {
 	return session.UserSessionMap.IsOnline(user.Id)
+}
+
+func (user *User) TouchLastSeen() {
+	now := time.Now()
+	user.LastSeenAt = TimePast(now)
+	_, _ = Sqlx.Exec("UPDATE app_users SET last_seen_at = ? WHERE id = ?", now.Format("2006-01-02 15:04:05"), user.Id)
 }
 
 func (user User) AvatarUrl() string {

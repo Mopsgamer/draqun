@@ -1,14 +1,21 @@
 {{$this := .}}
 {{- range $i, $member := $this.MemberList -}}
 <div id="member-{{$member.Id}}" class="member flex items-center justify-between gap-2">
-    <div class="flex items-center gap-2 min-w-0 flex-1">
+    <div
+        class="flex items-center gap-2 min-w-0 flex-1 cursor-pointer group/member hover:opacity-80 transition-opacity"
+        hx-get="/users/{{$member.Id}}/profile?group_id={{$this.Group.Id}}"
+        hx-target="#user-profile-modal-content"
+        hx-swap="innerHTML"
+        onclick="document.getElementById('user-profile-modal').showModal()"
+        title="View profile of {{$member.Moniker}}"
+    >
         <div class="avatar {{if $member.IsOnline}}avatar-online{{else}}avatar-offline{{end}} shrink-0" title="{{if $member.IsOnline}}Online{{else}}Offline{{end}}">
             <div class="w-7 rounded-full">
                 <img src="{{$member.AvatarUrl}}" alt="{{$member.Moniker}} avatar">
             </div>
         </div>
         <span
-            class="truncate font-medium text-sm flex-1"
+            class="truncate font-medium text-sm flex-1 group-hover/member:underline"
             {{with $member.Moniker}}title="{{$member.Moniker}}"{{end}}
         >
             {{$member.Moniker}}

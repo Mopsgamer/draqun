@@ -80,6 +80,16 @@ var (
 		"Cannot delete account while you are a group owner.",
 		Danger,
 	)
+	AlertAccountLocked = NewAlert(
+		errors.Join(fiber.ErrForbidden, errors.New("user: account is locked down")),
+		"Your account has been locked down due to security precautions.",
+		Danger,
+	)
+	AlertIPBlocked = NewAlert(
+		errors.Join(fiber.ErrForbidden, errors.New("ip: address is blocked")),
+		"Your IP address has been blocked.",
+		Danger,
+	)
 
 	AlertGroupNotFound = NewAlert(
 		errors.Join(fiber.ErrNotFound, errors.New("group: not found")),

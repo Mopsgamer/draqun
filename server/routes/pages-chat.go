@@ -38,6 +38,12 @@ func routePagesChat(router fiber.Router) fiber.Router {
 	chat.Get(
 		"/groups/:group_id",
 		func(ctx fiber.Ctx) error {
+			user, _ := perms.UserByAuthFromCtx(ctx)
+			groupId := fiber.Params[uint64](ctx, "group_id")
+			if group, errG := model.NewGroupFromId(groupId); errG == nil && !group.IsEmpty() && group.IsBanned(user.Id) {
+				return ctx.Redirect().To(group.UrlJoin(ctx))
+			}
+
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
 				return ctx.Redirect().To("/chat")
 			}
@@ -73,6 +79,12 @@ func routePagesChat(router fiber.Router) fiber.Router {
 	chat.Get(
 		"/groups/:group_id/channels/:channel_id",
 		func(ctx fiber.Ctx) error {
+			user, _ := perms.UserByAuthFromCtx(ctx)
+			groupId := fiber.Params[uint64](ctx, "group_id")
+			if group, errG := model.NewGroupFromId(groupId); errG == nil && !group.IsEmpty() && group.IsBanned(user.Id) {
+				return ctx.Redirect().To(group.UrlJoin(ctx))
+			}
+
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
 				return ctx.Redirect().To("/chat")
 			}
@@ -115,13 +127,53 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				return htmx.AlertGroupNotFound
 			}
 
-			perms.MemberByAuthAndGroupNameFromCtx(ctx, "group_name")
-			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
-			if member.IsAvailable() {
-				return ctx.Redirect().To(group.Url(ctx))
+			user, _ := perms.UserByAuthFromCtx(ctx)
+			isBanned := group.IsBanned(user.Id)
+			var banReason string
+			var banEndsAtStr string
+			if isBanned {
+				if user.IsSuspended {
+					banReason = user.SuspensionReason
+					if banReason == "" {
+						banReason = "Global account suspension"
+					}
+					banEndsAtStr = "Indefinite / Permanent"
+				} else {
+					ban := group.GetActiveBan(user.Id)
+					if ban != nil {
+						if ban.Description != "" {
+							banReason = string(ban.Description)
+						} else {
+							banReason = "Banned by group moderators"
+						}
+						tEnds := time.Time(ban.EndsAt)
+						if !tEnds.IsZero() {
+							banEndsAtStr = tEnds.Format("Jan 02, 2006 15:04")
+						} else {
+							banEndsAtStr = "Indefinite / Permanent"
+						}
+					} else {
+						banReason = "Banned by group moderators"
+						banEndsAtStr = "Indefinite / Permanent"
+					}
+				}
+			} else {
+				perms.MemberByAuthAndGroupNameFromCtx(ctx, "group_name")
+				member := fiber.Locals[model.Member](ctx, perms.LocalMember)
+				if member.IsAvailable() {
+					return ctx.Redirect().To(group.Url(ctx))
+				}
 			}
 
-			return htmx.TryRenderPage(ctx, "chat-group-join", MapPage(ctx, fiber.Map{"Title": "Join " + group.Moniker}), "partials/layout-chat")
+			bind := fiber.Map{
+				"Title":        "Join " + group.Moniker,
+				"Group":        group,
+				"IsBanned":     isBanned,
+				"BanReason":    banReason,
+				"BanEndsAtStr": banEndsAtStr,
+			}
+
+			return htmx.TryRenderPage(ctx, "chat-group-join", MapPage(ctx, bind), "partials/layout-chat")
 		},
 	).Name("page.group.join")
 

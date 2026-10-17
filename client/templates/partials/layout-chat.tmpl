@@ -10,5 +10,15 @@
 
     <body hx-ext="app,debug">
         {{- embed -}}
+
+        <!-- Global User Profile Modal Container -->
+        <dialog id="user-profile-modal" class="modal">
+            <div id="user-profile-modal-content" class="modal-box bg-surface-overlay border border-base-content/10 max-w-lg p-0">
+                <!-- Loaded dynamically via HTMX -->
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>close</button>
+            </form>
+        </dialog>
     </body>
 </html>

@@ -19,13 +19,20 @@
     data-created-at="{{- jsonTime $message.CreatedAt.Value}}"
 >
     <div class="header">
-        <div class="prefix">
+        <div
+            class="prefix cursor-pointer hover:opacity-80 transition-opacity group/author"
+            hx-get="/users/{{$message.AuthorId}}/profile{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
+            hx-target="#user-profile-modal-content"
+            hx-swap="innerHTML"
+            onclick="document.getElementById('user-profile-modal').showModal()"
+            title="View profile of {{$message.Author.Moniker}}"
+        >
             <div class="avatar shrink-0" aria-hidden="true">
                 <div class="w-7 rounded-full">
                     <img src="{{$message.Author.AvatarUrl}}" alt="Author avatar">
                 </div>
             </div>
-            <span class="font-bold text-sm truncate max-w-52">{{$message.Author.Moniker}}</span>
+            <span class="font-bold text-sm truncate max-w-52 group-hover/author:underline">{{$message.Author.Moniker}}</span>
         </div>
         <div class="suffix">
             <time

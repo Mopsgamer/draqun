@@ -570,6 +570,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 				_ = model.RemoveChannelAssignee(channel.Id, targetUserId)
 				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
+
 				notif := model.NewNotification(
 					targetUserId,
 					caller.Id,
@@ -1389,6 +1390,8 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertDatabase.Join(err)
 				}
 
+				model.RecordUserLog(targetUserId, caller.Id, "kick_group", fmt.Sprintf("Kicked from group %s (%s)", group.Moniker, request.Description))
+
 				notif := model.NewNotification(
 					targetUserId,
 					caller.Id,
@@ -1441,6 +1444,14 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertDatabase.Join(err)
 				}
 
+				model.RecordUserLog(targetUserId, caller.Id, "ban_group", fmt.Sprintf("Banned from group %s (%s)", group.Moniker, request.Description))
+
+				notifReason := string(request.Description)
+				if notifReason == "" {
+					notifReason = "Violation of group rules"
+				}
+				notifContent := fmt.Sprintf("Reason: %s (Duration: %d days)", notifReason, durationDays)
+
 				notif := model.NewNotification(
 					targetUserId,
 					caller.Id,
@@ -1449,7 +1460,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					0,
 					"banned",
 					fmt.Sprintf("You were banned from %s", group.Moniker),
-					fmt.Sprintf("Reason: %s", request.Description),
+					notifContent,
 				)
 				_ = model.CreateAndPushNotification(app, notif)
 
@@ -1476,6 +1487,8 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				if err := member.Unban(caller.Id); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
+
+				model.RecordUserLog(targetUserId, caller.Id, "unban_group", fmt.Sprintf("Unbanned from group %s", group.Moniker))
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))
