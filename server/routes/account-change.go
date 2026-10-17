@@ -145,6 +145,18 @@ func routeAccountChange(router fiber.Router) fiber.Router {
 				request := fiber.Locals[UserChangePassword](ctx, perms.LocalForm)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
+				if user.IsLocked {
+					return htmx.AlertAccountLocked
+				}
+
+				if user.LockedPassword != "" && user.LockedPassword.Compare(request.NewPassword) == nil {
+					return htmx.NewAlert(
+						htmx.AlertAccountLocked.Unwrap(),
+						"Cannot reuse unsafe password from account lockdown.",
+						htmx.Warning,
+					)
+				}
+
 				if err := user.Password.Compare(request.CurrentPassword); err != nil {
 					return htmx.AlertUserPassword.Join(err)
 				}

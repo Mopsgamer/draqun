@@ -146,6 +146,33 @@ func (group Group) Roles() []Role {
 }
 
 func (group Group) IsBanned(userId uint64) bool {
+	if userId == 0 {
+		return false
+	}
+
+	user, err := NewUserFromId(userId)
+	if err == nil && !user.IsEmpty() && user.IsSuspended {
+		return true
+	}
+
+	nowStr := time.Now().Format(time.RFC3339)
+
+	draqunGroup, err := NewGroupFromName("draqun")
+	if err == nil && !draqunGroup.IsEmpty() && draqunGroup.Id != group.Id {
+		var draqunCount uint64
+		draqunSql, draqunArgs, _ := Goqu.From(TableBans).
+			Select(goqu.COUNT("*")).
+			Where(goqu.Ex{
+				"group_id":   draqunGroup.Id,
+				"target_id":  userId,
+				"revoker_id": 0,
+			}, goqu.C("ends_at").Gt(nowStr)).
+			Prepared(true).ToSQL()
+		if Sqlx.Get(&draqunCount, draqunSql, draqunArgs...) == nil && draqunCount > 0 {
+			return true
+		}
+	}
+
 	count := uint64(0)
 	sql, args, err := Goqu.From(TableBans).
 		Select(goqu.COUNT("*")).
@@ -153,7 +180,7 @@ func (group Group) IsBanned(userId uint64) bool {
 			"group_id":   group.Id,
 			"target_id":  userId,
 			"revoker_id": 0,
-		}, goqu.C("ends_at").Gt(time.Now())).
+		}, goqu.C("ends_at").Gt(nowStr)).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
@@ -166,6 +193,56 @@ func (group Group) IsBanned(userId uint64) bool {
 	}
 
 	return count > 0
+}
+
+func (group Group) GetActiveBan(userId uint64) *ActionBan {
+	if userId == 0 {
+		return nil
+	}
+	nowStr := time.Now().Format(time.RFC3339)
+	ban := ActionBan{}
+	sql, args, err := Goqu.From(TableBans).
+		Where(
+			goqu.Ex{
+				"group_id":   group.Id,
+				"target_id":  userId,
+				"revoker_id": 0,
+			},
+			goqu.C("ends_at").Gt(nowStr),
+		).
+		Order(goqu.I("acted_at").Desc()).
+		Limit(1).
+		Prepared(true).ToSQL()
+	if err == nil && Sqlx.Get(&ban, sql, args...) == nil {
+		ban.SetFullfilled()
+		if !ban.IsEmpty() {
+			return &ban
+		}
+	}
+
+	draqunGroup, err := NewGroupFromName("draqun")
+	if err == nil && !draqunGroup.IsEmpty() && draqunGroup.Id != group.Id {
+		draqunBan := ActionBan{}
+		dSql, dArgs, _ := Goqu.From(TableBans).
+			Where(
+				goqu.Ex{
+					"group_id":   draqunGroup.Id,
+					"target_id":  userId,
+					"revoker_id": 0,
+				},
+				goqu.C("ends_at").Gt(nowStr),
+			).
+			Order(goqu.I("acted_at").Desc()).
+			Limit(1).
+			Prepared(true).ToSQL()
+		if Sqlx.Get(&draqunBan, dSql, dArgs...) == nil {
+			draqunBan.SetFullfilled()
+			if !draqunBan.IsEmpty() {
+				return &draqunBan
+			}
+		}
+	}
+	return nil
 }
 
 func (group Group) ActiveBans() []ActionBan {

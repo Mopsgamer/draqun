@@ -9,6 +9,10 @@ CREATE TABLE IF NOT EXISTS app_users (
     created_at DATETIME NOT NULL,
     last_seen_at DATETIME NOT NULL,
     is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)),
+    is_suspended INTEGER NOT NULL DEFAULT 0 CHECK (is_suspended IN (0, 1)),
+    suspension_reason TEXT NOT NULL DEFAULT '',
+    is_locked INTEGER NOT NULL DEFAULT 0 CHECK (is_locked IN (0, 1)),
+    last_ip TEXT NOT NULL DEFAULT '',
     UNIQUE (name),
     UNIQUE (email)
 );

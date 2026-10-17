@@ -1,0 +1,398 @@
+{{$this := .}}
+{{$target := $this.TargetUser}}
+{{$isSelf := eq $this.Caller.Id $target.Id}}
+
+<div class="relative p-6 flex flex-col gap-5 bg-surface-card">
+    <!-- Header Close Button -->
+    <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 z-10 cursor-pointer" onclick="document.getElementById('user-profile-modal').close()" aria-label="Close modal">✕</button>
+
+    <!-- User Basic Info Card -->
+    <div class="flex items-start gap-4">
+        <div class="avatar {{if $target.IsOnline}}avatar-online{{else}}avatar-offline{{end}} shrink-0" title="{{if $target.IsOnline}}Online{{else}}Offline{{end}}">
+            <div class="w-16 h-16 rounded-full border border-base-content/10">
+                <img src="{{$target.AvatarUrl}}" alt="{{$target.Moniker}} avatar" />
+            </div>
+        </div>
+        <div class="flex flex-col min-w-0 flex-1 gap-1">
+            <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="font-bold text-lg text-base-content leading-snug truncate" title="{{$target.Moniker}}">
+                    {{$target.Moniker}}
+                </h3>
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-xs px-1 hover:bg-base-content/10 text-base-content/60 cursor-pointer"
+                    onclick="copyToClipboard('{{$target.Moniker}}', this)"
+                    title="Copy Moniker"
+                >
+                    <span class="icon icon-[lucide--copy] size-3.5"></span>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2 text-xs text-base-content/60 font-mono flex-wrap">
+                <span>@{{$target.Name}}</span>
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-xs px-1 hover:bg-base-content/10 text-base-content/60 cursor-pointer"
+                    onclick="copyToClipboard('{{$target.Name}}', this)"
+                    title="Copy Username"
+                >
+                    <span class="icon icon-[lucide--copy] size-3.5"></span>
+                </button>
+                <span>&middot;</span>
+                <span>ID: #{{$target.Id}}</span>
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-xs px-1 hover:bg-base-content/10 text-base-content/60 cursor-pointer"
+                    onclick="copyToClipboard('{{$target.Id}}', this)"
+                    title="Copy ID"
+                >
+                    <span class="icon icon-[lucide--copy] size-3.5"></span>
+                </button>
+            </div>
+
+            {{if or $isSelf $this.IsDraqunAdmin $this.IsDraqunMod}}
+            <div class="flex items-center gap-2 text-xs text-base-content/70 font-mono mt-0.5">
+                <span class="icon icon-[lucide--mail] size-3.5 text-base-content/50"></span>
+                <span>{{$target.Email}}</span>
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-xs px-1 hover:bg-base-content/10 text-base-content/60 cursor-pointer"
+                    onclick="copyToClipboard('{{$target.Email}}', this)"
+                    title="Copy Email"
+                >
+                    <span class="icon icon-[lucide--copy] size-3.5"></span>
+                </button>
+            </div>
+            {{end}}
+        </div>
+    </div>
+
+    <!-- Warning Banners (placed before the card with user info like account creation) -->
+    {{if $target.IsSuspended}}
+    <div class="alert alert-warning shadow-sm flex items-start gap-3 p-3 text-xs">
+        <span class="icon icon-[lucide--alert-triangle] size-5 shrink-0 mt-0.5" aria-hidden="true"></span>
+        <div class="flex flex-col min-w-0">
+            <span class="font-bold">Account Suspended</span>
+            <span class="text-base-content/80">{{if $target.SuspensionReason}}Reason: {{$target.SuspensionReason}}{{else}}This account has been suspended across the network.{{end}}</span>
+        </div>
+    </div>
+    {{end}}
+
+    {{if $target.IsLocked}}
+    <div class="alert alert-error shadow-sm flex items-start gap-3 p-3 text-xs">
+        <span class="icon icon-[lucide--lock] size-5 shrink-0 mt-0.5" aria-hidden="true"></span>
+        <div class="flex flex-col min-w-0">
+            <span class="font-bold">Account Locked Down</span>
+            <span class="text-base-content/90">This account is locked down due to security precautions. Auth is disabled.</span>
+        </div>
+    </div>
+    {{end}}
+
+    <!-- Dates & Stats Section -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-surface-canvas p-3 rounded-xl border border-base-content/10">
+        <div class="flex flex-col gap-0.5">
+            <span class="text-base-content/50 font-semibold uppercase tracking-wider text-[10px]">Account Created</span>
+            <span class="font-medium text-base-content">{{$this.AccountCreatedDate}}</span>
+        </div>
+        <div class="flex flex-col gap-0.5">
+            <span class="text-base-content/50 font-semibold uppercase tracking-wider text-[10px]">Last Online</span>
+            <span class="font-medium text-base-content flex items-center gap-1.5">
+                <span class="size-2 rounded-full {{if $target.IsOnline}}bg-emerald-500{{else}}bg-base-content/30{{end}}"></span>
+                {{if $target.IsOnline}}Online now{{else}}{{$this.LastOnlineDate}}{{end}}
+            </span>
+        </div>
+
+        {{if $this.Group}}
+        {{if not $this.TargetMember.IsEmpty}}
+        <div class="flex flex-col gap-0.5">
+            <span class="text-base-content/50 font-semibold uppercase tracking-wider text-[10px]">Joined Group</span>
+            <span class="font-medium text-base-content">{{$this.GroupJoinDate}}</span>
+        </div>
+        <div class="flex flex-col gap-0.5">
+            <span class="text-base-content/50 font-semibold uppercase tracking-wider text-[10px]">Group Messages</span>
+            <span class="font-medium text-base-content font-mono">{{$this.GroupMessageCount}}</span>
+        </div>
+        {{end}}
+        {{end}}
+    </div>
+
+    <!-- Group Roles in current group context -->
+    {{if $this.Group}}
+    {{if $this.TargetRoles}}
+    <div class="flex flex-col gap-1.5">
+        <span class="text-xs font-semibold text-base-content/70">Group Roles</span>
+        <div class="flex flex-wrap gap-1.5">
+            {{range $this.TargetRoles}}
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border" style="border-color: {{.Color.Hex}}40; background-color: {{.Color.Hex}}15; color: {{.Color.Hex}}">
+                <span class="size-2 rounded-full" style="background-color: {{.Color.Hex}}"></span>
+                {{.Moniker}}
+            </span>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+    {{end}}
+
+    <!-- Administrative Actions Dropdown / Context Menu -->
+    {{if or $this.CanKickBanGroup $this.IsDraqunAdmin $this.IsDraqunMod}}
+    <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-2">
+            <!-- Group Actions (Kick / Ban) -->
+            {{if and $this.Group $this.CanKickBanGroup (ne $target.Id $this.Group.OwnerId)}}
+            <div class="flex flex-wrap items-center gap-2">
+                <details class="dropdown">
+                    <summary class="btn btn-warning btn-xs gap-1 cursor-pointer">
+                        <span class="icon icon-[lucide--user-minus] size-3.5"></span>
+                        Kick from Group
+                    </summary>
+                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
+                        <span class="font-semibold text-xs">Kick {{$target.Moniker}}</span>
+                        <form hx-post="/groups/{{$this.Group.Id}}/members/{{$target.Id}}/kick" class="flex flex-col gap-2">
+                            <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
+                            <button type="submit" class="btn btn-warning btn-xs w-full">Confirm Kick</button>
+                        </form>
+                    </div>
+                </details>
+
+                <details class="dropdown">
+                    <summary class="btn btn-error btn-xs gap-1 cursor-pointer">
+                        <span class="icon icon-[lucide--user-x] size-3.5"></span>
+                        Ban from Group
+                    </summary>
+                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
+                        <span class="font-semibold text-xs">Ban {{$target.Moniker}}</span>
+                        <form hx-post="/groups/{{$this.Group.Id}}/members/{{$target.Id}}/ban" class="flex flex-col gap-2">
+                            <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
+                            <input type="number" name="duration_days" placeholder="Days (default 365)" class="input input-bordered input-xs w-full" min="1" max="3650">
+                            <button type="submit" class="btn btn-error btn-xs w-full">Confirm Ban</button>
+                        </form>
+                    </div>
+                </details>
+            </div>
+            {{end}}
+
+            <!-- Draqun Global Admin Actions -->
+            {{if or $this.IsDraqunAdmin $this.IsDraqunMod}}
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+                <!-- Reset Avatar -->
+                <details class="dropdown">
+                    <summary class="btn btn-outline btn-xs gap-1 cursor-pointer">
+                        <span class="icon icon-[lucide--image] size-3.5"></span>
+                        Reset Avatar
+                    </summary>
+                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
+                        <span class="font-semibold text-xs">Reset Avatar?</span>
+                        <p class="text-[11px] text-base-content/60">Reset avatar to default image?</p>
+                        <button
+                            type="button"
+                            class="btn btn-warning btn-xs w-full cursor-pointer"
+                            hx-post="/admin/users/{{$target.Id}}/reset-avatar{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
+                            hx-target="#user-profile-modal-content"
+                        >Confirm Reset</button>
+                    </div>
+                </details>
+
+                <!-- Reset Moniker -->
+                <details class="dropdown">
+                    <summary class="btn btn-outline btn-xs gap-1 cursor-pointer">
+                        <span class="icon icon-[lucide--user-check] size-3.5"></span>
+                        Reset Moniker
+                    </summary>
+                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
+                        <span class="font-semibold text-xs">Reset Moniker?</span>
+                        <p class="text-[11px] text-base-content/60">Reset moniker to User_{{$target.Id}}?</p>
+                        <button
+                            type="button"
+                            class="btn btn-warning btn-xs w-full cursor-pointer"
+                            hx-post="/admin/users/{{$target.Id}}/reset-moniker{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
+                            hx-target="#user-profile-modal-content"
+                        >Confirm Reset</button>
+                    </div>
+                </details>
+
+                <!-- Reset Username (@name) -->
+                <details class="dropdown">
+                    <summary class="btn btn-outline btn-xs gap-1 cursor-pointer">
+                        <span class="icon icon-[lucide--at-sign] size-3.5"></span>
+                        Reset Username
+                    </summary>
+                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
+                        <span class="font-semibold text-xs">Reset Username (@name)?</span>
+                        <p class="text-[11px] text-base-content/60">Reset username handle to user_{{$target.Id}}?</p>
+                        <button
+                            type="button"
+                            class="btn btn-warning btn-xs w-full cursor-pointer"
+                            hx-post="/admin/users/{{$target.Id}}/reset-name{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
+                            hx-target="#user-profile-modal-content"
+                        >Confirm Reset</button>
+                    </div>
+                </details>
+
+                <!-- Lockdown Account (before Suspend because lockdown is safer) -->
+                {{if $target.IsLocked}}
+                <button
+                    type="button"
+                    class="btn btn-success btn-xs gap-1 cursor-pointer"
+                    hx-post="/admin/users/{{$target.Id}}/unlock{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
+                    hx-target="#user-profile-modal-content"
+                >
+                    <span class="icon icon-[lucide--unlock] size-3.5"></span>
+                    Unlock Account
+                </button>
+                {{else}}
+                <details class="dropdown">
+                    <summary class="btn btn-error btn-outline btn-xs gap-1 cursor-pointer">
+                        <span class="icon icon-[lucide--lock] size-3.5"></span>
+                        Lockdown Account
+                    </summary>
+                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
+                        <span class="font-semibold text-xs text-error">Lockdown Account?</span>
+                        <p class="text-[11px] text-base-content/60">This will freeze the account and reset password for security.</p>
+                        <button
+                            type="button"
+                            class="btn btn-error btn-xs w-full cursor-pointer"
+                            hx-post="/admin/users/{{$target.Id}}/lockdown{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
+                            hx-target="#user-profile-modal-content"
+                        >Confirm Lockdown</button>
+                    </div>
+                </details>
+                {{end}}
+
+                <!-- Account Suspension / Global Block -->
+                {{if $target.IsSuspended}}
+                <button
+                    type="button"
+                    class="btn btn-success btn-xs gap-1 cursor-pointer"
+                    hx-post="/admin/users/{{$target.Id}}/unsuspend{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
+                    hx-target="#user-profile-modal-content"
+                >
+                    <span class="icon icon-[lucide--check-circle] size-3.5"></span>
+                    Unsuspend Account
+                </button>
+                {{else}}
+                <details class="dropdown">
+                    <summary class="btn btn-error btn-xs gap-1 cursor-pointer">
+                        <span class="icon icon-[lucide--slash] size-3.5"></span>
+                        Suspend Account
+                    </summary>
+                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-72 mt-1 flex flex-col gap-2">
+                        <span class="font-semibold text-xs text-error">Suspend Account / Global Block</span>
+                        <form hx-post="/admin/users/{{$target.Id}}/suspend" hx-target="#user-profile-modal-content" class="flex flex-col gap-2">
+                            {{if $this.Group}}<input type="hidden" name="group_id" value="{{$this.Group.Id}}">{{end}}
+                            <input type="text" name="reason" placeholder="Reason visible on profile..." required class="input input-bordered input-xs w-full">
+                            <button type="submit" class="btn btn-error btn-xs w-full">Confirm Suspension</button>
+                        </form>
+                    </div>
+                </details>
+                {{end}}
+            </div>
+
+            <!-- IP List & IP Blocking -->
+            {{if $this.TargetIPs}}
+            <details class="mt-2 bg-surface-canvas rounded-lg p-2 border border-base-content/10">
+                <summary class="text-xs font-semibold cursor-pointer select-none flex items-center justify-between">
+                    <span class="flex items-center gap-1.5">
+                        <span class="icon icon-[lucide--network] size-3.5 text-primary"></span>
+                        User IP Addresses ({{len $this.TargetIPs}})
+                    </span>
+                    <span class="text-[10px] text-base-content/50">Expand</span>
+                </summary>
+                <div class="flex flex-col gap-1.5 mt-2 pt-2 border-t border-base-content/10">
+                    {{range $ip := $this.TargetIPs}}
+                    {{$isBlocked := index $this.BlockedIPsMap $ip}}
+                    {{$isLocalhost := or (eq $ip "127.0.0.1") (eq $ip "::1") (eq $ip "localhost")}}
+                    <div class="flex items-center justify-between text-xs font-mono py-0.5">
+                        <span class="{{if $isBlocked}}text-error font-bold line-through{{else}}text-base-content/80{{end}}">{{$ip}}</span>
+                        {{if not $isLocalhost}}
+                        {{if $isBlocked}}
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-xs text-success px-2 h-6 min-h-0 cursor-pointer"
+                            hx-post="/admin/ips/unblock"
+                            hx-vals='{"ip":"{{$ip}}", "user_id":"{{$target.Id}}"{{if $this.Group}}, "group_id":"{{$this.Group.Id}}"{{end}}}'
+                            hx-target="#user-profile-modal-content"
+                        >
+                            Unblock
+                        </button>
+                        {{else}}
+                        <details class="dropdown dropdown-end">
+                            <summary class="btn btn-ghost btn-xs text-error px-2 h-6 min-h-0 cursor-pointer">Block IP</summary>
+                            <div class="dropdown-content z-30 p-2.5 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-56 mt-1 flex flex-col gap-2">
+                                <span class="font-semibold text-xs text-error">Block IP {{$ip}}?</span>
+                                <form hx-post="/admin/ips/block" hx-target="#user-profile-modal-content" class="flex flex-col gap-1.5">
+                                    <input type="hidden" name="ip" value="{{$ip}}">
+                                    <input type="hidden" name="user_id" value="{{$target.Id}}">
+                                    {{if $this.Group}}<input type="hidden" name="group_id" value="{{$this.Group.Id}}">{{end}}
+                                    <input type="text" name="reason" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
+                                    <button type="submit" class="btn btn-error btn-xs w-full cursor-pointer">Confirm Block</button>
+                                </form>
+                            </div>
+                        </details>
+                        {{end}}
+                        {{else}}
+                        <span class="text-[10px] text-base-content/40 italic">Localhost</span>
+                        {{end}}
+                    </div>
+                    {{end}}
+                </div>
+            </details>
+            {{end}}
+
+            <!-- Action Logs -->
+            {{if $this.TargetLogs}}
+            <details class="mt-1 bg-surface-canvas rounded-lg p-2 border border-base-content/10">
+                <summary class="text-xs font-semibold cursor-pointer select-none flex items-center justify-between">
+                    <span class="flex items-center gap-1.5">
+                        <span class="icon icon-[lucide--history] size-3.5 text-primary"></span>
+                        User Audit Logs ({{len $this.TargetLogs}})
+                    </span>
+                    <span class="text-[10px] text-base-content/50">Expand</span>
+                </summary>
+                <div class="flex flex-col gap-1.5 mt-2 pt-2 border-t border-base-content/10 max-h-40 overflow-y-auto">
+                    {{range $this.TargetLogs}}
+                    <div class="flex flex-col text-[11px] pb-1 border-b border-base-content/5 last:border-0">
+                        <div class="flex items-center justify-between font-mono text-base-content/60">
+                            <span class="font-bold text-primary">{{.Action}}</span>
+                            <span>{{jsonTime .CreatedAt.Value}}</span>
+                        </div>
+                        {{if .Actor.Id}}
+                        <div class="text-[10px] text-base-content/60 mt-0.5 flex items-center gap-1">
+                            <span>Actor:</span>
+                            <button
+                                type="button"
+                                onclick="htmx.ajax('GET', '/users/{{.Actor.Id}}/profile{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}', '#user-profile-modal-content')"
+                                class="font-bold text-primary hover:underline cursor-pointer"
+                                title="Open {{.Actor.Moniker}}'s Profile"
+                            >
+                                {{$actMon := .Actor.Moniker}}{{if $actMon}}{{$actMon}}{{else}}User #{{.Actor.Id}}{{end}}
+                            </button>
+                        </div>
+                        {{end}}
+                        <span class="text-base-content/80 mt-0.5">{{.Details}}</span>
+                    </div>
+                    {{end}}
+                </div>
+            </details>
+            {{end}}
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+</div>
+
+<script>
+if (typeof window.copyToClipboard !== 'function') {
+    window.copyToClipboard = function(text, btnEl) {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            if (btnEl) {
+                const orig = btnEl.innerHTML;
+                btnEl.innerHTML = '<span class="icon icon-[lucide--check] size-3.5 text-success"></span>';
+                setTimeout(() => { btnEl.innerHTML = orig; }, 1500);
+            }
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    };
+}
+</script>

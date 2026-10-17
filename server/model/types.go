@@ -134,10 +134,9 @@ type TimePast time.Time
 func (tp TimePast) Value() (driver.Value, error) {
 	t := time.Time(tp)
 	if t.IsZero() {
-		// return nil if you want SQL NULL for zero time
 		return nil, nil
 	}
-	return t, nil
+	return t.Format(time.RFC3339Nano), nil
 }
 
 func (tp *TimePast) Scan(src interface{}) error {
@@ -145,30 +144,40 @@ func (tp *TimePast) Scan(src interface{}) error {
 		*tp = TimePast(time.Time{})
 		return nil
 	}
+	var str string
 	switch v := src.(type) {
 	case time.Time:
 		*tp = TimePast(v)
 		return nil
 	case string:
-		t, err := time.Parse(time.RFC3339, v)
-		if err != nil {
-			t, err = time.Parse("2006-01-02 15:04:05", v)
-		}
-		if err != nil {
-			t, err = time.Parse("2006-01-02T15:04:05Z", v)
-		}
-		if err == nil {
+		str = v
+	case []byte:
+		str = string(v)
+	default:
+		return fmt.Errorf("unsupported Scan, storing %T into TimePast", src)
+	}
+
+	for _, fmtStr := range []string{
+		time.RFC3339,
+		time.RFC3339Nano,
+		"2006-01-02 15:04:05.999999999",
+		"2006-01-02 15:04:05",
+		"2006-01-02T15:04:05",
+		"2006-01-02T15:04:05Z",
+		"2006-01-02 15:04:05 -0700 MST",
+		"2006-01-02 15:04:05.999999999-07:00",
+		"2006-01-02 15:04:05.999999999+00:00",
+	} {
+		if t, err := time.Parse(fmtStr, str); err == nil {
 			*tp = TimePast(t)
 			return nil
 		}
-		return err
 	}
-	return fmt.Errorf("unsupported Scan, storing %T into TimePast", src)
+	return fmt.Errorf("cannot parse time string %q into TimePast", str)
 }
 
 func (tp TimePast) IsValid() bool {
-	now := time.Now()
-	return time.Time(tp).Before(now) || now.Equal(time.Time(tp))
+	return !time.Time(tp).IsZero()
 }
 
 type TimeFuture time.Time
@@ -178,10 +187,46 @@ func (tp TimeFuture) Value() (driver.Value, error) {
 	if t.IsZero() {
 		return nil, nil
 	}
-	return t, nil
+	return t.Format(time.RFC3339), nil
+}
+
+func (tf *TimeFuture) Scan(src interface{}) error {
+	if src == nil {
+		*tf = TimeFuture(time.Time{})
+		return nil
+	}
+	var str string
+	switch v := src.(type) {
+	case time.Time:
+		*tf = TimeFuture(v)
+		return nil
+	case string:
+		str = v
+	case []byte:
+		str = string(v)
+	default:
+		return fmt.Errorf("unsupported Scan, storing %T into TimeFuture", src)
+	}
+
+	for _, fmtStr := range []string{
+		time.RFC3339,
+		time.RFC3339Nano,
+		"2006-01-02 15:04:05.999999999",
+		"2006-01-02 15:04:05",
+		"2006-01-02T15:04:05",
+		"2006-01-02T15:04:05Z",
+		"2006-01-02 15:04:05 -0700 MST",
+		"2006-01-02 15:04:05.999999999-07:00",
+		"2006-01-02 15:04:05.999999999+00:00",
+	} {
+		if t, err := time.Parse(fmtStr, str); err == nil {
+			*tf = TimeFuture(t)
+			return nil
+		}
+	}
+	return fmt.Errorf("cannot parse time string %q into TimeFuture", str)
 }
 
 func (tf TimeFuture) IsValid() bool {
-	now := time.Now()
-	return time.Time(tf).After(now) || now.Equal(time.Time(tf))
+	return !time.Time(tf).IsZero()
 }

@@ -570,6 +570,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 				_ = model.RemoveChannelAssignee(channel.Id, targetUserId)
 				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
+
 				notif := model.NewNotification(
 					targetUserId,
 					caller.Id,
@@ -1389,6 +1390,8 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertDatabase.Join(err)
 				}
 
+				model.RecordUserLog(targetUserId, caller.Id, "kick_group", fmt.Sprintf("Kicked from group %s (%s)", group.Moniker, request.Description))
+
 				notif := model.NewNotification(
 					targetUserId,
 					caller.Id,
@@ -1437,8 +1440,20 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					targetMember = model.NewMember(group.Id, targetUserId, "")
 				}
 
-				if err := targetMember.Ban(caller.Id, endsAt, request.Description); err != nil {
+				banReason := request.Description
+
+				if err := targetMember.Ban(caller.Id, endsAt, banReason); err != nil {
 					return htmx.AlertDatabase.Join(err)
+				}
+
+				model.RecordUserLog(targetUserId, caller.Id, "ban_group", fmt.Sprintf("Banned from group %s (%s)", group.Moniker, banReason))
+
+				var notifContent string
+				reasonStr := strings.TrimSpace(string(banReason))
+				if reasonStr != "" {
+					notifContent = fmt.Sprintf("Reason: %s (Duration: %d days)", reasonStr, durationDays)
+				} else {
+					notifContent = fmt.Sprintf("Duration: %d days", durationDays)
 				}
 
 				notif := model.NewNotification(
@@ -1449,7 +1464,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					0,
 					"banned",
 					fmt.Sprintf("You were banned from %s", group.Moniker),
-					fmt.Sprintf("Reason: %s", request.Description),
+					notifContent,
 				)
 				_ = model.CreateAndPushNotification(app, notif)
 
@@ -1476,6 +1491,8 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				if err := member.Unban(caller.Id); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
+
+				model.RecordUserLog(targetUserId, caller.Id, "unban_group", fmt.Sprintf("Unbanned from group %s", group.Moniker))
 
 				if htmx.IsHtmx(ctx) {
 					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))

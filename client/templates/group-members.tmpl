@@ -29,7 +29,14 @@
             {{$targetUser := .User}}
             <div class="py-4 flex flex-col gap-3">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div class="flex items-center gap-3.5">
+                    <div
+                        class="flex items-center gap-3.5 cursor-pointer group/user hover:opacity-85 transition-opacity"
+                        hx-get="/users/{{.User.Id}}/profile?group_id={{$.Group.Id}}"
+                        hx-target="#user-profile-modal-content"
+                        hx-swap="innerHTML"
+                        onclick="document.getElementById('user-profile-modal').showModal()"
+                        title="View profile of {{.User.Moniker}}"
+                    >
                         <div class="avatar {{if .IsOnline}}avatar-online{{else}}avatar-offline{{end}} shrink-0" title="{{if .IsOnline}}Online{{else}}Offline{{end}}">
                             <div class="w-10 rounded-full">
                                 <img src="{{.User.AvatarUrl}}" alt="{{.User.Moniker}}" />
@@ -37,7 +44,7 @@
                         </div>
                         <div class="flex flex-col">
                             <div class="flex items-center gap-2">
-                                <span class="font-bold text-sm">{{.User.Moniker}}</span>
+                                <span class="font-bold text-sm group-hover/user:underline">{{.User.Moniker}}</span>
                                 <span class="text-xs text-base-content/50 font-mono">@{{.User.Name}}</span>
                                 {{if eq .User.Id $.Group.OwnerId}}
                                 <span class="badge badge-primary badge-xs text-[10px] font-medium">Owner</span>
@@ -58,6 +65,16 @@
 
                     <!-- Actions -->
                     <div class="flex items-center gap-2 shrink-0 self-start sm:self-center">
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-xs gap-1 cursor-pointer"
+                            hx-get="/users/{{.User.Id}}/profile?group_id={{$.Group.Id}}"
+                            hx-target="#user-profile-modal-content"
+                            hx-swap="innerHTML"
+                            onclick="document.getElementById('user-profile-modal').showModal()"
+                        >
+                            <span class="icon icon-[lucide--user] size-3.5"></span> Profile
+                        </button>
                         {{if and (or $.Role.PermMembers.CanKickBan $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)) (ne .User.Id $.Group.OwnerId)}}
                         <details class="dropdown dropdown-end">
                             <summary class="btn btn-warning btn-xs gap-1">Kick</summary>
