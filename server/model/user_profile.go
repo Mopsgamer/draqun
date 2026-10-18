@@ -150,6 +150,25 @@ func GetOrCreateDraqunGroup(ownerId uint64) (Group, error) {
 	everyone := NewRoleEveryone(newGroup.Id)
 	_ = everyone.Insert()
 
+	mandatoryChannels := []struct {
+		Name        Name
+		Moniker     Moniker
+		Description Description
+		Type        ChannelType
+	}{
+		{Name("general"), Moniker("General"), Description("General discussion channel"), ChannelTypeText},
+		{Name("bugs"), Moniker("Bugs"), Description("Bug reports ticket channel"), ChannelTypeTicket},
+		{Name("feats"), Moniker("Feats"), Description("Feature requests ticket channel"), ChannelTypeTicket},
+		{Name("reports"), Moniker("Reports"), Description("User reports ticket channel"), ChannelTypeTicket},
+	}
+
+	for i, chSpec := range mandatoryChannels {
+		ch := NewChannel(chSpec.Name, chSpec.Moniker, chSpec.Description, chSpec.Type)
+		if err := ch.Insert(); err == nil {
+			_ = AddGroupChannel(newGroup.Id, ch.Id, uint(i+1))
+		}
+	}
+
 	return newGroup, nil
 }
 

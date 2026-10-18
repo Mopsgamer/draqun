@@ -16,8 +16,8 @@ func TestUserProfileModal(t *testing.T) {
 	cookieAdmin, adminUser := createTestUserCookie(t, ts, "Admin User", "adminuser", "admin@example.com")
 	_, targetUser := createTestUserCookie(t, ts, "Target User", "targetuser", "target@example.com")
 
-	// Ensure admin has Draqun Admin status by creating draqun group with adminUser as owner
-	_ = createTestGroupDirectly(t, int64(adminUser.Id), "Draqun", "draqun")
+	// Ensure admin has Draqun Admin status by creating/getting draqun group with adminUser as owner
+	_, _ = model.GetOrCreateDraqunGroup(adminUser.Id)
 
 	// GET target user's profile modal
 	resp, err := ts.Client.R().
@@ -55,7 +55,7 @@ func TestUserResetAvatarAndMoniker(t *testing.T) {
 	cookieAdmin, adminUser := createTestUserCookie(t, ts, "Admin User", "adminuser2", "admin2@example.com")
 	_, targetUser := createTestUserCookie(t, ts, "Bad Moniker", "badmoniker", "bad@example.com")
 
-	_ = createTestGroupDirectly(t, int64(adminUser.Id), "Draqun", "draqun")
+	_, _ = model.GetOrCreateDraqunGroup(adminUser.Id)
 
 	// Reset Avatar
 	respAvatar, err := ts.Client.R().
@@ -127,7 +127,7 @@ func TestUserAccountSuspension(t *testing.T) {
 	cookieAdmin, adminUser := createTestUserCookie(t, ts, "Admin User", "adminuser3", "admin3@example.com")
 	_, targetUser := createTestUserCookie(t, ts, "Spammer User", "spammer", "spammer@example.com")
 
-	group := createTestGroupDirectly(t, int64(adminUser.Id), "Draqun", "draqun")
+	group, _ := model.GetOrCreateDraqunGroup(adminUser.Id)
 
 	// Suspend Account
 	respSuspend, err := ts.Client.R().
@@ -183,7 +183,7 @@ func TestUserAccountLockdown(t *testing.T) {
 	cookieAdmin, adminUser := createTestUserCookie(t, ts, "Admin User", "adminuser4", "admin4@example.com")
 	cookieTarget, targetUser := createTestUserCookie(t, ts, "Hacked User", "hacked", "hacked@example.com")
 
-	_ = createTestGroupDirectly(t, int64(adminUser.Id), "Draqun", "draqun")
+	_, _ = model.GetOrCreateDraqunGroup(adminUser.Id)
 
 	// Lockdown Account
 	respLock, err := ts.Client.R().
@@ -256,7 +256,7 @@ func TestIPBlocking(t *testing.T) {
 	ts := startTestServer(t, app)
 
 	cookieAdmin, adminUser := createTestUserCookie(t, ts, "Admin User", "adminuser5", "admin5@example.com")
-	_ = createTestGroupDirectly(t, int64(adminUser.Id), "Draqun", "draqun")
+	_, _ = model.GetOrCreateDraqunGroup(adminUser.Id)
 
 	// Attempt to block 127.0.0.1 -> should fail / return error
 	respLocalhost, err := ts.Client.R().

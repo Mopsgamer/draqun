@@ -331,7 +331,10 @@ func TestAPIAccountChanges(t *testing.T) {
 	app := testSetupApp(t)
 	ts := startTestServer(t, app)
 
-	// Register User
+	// Create first user (who will own draqun group)
+	_, _ = createTestUserCookie(t, ts, "Dummy Admin", "dummy_admin", "dummy@example.com")
+
+	// Register User to be tested
 	cookie, user := createTestUserCookie(t, ts, "Original Moniker", "change_usr", "change@example.com")
 
 	// Change Profile (Moniker and Name)
