@@ -2,6 +2,7 @@ import { DatabaseSync } from "node:sqlite";
 import { parse } from "@std/dotenv";
 import { existsSync } from "@std/fs";
 import { resolve } from "@std/path";
+import { runMigrations } from "./migrate.ts";
 import {
 	decoder,
 	encoder,
@@ -95,10 +96,21 @@ async function initSqliteTables(): Promise<void> {
 		"./scripts/queries/create_group_action_kicks.sql",
 		"./scripts/queries/create_group_action_bans.sql",
 		"./scripts/queries/create_group_action_roles.sql",
+		"./scripts/queries/create_channels.sql",
+		"./scripts/queries/create_group_channels.sql",
+		"./scripts/queries/create_channel_relations.sql",
+		"./scripts/queries/create_user_channels.sql",
+		"./scripts/queries/create_direct_channels.sql",
+		"./scripts/queries/create_channel_permissions.sql",
+		"./scripts/queries/create_channel_assignees.sql",
+		"./scripts/queries/create_notifications.sql",
+		"./scripts/queries/create_user_ips.sql",
+		"./scripts/queries/create_blocked_ips.sql",
+		"./scripts/queries/create_user_logs.sql",
 	];
 
 	// SQLite uses a local file instead of a network connection
-	const dbPath = "app_data.db";
+	const dbPath = Deno.env.get("DB_PATH") || "app_data.db";
 
 	const taskConnect = logInitDb.task({
 		text: "Opening SQLite file",
@@ -116,35 +128,39 @@ async function initSqliteTables(): Promise<void> {
 	}
 
 	// Ensure the file is closed when the script finishes
-	using _ = {
-		[Symbol.dispose](): void {
-			db.close();
-		},
-	};
+	{
+		using _ = {
+			[Symbol.dispose](): void {
+				db.close();
+			},
+		};
 
-	for (const sqlFile of sqlFileList) {
-		const execution = await logInitDb.task({
-			text: "Executing " + sqlFile,
-			indent: 1,
-		})
-			.startRunner(() => {
-				const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
-				// db.exec runs the entire file content at once
-				try {
-					db.exec(sqlString);
-				} catch (error) {
-					logInitDb.error((error as Error).message);
-					return "failed";
-				}
-			});
+		for (const sqlFile of sqlFileList) {
+			const execution = await logInitDb.task({
+				text: "Executing " + sqlFile,
+				indent: 1,
+			})
+				.startRunner(() => {
+					const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
+					try {
+						db.exec(sqlString);
+					} catch (error) {
+						logInitDb.error((error as Error).message);
+						return "failed";
+					}
+				});
 
-		if (execution.state === "failed") {
-			logInitDb.warn(
-				"If the initialization fails because of references, check the execution order of your .sql files.",
-			);
-			return;
+			if (execution.state === "failed") {
+				logInitDb.warn(
+					"If the initialization fails because of references, check the execution order of your .sql files.",
+				);
+				return;
+			}
 		}
 	}
+
+	// Run migrations
+	runMigrations(dbPath);
 }
 
 function initEnvFile(path: string): void {

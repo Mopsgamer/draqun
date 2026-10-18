@@ -1,0 +1,5 @@
+ALTER TABLE app_channels ADD COLUMN status VARCHAR(32) NOT NULL DEFAULT 'open';
+ALTER TABLE app_channels ADD COLUMN closed_reason VARCHAR(32) NOT NULL DEFAULT '';
+ALTER TABLE app_channels ADD COLUMN author_id INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE app_channels ADD COLUMN duplicate_of_id INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE app_channels ADD COLUMN updated_at DATETIME;
