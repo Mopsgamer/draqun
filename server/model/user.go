@@ -253,3 +253,27 @@ func (user User) AvatarUrl() string {
 	}
 	return fmt.Sprintf("https://ui-avatars.com/api/?name=%s&background=ffffff&color=000000&bold=true", url.QueryEscape(seed))
 }
+
+func (user User) Friends() []User {
+	friends, err := GetUserFriends(user.Id)
+	if err != nil {
+		return nil
+	}
+	return friends
+}
+
+func (user User) PendingFriendRequests() []FriendRequestInfo {
+	requests, err := GetPendingIncomingRequests(user.Id)
+	if err != nil {
+		return nil
+	}
+	return requests
+}
+
+func (user User) FriendshipWith(targetId uint64) *Friendship {
+	f, err := GetFriendship(user.Id, targetId)
+	if err != nil {
+		return nil
+	}
+	return f
+}

@@ -81,6 +81,7 @@ func testSetupApp(t testing.TB) *fiber.App {
 		"./scripts/queries/create_user_ips.sql",
 		"./scripts/queries/create_blocked_ips.sql",
 		"./scripts/queries/create_user_logs.sql",
+		"./scripts/queries/create_user_friends.sql",
 	}
 
 	for _, file := range sqlFileList {
@@ -99,6 +100,7 @@ func testSetupApp(t testing.TB) *fiber.App {
 		"./scripts/queries/migrate/alter_group_messages.sql",
 		"./scripts/queries/migrate/alter_channels.sql",
 		"./scripts/queries/migrate/alter_users.sql",
+		"./scripts/queries/migrate/create_user_friends.sql",
 	}
 
 	for _, file := range migrationFileList {

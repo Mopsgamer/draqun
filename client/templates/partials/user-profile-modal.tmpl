@@ -64,6 +64,66 @@
                 </button>
             </div>
             {{end}}
+
+            {{if not $isSelf}}
+            <div class="mt-1">
+                {{if eq $this.FriendshipStatus "accepted"}}
+                <button
+                    type="button"
+                    hx-delete="/friends/{{$target.Id}}"
+                    hx-target="#user-profile-modal-content"
+                    class="btn btn-outline btn-error btn-xs gap-1 cursor-pointer"
+                >
+                    <span class="icon icon-[lucide--user-minus] size-3.5"></span>
+                    Remove Friend
+                </button>
+                {{else if eq $this.FriendshipStatus "pending"}}
+                {{if $this.IsFriendRequester}}
+                <button
+                    type="button"
+                    hx-post="/friends/decline/{{$target.Id}}"
+                    hx-target="#user-profile-modal-content"
+                    class="btn btn-ghost btn-xs text-base-content/60 gap-1 cursor-pointer"
+                    title="Click to cancel friend request"
+                >
+                    <span class="icon icon-[lucide--clock] size-3.5 text-amber-500"></span>
+                    Request Sent (Cancel)
+                </button>
+                {{else}}
+                <div class="flex items-center gap-1.5">
+                    <button
+                        type="button"
+                        hx-post="/friends/accept/{{$target.Id}}"
+                        hx-target="#user-profile-modal-content"
+                        class="btn btn-primary btn-xs gap-1 cursor-pointer"
+                    >
+                        <span class="icon icon-[lucide--check] size-3.5"></span>
+                        Accept Friend Request
+                    </button>
+                    <button
+                        type="button"
+                        hx-post="/friends/decline/{{$target.Id}}"
+                        hx-target="#user-profile-modal-content"
+                        class="btn btn-ghost btn-xs text-error cursor-pointer"
+                    >
+                        Decline
+                    </button>
+                </div>
+                {{end}}
+                {{else}}
+                <button
+                    type="button"
+                    hx-post="/friends/request"
+                    hx-vals='{"target_user_id": {{$target.Id}}}'
+                    hx-target="#user-profile-modal-content"
+                    class="btn btn-primary btn-xs gap-1 cursor-pointer"
+                >
+                    <span class="icon icon-[lucide--user-plus] size-3.5"></span>
+                    Add Friend
+                </button>
+                {{end}}
+            </div>
+            {{end}}
         </div>
     </div>
 

@@ -83,6 +83,16 @@ func renderUserProfileModal(ctx fiber.Ctx, targetUserId uint64) error {
 	accountCreatedStr := time.Time(targetUser.CreatedAt).Format("Jan 02, 2006 15:04")
 	lastOnlineStr := time.Time(targetUser.LastSeenAt).Format("Jan 02, 2006 15:04")
 
+	friendship := caller.FriendshipWith(targetUser.Id)
+	var friendshipStatus string
+	var isFriendRequester bool
+	if friendship != nil && !friendship.IsEmpty() {
+		friendshipStatus = friendship.Status
+		if friendship.UserId == caller.Id {
+			isFriendRequester = true
+		}
+	}
+
 	bind := fiber.Map{
 		"TargetUser":         targetUser,
 		"Caller":             caller,
@@ -99,6 +109,8 @@ func renderUserProfileModal(ctx fiber.Ctx, targetUserId uint64) error {
 		"TargetLogs":         targetLogs,
 		"AccountCreatedDate": accountCreatedStr,
 		"LastOnlineDate":     lastOnlineStr,
+		"FriendshipStatus":  friendshipStatus,
+		"IsFriendRequester":  isFriendRequester,
 	}
 
 	if htmx.IsHtmx(ctx) {

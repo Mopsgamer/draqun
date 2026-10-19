@@ -7,6 +7,7 @@ export const MIGRATIONS = [
 	{ version: 2, file: "alter_group_messages.sql" },
 	{ version: 3, file: "alter_channels.sql" },
 	{ version: 4, file: "alter_users.sql" },
+	{ version: 5, file: "create_user_friends.sql" },
 ];
 
 export function runMigrations(
