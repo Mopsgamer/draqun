@@ -408,3 +408,71 @@ func TestModelUserMultipleEmptyPhones(t *testing.T) {
 		t.Fatalf("expected error when inserting user4 with duplicate non-empty phone number, got nil")
 	}
 }
+
+func TestModelStarredChannels(t *testing.T) {
+	setupTestDB(t)
+
+	// Create user
+	user := NewUser("Star User", "staruser", "star@example.com", "1234567899", "password_hash", "")
+	if err := user.Insert(); err != nil {
+		t.Fatalf("failed to insert user: %v", err)
+	}
+
+	// Create group
+	group := NewGroup(user.Id, "Star Group", "stargroup", GroupModePublic, "", "Desc", "")
+	if err := group.Insert(); err != nil {
+		t.Fatalf("failed to insert group: %v", err)
+	}
+
+	// Create channel
+	ch := NewChannel("general", "General", "General channel", ChannelTypeText)
+	if err := ch.Insert(); err != nil {
+		t.Fatalf("failed to insert channel: %v", err)
+	}
+
+	// Associate channel to group
+	if err := AddGroupChannel(group.Id, ch.Id, 1); err != nil {
+		t.Fatalf("failed to add group channel: %v", err)
+	}
+
+	// Initially not starred
+	if IsChannelStarred(user.Id, ch.Id) {
+		t.Errorf("expected channel not to be starred initially")
+	}
+	if len(user.StarredChannels()) != 0 {
+		t.Errorf("expected 0 starred channels, got %d", len(user.StarredChannels()))
+	}
+
+	// Star channel
+	if err := AddStarredChannel(user.Id, ch.Id); err != nil {
+		t.Fatalf("failed to add starred channel: %v", err)
+	}
+
+	// Now starred
+	if !IsChannelStarred(user.Id, ch.Id) {
+		t.Errorf("expected channel to be starred")
+	}
+
+	starredList := user.StarredChannels()
+	if len(starredList) != 1 {
+		t.Fatalf("expected 1 starred channel, got %d", len(starredList))
+	}
+	if starredList[0].Channel.Id != ch.Id {
+		t.Errorf("expected channel ID %d, got %d", ch.Id, starredList[0].Channel.Id)
+	}
+	if starredList[0].Group.Id != group.Id {
+		t.Errorf("expected group ID %d, got %d", group.Id, starredList[0].Group.Id)
+	}
+
+	// Unstar channel
+	if err := RemoveStarredChannel(user.Id, ch.Id); err != nil {
+		t.Fatalf("failed to remove starred channel: %v", err)
+	}
+
+	if IsChannelStarred(user.Id, ch.Id) {
+		t.Errorf("expected channel to be unstarred")
+	}
+	if len(user.StarredChannels()) != 0 {
+		t.Errorf("expected 0 starred channels after unstarring, got %d", len(user.StarredChannels()))
+	}
+}

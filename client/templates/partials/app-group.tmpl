@@ -126,6 +126,17 @@
                 </div>
             </div>
             <div class="flex items-center gap-0.5 shrink-0">
+                {{if and .ActiveChannel (not .ActiveChannel.IsEmpty)}}
+                <button
+                    hx-post="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/star"
+                    hx-swap="outerHTML"
+                    class="btn btn-ghost btn-square btn-sm text-base-content/70 hover:text-base-content"
+                    aria-label="{{if .IsStarred}}Unstar channel{{else}}Star channel{{end}}"
+                    title="{{if .IsStarred}}Unstar channel{{else}}Star channel{{end}}"
+                >
+                    <span class="icon icon-[lucide--star] size-4 {{if .IsStarred}}text-amber-400 fill-amber-400{{else}}text-base-content/70{{end}}" aria-hidden="true"></span>
+                </button>
+                {{end}}
                 <button
                     class="btn btn-ghost btn-square btn-sm text-base-content/70 hover:text-base-content group-members-toggle"
                     type="button"

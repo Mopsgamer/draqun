@@ -2,10 +2,30 @@
     <nav class="navbar-start items-center gap-1">
         <a class="btn btn-ghost text-base font-bold gap-2 normal-case shrink-0 px-2" href="/chat" aria-label="{{.AppName}} home">
             <span class="icon icon-logo size-7" aria-hidden="true"></span>
-            <span>{{.AppName}}</span>
+            <span class="hidden sm:inline">{{.AppName}}</span>
         </a>
+        <button
+            class="btn btn-ghost btn-square btn-sm group-channels-toggle shrink-0"
+            type="button"
+            aria-label="Toggle favorites sidebar"
+            title="Toggle favorites sidebar"
+            aria-controls="channels-view"
+            aria-expanded="false"
+        >
+            <span class="icon icon-[lucide--panel-left] size-5" aria-hidden="true"></span>
+        </button>
     </nav>
     <nav class="navbar-end items-center gap-1">
+        <button
+            class="btn btn-ghost btn-square btn-sm group-members-toggle shrink-0"
+            type="button"
+            aria-label="Toggle right sidebar"
+            title="Toggle right sidebar"
+            aria-controls="members-view"
+            aria-expanded="false"
+        >
+            <span class="icon icon-[lucide--panel-right] size-5" aria-hidden="true"></span>
+        </button>
         {{- template "partials/notification-bell" .}}
         {{- template "partials/avatar-context-menu" .}}
     </nav>
