@@ -46,7 +46,7 @@
             <button
                 type="button"
                 hx-post="/friends/requests/{{$n.Id}}/accept"
-                hx-target="#dropdown-notification-list"
+                hx-target="closest #dropdown-notification-list, #page-notification-list"
                 hx-swap="innerHTML"
                 class="btn btn-primary btn-xs flex-1 cursor-pointer"
             >
@@ -56,7 +56,7 @@
             <button
                 type="button"
                 hx-post="/friends/requests/{{$n.Id}}/decline"
-                hx-target="#dropdown-notification-list"
+                hx-target="closest #dropdown-notification-list, #page-notification-list"
                 hx-swap="innerHTML"
                 class="btn btn-ghost btn-xs text-error hover:bg-error/10 flex-1 cursor-pointer"
             >
@@ -84,7 +84,7 @@
                 <button
                     type="button"
                     hx-post="/notifications/{{$n.Id}}/read"
-                    hx-target="#dropdown-notification-list"
+                    hx-target="closest #dropdown-notification-list, #page-notification-list"
                     hx-swap="innerHTML"
                     class="btn btn-ghost btn-xs btn-circle p-0 size-5 min-h-0 text-base-content/50 hover:text-base-content"
                     title="Mark as read"
@@ -95,7 +95,7 @@
                 <button
                     type="button"
                     hx-delete="/notifications/{{$n.Id}}"
-                    hx-target="#dropdown-notification-list"
+                    hx-target="closest #dropdown-notification-list, #page-notification-list"
                     hx-swap="innerHTML"
                     class="btn btn-ghost btn-xs btn-circle p-0 size-5 min-h-0 text-base-content/40 hover:text-error"
                     title="Delete notification"

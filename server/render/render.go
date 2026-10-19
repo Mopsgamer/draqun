@@ -30,13 +30,12 @@ func WrapOob(swap string, message *string) string {
 }
 
 func RenderUnreadBadgeOob(unreadCount int) string {
-	unreadBadgeHtml := `<span id="notification-indicator" class="badge badge-error badge-xs indicator-item hidden"></span>`
 	if unreadCount > 0 {
 		countStr := fmt.Sprintf("%d", unreadCount)
 		if unreadCount > 99 {
 			countStr = "99+"
 		}
-		unreadBadgeHtml = `<span id="notification-indicator" class="badge badge-error badge-xs indicator-item">` + countStr + `</span>`
+		return `<span id="notification-indicator" hx-swap-oob="outerHTML:#notification-indicator" class="badge badge-error badge-xs indicator-item">` + countStr + `</span>`
 	}
-	return WrapOob("outerHTML:#notification-indicator", &unreadBadgeHtml)
+	return `<span id="notification-indicator" hx-swap-oob="outerHTML:#notification-indicator" class="badge badge-error badge-xs indicator-item hidden"></span>`
 }

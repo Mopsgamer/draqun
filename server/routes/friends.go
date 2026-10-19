@@ -275,5 +275,5 @@ func renderNotificationStateResponseStr(app *fiber.App, ctx fiber.Ctx, user mode
 	dropdownOob := render.WrapOob("innerHTML:#dropdown-notification-list", &s)
 	pageOob := render.WrapOob("innerHTML:#page-notification-list", &s)
 
-	return badgeOob + dropdownOob + pageOob
+	return s + badgeOob + dropdownOob + pageOob
 }

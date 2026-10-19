@@ -1,15 +1,50 @@
 package routes
 
 import (
+	"time"
+
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/Mopsgamer/draqun/server/render"
+	"github.com/Mopsgamer/draqun/server/session"
+	"github.com/gofiber/contrib/v3/websocket"
 	"github.com/gofiber/fiber/v3"
 )
 
 func RouteNotifications(app *fiber.App) fiber.Router {
 	return app.Group("/notifications", perms.UserByAuth()).
+		Get("/ws", func(ctx fiber.Ctx) error {
+			user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+			ctxWs := session.New(ctx)
+
+			return websocket.New(func(conn *websocket.Conn) {
+				ctxWs.Conn = conn
+				session.UserSessionMap.Connect(user.Id, ctxWs)
+				defer func() {
+					session.UserSessionMap.Close(user.Id, ctxWs)
+					ctxWs.Closed = true
+					_ = ctxWs.Conn.Close()
+				}()
+				for !ctxWs.Closed {
+					messageType, message, err := ctxWs.Conn.ReadMessage()
+					if err != nil {
+						break
+					}
+
+					start := time.Now()
+					ctxWs.MessageType = messageType
+					ctxWs.Message = message
+					err = ctxWs.Flush()
+
+					logWS(start, err, ctxWs)
+
+					if err != nil {
+						break
+					}
+				}
+			})(ctx)
+		}).
 		Get("", func(ctx fiber.Ctx) error {
 			user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 			notifications, err := model.GetUserNotifications(user.Id, 50)
@@ -83,5 +118,5 @@ func renderNotificationStateResponse(app *fiber.App, ctx fiber.Ctx, user model.U
 	dropdownOob := render.WrapOob("innerHTML:#dropdown-notification-list", &s)
 	pageOob := render.WrapOob("innerHTML:#page-notification-list", &s)
 
-	return ctx.Type("html").SendString(badgeOob + dropdownOob + pageOob)
+	return ctx.Type("html").SendString(s + badgeOob + dropdownOob + pageOob)
 }
