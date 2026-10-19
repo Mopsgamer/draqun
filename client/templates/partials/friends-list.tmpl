@@ -1,0 +1,110 @@
+{{- $pending := .User.PendingFriendRequests -}}
+{{- $friends := .User.Friends -}}
+
+{{- if and (eq (len $pending) 0) (eq (len $friends) 0) -}}
+<div class="p-3 text-xs text-base-content/60 text-center flex flex-col gap-1 my-auto">
+    <span class="font-medium text-base-content/80">No friends yet</span>
+    <span>Enter a username above to send a friend request.</span>
+</div>
+{{- else -}}
+
+{{- if gt (len $pending) 0 -}}
+<div class="flex flex-col gap-1 mb-3">
+    <div class="text-[10px] font-bold text-primary uppercase tracking-wider px-1">
+        Pending Requests ({{len $pending}})
+    </div>
+    {{- range $p := $pending -}}
+    {{- $req := $p.Requester -}}
+    <div class="flex flex-col gap-1.5 p-2 rounded-lg bg-primary/5 border border-primary/10 text-xs">
+        <button
+            type="button"
+            onclick="htmx.ajax('GET', '/users/{{$req.Id}}/profile', '#user-profile-modal-content'); document.getElementById('user-profile-modal').showModal();"
+            class="flex items-center gap-2 truncate min-w-0 flex-1 text-left cursor-pointer hover:underline"
+            title="View {{$req.Moniker}}'s profile"
+        >
+            <div class="avatar shrink-0">
+                <div class="w-6 h-6 rounded-full border border-base-content/10">
+                    <img src="{{$req.AvatarUrl}}" alt="{{$req.Moniker}} avatar" />
+                </div>
+            </div>
+            <div class="flex flex-col min-w-0 flex-1">
+                <span class="truncate font-bold text-xs leading-tight text-base-content">{{$req.Moniker}}</span>
+                <span class="truncate text-[10px] font-mono text-base-content/50 leading-tight">@{{$req.Name}}</span>
+            </div>
+        </button>
+        <div class="flex items-center gap-1.5 pt-0.5">
+            <button
+                type="button"
+                hx-post="/friends/accept/{{$req.Id}}"
+                hx-target="#friends-list"
+                hx-swap="innerHTML"
+                class="btn btn-primary btn-xs flex-1 cursor-pointer"
+            >
+                <span class="icon icon-[lucide--check] size-3"></span>
+                Accept
+            </button>
+            <button
+                type="button"
+                hx-post="/friends/decline/{{$req.Id}}"
+                hx-target="#friends-list"
+                hx-swap="innerHTML"
+                class="btn btn-ghost btn-xs text-error hover:bg-error/10 flex-1 cursor-pointer"
+            >
+                <span class="icon icon-[lucide--x] size-3"></span>
+                Decline
+            </button>
+        </div>
+    </div>
+    {{- end -}}
+</div>
+{{- end -}}
+
+{{- if gt (len $friends) 0 -}}
+<div class="flex flex-col gap-1">
+    {{- if gt (len $pending) 0 -}}
+    <div class="text-[10px] font-bold text-base-content/50 uppercase tracking-wider px-1">
+        Friends ({{len $friends}})
+    </div>
+    {{- end -}}
+    {{- range $f := $friends -}}
+    <div class="flex items-center justify-between px-2 py-1.5 rounded-lg text-sm transition-colors hover:bg-surface-card-hover group">
+        <button
+            type="button"
+            onclick="htmx.ajax('GET', '/users/{{$f.Id}}/profile', '#user-profile-modal-content'); document.getElementById('user-profile-modal').showModal();"
+            class="flex items-center gap-2 truncate min-w-0 flex-1 text-left cursor-pointer"
+        >
+            <div class="avatar {{if $f.IsOnline}}avatar-online{{else}}avatar-offline{{end}} shrink-0" title="{{if $f.IsOnline}}Online{{else}}Offline{{end}}">
+                <div class="w-7 h-7 rounded-full border border-base-content/10">
+                    <img src="{{$f.AvatarUrl}}" alt="{{$f.Moniker}} avatar" />
+                </div>
+            </div>
+            <div class="flex flex-col min-w-0 flex-1">
+                <span class="truncate font-medium text-xs leading-tight text-base-content">{{$f.Moniker}}</span>
+                <span class="truncate text-[10px] font-mono text-base-content/50 leading-tight">@{{$f.Name}}</span>
+            </div>
+        </button>
+        <div class="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <details class="dropdown dropdown-end">
+                <summary class="btn btn-ghost btn-xs btn-circle p-0 size-6 text-base-content/50 hover:text-error cursor-pointer" title="Remove Friend">
+                    <span class="icon icon-[lucide--user-minus] size-3.5"></span>
+                </summary>
+                <div class="dropdown-content z-30 p-2.5 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-48 mt-1 flex flex-col gap-2">
+                    <span class="font-semibold text-xs text-error">Remove {{$f.Moniker}}?</span>
+                    <button
+                        type="button"
+                        hx-delete="/friends/{{$f.Id}}"
+                        hx-target="#friends-list"
+                        hx-swap="innerHTML"
+                        class="btn btn-error btn-xs w-full cursor-pointer"
+                    >
+                        Confirm Remove
+                    </button>
+                </div>
+            </details>
+        </div>
+    </div>
+    {{- end -}}
+</div>
+{{- end -}}
+
+{{- end -}}

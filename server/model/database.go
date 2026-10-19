@@ -35,6 +35,7 @@ const (
 	TableUserIPs            = "app_user_ips"
 	TableBlockedIPs         = "app_blocked_ips"
 	TableUserLogs           = "app_user_logs"
+	TableUserFriends        = "app_user_friends"
 )
 
 func LoadDB() error {

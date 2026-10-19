@@ -121,4 +121,54 @@
             </div>
         </div>
     </main>
+
+    <div id="members-view" class="secondary-view">
+        <div class="flex items-center justify-between pb-3 border-b border-base-content/10 gap-2">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <span class="inline-flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0" aria-hidden="true">
+                    <span class="icon icon-[lucide--users] size-4"></span>
+                </span>
+                <div class="flex flex-col min-w-0 flex-1">
+                    <span class="font-bold text-sm truncate leading-tight">Friends</span>
+                    <span class="text-xs text-base-content/60 truncate">Direct connections</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-0.5 shrink-0">
+                <button
+                    class="btn btn-ghost btn-square btn-sm text-base-content/70 hover:text-base-content group-members-toggle"
+                    type="button"
+                    aria-label="Close friends view"
+                    title="Close friends"
+                    aria-controls="members-view"
+                    aria-expanded="false"
+                >
+                    <span class="icon icon-[lucide--x] size-4" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+        <form
+            hx-post="/friends/request"
+            hx-target="#friend-request-alert"
+            hx-swap="innerHTML"
+            class="flex flex-col gap-1.5 py-2 border-b border-base-content/10"
+        >
+            <div id="friend-request-alert"></div>
+            <div class="flex items-center gap-1.5">
+                <input
+                    type="text"
+                    name="username"
+                    class="input input-bordered input-xs flex-1 min-w-0"
+                    placeholder="Username (@name)..."
+                    required
+                />
+                <button type="submit" class="btn btn-primary btn-xs shrink-0 cursor-pointer" title="Send Friend Request">
+                    <span class="icon icon-[lucide--user-plus] size-3.5"></span>
+                    Add
+                </button>
+            </div>
+        </form>
+        <div id="friends-list" class="flex flex-col gap-1 py-1 overflow-y-auto flex-1">
+            {{- template "partials/friends-list" . -}}
+        </div>
+    </div>
 </div>

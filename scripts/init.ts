@@ -107,6 +107,7 @@ async function initSqliteTables(): Promise<void> {
 		"./scripts/queries/create_user_ips.sql",
 		"./scripts/queries/create_blocked_ips.sql",
 		"./scripts/queries/create_user_logs.sql",
+		"./scripts/queries/create_user_friends.sql",
 	];
 
 	// SQLite uses a local file instead of a network connection
