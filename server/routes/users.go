@@ -109,7 +109,7 @@ func renderUserProfileModal(ctx fiber.Ctx, targetUserId uint64) error {
 		"TargetLogs":         targetLogs,
 		"AccountCreatedDate": accountCreatedStr,
 		"LastOnlineDate":     lastOnlineStr,
-		"FriendshipStatus":  friendshipStatus,
+		"FriendshipStatus":   friendshipStatus,
 		"IsFriendRequester":  isFriendRequester,
 	}
 
