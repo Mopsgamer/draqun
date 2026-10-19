@@ -1,8 +1,6 @@
 package model
 
 import (
-	"fmt"
-	"html/template"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -139,27 +137,7 @@ func CreateAndPushNotification(app *fiber.App, notif Notification) error {
 			listOob = dropdownOob + pageOob
 		}
 
-		targetUrl := fmt.Sprintf("/chat/groups/%d", notif.GroupId)
-		if notif.Type == "banned" {
-			targetGroup := notif.TargetGroup()
-			if !targetGroup.IsEmpty() {
-				targetUrl = fmt.Sprintf("/chat/groups/join/%s", targetGroup.Name)
-			}
-		} else if notif.ChannelId != 0 {
-			targetUrl = fmt.Sprintf("/chat/groups/%d/channels/%d", notif.GroupId, notif.ChannelId)
-		}
-
-		toastHtml := fmt.Sprintf(`
-		<div id="desktop-notification-toast" data-title="%s" data-body="%s" data-url="%s" class="toast toast-end toast-bottom z-50">
-			<div class="alert alert-info text-xs shadow-lg flex flex-col items-start gap-1 p-3">
-				<div class="font-bold flex items-center gap-1.5"><span class="icon icon-[lucide--bell] size-4"></span>%s</div>
-				<div class="line-clamp-2">%s</div>
-			</div>
-		</div>`, template.HTMLEscapeString(notif.Title), template.HTMLEscapeString(notif.Content), targetUrl, template.HTMLEscapeString(notif.Title), template.HTMLEscapeString(notif.Content))
-
-		toastOob := render.WrapOob("beforeend:body", &toastHtml)
-
-		session.UserSessionMap.PushUser(targetUserId, badgeOob+listOob+toastOob)
+		session.UserSessionMap.PushUser(targetUserId, badgeOob+listOob)
 	}
 
 	return nil

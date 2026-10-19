@@ -1,5 +1,12 @@
-<details class="dropdown dropdown-end">
-    <summary class="btn btn-ghost btn-square btn-sm cursor-pointer list-none flex items-center justify-center relative" aria-label="Notifications" title="Notifications">
+<details class="dropdown dropdown-end" hx-ext="ws" ws-connect="/notifications/ws">
+    <summary
+        class="btn btn-ghost btn-square btn-sm cursor-pointer list-none flex items-center justify-center relative"
+        aria-label="Notifications"
+        title="Notifications"
+        hx-get="/notifications"
+        hx-target="#dropdown-notification-list"
+        hx-swap="innerHTML"
+    >
         <div class="indicator">
             <span class="icon icon-[lucide--bell] size-5" aria-hidden="true"></span>
             <span id="notification-indicator" class="badge badge-error badge-xs indicator-item {{if eq .UnreadCount 0}}hidden{{end}}">
