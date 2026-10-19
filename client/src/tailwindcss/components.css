@@ -360,7 +360,9 @@ body {
 
 @media (max-width: 47.998rem) {
 	#app-content:has(#channels-view.open) #chat-view,
-	#app-content:has(#members-view.open) #chat-view {
+	#app-content:has(#channels-view.open) #home-view,
+	#app-content:has(#members-view.open) #chat-view,
+	#app-content:has(#members-view.open) #home-view {
 		display: none !important;
 	}
 }

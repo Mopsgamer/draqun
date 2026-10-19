@@ -1,73 +1,124 @@
-<main id="app-content">
-    <div class="p-page max-w-6xl">
-        <h1 class="text-2xl font-bold mb-4 flex items-center gap-2">Groups</h1>
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,14rem),1fr))] gap-4">
-            <a href="/groups/create" class="card bg-primary text-primary-content hover:brightness-95 p-4 min-h-36 flex flex-col justify-between transition-all">
-                <span class="inline-flex size-10 items-center justify-center rounded-lg bg-white/20" aria-hidden="true">
-                    <span class="icon icon-[lucide--plus] size-6"></span>
+<div id="app-content" class="home">
+    <div id="channels-view" class="secondary-view">
+        <div class="flex items-center justify-between pb-3 border-b border-base-content/10 gap-2">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <span class="inline-flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0" aria-hidden="true">
+                    <span class="icon icon-[lucide--star] size-4"></span>
                 </span>
-                <div class="flex flex-col gap-0.5">
-                    <span class="font-bold text-lg">Create a group</span>
-                    <span class="text-sm opacity-80">Start a new group</span>
+                <div class="flex flex-col min-w-0 flex-1">
+                    <span class="font-bold text-sm truncate leading-tight">Favorites</span>
+                    <span class="text-xs text-base-content/60 truncate">Starred channels</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-0.5 shrink-0">
+                <button
+                    class="btn btn-ghost btn-square btn-sm text-base-content/70 hover:text-base-content group-channels-toggle"
+                    type="button"
+                    aria-label="Close channels view"
+                    title="Close channels"
+                    aria-controls="channels-view"
+                    aria-expanded="false"
+                >
+                    <span class="icon icon-[lucide--x] size-4" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+        <div id="channels" class="flex flex-col gap-1 py-1 overflow-y-auto flex-1">
+            {{- $starred := .User.StarredChannels -}}
+            {{- if eq (len $starred) 0 -}}
+            <div class="p-3 text-xs text-base-content/60 text-center flex flex-col gap-1 my-auto">
+                <span class="font-medium text-base-content/80">No starred channels</span>
+                <span>Star channels in your groups for quick access here.</span>
+            </div>
+            {{- else -}}
+            {{- range $starred -}}
+            <a
+                class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors hover:bg-surface-card-hover text-base-content/80"
+                href="/chat/groups/{{.Group.Id}}/channels/{{.Channel.Id}}"
+            >
+                <div class="flex items-center gap-2 truncate min-w-0">
+                    <span class="icon {{template "partials/channel-icon-class" .Channel.Type}} size-4 shrink-0" aria-hidden="true"></span>
+                    <div class="flex flex-col min-w-0">
+                        <span class="truncate font-medium leading-tight">{{.Channel.Moniker}}</span>
+                        <span class="truncate text-[10px] text-base-content/50 leading-tight">{{.Group.Moniker}}</span>
+                    </div>
                 </div>
             </a>
-            <form
-                class="card bg-surface-card p-4 min-h-36 flex flex-col justify-between border border-base-content/10"
-                id="join-group-card"
-                onsubmit="event.preventDefault(); const val = this.querySelector('input').value.trim(); if(val) { window.location.href = '/chat/groups/join/' + encodeURIComponent(val.replace(/.*\/chat\/groups\/join\//, '')); }"
-            >
-                <div class="flex flex-col gap-0.5">
-                    <span class="inline-flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-1" aria-hidden="true">
-                        <span class="icon icon-[lucide--log-in] size-5"></span>
-                    </span>
-                    <span class="font-bold text-base">Join a group</span>
-                    <span class="text-xs text-base-content/70">Enter name or link</span>
-                </div>
-                <div class="flex gap-1.5 mt-2">
-                    <input
-                        type="text"
-                        class="input input-bordered input-sm flex-1 min-w-0"
-                        placeholder="Group name"
-                        aria-label="Group name"
-                        required
-                    >
-                    <button class="btn btn-primary btn-sm shrink-0" type="submit">Join</button>
-                </div>
-            </form>
-            {{- $groupList := .User.GroupList -}}
-            {{- $memberList := .User.MemberList -}}
-            {{- $this := . -}}
-            {{- range $i, $member := $memberList -}}
-            {{- $group := index $groupList $i -}}
-            {{- $rights := $member.Role -}}
-            <div class="relative min-w-0">
-                <a
-                    id="my-group-{{$group.Id}}"
-                    data-id="{{$group.Id}}"
-                    href="/chat/groups/{{$group.Id}}"
-                    class="card bg-surface-card hover:bg-[var(--surface-card-hover)] p-4 min-h-36 flex flex-col justify-between border border-base-content/10 transition-colors"
-                >
-                    <div class="avatar shrink-0" aria-hidden="true">
-                        <div class="w-10 rounded-xl">
-                            <img src="{{$group.AvatarUrl}}" alt="{{$group.Moniker}} avatar">
-                        </div>
-                    </div>
-                    <div class="flex flex-col gap-0.5">
-                        <span class="font-bold truncate text-base" title="{{$group.Moniker}}">
-                            {{- $group.Moniker -}}
-                        </span>
-                        {{- if $group.Description -}}
-                        <span class="line-clamp-2 text-sm text-base-content/70">{{$group.Description}}</span>
-                        {{- end -}}
-                    </div>
-                </a>
-                {{- if not $member.IsEmpty}}
-                    <div class="absolute top-2 right-2 z-10">
-                        {{template "partials/group-actions" $group}}
-                    </div>
-                {{- end}}
-            </div>
+            {{- end -}}
             {{- end -}}
         </div>
     </div>
-</main>
+
+    <main id="home-view" class="flex-1 overflow-y-auto p-4 md:p-6 min-w-0">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,14rem),1fr))] gap-4">
+                <a href="/groups/create" class="card bg-primary text-primary-content hover:brightness-95 p-4 min-h-36 flex flex-col justify-between transition-all">
+                    <span class="inline-flex size-10 items-center justify-center rounded-lg bg-white/20" aria-hidden="true">
+                        <span class="icon icon-[lucide--plus] size-6"></span>
+                    </span>
+                    <div class="flex flex-col gap-0.5">
+                        <span class="font-bold text-lg">Create a group</span>
+                        <span class="text-sm opacity-80">Start a new group</span>
+                    </div>
+                </a>
+                <form
+                    class="card bg-surface-card p-4 min-h-36 flex flex-col justify-between border border-base-content/10"
+                    id="join-group-card"
+                    onsubmit="event.preventDefault(); const val = this.querySelector('input').value.trim(); if(val) { window.location.href = '/chat/groups/join/' + encodeURIComponent(val.replace(/.*\/chat\/groups\/join\//, '')); }"
+                >
+                    <div class="flex flex-col gap-0.5">
+                        <span class="inline-flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-1" aria-hidden="true">
+                            <span class="icon icon-[lucide--log-in] size-5"></span>
+                        </span>
+                        <span class="font-bold text-base">Join a group</span>
+                        <span class="text-xs text-base-content/70">Enter name or link</span>
+                    </div>
+                    <div class="flex gap-1.5 mt-2">
+                        <input
+                            type="text"
+                            class="input input-bordered input-sm flex-1 min-w-0"
+                            placeholder="Group name"
+                            aria-label="Group name"
+                            required
+                        >
+                        <button class="btn btn-primary btn-sm shrink-0" type="submit">Join</button>
+                    </div>
+                </form>
+                {{- $groupList := .User.GroupList -}}
+                {{- $memberList := .User.MemberList -}}
+                {{- $this := . -}}
+                {{- range $i, $member := $memberList -}}
+                {{- $group := index $groupList $i -}}
+                {{- $rights := $member.Role -}}
+                <div class="relative min-w-0">
+                    <a
+                        id="my-group-{{$group.Id}}"
+                        data-id="{{$group.Id}}"
+                        href="/chat/groups/{{$group.Id}}"
+                        class="card bg-surface-card hover:bg-[var(--surface-card-hover)] p-4 min-h-36 flex flex-col justify-between border border-base-content/10 transition-colors"
+                    >
+                        <div class="avatar shrink-0" aria-hidden="true">
+                            <div class="w-10 rounded-xl">
+                                <img src="{{$group.AvatarUrl}}" alt="{{$group.Moniker}} avatar">
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-0.5">
+                            <span class="font-bold truncate text-base" title="{{$group.Moniker}}">
+                                {{- $group.Moniker -}}
+                            </span>
+                            {{- if $group.Description -}}
+                            <span class="line-clamp-2 text-sm text-base-content/70">{{$group.Description}}</span>
+                            {{- end -}}
+                        </div>
+                    </a>
+                    {{- if not $member.IsEmpty}}
+                        <div class="absolute top-2 right-2 z-10">
+                            {{template "partials/group-actions" $group}}
+                        </div>
+                    {{- end}}
+                </div>
+                {{- end -}}
+            </div>
+        </div>
+    </main>
+</div>

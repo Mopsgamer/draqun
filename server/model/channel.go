@@ -229,6 +229,94 @@ func GetParentChannel(childId uint64) (*Channel, error) {
 	return channel, nil
 }
 
+func GetChannelGroup(channelId uint64) (*Group, error) {
+	group := new(Group)
+	sql, args, err := Goqu.Select(TableGroups+".*").From(TableGroupChannels).
+		Join(goqu.I(TableGroups), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableGroupChannels+".group_id")))).
+		Where(goqu.Ex{
+			TableGroupChannels + ".channel_id": channelId,
+			TableGroups + ".is_deleted":        false,
+		}).
+		Limit(1).
+		Prepared(true).ToSQL()
+	if err == nil {
+		if errQuery := Sqlx.QueryRowx(sql, args...).StructScan(group); errQuery == nil {
+			group.SetFullfilled()
+			return group, nil
+		}
+	}
+
+	parent, errP := GetParentChannel(channelId)
+	if errP == nil && parent != nil && parent.Id != 0 {
+		return GetChannelGroup(parent.Id)
+	}
+
+	return nil, fmt.Errorf("group not found for channel %d", channelId)
+}
+
+type StarredChannel struct {
+	Channel Channel
+	Group   Group
+}
+
+func GetStarredChannels(userId uint64) ([]StarredChannel, error) {
+	channels := []Channel{}
+	sql, args, err := Goqu.Select(TableChannels+".*").From(TableUserChannels).
+		Join(goqu.I(TableChannels), goqu.On(goqu.I(TableChannels+".id").Eq(goqu.I(TableUserChannels+".channel_id")))).
+		Where(goqu.Ex{
+			TableUserChannels + ".user_id": userId,
+			TableChannels + ".is_deleted":  false,
+		}).
+		Order(goqu.I(TableChannels + ".id").Asc()).
+		Prepared(true).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	err = Sqlx.Select(&channels, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []StarredChannel
+	for i := range channels {
+		channels[i].SetFullfilled()
+		g, errG := GetChannelGroup(channels[i].Id)
+		if errG == nil && g != nil && !g.IsEmpty() {
+			res = append(res, StarredChannel{
+				Channel: channels[i],
+				Group:   *g,
+			})
+		}
+	}
+	return res, nil
+}
+
+func AddStarredChannel(userId, channelId uint64) error {
+	uc := UserChannel{
+		UserId:    userId,
+		ChannelId: channelId,
+	}
+	return Insert(TableUserChannels, &uc)
+}
+
+func RemoveStarredChannel(userId, channelId uint64) error {
+	return Delete(TableUserChannels, goqu.Ex{"user_id": userId, "channel_id": channelId})
+}
+
+func IsChannelStarred(userId, channelId uint64) bool {
+	var count int
+	sql, args, err := Goqu.From(TableUserChannels).
+		Where(goqu.Ex{"user_id": userId, "channel_id": channelId}).
+		Select(goqu.COUNT("*")).
+		Prepared(true).ToSQL()
+	if err != nil {
+		return false
+	}
+	_ = Sqlx.Get(&count, sql, args...)
+	return count > 0
+}
+
 func GetParentChannels(childId uint64) ([]Channel, error) {
 	channels := []Channel{}
 	sql, args, err := Goqu.Select(TableChannels+".*").From(TableChannelRelations).

@@ -232,6 +232,14 @@ func (user *User) TouchLastSeen() {
 	_, _ = Sqlx.Exec("UPDATE app_users SET last_seen_at = ? WHERE id = ?", now.Format("2006-01-02 15:04:05"), user.Id)
 }
 
+func (user User) StarredChannels() []StarredChannel {
+	starred, err := GetStarredChannels(user.Id)
+	if err != nil {
+		return nil
+	}
+	return starred
+}
+
 func (user User) AvatarUrl() string {
 	if user.Avatar != "" {
 		return string(user.Avatar)

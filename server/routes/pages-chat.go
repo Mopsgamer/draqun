@@ -63,12 +63,26 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				activeChannel = channels[0]
 			}
 
+			starredIdsMap := make(map[uint64]bool)
+			if !user.IsEmpty() {
+				for _, sc := range user.StarredChannels() {
+					starredIdsMap[sc.Channel.Id] = true
+				}
+			}
+
+			isStarred := false
+			if !user.IsEmpty() && !activeChannel.IsEmpty() {
+				isStarred = starredIdsMap[activeChannel.Id]
+			}
+
 			bind := fiber.Map{
 				"Title":          group.Moniker,
 				"Group":          group,
 				"Channels":       channels,
 				"SubchannelsMap": subchannelsMap,
 				"ActiveChannel":  activeChannel,
+				"StarredIdsMap":  starredIdsMap,
+				"IsStarred":      isStarred,
 			}
 			enrichTicketContext(ctx, activeChannel, bind)
 
@@ -105,12 +119,26 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				}
 			}
 
+			starredIdsMap := make(map[uint64]bool)
+			if !user.IsEmpty() {
+				for _, sc := range user.StarredChannels() {
+					starredIdsMap[sc.Channel.Id] = true
+				}
+			}
+
+			isStarred := false
+			if !user.IsEmpty() && !activeChannel.IsEmpty() {
+				isStarred = starredIdsMap[activeChannel.Id]
+			}
+
 			bind := fiber.Map{
 				"Title":          activeChannel.Moniker + " - " + group.Moniker,
 				"Group":          group,
 				"Channels":       channels,
 				"SubchannelsMap": subchannelsMap,
 				"ActiveChannel":  activeChannel,
+				"StarredIdsMap":  starredIdsMap,
+				"IsStarred":      isStarred,
 			}
 			enrichTicketContext(ctx, activeChannel, bind)
 

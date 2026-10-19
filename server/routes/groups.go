@@ -305,6 +305,47 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
+		Post("/:group_id/channels/:channel_id/star",
+			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
+				return role.PermMessages.CanReadMessages()
+			}),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() {
+					return htmx.AlertGroupNotFound
+				}
+
+				isStarred := model.IsChannelStarred(user.Id, channel.Id)
+				if isStarred {
+					_ = model.RemoveStarredChannel(user.Id, channel.Id)
+					isStarred = false
+				} else {
+					_ = model.AddStarredChannel(user.Id, channel.Id)
+					isStarred = true
+				}
+
+				if htmx.IsHtmx(ctx) {
+					var iconClass string
+					var titleText string
+					if isStarred {
+						iconClass = "icon icon-[lucide--star] size-4 text-amber-400 fill-amber-400"
+						titleText = "Unstar channel"
+					} else {
+						iconClass = "icon icon-[lucide--star] size-4 text-base-content/70"
+						titleText = "Star channel"
+					}
+					html := fmt.Sprintf(`<button hx-post="/groups/%d/channels/%d/star" hx-swap="outerHTML" class="btn btn-ghost btn-square btn-sm text-base-content/70 hover:text-base-content" aria-label="%s" title="%s"><span class="%s" aria-hidden="true"></span></button>`,
+						group.Id, channel.Id, titleText, titleText, iconClass)
+					return ctx.Type("html").SendString(html)
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
 		Post("/:group_id/channels/:channel_id/move",
 			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				return role.PermGroupChange.Has()
