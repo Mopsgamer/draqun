@@ -14,13 +14,12 @@ import (
 type GroupMode string
 
 const (
-	GroupModeDm      GroupMode = "dm"
 	GroupModePrivate GroupMode = "private"
 	GroupModePublic  GroupMode = "public"
 )
 
 func (gm GroupMode) IsValid() bool {
-	return gm == GroupModeDm || gm == GroupModePrivate || gm == GroupModePublic
+	return gm == GroupModePrivate || gm == GroupModePublic
 }
 
 type Group struct {

@@ -21,8 +21,10 @@ func RouteNotifications(app *fiber.App) fiber.Router {
 			return websocket.New(func(conn *websocket.Conn) {
 				ctxWs.Conn = conn
 				session.UserSessionMap.Connect(user.Id, ctxWs)
+				BroadcastUserPresenceUpdate(app, user.Id)
 				defer func() {
 					session.UserSessionMap.Close(user.Id, ctxWs)
+					BroadcastUserPresenceUpdate(app, user.Id)
 					ctxWs.Closed = true
 					_ = ctxWs.Conn.Close()
 				}()

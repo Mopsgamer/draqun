@@ -209,6 +209,37 @@ func routePagesChat(router fiber.Router) fiber.Router {
 		},
 	).Name("page.group.join")
 
+	chat.Get(
+		"/dm/:channel_id",
+		func(ctx fiber.Ctx) error {
+			user, _ := perms.UserByAuthFromCtx(ctx)
+			channelId := fiber.Params[uint64](ctx, "channel_id")
+
+			if !model.IsUserInDirectChannel(channelId, user.Id) {
+				return ctx.Redirect().To("/chat")
+			}
+
+			activeChannel, err := model.NewChannelFromId(channelId)
+			if err != nil || !activeChannel.IsAvailable() {
+				return ctx.Redirect().To("/chat")
+			}
+
+			otherUser, errOther := model.GetDirectChannelOtherUser(channelId, user.Id)
+			if errOther != nil || otherUser.IsEmpty() {
+				return ctx.Redirect().To("/chat")
+			}
+
+			bind := fiber.Map{
+				"Title":         otherUser.Moniker,
+				"ActiveChannel": activeChannel,
+				"OtherUser":     *otherUser,
+				"IsDirectChat":  true,
+			}
+
+			return htmx.TryRenderPage(ctx, "chat", MapPage(ctx, bind), "partials/layout-chat")
+		},
+	).Name("page.dm")
+
 	return chat
 }
 

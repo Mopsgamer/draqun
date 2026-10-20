@@ -1,0 +1,53 @@
+{{- $dms := .User.DirectChannels -}}
+{{- $activeChId := 0 -}}
+{{- if .ActiveChannel -}}
+{{- $activeChId = .ActiveChannel.Id -}}
+{{- end -}}
+{{- if gt (len $dms) 0 -}}
+<div class="text-[10px] font-bold text-base-content/50 uppercase tracking-wider px-2 pt-1">
+    Direct Messages
+</div>
+{{- range $dms -}}
+<a
+    class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors {{if and $.IsDirectChat (eq .Channel.Id $activeChId)}}bg-primary/15 text-primary font-semibold{{else}}hover:bg-surface-card-hover text-base-content/80{{end}}"
+    href="/chat/dm/{{.Channel.Id}}"
+>
+    <div class="avatar {{if .OtherUser.IsOnline}}avatar-online{{else}}avatar-offline{{end}} shrink-0">
+        <div class="w-6 h-6 rounded-full border border-base-content/10">
+            <img src="{{.OtherUser.AvatarUrl}}" alt="{{.OtherUser.Moniker}} avatar">
+        </div>
+    </div>
+    <div class="flex flex-col min-w-0 flex-1">
+        <span class="truncate font-medium leading-tight">{{.OtherUser.Moniker}}</span>
+        <span class="truncate text-[10px] text-base-content/50 font-mono leading-tight">@{{.OtherUser.Name}}</span>
+    </div>
+</a>
+{{- end -}}
+<div class="divider my-1"></div>
+{{- end -}}
+
+<div class="text-[10px] font-bold text-base-content/50 uppercase tracking-wider px-2 pt-1">
+    Starred Channels
+</div>
+{{- $starred := .User.StarredChannels -}}
+{{- if eq (len $starred) 0 -}}
+<div class="p-3 text-xs text-base-content/60 text-center flex flex-col gap-1 my-2">
+    <span class="font-medium text-base-content/80">No starred channels</span>
+    <span>Star channels in your groups for quick access here.</span>
+</div>
+{{- else -}}
+{{- range $starred -}}
+<a
+    class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors hover:bg-surface-card-hover text-base-content/80"
+    href="/chat/groups/{{.Group.Id}}/channels/{{.Channel.Id}}"
+>
+    <div class="flex items-center gap-2 truncate min-w-0">
+        <span class="icon {{template "partials/channel-icon-class" .Channel.Type}} size-4 shrink-0" aria-hidden="true"></span>
+        <div class="flex flex-col min-w-0">
+            <span class="truncate font-medium leading-tight">{{.Channel.Moniker}}</span>
+            <span class="truncate text-[10px] text-base-content/50 leading-tight">{{.Group.Moniker}}</span>
+        </div>
+    </div>
+</a>
+{{- end -}}
+{{- end -}}
