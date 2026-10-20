@@ -9,6 +9,7 @@ import (
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/Mopsgamer/draqun/server/render"
+	"github.com/Mopsgamer/draqun/server/session"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -234,6 +235,52 @@ func RouteFriends(app *fiber.App) {
 			}
 
 			return renderFriendsList(ctx, caller)
+		}).
+		Post("/dm/:target_id", func(ctx fiber.Ctx) error {
+			caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
+			targetId := fiber.Params[uint64](ctx, "target_id")
+
+			if targetId == caller.Id {
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/alert", fiber.Map{
+						"Variant": "warning",
+						"Message": "You cannot direct message yourself",
+					})
+				}
+				return htmx.AlertFormatName
+			}
+
+			targetUser, errU := model.NewUserFromId(targetId)
+			if errU != nil || targetUser.IsEmpty() {
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/alert", fiber.Map{
+						"Variant": "warning",
+						"Message": "User not found",
+					})
+				}
+				return htmx.AlertUserNotFound
+			}
+
+			ch, errCh := model.GetOrCreateDirectChannel(caller.Id, targetUser.Id)
+			if errCh != nil {
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/alert", fiber.Map{
+						"Variant": "error",
+						"Message": "Failed to create direct message channel",
+					})
+				}
+				return htmx.AlertGroupNotFound
+			}
+
+			PushHomeChannelsOob(app, caller.Id)
+			PushHomeChannelsOob(app, targetUser.Id)
+
+			dmUrl := fmt.Sprintf("/chat/dm/%d", ch.Id)
+			if htmx.IsHtmx(ctx) {
+				htmx.Redirect(ctx, dmUrl)
+				return ctx.Render("partials/redirecting", fiber.Map{})
+			}
+			return ctx.Redirect().To(dmUrl)
 		})
 }
 
@@ -242,6 +289,48 @@ func renderFriendsList(ctx fiber.Ctx, user model.User) error {
 		"User": user,
 	})
 	return ctx.Render("partials/friends-list", bind)
+}
+
+func BroadcastUserPresenceUpdate(app *fiber.App, userId uint64) {
+	friends, err := model.GetUserFriends(userId)
+	if err != nil {
+		return
+	}
+
+	for _, friend := range friends {
+		buf, errBuf := render.RenderBuffer(app, "partials/friends-list", fiber.Map{
+			"User": friend,
+		})
+		if errBuf == nil {
+			s := buf.String()
+			friendsOob := render.WrapOob("innerHTML:#friends-list", &s)
+			session.UserSessionMap.PushUser(friend.Id, friendsOob)
+		}
+
+		bufCh, errCh := render.RenderBuffer(app, "partials/home-channels", fiber.Map{
+			"User": friend,
+		})
+		if errCh == nil {
+			sCh := bufCh.String()
+			channelsOob := render.WrapOob("innerHTML:#channels", &sCh)
+			session.UserSessionMap.PushUser(friend.Id, channelsOob)
+		}
+	}
+}
+
+func PushHomeChannelsOob(app *fiber.App, userId uint64) {
+	user, err := model.NewUserFromId(userId)
+	if err != nil || user.IsEmpty() {
+		return
+	}
+	buf, errBuf := render.RenderBuffer(app, "partials/home-channels", fiber.Map{
+		"User": user,
+	})
+	if errBuf == nil {
+		s := buf.String()
+		channelsOob := render.WrapOob("innerHTML:#channels", &s)
+		session.UserSessionMap.PushUser(user.Id, channelsOob)
+	}
 }
 
 func renderFriendsListOob(app *fiber.App, ctx fiber.Ctx, user model.User) string {

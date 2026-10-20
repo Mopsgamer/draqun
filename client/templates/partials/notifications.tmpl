@@ -71,7 +71,7 @@
                 <span class="size-2 rounded-full bg-error shrink-0" title="Unread"></span>
                 {{end}}
                 <a
-                    href="{{if eq $n.Type "banned"}}{{if $n.TargetGroup.Name}}/chat/groups/join/{{$n.TargetGroup.Name}}{{else}}/chat{{end}}{{else if ne $n.ChannelId 0}}/chat/groups/{{$n.GroupId}}/channels/{{$n.ChannelId}}{{else if ne $n.GroupId 0}}/chat/groups/{{$n.GroupId}}{{else}}/chat{{end}}"
+                    href="{{if eq $n.Type "dm"}}/chat/dm/{{$n.ChannelId}}{{else if eq $n.Type "banned"}}{{if $n.TargetGroup.Name}}/chat/groups/join/{{$n.TargetGroup.Name}}{{else}}/chat{{end}}{{else if and (ne $n.GroupId 0) (ne $n.ChannelId 0)}}/chat/groups/{{$n.GroupId}}/channels/{{$n.ChannelId}}{{else if ne $n.GroupId 0}}/chat/groups/{{$n.GroupId}}{{else}}/chat{{end}}"
                     class="font-medium hover:underline truncate min-w-0 text-base-content"
                     title="{{$n.Title}}"
                 >
@@ -105,7 +105,7 @@
             </div>
         </div>
         <a
-            href="{{if eq $n.Type "banned"}}{{if $n.TargetGroup.Name}}/chat/groups/join/{{$n.TargetGroup.Name}}{{else}}/chat{{end}}{{else if ne $n.ChannelId 0}}/chat/groups/{{$n.GroupId}}/channels/{{$n.ChannelId}}{{else if ne $n.GroupId 0}}/chat/groups/{{$n.GroupId}}{{else}}/chat{{end}}"
+            href="{{if eq $n.Type "dm"}}/chat/dm/{{$n.ChannelId}}{{else if eq $n.Type "banned"}}{{if $n.TargetGroup.Name}}/chat/groups/join/{{$n.TargetGroup.Name}}{{else}}/chat{{end}}{{else if and (ne $n.GroupId 0) (ne $n.ChannelId 0)}}/chat/groups/{{$n.GroupId}}/channels/{{$n.ChannelId}}{{else if ne $n.GroupId 0}}/chat/groups/{{$n.GroupId}}{{else}}/chat{{end}}"
             class="text-base-content/60 line-clamp-2 text-[11px] font-normal break-words hover:text-base-content {{if not $n.IsRead}}pl-3.5{{end}}"
         >
             {{$n.Content}}

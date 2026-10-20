@@ -24,31 +24,46 @@
             </div>
         </div>
         <div id="channels" class="flex flex-col gap-1 py-1 overflow-y-auto flex-1">
-            {{- $starred := .User.StarredChannels -}}
-            {{- if eq (len $starred) 0 -}}
-            <div class="p-3 text-xs text-base-content/60 text-center flex flex-col gap-1 my-auto">
-                <span class="font-medium text-base-content/80">No starred channels</span>
-                <span>Star channels in your groups for quick access here.</span>
-            </div>
-            {{- else -}}
-            {{- range $starred -}}
-            <a
-                class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors hover:bg-surface-card-hover text-base-content/80"
-                href="/chat/groups/{{.Group.Id}}/channels/{{.Channel.Id}}"
-            >
-                <div class="flex items-center gap-2 truncate min-w-0">
-                    <span class="icon {{template "partials/channel-icon-class" .Channel.Type}} size-4 shrink-0" aria-hidden="true"></span>
-                    <div class="flex flex-col min-w-0">
-                        <span class="truncate font-medium leading-tight">{{.Channel.Moniker}}</span>
-                        <span class="truncate text-[10px] text-base-content/50 leading-tight">{{.Group.Moniker}}</span>
-                    </div>
-                </div>
-            </a>
-            {{- end -}}
-            {{- end -}}
+            {{- template "partials/home-channels" . -}}
         </div>
     </div>
 
+    {{if .IsDirectChat}}
+    <div id="chat-view" class="flex-1 flex flex-col h-full min-w-0">
+        <div class="flex items-center justify-between p-3 border-b border-base-content/10 bg-surface-card">
+            <div class="flex items-center gap-2.5">
+                <div class="avatar {{if .OtherUser.IsOnline}}avatar-online{{else}}avatar-offline{{end}} shrink-0">
+                    <div class="w-8 rounded-full border border-base-content/10">
+                        <img src="{{.OtherUser.AvatarUrl}}" alt="{{.OtherUser.Moniker}} avatar">
+                    </div>
+                </div>
+                <div class="flex flex-col min-w-0">
+                    <span class="font-bold text-sm truncate leading-tight">{{.OtherUser.Moniker}}</span>
+                    <span class="text-xs font-mono text-base-content/60 truncate">@{{.OtherUser.Name}}</span>
+                </div>
+            </div>
+            <button
+                type="button"
+                onclick="htmx.ajax('GET', '/users/{{.OtherUser.Id}}/profile', '#user-profile-modal-content'); document.getElementById('user-profile-modal').showModal();"
+                class="btn btn-ghost btn-xs text-base-content/70 cursor-pointer"
+            >
+                View Profile
+            </button>
+        </div>
+        <main id="chat">
+            <div id="chat-messages-{{.ActiveChannel.Id}}" class="flex flex-col w-full">
+                <div
+                    class="load-scroll"
+                    hx-trigger="intersect once"
+                    hx-swap="outerHTML"
+                    hx-get="/groups/dm/channels/{{.ActiveChannel.Id}}/messages/page/1"
+                >
+                </div>
+            </div>
+        </main>
+        {{- template "partials/chat-input" .}}
+    </div>
+    {{else}}
     <main id="home-view" class="flex-1 overflow-y-auto p-4 md:p-6 min-w-0">
         <div class="max-w-6xl mx-auto">
             <div class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,14rem),1fr))] gap-4">
@@ -121,6 +136,7 @@
             </div>
         </div>
     </main>
+    {{end}}
 
     <div id="members-view" class="secondary-view">
         <div class="flex items-center justify-between pb-3 border-b border-base-content/10 gap-2">

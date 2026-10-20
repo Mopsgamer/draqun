@@ -277,3 +277,11 @@ func (user User) FriendshipWith(targetId uint64) *Friendship {
 	}
 	return f
 }
+
+func (user User) DirectChannels() []DirectChannelItem {
+	dcs, err := GetUserDirectChannels(user.Id)
+	if err != nil {
+		return nil
+	}
+	return dcs
+}

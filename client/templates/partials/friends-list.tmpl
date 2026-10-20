@@ -84,6 +84,14 @@
             </div>
         </button>
         <div class="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+                type="button"
+                hx-post="/friends/dm/{{$f.Id}}"
+                class="btn btn-ghost btn-xs btn-circle p-0 size-6 text-base-content/70 hover:text-primary cursor-pointer"
+                title="Message {{$f.Moniker}}"
+            >
+                <span class="icon icon-[lucide--message-square] size-3.5"></span>
+            </button>
             <details class="dropdown dropdown-end">
                 <summary class="btn btn-ghost btn-xs btn-circle p-0 size-6 text-base-content/50 hover:text-error cursor-pointer" title="Remove Friend">
                     <span class="icon icon-[lucide--user-minus] size-3.5"></span>

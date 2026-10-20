@@ -402,6 +402,11 @@ type DirectChannel struct {
 	ChannelId uint64 `db:"channel_id"`
 }
 
+type DirectChannelItem struct {
+	Channel   Channel
+	OtherUser User
+}
+
 func GetOrCreateDirectChannel(user1Id, user2Id uint64) (*Channel, error) {
 	if user1Id > user2Id {
 		user1Id, user2Id = user2Id, user1Id
@@ -426,6 +431,95 @@ func GetOrCreateDirectChannel(user1Id, user2Id uint64) (*Channel, error) {
 	}
 	_ = Insert(TableDirectChannels, &dcNew)
 	return &ch, nil
+}
+
+func IsUserInDirectChannel(channelId, userId uint64) bool {
+	if channelId == 0 || userId == 0 {
+		return false
+	}
+	var count int
+	sql, args, err := Goqu.From(TableDirectChannels).
+		Where(
+			goqu.Ex{"channel_id": channelId},
+			goqu.Or(
+				goqu.Ex{"user1_id": userId},
+				goqu.Ex{"user2_id": userId},
+			),
+		).
+		Select(goqu.COUNT("*")).
+		Prepared(true).ToSQL()
+	if err != nil {
+		return false
+	}
+	_ = Sqlx.Get(&count, sql, args...)
+	return count > 0
+}
+
+func GetDirectChannelOtherUser(channelId, userId uint64) (*User, error) {
+	dc := DirectChannel{}
+	err := First(TableDirectChannels, goqu.Ex{"channel_id": channelId}, &dc)
+	if err != nil {
+		return nil, err
+	}
+
+	var otherId uint64
+	if dc.User1Id == userId {
+		otherId = dc.User2Id
+	} else if dc.User2Id == userId {
+		otherId = dc.User1Id
+	} else {
+		return nil, fmt.Errorf("user %d not in direct channel %d", userId, channelId)
+	}
+
+	u, errU := NewUserFromId(otherId)
+	if errU != nil || u.IsEmpty() {
+		return nil, fmt.Errorf("other user not found")
+	}
+	return &u, nil
+}
+
+func GetUserDirectChannels(userId uint64) ([]DirectChannelItem, error) {
+	if userId == 0 {
+		return nil, nil
+	}
+	var dcs []DirectChannel
+	sql, args, err := Goqu.From(TableDirectChannels).
+		Where(goqu.Or(
+			goqu.Ex{"user1_id": userId},
+			goqu.Ex{"user2_id": userId},
+		)).
+		Prepared(true).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	err = Sqlx.Select(&dcs, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []DirectChannelItem
+	for _, dc := range dcs {
+		ch, errCh := NewChannelFromId(dc.ChannelId)
+		if errCh != nil || !ch.IsAvailable() {
+			continue
+		}
+		var otherId uint64
+		if dc.User1Id == userId {
+			otherId = dc.User2Id
+		} else {
+			otherId = dc.User1Id
+		}
+		otherUser, errU := NewUserFromId(otherId)
+		if errU != nil || otherUser.IsEmpty() {
+			continue
+		}
+		items = append(items, DirectChannelItem{
+			Channel:   ch,
+			OtherUser: otherUser,
+		})
+	}
+	return items, nil
 }
 
 // Channel Permission Overrides

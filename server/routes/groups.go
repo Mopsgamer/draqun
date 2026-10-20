@@ -809,6 +809,77 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
+		Post("/dm/channels/:channel_id/messages/create",
+			perms.UserByAuth(),
+			perms.UseBind[MessageCreate](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[MessageCreate](ctx, perms.LocalForm)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+
+				if !model.IsUserInDirectChannel(channelId, user.Id) {
+					return htmx.AlertGroupMemberNotAllowed
+				}
+
+				message := model.NewMessageFilled(channelId, 0, user.Id, request.Content)
+
+				if err := saveMessageAttachment(ctx, 0, &message); err != nil {
+					return err
+				}
+
+				if err := message.Validate(); err != nil {
+					return err
+				}
+
+				if err := message.Insert(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				// Push notification & message update to the recipient in DM
+				otherUser, errOther := model.GetDirectChannelOtherUser(channelId, user.Id)
+				if errOther == nil && otherUser != nil && !otherUser.IsEmpty() {
+					notif := model.NewNotification(
+						otherUser.Id,
+						user.Id,
+						0,
+						channelId,
+						message.Id,
+						"dm",
+						fmt.Sprintf("Direct Message from %s", user.Moniker),
+						string(message.Content),
+					)
+					_ = model.CreateAndPushNotification(app, notif)
+
+					bufMsg, errBuf := render.RenderBuffer(app, "partials/chat-messages", fiber.Map{
+						"MessageList": []model.Message{message},
+					})
+					if errBuf == nil {
+						msgStr := bufMsg.String()
+						oobMsg := render.WrapOob(fmt.Sprintf("beforeend:#chat-messages-%d", channelId), &msgStr)
+						session.UserSessionMap.PushUser(otherUser.Id, oobMsg)
+					}
+
+					PushHomeChannelsOob(app, otherUser.Id)
+				}
+
+				model.ProcessMessageMentions(app, message)
+
+				if htmx.IsHtmx(ctx) {
+					buf, err := render.RenderBuffer(app, "partials/chat-messages", fiber.Map{
+						"MessageList": []model.Message{message},
+					})
+					if err != nil {
+						return err
+					}
+					str := buf.String()
+					oobMsg := render.WrapOob(fmt.Sprintf("beforeend:#chat-messages-%d", channelId), &str)
+
+					return ctx.Type("html").SendString(oobMsg)
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
 		Post("/:group_id/channels/:channel_id/messages/create",
 			perms.MemberByAuthAndGroupId("group_id", func(ctx fiber.Ctx, role model.Role) bool {
 				channelId := fiber.Params[uint64](ctx, "channel_id")
@@ -848,13 +919,14 @@ func RouteGroups(app *fiber.App) fiber.Router {
 						return err
 					}
 					str := buf.String()
+					oobMsg := render.WrapOob(fmt.Sprintf("beforeend:#chat-messages-%d", channelId), &str)
 
-					session.UserSessionMap.Push(
-						render.WrapOob("beforeend:#chat", &str),
-						session.PickMessages,
+					session.UserSessionMap.PushGroup(
+						group.Id,
+						oobMsg,
 					)
 
-					return nil
+					return ctx.SendStatus(fiber.StatusOK)
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
@@ -904,13 +976,14 @@ func RouteGroups(app *fiber.App) fiber.Router {
 						return err
 					}
 					str := buf.String()
+					oobMsg := render.WrapOob(fmt.Sprintf("beforeend:#chat-messages-%d", channelId), &str)
 
-					session.UserSessionMap.Push(
-						render.WrapOob("beforeend:#chat", &str),
-						session.PickMessages,
+					session.UserSessionMap.PushGroup(
+						group.Id,
+						oobMsg,
 					)
 
-					return nil
+					return ctx.SendStatus(fiber.StatusOK)
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
@@ -978,6 +1051,39 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Get("/dm/channels/:channel_id/messages/page/:messages_page",
+			perms.UserByAuth(),
+			func(ctx fiber.Ctx) error {
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+
+				if !model.IsUserInDirectChannel(channelId, user.Id) {
+					return htmx.AlertGroupMemberNotAllowed
+				}
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() {
+					return htmx.AlertGroupNotFound
+				}
+
+				page := fiber.Params[uint](ctx, "messages_page")
+				const MessagesPagination uint = 5
+				messageList := channel.MessagesPage(page, MessagesPagination)
+
+				if htmx.IsHtmx(ctx) {
+					bind := fiber.Map{
+						"MessageList":        messageList,
+						"MessagesPage":       page,
+						"MessagesPagination": MessagesPagination,
+						"ActiveChannel":      channel,
+					}
+
+					return ctx.Render("partials/chat-messages", bind)
+				}
+
+				return ctx.JSON(messageList)
 			},
 		).
 		Get("/:group_id/channels/:channel_id/messages/page/:messages_page",

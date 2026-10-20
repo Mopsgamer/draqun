@@ -104,12 +104,14 @@
         {{- template "partials/ticket-detail" .}}
         {{else}}
         <main id="chat">
-            <div
-                class="load-scroll"
-                hx-trigger="intersect once"
-                hx-swap="outerHTML"
-                hx-get="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/messages/page/1"
-            >
+            <div id="chat-messages-{{.ActiveChannel.Id}}" class="flex flex-col w-full">
+                <div
+                    class="load-scroll"
+                    hx-trigger="intersect once"
+                    hx-swap="outerHTML"
+                    hx-get="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/messages/page/1"
+                >
+                </div>
             </div>
         </main>
         {{- template "partials/chat-input" .}}
@@ -167,7 +169,6 @@
             </div>
         </div>
     </div>
-
 
     <div
         id="ws-chat"
