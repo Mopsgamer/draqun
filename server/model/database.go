@@ -52,5 +52,10 @@ func LoadDB() error {
 	}
 
 	Goqu = goqu.New("sqlite3", Sqlx)
+
+	if err := initSchema(); err != nil {
+		return err
+	}
+
 	return nil
 }

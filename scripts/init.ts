@@ -1,26 +1,15 @@
-import { DatabaseSync } from "node:sqlite";
-import { parse } from "@std/dotenv";
 import { existsSync } from "@std/fs";
 import { resolve } from "@std/path";
-import { runMigrations } from "./migrate.ts";
-import {
-	decoder,
-	encoder,
-	envKeys,
-	logInitDb,
-	logInitFiles,
-} from "./tool/constants.ts";
+import { decoder, logInitFiles } from "./tool/constants.ts";
 import { showHelp } from "./tool/help.ts";
 
 if (
 	showHelp({
 		name: "init",
-		description: "Initialize local environment files, database, and Git hook.",
+		description: "Configure the Git pre-commit hook.",
 		usage: "deno task init [options]",
 		options: [
 			"-h, --help  Show this help.",
-			"--no-env    Skip creating or updating the .env file.",
-			"--no-db     Skip initializing the SQLite database.",
 			"--no-git-hook  Skip installing, or remove an existing managed pre-commit hook.",
 		],
 	})
@@ -84,164 +73,7 @@ deno task prepare
 	await Deno.chmod(hookPath, 0o755);
 }
 
-async function initSqliteTables(): Promise<void> {
-	const sqlFileList = [
-		"./scripts/queries/create_users.sql",
-		"./scripts/queries/create_groups.sql",
-		"./scripts/queries/create_group_members.sql",
-		"./scripts/queries/create_group_roles.sql",
-		"./scripts/queries/create_group_role_assignees.sql",
-		"./scripts/queries/create_group_messages.sql",
-		"./scripts/queries/create_group_action_memberships.sql",
-		"./scripts/queries/create_group_action_kicks.sql",
-		"./scripts/queries/create_group_action_bans.sql",
-		"./scripts/queries/create_group_action_roles.sql",
-		"./scripts/queries/create_channels.sql",
-		"./scripts/queries/create_group_channels.sql",
-		"./scripts/queries/create_channel_relations.sql",
-		"./scripts/queries/create_user_channels.sql",
-		"./scripts/queries/create_direct_channels.sql",
-		"./scripts/queries/create_channel_permissions.sql",
-		"./scripts/queries/create_channel_assignees.sql",
-		"./scripts/queries/create_notifications.sql",
-		"./scripts/queries/create_user_ips.sql",
-		"./scripts/queries/create_blocked_ips.sql",
-		"./scripts/queries/create_user_logs.sql",
-		"./scripts/queries/create_user_friends.sql",
-	];
-
-	// SQLite uses a local file instead of a network connection
-	const dbPath = Deno.env.get("DB_PATH") || "app_data.db";
-
-	const taskConnect = logInitDb.task({
-		text: "Opening SQLite file",
-		indent: 1,
-	});
-
-	// We use DatabaseSync for the initialization script because it's simpler for local file I/O
-	let db: DatabaseSync;
-	taskConnect.startRunner(() => {
-		db = new DatabaseSync(dbPath);
-	});
-
-	if (taskConnect.state === "failed") {
-		return;
-	}
-
-	// Ensure the file is closed when the script finishes
-	{
-		using _ = {
-			[Symbol.dispose](): void {
-				db.close();
-			},
-		};
-
-		for (const sqlFile of sqlFileList) {
-			const execution = await logInitDb.task({
-				text: "Executing " + sqlFile,
-				indent: 1,
-			})
-				.startRunner(() => {
-					const sqlString = decoder.decode(Deno.readFileSync(sqlFile));
-					try {
-						db.exec(sqlString);
-					} catch (error) {
-						logInitDb.error((error as Error).message);
-						return "failed";
-					}
-				});
-
-			if (execution.state === "failed") {
-				logInitDb.warn(
-					"If the initialization fails because of references, check the execution order of your .sql files.",
-				);
-				return;
-			}
-		}
-	}
-
-	// Run migrations
-	runMigrations(dbPath);
-}
-
-function initEnvFile(path: string): void {
-	type EnvKeyEntry = {
-		value?: string | number | boolean;
-		comment?: string;
-	};
-	const defaultEnv = new Map<string, EnvKeyEntry>();
-	defaultEnv.set(envKeys.JWT_KEY, {
-		comment: "use any online jwt generator to fill this value:\n" +
-			"- https://randomfungenerator.com/generators/jwt-generator",
-	});
-	defaultEnv.set(envKeys.USER_AUTH_TOKEN_EXPIRATION, {
-		value: 180,
-		comment: "in minutes",
-	});
-	defaultEnv.set(envKeys.CHAT_MESSAGE_MAX_LENGTH, {
-		value: 8000,
-		comment: "max characters quantity after spaces are trimed",
-	});
-
-	defaultEnv.set(envKeys.PORT, {
-		value: 3000,
-		comment: "application port",
-	});
-
-	defaultEnv.set(envKeys.DB_PATH, {
-		value: "app_data.db",
-		comment: "local sqlite database file path",
-	});
-
-	const env = existsSync(path)
-		? parse(decoder.decode(Deno.readFileSync(path)))
-		: {};
-
-	Deno.writeFileSync(
-		path,
-		encoder.encode(
-			Array.from(defaultEnv.entries()).map(
-				([key, { value, comment }]) => {
-					env[key] ||= value === undefined ? "" : String(value);
-					Deno.env.set(key, env[key]);
-					if (value === undefined) {
-						comment += "\ndefault: <empty>";
-					} else {
-						comment += "\ndefault: " + value;
-					}
-					return `${
-						comment ? "# " + comment.replaceAll("\n", "\n# ") + "\n" : ""
-					}${key}=${env[key]}\n\n`;
-				},
-			).join(""),
-		),
-	);
-}
-
-const isNoEnv = Deno.args.includes("--no-env");
-const isNoDb = Deno.args.includes("--no-db");
 const isNoGitHook = Deno.args.includes("--no-git-hook");
-
-if (!isNoDb) {
-	logInitDb.warn(
-		"Existing tables are unchanged; delete 'app_data.db' to reset.",
-	);
-}
-
-if (!isNoEnv) {
-	const path = ".env";
-	await logInitFiles.task({
-		text: `Initializing '${path}' (disable with --no-env)`,
-	})
-		.startRunner(() => initEnvFile(path));
-}
-
-if (!isNoDb) {
-	await logInitDb.task({
-		text: "Initializing DB (disable with --no-db)",
-	})
-		.startRunner(initSqliteTables);
-}
 
 const hook = await logInitFiles.task({
 	text: isNoGitHook

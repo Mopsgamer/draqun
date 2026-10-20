@@ -55,10 +55,10 @@ func MapPage(ctx fiber.Ctx, bind fiber.Map) fiber.Map {
 		stylesheets = []string{"/static/css/main.css"}
 		scripts = []string{"/static/js/app.js"}
 	} else if strings.HasPrefix(path, "/docs") {
-		stylesheets = []string{"/static/css/docs.css"}
+		stylesheets = []string{"/static/css/main.css", "/static/css/docs.css"}
 		scripts = []string{"/static/js/docs.js"}
 	} else if path == "/" {
-		stylesheets = []string{"/static/css/homepage.css"}
+		stylesheets = []string{"/static/css/main.css", "/static/css/homepage.css"}
 		scripts = []string{"/static/js/homepage.js"}
 	} else {
 		stylesheets = []string{"/static/css/main.css"}

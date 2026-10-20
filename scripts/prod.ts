@@ -4,7 +4,6 @@ import { logProd } from "./tool/constants.ts";
 import kill from "tree-kill";
 import { compileDist } from "./tool/compile-dist.ts";
 import { showHelp } from "./tool/help.ts";
-import { runMigrations } from "./migrate.ts";
 
 if (
 	showHelp({
@@ -19,8 +18,6 @@ if (
 
 const [os, arch] = machineInfo();
 const { filePath } = binaryInfo(os, arch);
-
-runMigrations();
 
 await compileDist(true, "min");
 
@@ -52,8 +49,6 @@ async function start(): Promise<TaskStateEnd> {
 		stdout: "piped",
 		stderr: "piped",
 	}).output();
-
-	runMigrations();
 
 	await compileDist(true, "min");
 	if (!await compile(os, arch)) {

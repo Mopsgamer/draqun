@@ -57,6 +57,28 @@ async function runGo(
 	return status.success;
 }
 
+async function generateGitJson(): Promise<void> {
+	try {
+		const git = (args: string[]) => {
+			const cmd = new Deno.Command("git", { args, stdout: "piped" });
+			const output = cmd.outputSync();
+			return new TextDecoder().decode(output.stdout).trim();
+		};
+		const data = {
+			hash: git(["rev-parse", "--short", "HEAD"]),
+			hashLong: git(["rev-parse", "HEAD"]),
+			branch: git(["rev-parse", "--abbrev-ref", "HEAD"]),
+		};
+		await Deno.mkdir(distFolder, { recursive: true });
+		await Deno.writeTextFile(
+			`${distFolder}/git.json`,
+			JSON.stringify(data),
+		);
+	} catch {
+		// Ignore if git is not available
+	}
+}
+
 export async function compile(
 	os: string,
 	arch: string,
@@ -80,6 +102,8 @@ export async function compile(
 		GOCACHE: resolve(`${distFolder}/cache`),
 		...Deno.env.toObject(),
 	};
+
+	await generateGitJson();
 
 	const generated = await runGo(["generate", "./..."], env);
 	if (!generated) return false;

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/Mopsgamer/draqun/server/environment"
@@ -42,63 +41,6 @@ func setupTestDB(t *testing.T) {
 	err = LoadDB()
 	if err != nil {
 		t.Fatalf("failed to load db: %v", err)
-	}
-
-	sqlFileList := []string{
-		"./scripts/queries/create_users.sql",
-		"./scripts/queries/create_groups.sql",
-		"./scripts/queries/create_group_members.sql",
-		"./scripts/queries/create_group_roles.sql",
-		"./scripts/queries/create_group_role_assignees.sql",
-		"./scripts/queries/create_group_messages.sql",
-		"./scripts/queries/create_group_action_memberships.sql",
-		"./scripts/queries/create_group_action_kicks.sql",
-		"./scripts/queries/create_group_action_bans.sql",
-		"./scripts/queries/create_group_action_roles.sql",
-		"./scripts/queries/create_channels.sql",
-		"./scripts/queries/create_group_channels.sql",
-		"./scripts/queries/create_channel_relations.sql",
-		"./scripts/queries/create_user_channels.sql",
-		"./scripts/queries/create_direct_channels.sql",
-		"./scripts/queries/create_channel_permissions.sql",
-		"./scripts/queries/create_channel_assignees.sql",
-		"./scripts/queries/create_notifications.sql",
-		"./scripts/queries/create_user_ips.sql",
-		"./scripts/queries/create_blocked_ips.sql",
-		"./scripts/queries/create_user_logs.sql",
-	}
-
-	for _, file := range sqlFileList {
-		content, err := os.ReadFile(file)
-		if err != nil {
-			t.Fatalf("failed to read sql file %s: %v", file, err)
-		}
-		_, err = Sqlx.Exec(string(content))
-		if err != nil {
-			t.Fatalf("failed to execute sql script %s: %v", file, err)
-		}
-	}
-
-	migrationFileList := []string{
-		"./scripts/queries/migrate/alter_group_roles.sql",
-		"./scripts/queries/migrate/alter_group_messages.sql",
-		"./scripts/queries/migrate/alter_channels.sql",
-		"./scripts/queries/migrate/alter_users.sql",
-	}
-
-	for _, file := range migrationFileList {
-		content, err := os.ReadFile(file)
-		if err != nil {
-			t.Fatalf("failed to read migration file %s: %v", file, err)
-		}
-		stmts := strings.Split(string(content), ";")
-		for _, stmt := range stmts {
-			stmt = strings.TrimSpace(stmt)
-			if stmt == "" {
-				continue
-			}
-			_, _ = Sqlx.Exec(stmt)
-		}
 	}
 }
 

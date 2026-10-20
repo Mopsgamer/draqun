@@ -1,6 +1,8 @@
 package environment
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
@@ -71,8 +73,45 @@ func LoadMeta(embedFS fs.FS) {
 	}
 }
 
+func generateRandomKey(length int) string {
+	b := make([]byte, length)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
+}
+
+func ensureEnvFile(path string) error {
+	if _, err := os.Stat(path); err == nil {
+		return nil
+	}
+	randomJWT := generateRandomKey(16)
+	content := `# use any online jwt generator to fill this value:
+# - https://randomfungenerator.com/generators/jwt-generator
+# default: <empty>
+JWT_KEY=` + randomJWT + `
+
+# in minutes
+# default: 180
+USER_AUTH_TOKEN_EXPIRATION=180
+
+# max characters quantity after spaces are trimed
+# default: 8000
+CHAT_MESSAGE_MAX_LENGTH=8000
+
+# application port
+# default: 3000
+PORT=3000
+
+# local sqlite database file path
+# default: app_data.db
+DB_PATH=app_data.db
+`
+	return os.WriteFile(path, []byte(content), 0644)
+}
+
 // LoadEnv environemnt variables from the '.env' file. Exits if any errors.
 func LoadEnv(embedFS fs.FS) (errEnv error) {
+	_ = ensureEnvFile(".env")
+
 	if err := godotenv.Load(); err != nil {
 		if os.IsNotExist(err) {
 			NoEnv = true

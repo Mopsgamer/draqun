@@ -151,9 +151,12 @@ async function build(
 				} else x = " (" + currentPaths.length + " files)";
 
 				try {
+					const start = performance.now();
 					await ctx.rebuild();
+					const duration = (performance.now() - start).toFixed(0);
 					logClientComp.info(
-						"Frontend rebuilt at " + new Date().toLocaleTimeString() + x,
+						`Frontend rebuilt in ${duration}ms at ` +
+							new Date().toLocaleTimeString() + x,
 					);
 
 					const isCssOnly = currentPaths.every((p) => p.endsWith(".css"));
@@ -207,7 +210,13 @@ export async function runMakeFront(
 				build({
 					...options,
 					outdir: distFolder + "/static/js",
-					entryPoints: ["client/src/ts/**/*"],
+					entryPoints: [
+						"client/src/ts/app.ts",
+						"client/src/ts/docs.ts",
+						"client/src/ts/homepage.ts",
+						"client/src/ts/main.ts",
+						"client/src/ts/hmr.ts",
+					],
 					whenChange: [
 						"client/src/ts",
 					],
@@ -222,7 +231,11 @@ export async function runMakeFront(
 				build({
 					...options,
 					outdir: distFolder + "/static/css",
-					entryPoints: ["client/src/tailwindcss/**/*.css"],
+					entryPoints: [
+						"client/src/tailwindcss/main.css",
+						"client/src/tailwindcss/homepage.css",
+						"client/src/tailwindcss/docs.css",
+					],
 					whenChange: [
 						"client/templates",
 						"client/src/tailwindcss",
@@ -270,6 +283,7 @@ export async function runMakeFront(
 		);
 	}
 
+	const startTime = performance.now();
 	await Promise.allSettled(calls.map(([builder, directory]) => {
 		const text = `Bundling '${directory}'`;
 		if (!isQuiet) return logClientComp.task({ text }).startRunner(builder);
@@ -279,6 +293,11 @@ export async function runMakeFront(
 			})
 			.catch((error) => logClientComp.error(`${text} failed: ${format(error)}`));
 	}));
+
+	const totalMs = (performance.now() - startTime).toFixed(0);
+	if (!isQuiet) {
+		logClientComp.info(`Frontend build completed in ${totalMs}ms.`);
+	}
 
 	if (isWatch && !isQuiet) {
 		logClientComp.info("Frontend watching for changes.");

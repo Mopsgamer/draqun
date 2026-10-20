@@ -19,13 +19,11 @@
 5. Run `deno install` to install required client dependencies.
 6. Run `go mod download` to install required server dependencies (optional).
 7. Run `deno task init` (or select **deno task init** from VS Code's **Tasks:
-   Run Task**) to create the `.env` file, initialize the database, and install
-   the Git pre-commit hook. `--no-env`, `--no-db`, and `--no-git-hook` options
-   are available to skip their respective setup steps. `--no-git-hook` also
-   removes a hook previously installed by this task.
-8. Change the `.env` file.
-   - Set up server connection with SQLite.
-   - Set up JWT secret.
+   Run Task**) to configure the Git pre-commit hook. The `--no-git-hook` option
+   is available to skip or remove the managed hook.
+8. Environment (`.env`) creation, database table creation, and schema migrations
+   are executed automatically by the Go backend server upon startup. You can
+   customize `.env` values (such as `JWT_KEY` or `PORT`) as needed.
 9. Run `deno task dev` to build client files and start the server.
 10. Open your browser and navigate to `http://localhost:3000` (or hold the
     <kbd>Ctrl</kbd> key and click the link in the terminal).
