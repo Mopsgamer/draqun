@@ -75,6 +75,11 @@ var (
 		"This moniker already exists.",
 		Danger,
 	)
+	AlertUserExistsPhone = NewAlert(
+		errors.Join(fiber.ErrConflict, errors.New("user: another user with this phone exists")),
+		"This phone number already exists.",
+		Danger,
+	)
 	AlertUserDeleteOwnerAccount = NewAlert(
 		errors.Join(fiber.ErrForbidden, errors.New("user: cannot delete account if a group owner")),
 		"Cannot delete account while you are a group owner.",

@@ -394,3 +394,46 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 		t.Errorf("expected status 200/303 for unbanned user joining group, got %d", respUnbannedJoin.StatusCode())
 	}
 }
+
+func TestEveryoneRoleProtection(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookieOwner, owner := createTestUserCookie(t, ts, "Everyone Owner", "everyone_owner", "everyone_owner@example.com")
+	group := createTestGroupDirectly(t, int64(owner.Id), "Everyone Test Group", "everyone_test_group")
+
+	everyoneRole := group.Everyone()
+	if everyoneRole.IsEmpty() {
+		t.Fatalf("expected @everyone role to exist for group")
+	}
+
+	// Attempting to delete @everyone role -> must be forbidden
+	respDeleteEveryone, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Delete(fmt.Sprintf("/groups/%d/roles/%d", group.Id, everyoneRole.Id))
+	if err != nil {
+		t.Fatalf("delete @everyone role request failed: %v", err)
+	}
+	defer respDeleteEveryone.Close()
+
+	if respDeleteEveryone.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden when attempting to delete @everyone role, got %d", respDeleteEveryone.StatusCode())
+	}
+
+	// Attempting to change name of @everyone role -> should fail with AlertUseless
+	respUpdateEveryone, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"name":    "custom_name",
+			"moniker": "Custom Everyone",
+		}).
+		Put(fmt.Sprintf("/groups/%d/roles/%d", group.Id, everyoneRole.Id))
+	if err != nil {
+		t.Fatalf("update @everyone role request failed: %v", err)
+	}
+	defer respUpdateEveryone.Close()
+
+	if respUpdateEveryone.StatusCode() == http.StatusOK {
+		t.Errorf("expected editing @everyone role name to fail with AlertUseless, got 200 OK")
+	}
+}

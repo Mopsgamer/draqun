@@ -117,6 +117,13 @@ func routeAccountChange(router fiber.Router) fiber.Router {
 					return htmx.AlertUseless
 				}
 
+				if request.NewPhone != "" {
+					existingUser, _ := model.NewUserFromPhone(request.NewPhone)
+					if !existingUser.IsEmpty() {
+						return htmx.AlertUserExistsPhone
+					}
+				}
+
 				if err := user.Password.Compare(request.CurrentPassword); err != nil {
 					return htmx.AlertUserPassword.Join(err)
 				}

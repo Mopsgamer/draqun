@@ -712,3 +712,66 @@ func TestAPIMemberJoinLeaveWebSocketBroadcast(t *testing.T) {
 		t.Errorf("expected WS broadcast on leave to contain OOB delete swap %s, got: %s", deleteOob, leaveMsg)
 	}
 }
+
+func TestAPIMemberKickWebSocketRedirection(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookieOwner, owner := createTestUserCookie(t, ts, "Kick WS Owner", "kick_ws_owner", "kick_ws_owner@example.com")
+	cookieTarget, target := createTestUserCookie(t, ts, "Kick WS Target", "kick_ws_target", "kick_ws_target@example.com")
+
+	group := createTestGroupDirectly(t, int64(owner.Id), "Kick WS Group", "kick_ws_group")
+
+	// Target joins group
+	respJoin, err := ts.Client.R().
+		SetHeader("Cookie", cookieTarget).
+		Put(fmt.Sprintf("/groups/%d/join", group.Id))
+	if err != nil || (respJoin.StatusCode() != http.StatusOK && respJoin.StatusCode() != http.StatusSeeOther) {
+		t.Fatalf("join failed: %v", err)
+	}
+	respJoin.Close()
+
+	// Target connects via notification WS
+	port := ts.Listener.Addr().(*net.TCPAddr).Port
+	wsURL := fmt.Sprintf("ws://127.0.0.1:%d/notifications/ws", port)
+
+	header := http.Header{}
+	header.Add("Cookie", cookieTarget)
+
+	wsConn, _, err := websocket.DefaultDialer.Dial(wsURL, header)
+	if err != nil {
+		t.Fatalf("failed to dial target user notification websocket: %v", err)
+	}
+	defer wsConn.Close()
+
+	// Owner kicks target user
+	respKick, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"description": "Rule violation",
+		}).
+		Post(fmt.Sprintf("/groups/%d/members/%d/kick", group.Id, target.Id))
+	if err != nil || (respKick.StatusCode() != http.StatusOK && respKick.StatusCode() != http.StatusSeeOther) {
+		t.Fatalf("kick request failed: %v", err)
+	}
+	respKick.Close()
+
+	// Target WS should receive redirect payload
+	wsConn.SetReadDeadline(time.Now().Add(5 * time.Second))
+	foundRedirect := false
+	for i := 0; i < 5; i++ {
+		_, msgBytes, err := wsConn.ReadMessage()
+		if err != nil {
+			break
+		}
+		msgStr := string(msgBytes)
+		if strings.Contains(msgStr, "window.location.href='/chat'") {
+			foundRedirect = true
+			break
+		}
+	}
+
+	if !foundRedirect {
+		t.Errorf("expected kicked user WS to receive real-time redirect payload to /chat")
+	}
+}

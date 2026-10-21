@@ -1539,6 +1539,12 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 				model.RecordUserLog(targetUserId, caller.Id, "kick_group", fmt.Sprintf("Kicked from group %s (%s)", group.Moniker, request.Description))
 
+				var notifContent string
+				reasonStr := strings.TrimSpace(string(request.Description))
+				if reasonStr != "" {
+					notifContent = fmt.Sprintf("Reason: %s", reasonStr)
+				}
+
 				notif := model.NewNotification(
 					targetUserId,
 					caller.Id,
@@ -1547,7 +1553,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					0,
 					"kicked",
 					fmt.Sprintf("You were kicked from %s", group.Moniker),
-					fmt.Sprintf("Reason: %s", request.Description),
+					notifContent,
 				)
 				_ = model.CreateAndPushNotification(app, notif)
 
@@ -1714,6 +1720,13 @@ func broadcastGroupMembersUpdate(app *fiber.App, group model.Group) {
 
 func broadcastGroupMemberLeave(app *fiber.App, group model.Group, userId uint64) {
 	deleteOob := render.WrapOob(fmt.Sprintf("delete:#member-%d", userId), nil)
+
+	redirectUrl := "/chat"
+	if group.IsBanned(userId) {
+		redirectUrl = fmt.Sprintf("/chat/groups/join/%s", group.Name)
+	}
+	redirectOob := fmt.Sprintf(`<div id="redirect-kicked" hx-swap-oob="beforeend:body"><script>if(window.location.pathname==='/chat/groups/%d'||window.location.pathname.startsWith('/chat/groups/%d/')){window.location.href='%s';}</script></div>`, group.Id, group.Id, redirectUrl)
+	session.UserSessionMap.PushUser(userId, redirectOob)
 
 	const MembersPagination uint = 5
 	memberList := group.UsersPage(1, MembersPagination)

@@ -66,6 +66,14 @@ func NewUserFromName(name Name) (User, error) {
 	return user, First(TableUsers, goqu.Ex{"name": name}, &user)
 }
 
+func NewUserFromPhone(phone Phone) (User, error) {
+	user := User{}
+	if phone == "" {
+		return user, nil
+	}
+	return user, First(TableUsers, goqu.Ex{"phone": phone}, &user)
+}
+
 func (user User) Validate() htmx.Alert {
 	if !user.Moniker.IsValid() {
 		return htmx.AlertFormatMoniker

@@ -209,6 +209,33 @@ func TestPageSettings(t *testing.T) {
 	}
 }
 
+func TestPageSettingsUserContextAndPresence(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookie, _ := createTestUserCookie(t, ts, "Settings Moniker", "settings_user", "settings_presence@example.com")
+
+	resp, err := ts.Client.R().
+		SetHeader("Cookie", cookie).
+		Get("/settings")
+	if err != nil {
+		t.Fatalf("GET /settings failed: %v", err)
+	}
+	defer resp.Close()
+
+	if resp.StatusCode() != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", resp.StatusCode())
+	}
+
+	bodyStr := resp.String()
+	if !strings.Contains(bodyStr, "Settings Moniker") {
+		t.Errorf("expected settings page to contain user moniker 'Settings Moniker', got: %s", bodyStr)
+	}
+	if !strings.Contains(bodyStr, "/notifications/ws") {
+		t.Errorf("expected settings page to contain notification bell ws-connect endpoint '/notifications/ws', got: %s", bodyStr)
+	}
+}
+
 func TestPageChat(t *testing.T) {
 	app := testSetupApp(t)
 	ts := startTestServer(t, app)
@@ -554,5 +581,41 @@ func TestHMRAndStaticNoCache(t *testing.T) {
 	cacheControl := respStatic.Header("Cache-Control")
 	if !strings.Contains(cacheControl, "no-cache") && !strings.Contains(cacheControl, "no-store") {
 		t.Errorf("expected no-cache/no-store in Cache-Control header, got %q", cacheControl)
+	}
+}
+
+func TestTicketSearchPage(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookie, user := createTestUserCookie(t, ts, "Search User", "search_usr", "search_usr@example.com")
+	group := createTestGroupDirectly(t, int64(user.Id), "Search Test Group", "search_test_group")
+
+	// Create ticket container channel and ticket subchannel
+	container := model.NewChannel("issues", "Issues Tracker", "Issues container", model.ChannelTypeTicket)
+	if err := container.Insert(); err != nil {
+		t.Fatalf("failed to insert container: %v", err)
+	}
+	_ = model.AddGroupChannel(group.Id, container.Id, 0)
+
+	ticket1 := model.NewChannel("ticket_1", "Bug Report Authentication", "Fix login bug", model.ChannelTypeTicket)
+	ticket1.AuthorId = user.Id
+	if err := ticket1.Insert(); err != nil {
+		t.Fatalf("failed to insert ticket1: %v", err)
+	}
+	_ = model.AddChannelRelation(container.Id, ticket1.Id, "subchannel")
+
+	// GET /groups/:id/tickets/search?q=Authentication
+	respSearch, err := ts.Client.R().
+		SetHeader("Cookie", cookie).
+		SetHeader("HX-Request", "true").
+		Get(fmt.Sprintf("/groups/%d/tickets/search?q=Authentication", group.Id))
+	if err != nil || respSearch.StatusCode() != http.StatusOK {
+		t.Fatalf("ticket search failed: %v", err)
+	}
+	defer respSearch.Close()
+
+	if !strings.Contains(respSearch.String(), "Bug Report Authentication") {
+		t.Errorf("expected search response to contain 'Bug Report Authentication', got: %s", respSearch.String())
 	}
 }

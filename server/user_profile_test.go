@@ -448,3 +448,155 @@ func createTestUserCookieHeader(t *testing.T, ts *TestServer, user model.User) s
 	token, _ := user.GenerateToken()
 	return fmt.Sprintf("Authorization=%s", token)
 }
+
+func TestSuspendedLoginAlertNoReason(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookieAdmin, adminUser := createTestUserCookie(t, ts, "Admin User", "admin_susp", "admin_susp@example.com")
+	_, targetUser := createTestUserCookie(t, ts, "Suspended User", "susp_user", "susp@example.com")
+
+	_, _ = model.GetOrCreateDraqunGroup(adminUser.Id)
+
+	// Suspend without a reason
+	respSuspend, err := ts.Client.R().
+		SetHeader("Cookie", cookieAdmin).
+		SetFormDataWithMap(map[string]string{
+			"reason": "",
+		}).
+		Post(fmt.Sprintf("/admin/users/%d/suspend", targetUser.Id))
+	if err != nil || respSuspend.StatusCode() != http.StatusOK {
+		t.Fatalf("failed to suspend user: %v", err)
+	}
+	respSuspend.Close()
+
+	// Login as suspended user
+	respLogin, err := ts.Client.R().
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"email":    "susp@example.com",
+			"password": "password123",
+		}).
+		Post("/account/login")
+	if err != nil {
+		t.Fatalf("login attempt failed: %v", err)
+	}
+	defer respLogin.Close()
+
+	body := respLogin.String()
+	if !strings.Contains(body, "Your account has been suspended") {
+		t.Errorf("expected alert message to contain 'Your account has been suspended', got: %s", body)
+	}
+	if strings.Contains(body, "Your account has been suspended: ") {
+		t.Errorf("expected alert message NOT to contain extra colon or default reason, got: %s", body)
+	}
+}
+
+func TestMemberKickWithoutReasonNotification(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookieOwner, owner := createTestUserCookie(t, ts, "Kick Owner", "kick_owner", "kick_owner@example.com")
+	cookieTarget, target := createTestUserCookie(t, ts, "Kicked Target", "kick_target", "kick_target@example.com")
+
+	group := createTestGroupDirectly(t, int64(owner.Id), "Kick Test Group", "kick_test_group")
+
+	// Target joins group
+	respJoin, err := ts.Client.R().
+		SetHeader("Cookie", cookieTarget).
+		Put(fmt.Sprintf("/groups/%d/join", group.Id))
+	if err != nil || (respJoin.StatusCode() != http.StatusOK && respJoin.StatusCode() != http.StatusSeeOther) {
+		t.Fatalf("join failed: %v", err)
+	}
+	respJoin.Close()
+
+	// Owner kicks target with empty description
+	respKick, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"description": "",
+		}).
+		Post(fmt.Sprintf("/groups/%d/members/%d/kick", group.Id, target.Id))
+	if err != nil || (respKick.StatusCode() != http.StatusOK && respKick.StatusCode() != http.StatusSeeOther) {
+		t.Fatalf("kick failed: %v", err)
+	}
+	respKick.Close()
+
+	// Check notification content
+	notifs, err := model.GetUserNotifications(target.Id, 10)
+	if err != nil || len(notifs) == 0 {
+		t.Fatalf("expected notification for kicked target user")
+	}
+
+	for _, n := range notifs {
+		if n.Type == "kicked" {
+			if strings.Contains(n.Content, "Reason:") {
+				t.Errorf("expected kicked notification NOT to contain 'Reason:' when description is empty, got: %s", n.Content)
+			}
+		}
+	}
+}
+
+func TestDuplicatePhoneValidation(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	// User 1 registers with phone
+	respReg1, err := ts.Client.R().
+		SetFormDataWithMap(map[string]string{
+			"moniker":          "Phone User One",
+			"name":             "phone_usr1",
+			"email":            "phone1@example.com",
+			"phone":            "1234567890",
+			"password":         "password123",
+			"confirm-password": "password123",
+		}).
+		Post("/account")
+	if err != nil || respReg1.StatusCode() != http.StatusOK {
+		t.Fatalf("user 1 registration failed: %v", err)
+	}
+	respReg1.Close()
+
+	// User 2 attempts registration with same phone
+	respReg2Dup, err := ts.Client.R().
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"moniker":          "Phone User Two",
+			"name":             "phone_usr2",
+			"email":            "phone2@example.com",
+			"phone":            "1234567890",
+			"password":         "password123",
+			"confirm-password": "password123",
+		}).
+		Post("/account")
+	if err != nil {
+		t.Fatalf("user 2 registration attempt failed: %v", err)
+	}
+	defer respReg2Dup.Close()
+
+	if !strings.Contains(respReg2Dup.String(), "This phone number already exists.") {
+		t.Errorf("expected duplicate phone error during sign up, got: %s", respReg2Dup.String())
+	}
+
+	// User 2 registers with unique phone
+	cookie2, user2 := createTestUserCookie(t, ts, "Phone User Two", "phone_usr2", "phone2@example.com")
+	_ = user2
+
+	// User 2 attempts to change phone to User 1's phone
+	respChangePhoneDup, err := ts.Client.R().
+		SetHeader("Cookie", cookie2).
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"current-password": "password123",
+			"new-phone":        "1234567890",
+		}).
+		Put("/account/change/phone")
+	if err != nil {
+		t.Fatalf("phone change request failed: %v", err)
+	}
+	defer respChangePhoneDup.Close()
+
+	if !strings.Contains(respChangePhoneDup.String(), "This phone number already exists.") {
+		t.Errorf("expected duplicate phone error on phone update, got: %s", respChangePhoneDup.String())
+	}
+}

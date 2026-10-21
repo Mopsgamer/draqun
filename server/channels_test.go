@@ -248,3 +248,193 @@ func TestChannelsManagementAndMessaging(t *testing.T) {
 		t.Errorf("expected 0 subchannels after deletion, got %d", len(subchannelsAfter))
 	}
 }
+
+func TestDirectMessagingFlow(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookie1, user1 := createTestUserCookie(t, ts, "DM User One", "dm_user1", "dm_user1@example.com")
+	cookie2, user2 := createTestUserCookie(t, ts, "DM User Two", "dm_user2", "dm_user2@example.com")
+	cookie3, user3 := createTestUserCookie(t, ts, "DM User Three", "dm_user3", "dm_user3@example.com")
+
+	// 1. Self DM attempt -> should fail
+	respSelfDM, err := ts.Client.R().
+		SetHeader("Cookie", cookie1).
+		SetHeader("HX-Request", "true").
+		Post(fmt.Sprintf("/friends/dm/%d", user1.Id))
+	if err != nil {
+		t.Fatalf("self DM request failed: %v", err)
+	}
+	defer respSelfDM.Close()
+	if !strings.Contains(respSelfDM.String(), "cannot direct message yourself") {
+		t.Errorf("expected self DM prevention alert, got: %s", respSelfDM.String())
+	}
+
+	// 2. User 1 initiates DM with User 2
+	respCreateDM, err := ts.Client.R().
+		SetHeader("Cookie", cookie1).
+		Post(fmt.Sprintf("/friends/dm/%d", user2.Id))
+	if err != nil {
+		t.Fatalf("DM creation request failed: %v", err)
+	}
+	defer respCreateDM.Close()
+
+	if respCreateDM.StatusCode() != http.StatusOK && respCreateDM.StatusCode() != http.StatusSeeOther && respCreateDM.StatusCode() != http.StatusFound {
+		t.Fatalf("expected redirect or 200 OK for DM creation, got %d", respCreateDM.StatusCode())
+	}
+
+	// Verify direct channel exists in DB
+	dmChannel, err := model.GetOrCreateDirectChannel(user1.Id, user2.Id)
+	if err != nil || dmChannel == nil || dmChannel.IsEmpty() {
+		t.Fatalf("expected direct channel to exist in DB, got: %v (err: %v)", dmChannel, err)
+	}
+
+	// 3. GET /chat/dm/:channel_id for participants vs non-participant
+	respViewDM1, err := ts.Client.R().
+		SetHeader("Cookie", cookie1).
+		Get(fmt.Sprintf("/chat/dm/%d", dmChannel.Id))
+	if err != nil || respViewDM1.StatusCode() != http.StatusOK {
+		t.Errorf("expected 200 OK for participant user1 viewing DM page, got status: %v", respViewDM1.StatusCode())
+	}
+	respViewDM1.Close()
+
+	respViewDM2, err := ts.Client.R().
+		SetHeader("Cookie", cookie2).
+		Get(fmt.Sprintf("/chat/dm/%d", dmChannel.Id))
+	if err != nil || respViewDM2.StatusCode() != http.StatusOK {
+		t.Errorf("expected 200 OK for participant user2 viewing DM page, got status: %v", respViewDM2.StatusCode())
+	}
+	respViewDM2.Close()
+
+	// Non-participant User 3 attempting to view DM page -> should redirect to /chat
+	respViewDM3, err := ts.Client.R().
+		SetHeader("Cookie", cookie3).
+		Get(fmt.Sprintf("/chat/dm/%d", dmChannel.Id))
+	if err != nil {
+		t.Fatalf("non-participant DM page view failed: %v", err)
+	}
+	defer respViewDM3.Close()
+	if respViewDM3.StatusCode() == http.StatusOK && strings.Contains(respViewDM3.String(), "DM User Two") {
+		t.Errorf("expected non-participant user3 to be denied access to DM page, but got 200 OK")
+	}
+
+	// 4. Send DM Message (User 1 -> User 2)
+	respSendMsg, err := ts.Client.R().
+		SetHeader("Cookie", cookie1).
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"content": "Hello in secret DM!",
+		}).
+		Post(fmt.Sprintf("/groups/dm/channels/%d/messages/create", dmChannel.Id))
+	if err != nil || respSendMsg.StatusCode() != http.StatusOK {
+		t.Fatalf("expected 200 OK for sending DM message, got status: %v (err: %v)", respSendMsg.StatusCode(), err)
+	}
+	respSendMsg.Close()
+
+	// Verify notification for User 2
+	notifsUser2, err := model.GetUserNotifications(user2.Id, 10)
+	if err != nil || len(notifsUser2) == 0 {
+		t.Fatalf("expected notification for user2 on DM message, got: %v", notifsUser2)
+	}
+	if notifsUser2[0].Type != "dm" || !strings.Contains(notifsUser2[0].Content, "Hello in secret DM!") {
+		t.Errorf("expected DM notification content, got: %v", notifsUser2[0])
+	}
+
+	// Non-participant User 3 attempting to send message in DM channel -> should be forbidden
+	respNonPartMsg, err := ts.Client.R().
+		SetHeader("Cookie", cookie3).
+		SetFormDataWithMap(map[string]string{
+			"content": "Unwanted intruder message",
+		}).
+		Post(fmt.Sprintf("/groups/dm/channels/%d/messages/create", dmChannel.Id))
+	if err != nil {
+		t.Fatalf("non-participant DM post failed: %v", err)
+	}
+	defer respNonPartMsg.Close()
+	if respNonPartMsg.StatusCode() == http.StatusOK {
+		t.Errorf("expected non-participant DM message post to fail, got 200 OK")
+	}
+
+	// 5. GET /groups/dm/channels/:channel_id/messages/page/1
+	respDMPage, err := ts.Client.R().
+		SetHeader("Cookie", cookie2).
+		SetHeader("HX-Request", "true").
+		Get(fmt.Sprintf("/groups/dm/channels/%d/messages/page/1", dmChannel.Id))
+	if err != nil || respDMPage.StatusCode() != http.StatusOK {
+		t.Fatalf("expected 200 OK for DM message pagination, got status: %v", respDMPage.StatusCode())
+	}
+	defer respDMPage.Close()
+	if !strings.Contains(respDMPage.String(), "Hello in secret DM!") {
+		t.Errorf("expected DM message page body to contain message content, got: %s", respDMPage.String())
+	}
+
+	_ = user3
+}
+
+func TestChannelStarringAndEditing(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookieOwner, owner := createTestUserCookie(t, ts, "Star Owner", "star_owner", "star_owner@example.com")
+	group := createTestGroupDirectly(t, int64(owner.Id), "Star Group", "star_group")
+
+	ch := model.NewChannel("star_ch", "Star Channel", "Star description", model.ChannelTypeText)
+	if err := ch.Insert(); err != nil {
+		t.Fatalf("failed to insert channel: %v", err)
+	}
+	_ = model.AddGroupChannel(group.Id, ch.Id, 0)
+
+	// 1. Star Channel
+	respStar, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		Post(fmt.Sprintf("/groups/%d/channels/%d/star", group.Id, ch.Id))
+	if err != nil || respStar.StatusCode() != http.StatusOK {
+		t.Fatalf("failed to star channel: %v", err)
+	}
+	defer respStar.Close()
+
+	if !model.IsChannelStarred(owner.Id, ch.Id) {
+		t.Errorf("expected channel %d to be starred in DB", ch.Id)
+	}
+	if !strings.Contains(respStar.String(), "Unstar channel") {
+		t.Errorf("expected response button to contain 'Unstar channel', got: %s", respStar.String())
+	}
+
+	// 2. Unstar Channel
+	respUnstar, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		Post(fmt.Sprintf("/groups/%d/channels/%d/star", group.Id, ch.Id))
+	if err != nil || respUnstar.StatusCode() != http.StatusOK {
+		t.Fatalf("failed to unstar channel: %v", err)
+	}
+	defer respUnstar.Close()
+
+	if model.IsChannelStarred(owner.Id, ch.Id) {
+		t.Errorf("expected channel %d to no longer be starred in DB", ch.Id)
+	}
+	if !strings.Contains(respUnstar.String(), "Star channel") {
+		t.Errorf("expected response button to contain 'Star channel', got: %s", respUnstar.String())
+	}
+
+	// 3. Edit Channel
+	respEdit, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"name":        "star_ch_mod",
+			"moniker":     "Star Channel Modified",
+			"description": "Updated description",
+		}).
+		Put(fmt.Sprintf("/groups/%d/channels/%d", group.Id, ch.Id))
+	if err != nil || (respEdit.StatusCode() != http.StatusOK && respEdit.StatusCode() != http.StatusSeeOther) {
+		t.Fatalf("failed to edit channel: %v", err)
+	}
+	respEdit.Close()
+
+	updatedCh, err := model.NewChannelFromId(ch.Id)
+	if err != nil || updatedCh.Moniker != "Star Channel Modified" || updatedCh.Description != "Updated description" {
+		t.Errorf("expected updated channel moniker 'Star Channel Modified', got: %v", updatedCh)
+	}
+}
