@@ -5,14 +5,15 @@ if (
 	showHelp({
 		name: "back",
 		description: "Compile the backend for the current platform.",
-		usage: "deno task back [dev]",
+		usage: "bun run back [dev]",
 		options: [
 			"-h, --help  Show this help.",
 			"dev         Build with the development (lite) tag.",
 		],
 	})
 ) {
-	Deno.exit(0);
+	process.exit(0);
 }
 
-if (!await compileTask(Deno.args.includes("dev"))) Deno.exit(1);
+const isDev = process.argv.slice(2).includes("dev");
+if (!(await compileTask(isDev))) process.exit(1);

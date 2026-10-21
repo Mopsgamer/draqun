@@ -7,9 +7,8 @@ const onEvent: htmx.HtmxExtension["onEvent"] = function (name, event): boolean {
 		let control: EventTarget | null = event.target;
 		if (control instanceof HTMLFormElement) {
 			const form = control;
-			control = form.querySelector<HTMLButtonElement>(
-				"button[type=submit]",
-			) ??
+			control =
+				form.querySelector<HTMLButtonElement>("button[type=submit]") ??
 				Array.from(
 					document.querySelectorAll<HTMLButtonElement>(
 						"button[type=submit][form]",

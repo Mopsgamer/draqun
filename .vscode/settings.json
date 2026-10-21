@@ -1,17 +1,12 @@
 {
 	"editor.indentSize": "tabSize",
 	"editor.useTabStops": true,
-	"deno.enable": true,
 	"files.associations": {
 		"**/tailwind*/**/*.css": "tailwindcss"
 	},
 	"gopls": {
 		"ui.semanticTokens": true,
-		"build.standaloneTags": [
-			"lite",
-			"prod",
-			"ignore"
-		]
+		"build.standaloneTags": ["lite", "prod", "ignore"]
 	},
 	"[go]": {
 		"editor.semanticHighlighting.enabled": true

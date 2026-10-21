@@ -1,72 +1,71 @@
 name: Release
 
 env:
- DENO_VERSION: ^v2.9.7
+  BUN_VERSION: canary
 
 on:
- workflow_dispatch:
-  inputs:
-   release_type:
-    description: |
-     Select the release type. See CONTRIBUTING.md for details.
-    required: true
-    default: "from-commits"
-    type: choice
-    options:
-     - patch
-     - minor
-     - major
-     - release
-     - alpha patch
-     - alpha minor
-     - alpha major
-     - alpha release
-     - beta patch
-     - beta minor
-     - beta major
-     - beta release
-   dry_run:
-    description: |
-     Perform a dry run only (no release).
-    required: false
-    default: false
-    type: boolean
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: |
+          Select the release type. See CONTRIBUTING.md for details.
+        required: true
+        default: "from-commits"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - release
+          - alpha patch
+          - alpha minor
+          - alpha major
+          - alpha release
+          - beta patch
+          - beta minor
+          - beta major
+          - beta release
+      dry_run:
+        description: |
+          Perform a dry run only (no release).
+        required: false
+        default: false
+        type: boolean
 
 jobs:
- release:
-  env:
-   GOCACHE: ${{ github.workspace }}/dist/cache
-   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  permissions:
-   contents: write
-   packages: write
-  runs-on: ubuntu-latest
-  steps:
-   - uses: actions/checkout@v6
-     with:
-      fetch-depth: 0
-      ref: ${{ github.head_ref }}
-      token: ${{ secrets.GITHUB_TOKEN }}
-      repository: ${{ github.repository }}
-   - name: Set Git origin
-     run: |
-      git config --global user.name "github-actions"
-      git config --global user.email "github-actions@github.com"
-      git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-   - uses: denoland/setup-deno@v2
-     with:
-      deno-version: ${{ env.DENO_VERSION }}
-      cache: true
-   - name: Install Deno dependencies
-     run: |
-      deno install
-   - uses: actions/setup-go@v7
-     with:
-      go-version-file: go.mod
-   - name: Run release script (Dry Run or Real Release)
-     run: |
-      if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-        deno task release --dry-run ${{ github.event.inputs.release_type }}
-      else
-        deno task release ${{ github.event.inputs.release_type }}
-      fi
+  release:
+    env:
+      GOCACHE: ${{ github.workspace }}/dist/cache
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+      - name: Set Git origin
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Install Bun dependencies
+        run: |
+          bun install
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Run release script (Dry Run or Real Release)
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            bun run release --dry-run ${{ github.event.inputs.release_type }}
+          else
+            bun run release ${{ github.event.inputs.release_type }}
+          fi

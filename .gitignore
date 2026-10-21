@@ -1,4 +1,4 @@
-# deno
+# bun / node
 node_modules
 coverage
 
@@ -12,7 +12,3 @@ client/static
 uploads
 .env
 *.db
-
-# prevent 'deno init'
-/main.ts
-/main_test.ts

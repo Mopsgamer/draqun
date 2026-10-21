@@ -1,8 +1,6 @@
 import { domLoaded } from "./lib.ts";
 
-export function requestBrowserNotificationsPermission(): Promise<
-	NotificationPermission
-> {
+export function requestBrowserNotificationsPermission(): Promise<NotificationPermission> {
 	if (!("Notification" in globalThis)) {
 		return Promise.resolve("denied");
 	}
@@ -38,9 +36,10 @@ domLoaded.then(() => {
 		updateNotificationButtonState(Notification.permission);
 	}
 
-	(globalThis as unknown as {
-		requestBrowserNotificationsPermission:
-			typeof requestBrowserNotificationsPermission;
-	}).requestBrowserNotificationsPermission =
+	(
+		globalThis as unknown as {
+			requestBrowserNotificationsPermission: typeof requestBrowserNotificationsPermission;
+		}
+	).requestBrowserNotificationsPermission =
 		requestBrowserNotificationsPermission;
 });

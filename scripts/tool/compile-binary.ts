@@ -1,5 +1,7 @@
 import { distFolder, logServerComp } from "./constants.ts";
-import { resolve } from "@std/path";
+import { resolve } from "@jsr/std__path/resolve";
+import { spawn, spawnSync, type ChildProcess } from "node:child_process";
+import fs from "node:fs/promises";
 
 export type BinaryInfo = {
 	fileName: string;
@@ -10,16 +12,18 @@ export async function compileTask(dev?: boolean): Promise<boolean>;
 export async function compileTask(
 	dev: true,
 	run: true,
-): Promise<Deno.ChildProcess | false>;
+): Promise<ChildProcess | false>;
 export async function compileTask(
 	dev = false,
 	run = false,
-): Promise<Deno.ChildProcess | boolean> {
+): Promise<ChildProcess | boolean> {
 	const [os, arch] = machineInfo();
 	const { filePath } = binaryInfo(os, arch);
-	const task = logServerComp.task({
-		text: run ? "Compiling and starting" : "Compiling " + filePath,
-	}).start();
+	const task = logServerComp
+		.task({
+			text: run ? "Compiling and starting" : `Compiling ${filePath}`,
+		})
+		.start();
 	//@ts-expect-error we do not care about signature
 	const result = await compile(os, arch, dev, run);
 	task.end(result ? "completed" : "failed");
@@ -34,46 +38,45 @@ export function binaryInfo(os: string, arch: string): BinaryInfo {
 }
 
 export function machineInfo(): [os: string, arch: string] {
-	const { stdout } = new Deno.Command("go", {
-		args: ["env", "GOOS", "GOARCH"],
-	}).outputSync();
-	const output = new TextDecoder().decode(stdout);
-	const [os, arch] = output.trim().split("\n");
-	return [os, arch];
+	const proc = spawnSync("go", ["env", "GOOS", "GOARCH"], {
+		encoding: "utf-8",
+	});
+	const output = proc.stdout ? proc.stdout.trim() : "";
+	const [os, arch] = output.split("\n");
+	return [os || "linux", arch || "amd64"];
 }
 
 async function runGo(
 	args: string[],
 	env: Record<string, string>,
 ): Promise<boolean> {
-	const child = new Deno.Command("go", {
-		args,
-		env,
-		stdout: "inherit",
-		stderr: "inherit",
-	}).spawn();
-
-	const status = await child.status;
-	return status.success;
+	return new Promise((resolvePromise) => {
+		const child = spawn("go", args, {
+			env,
+			stdio: "inherit",
+		});
+		child.on("close", (code) => {
+			resolvePromise(code === 0);
+		});
+		child.on("error", () => {
+			resolvePromise(false);
+		});
+	});
 }
 
 async function generateGitJson(): Promise<void> {
 	try {
 		const git = (args: string[]) => {
-			const cmd = new Deno.Command("git", { args, stdout: "piped" });
-			const output = cmd.outputSync();
-			return new TextDecoder().decode(output.stdout).trim();
+			const res = spawnSync("git", args, { encoding: "utf-8" });
+			return res.stdout ? res.stdout.trim() : "";
 		};
 		const data = {
 			hash: git(["rev-parse", "--short", "HEAD"]),
 			hashLong: git(["rev-parse", "HEAD"]),
 			branch: git(["rev-parse", "--abbrev-ref", "HEAD"]),
 		};
-		await Deno.mkdir(distFolder, { recursive: true });
-		await Deno.writeTextFile(
-			`${distFolder}/git.json`,
-			JSON.stringify(data),
-		);
+		await fs.mkdir(distFolder, { recursive: true });
+		await fs.writeFile(`${distFolder}/git.json`, JSON.stringify(data), "utf-8");
 	} catch {
 		// Ignore if git is not available
 	}
@@ -89,53 +92,48 @@ export async function compile(
 	arch: string,
 	dev: true,
 	run: true,
-): Promise<Deno.ChildProcess | false>;
+): Promise<ChildProcess | false>;
 export async function compile(
 	os: string,
 	arch: string,
 	dev = false,
 	run = false,
-): Promise<Deno.ChildProcess | boolean> {
+): Promise<ChildProcess | boolean> {
 	const { filePath } = binaryInfo(os, arch);
 
 	const env = {
 		GOCACHE: resolve(`${distFolder}/cache`),
-		...Deno.env.toObject(),
+		...process.env,
 	};
 
 	await generateGitJson();
 
-	const generated = await runGo(["generate", "./..."], env);
+	const generated = await runGo(
+		["generate", "./..."],
+		env as Record<string, string>,
+	);
 	if (!generated) return false;
 
 	const built = await runGo(
-		[
-			"build",
-			"-tags",
-			dev ? "lite" : "prod",
-			"-o",
-			filePath,
-			".",
-		],
+		["build", "-tags", dev ? "lite" : "prod", "-o", filePath, "."],
 		{
 			...env,
 			GOOS: os,
 			GOARCH: arch,
-		},
+		} as Record<string, string>,
 	);
 	if (!built) return false;
 
 	if (run) {
-		const spawn = new Deno.Command(filePath, {
+		const child = spawn(filePath, [], {
 			env: {
 				...env,
 				GOOS: os,
 				GOARCH: arch,
 			},
-			stdout: "inherit",
-			stderr: "inherit",
-		}).spawn();
-		return spawn;
+			stdio: "inherit",
+		});
+		return child;
 	}
 
 	return true;

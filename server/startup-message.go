@@ -58,7 +58,7 @@ func gitString() string {
 }
 
 func versionString(clientEmbedded bool) string {
-	return "v" + environment.DenoJson.Version + " " + buildEnvironementString() + " " + clientEmbeddedString(clientEmbedded)
+	return "v" + environment.PkgJson.Version + " " + buildEnvironementString() + " " + clientEmbeddedString(clientEmbedded)
 }
 
 func metaString(clientEmbedded bool) string {

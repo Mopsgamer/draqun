@@ -1,6 +1,9 @@
 export function isMessageJoinElement(value: unknown): value is HTMLDivElement {
-	return !!value && value instanceof HTMLDivElement &&
-		value.classList.contains("join");
+	return (
+		!!value &&
+		value instanceof HTMLDivElement &&
+		value.classList.contains("join")
+	);
 }
 
 export function isMessageJoinDateElement(
@@ -10,8 +13,11 @@ export function isMessageJoinDateElement(
 }
 
 export function isMessageElement(value: unknown): value is HTMLDivElement {
-	return !!value && value instanceof HTMLDivElement &&
-		value.classList.contains("message");
+	return (
+		!!value &&
+		value instanceof HTMLDivElement &&
+		value.classList.contains("message")
+	);
 }
 
 export function findLastMessage(): Element | undefined {
@@ -24,16 +30,16 @@ export function findLastMessage(): Element | undefined {
 export function findLastMessageVisibleDate(): Element | undefined {
 	const chat = document.getElementById("chat");
 	if (!chat) return;
-	return Array.from(chat.getElementsByClassName("message")).reverse().find(
-		(c) => {
+	return Array.from(chat.getElementsByClassName("message"))
+		.reverse()
+		.find((c) => {
 			const previous = c.previousElementSibling;
 			if (!isMessageJoinDateElement(previous)) {
 				return true;
 			}
 
 			return false;
-		},
-	);
+		});
 }
 
 export function getFormPropData(
@@ -46,26 +52,31 @@ export function getFormPropData(
 			!(control instanceof HTMLInputElement) &&
 			!(control instanceof HTMLSelectElement) &&
 			!(control instanceof HTMLTextAreaElement)
-		) continue;
+		)
+			continue;
 
 		let { name } = control;
 		const { value } = control;
 
 		if (
-			typeof name !== "string" || typeof value !== "string" || !name ||
+			typeof name !== "string" ||
+			typeof value !== "string" ||
+			!name ||
 			!value
-		) continue;
+		)
+			continue;
 
 		if (capital) {
 			name = name[0].toUpperCase() + name.substring(1);
 		}
 
 		const convert = control.getAttribute("data-convert");
-		data[name as string] = convert === "number"
-			? Number(value)
-			: convert === "boolean"
-			? Boolean(value)
-			: value;
+		data[name as string] =
+			convert === "number"
+				? Number(value)
+				: convert === "boolean"
+					? Boolean(value)
+					: value;
 	}
 
 	return data;
@@ -145,8 +156,7 @@ const usedAnchorIds = new Set<string>();
 export function initAnchorHeadersFor(target: HTMLElement): void {
 	const hAnchorList = Array.from(
 		target.getElementsByClassName("anchor-header"),
-	)
-		.filter((el) => /H[1-6]/.test(el.tagName)) as HTMLHeadingElement[];
+	).filter((el) => /H[1-6]/.test(el.tagName)) as HTMLHeadingElement[];
 
 	for (const hAnchor of hAnchorList) {
 		initAnchorHeader(hAnchor);
@@ -156,7 +166,8 @@ export function initAnchorHeadersFor(target: HTMLElement): void {
 export function initAnchorHeader(hAnchor: HTMLHeadingElement): void {
 	const text = Array.from(hAnchor.childNodes)
 		.filter((el) => el.nodeType === el.TEXT_NODE)
-		.map((el) => el.textContent).join("");
+		.map((el) => el.textContent)
+		.join("");
 
 	if (!text) {
 		console.error("Invalid anchor-header text content\n%o", hAnchor);
@@ -189,9 +200,7 @@ export function initAnchorHeader(hAnchor: HTMLHeadingElement): void {
 
 export function uninitAnchorHeader(hAnchor: HTMLElement): void {
 	hAnchor.removeAttribute("id");
-	for (
-		const element of hAnchor.getElementsByClassName("anchor-header-link")
-	) {
+	for (const element of hAnchor.getElementsByClassName("anchor-header-link")) {
 		element.remove();
 	}
 }

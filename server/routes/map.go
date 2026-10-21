@@ -41,7 +41,7 @@ func MapPage(ctx fiber.Ctx, bind fiber.Map) fiber.Map {
 		"GitHubRepo":   environment.GitHubRepo,
 		"GitHubCommit": environment.GitHubCommit,
 		"GitHubBranch": environment.GitHubBranch,
-		"DenoJson":     environment.DenoJson,
+		"PkgJson":      environment.PkgJson,
 		"GitJson":      environment.GitJson,
 		"GoMod":        environment.GoMod,
 	}

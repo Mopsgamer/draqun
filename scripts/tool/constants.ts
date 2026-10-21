@@ -2,8 +2,8 @@ import {
 	type DefaultTaskOptions,
 	Logger,
 	type LoggerOptions,
-} from "@m234/logger";
-import { ensureDir } from "@std/fs/ensure-dir";
+} from "@jsr/m234__logger";
+import fs from "node:fs/promises";
 
 const defaultTaskOptions: DefaultTaskOptions = {
 	suffixDuration: 0n,
@@ -27,10 +27,10 @@ lopts.prefix = "🔨 Files";
 export const logInitFiles = new Logger(lopts);
 
 /**
- * Consider using same value in the environment/config.go and deno.json.
+ * Consider using same value in the environment/config.go and package.json.
  */
 export const distFolder = "dist";
-await ensureDir(distFolder);
+await fs.mkdir(distFolder, { recursive: true });
 
 export const encoder = new TextEncoder();
 export const decoder = new TextDecoder("utf-8");

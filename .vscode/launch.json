@@ -18,10 +18,10 @@
 			}
 		},
 		{
-			"name": "Deno task init",
+			"name": "Bun run init",
 			"type": "node",
 			"request": "launch",
-			"runtimeExecutable": "deno",
+			"runtimeExecutable": "bun",
 			"program": "${workspaceRoot}/scripts/init.ts",
 			"presentation": {
 				"hidden": false,

@@ -23,7 +23,7 @@
         </div>
     </nav>
     <div class="absolute right-3 bottom-2 text-white/50 text-xs font-[monospace]">
-        version: {{.DenoJson.Version}}{{if ne .GitJson.Hash ""}} ({{.GitJson.Branch}} <a
+        version: {{.PkgJson.Version}}{{if ne .GitJson.Hash ""}} ({{.GitJson.Branch}} <a
             class="text-white/80 underline"
             href="{{.GitHubCommit}}"
         >{{.GitJson.Hash}}</a>){{end -}}
