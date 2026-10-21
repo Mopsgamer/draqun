@@ -4,12 +4,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"init": "bun run scripts/init.ts",
 		"dev": "bun run scripts/dev.ts",
 		"prod": "bun run scripts/prod.ts",
-		"prepare": "bun run lint && bun run fmt",
-		"lint": "bun lint --no-script",
-		"fmt": "bun fmt --no-script",
 		"front": "bun run scripts/make-front.ts",
 		"back": "bun run scripts/make-back.ts",
 		"back:cross": "bun run scripts/make-back-cross.ts",

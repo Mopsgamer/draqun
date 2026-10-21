@@ -16,18 +16,6 @@
 				"group": "go",
 				"order": 1
 			}
-		},
-		{
-			"name": "Bun run init",
-			"type": "node",
-			"request": "launch",
-			"runtimeExecutable": "bun",
-			"program": "${workspaceRoot}/scripts/init.ts",
-			"presentation": {
-				"hidden": false,
-				"group": "scripts",
-				"order": 1
-			}
 		}
 	]
 }

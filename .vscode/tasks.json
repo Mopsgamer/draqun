@@ -2,26 +2,26 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "bun run init",
+			"label": "bun lint",
 			"type": "shell",
 			"command": "bun",
-			"args": ["run", "init"],
-			"detail": "Configure the Git pre-commit hook; supports --no-git-hook.",
+			"args": ["lint"],
+			"detail": "Check linting natively using Bun.",
 			"icon": {
-				"id": "gear",
-				"color": "terminal.ansiBlue"
+				"id": "check",
+				"color": "terminal.ansiGreen"
 			},
 			"problemMatcher": []
 		},
 		{
-			"label": "bun run prepare",
+			"label": "bun fmt",
 			"type": "shell",
 			"command": "bun",
-			"args": ["run", "prepare"],
-			"detail": "Check formatting and linting before committing.",
+			"args": ["fmt"],
+			"detail": "Format code natively using Bun.",
 			"icon": {
-				"id": "check",
-				"color": "terminal.ansiGreen"
+				"id": "paintcan",
+				"color": "terminal.ansiBlue"
 			},
 			"problemMatcher": []
 		},

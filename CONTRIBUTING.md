@@ -18,15 +18,12 @@
    [VSC terminal](https://code.visualstudio.com/docs/terminal/getting-started).
 5. Run `bun install` to install required client dependencies.
 6. Run `go mod download` to install required server dependencies (optional).
-7. Run `bun run init` (or select **bun run init** from VS Code's **Tasks:
-   Run Task**) to configure the Git pre-commit hook. The `--no-git-hook` option
-   is available to skip or remove the managed hook.
-8. Environment (`.env`) creation, database table creation, and schema migrations
+7. Environment (`.env`) creation, database table creation, and schema migrations
    are executed automatically by the Go backend server upon startup. You can
    customize `.env` values (such as `JWT_KEY` or `PORT`) as needed.
-9. Run `bun run dev` to build client files and start the server.
-10. Open your browser and navigate to `http://localhost:3000` (or hold the
-    <kbd>Ctrl</kbd> key and click the link in the terminal).
+8. Run `bun run dev` to build client files and start the server.
+9. Open your browser and navigate to `http://localhost:3000` (or hold the
+   <kbd>Ctrl</kbd> key and click the link in the terminal).
 
 ## Making changes
 
@@ -43,9 +40,7 @@ rebuilds frontend assets when they change:
 bun run dev
 ```
 
-Other available VS Code tasks mirror the Bun tasks: `bun run init`,
-`bun run prepare`, `bun run back`, and `bun run front` for one-time
-frontend builds.
+Other available VS Code tasks mirror the Bun tasks: `bun lint`, `bun fmt`, `bun run back`, and `bun run front` for one-time frontend builds.
 
 ### Resources
 
