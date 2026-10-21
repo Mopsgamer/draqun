@@ -63,6 +63,13 @@ func RouteAccount(app *fiber.App) fiber.Router {
 					return htmx.AlertUserExistsEmail
 				}
 
+				if request.Phone != "" {
+					existingUser, _ = model.NewUserFromPhone(request.Phone)
+					if !existingUser.IsEmpty() {
+						return htmx.AlertUserExistsPhone
+					}
+				}
+
 				if request.ConfirmPassword != request.Password {
 					return htmx.AlertUserPasswordConfirm
 				}
@@ -128,12 +135,15 @@ func RouteAccount(app *fiber.App) fiber.Router {
 
 				if user.IsSuspended {
 					reason := user.SuspensionReason
-					if reason == "" {
-						reason = "Account suspended"
+					var msg string
+					if reason != "" {
+						msg = "Your account has been suspended: " + reason
+					} else {
+						msg = "Your account has been suspended"
 					}
 					return htmx.NewAlert(
 						htmx.AlertAccountLocked.Unwrap(),
-						"Your account has been suspended: "+reason,
+						msg,
 						htmx.Danger,
 					)
 				}

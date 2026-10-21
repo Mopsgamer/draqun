@@ -34,6 +34,7 @@ func MapPage(ctx fiber.Ctx, bind fiber.Map) fiber.Map {
 	// other values
 	bindx := fiber.Map{
 		"Ctx":           ctx,
+		"User":          user,
 		"UnreadCount":   unreadCount,
 		"Notifications": notifications,
 
