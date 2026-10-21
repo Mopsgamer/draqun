@@ -6,7 +6,7 @@ import (
 	"embed"
 )
 
-//go:embed go.mod deno.json dist/git.json dist/static client/templates
+//go:embed go.mod package.json dist/git.json dist/static client/templates
 var embedFS embed.FS
 
 const isClientEmbedded = true

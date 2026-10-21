@@ -1,0 +1,43 @@
+{
+	"name": "@m234/draqun",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "bun run scripts/dev.ts",
+		"prod": "bun run scripts/prod.ts",
+		"front": "bun run scripts/make-front.ts",
+		"back": "bun run scripts/make-back.ts",
+		"back:cross": "bun run scripts/make-back-cross.ts",
+		"release": "bun run scripts/release.ts"
+	},
+	"dependencies": {
+		"@iconify-json/lucide": "^1.2.66",
+		"@iconify-json/simple-icons": "^1.2.66",
+		"@iconify/tailwind4": "^1.2.3",
+		"@jsr/m234__logger": "^3.0.8",
+		"@jsr/std__dotenv": "^0.225.8",
+		"@jsr/std__fmt": "^1.0.10",
+		"@jsr/std__fs": "^1.0.24",
+		"@jsr/std__path": "^1.1.6",
+		"@octokit/rest": "^22.0.1",
+		"@tailwindcss/postcss": "^4.3.3",
+		"daisyui": "^5.0.50",
+		"htmx-ext-debug": "^2.0.2",
+		"htmx-ext-ws": "^2.0.4",
+		"htmx.org": "^2.0.11",
+		"is-ci": "^4.1.0",
+		"postcss": "^8.5.1",
+		"semver": "^7.8.5",
+		"swagger-ui-dist": "^5.33.0",
+		"tailwindcss": "^4.3.3",
+		"tree-kill": "^1.2.2"
+	},
+	"devDependencies": {
+		"@types/bun": "latest",
+		"@types/node": "^22.13.0",
+		"@types/semver": "^7.8.0",
+		"@types/swagger-ui-dist": "^3.30.6",
+		"lightningcss": "^1.29.0"
+	}
+}

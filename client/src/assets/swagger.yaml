@@ -1,1343 +1,1343 @@
 openapi: 3.1.1
 info:
- title: Draqun API Docs
- version: 1.0.0
- description: |
-  API documentation for Draqun, including HTMX and WebSocket endpoints.
+  title: Draqun API Docs
+  version: 1.0.0
+  description: |
+    API documentation for Draqun, including HTMX and WebSocket endpoints.
 
-  **HTMX Support:**
-  Most endpoints respond with HTML partials if the `HX-Request` header is present.
-  If the response is an HTMX redirect, it will use the `HX-Redirect` or `HX-Location` headers.
+    **HTMX Support:**
+    Most endpoints respond with HTML partials if the `HX-Request` header is present.
+    If the response is an HTMX redirect, it will use the `HX-Redirect` or `HX-Location` headers.
 
-  **Authentication:**
-  Authentication is handled via a JWT token stored in a cookie named `Authorization`.
+    **Authentication:**
+    Authentication is handled via a JWT token stored in a cookie named `Authorization`.
 tags:
- - name: Account
-   description: User account management, authentication, and settings.
- - name: Group
-   description: Group creation, management, messaging, and membership.
- - name: Pages
-   description: Main application pages.
+  - name: Account
+    description: User account management, authentication, and settings.
+  - name: Group
+    description: Group creation, management, messaging, and membership.
+  - name: Pages
+    description: Main application pages.
 servers:
- - url: http://localhost:3000
+  - url: http://localhost:3000
 paths:
- /:
-  get:
-   tags:
-    - Pages
-   summary: Homepage
-   responses:
-    "200":
-     description: The landing page.
- /terms:
-  get:
-   tags:
-    - Pages
-   summary: Terms of Service
-   responses:
-    "200":
-     description: Terms of service page.
- /privacy:
-  get:
-   tags:
-    - Pages
-   summary: Privacy Policy
-   responses:
-    "200":
-     description: Privacy policy page.
- /acknowledgements:
-  get:
-   tags:
-    - Pages
-   summary: Acknowledgements
-   responses:
-    "200":
-     description: Open source acknowledgements page.
- /docs:
-  get:
-   tags:
-    - Pages
-   summary: Documentation
-   responses:
-    "200":
-     description: This documentation page.
- /settings:
-  get:
-   tags:
-    - Pages
-   summary: User Settings
-   responses:
-    "200":
-     description: User settings page. Requires authentication.
-    "302":
-     description: Redirects to homepage if not authenticated.
- /chat:
-  get:
-   tags:
-    - Pages
-   summary: Chat Home
-   responses:
-    "200":
-     description: Main chat interface or login page if not authenticated.
- /chat/groups/{group_id}:
-  get:
-   tags:
-    - Pages
-   summary: Group Chat Page
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Chat page for a specific group.
-    "302":
-     description: Redirects to /chat if not a member.
- /chat/groups/{group_id}/channels/{channel_id}:
-  get:
-   tags:
-    - Pages
-   summary: Group Chat Channel Page
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: channel_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: status
-      in: query
-      required: false
-      description: Filter tickets by status (open, closed, all) for ticket channels.
-      schema:
-       type: string
-       enum: [open, closed, all]
-       default: open
-    - name: only_parents
-      in: query
-      required: false
-      description: Whether to show only parent/root tickets for ticket channels.
-      schema:
-       type: boolean
-       default: false
-    - name: q
-      in: query
-      required: false
-      description: Search query to filter tickets by title, ID, or description for ticket channels.
-      schema:
-       type: string
-    - name: assigned_to_me
-      in: query
-      required: false
-      description: Filter tickets assigned to the logged-in user.
-      schema:
-       type: boolean
-       default: false
-    - name: created_by_me
-      in: query
-      required: false
-      description: Filter tickets created by the logged-in user.
-      schema:
-       type: boolean
-       default: false
-   responses:
-    "200":
-     description: Chat page for a specific group channel.
-    "302":
-     description: Redirects to /chat if not a member.
- /chat/groups/join/{group_name}:
-  get:
-   tags:
-    - Pages
-   summary: Join Group Page
-   parameters:
-    - name: group_name
-      in: path
-      required: true
-      schema:
-       type: string
-   responses:
-    "200":
-     description: Page to join a public group.
-    "302":
-     description: Redirects to group chat if already a member.
- /account:
-  post:
-   tags:
-    - Account
-   summary: Sign Up
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/UserSignUp"
-   responses:
-    "200":
-     description: Account created and logged in.
-    "400":
-     description: Validation error.
-  delete:
-   tags:
-    - Account
-   summary: Delete Account
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/UserDelete"
-   responses:
-    "200":
-     description: Account deleted.
- /account/login:
-  post:
-   tags:
-    - Account
-   summary: Log In
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/UserLogin"
-   responses:
-    "200":
-     description: Logged in.
-    "401":
-     description: Invalid credentials.
- /account/logout:
-  put:
-   tags:
-    - Account
-   summary: Log Out
-   responses:
-    "200":
-     description: Logged out.
- /account/change/name:
-  put:
-   tags:
-    - Account
-   summary: Change Name/Nickname
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/UserChangeName"
-   responses:
-    "200":
-     description: Name changed.
- /account/change/email:
-  put:
-   tags:
-    - Account
-   summary: Change Email
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/UserChangeEmail"
-   responses:
-    "200":
-     description: Email changed.
- /account/change/phone:
-  put:
-   tags:
-    - Account
-   summary: Change Phone
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/UserChangePhone"
-   responses:
-    "200":
-     description: Phone changed.
- /account/change/password:
-  put:
-   tags:
-    - Account
-   summary: Change Password
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/UserChangePassword"
-   responses:
-    "200":
-     description: Password changed.
- /groups/search:
-  get:
-   tags:
-    - Group
-   summary: Search Groups
-   parameters:
-    - name: q
-      in: query
-      required: true
-      schema:
-       type: string
-   responses:
-    "200":
-     description: List of groups matching the query.
- /groups/create:
-  post:
-   tags:
-    - Group
-   summary: Create Group
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/GroupCreate"
-   responses:
-    "200":
-     description: Group created.
- /groups/{group_id}/join:
-  put:
-   tags:
-    - Group
-   summary: Join Group
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Joined group.
- /groups/{group_id}/leave:
-  delete:
-   tags:
-    - Group
-   summary: Leave Group
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Left group.
- /groups/{group_id}/change:
-  put:
-   tags:
-    - Group
-   summary: Change Group Details
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/GroupChange"
-   responses:
-    "200":
-     description: Group details updated.
- /groups/{group_id}:
-  delete:
-   tags:
-    - Group
-   summary: Delete Group
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Group deleted.
- /groups/{group_id}/messages/create:
-  post:
-   tags:
-    - Group
-   summary: Send Message
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   requestBody:
-    content:
-     multipart/form-data:
-      schema:
-       $ref: "#/components/schemas/MessageCreate"
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/MessageCreate"
-   responses:
-    "200":
-     description: Message sent.
- /groups/{group_id}/messages/page/{messages_page}:
-  get:
-   tags:
-    - Group
-   summary: Get Messages (Paginated)
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: messages_page
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: List of messages.
- /groups/{group_id}/members/page/{members_page}:
-  get:
-   tags:
-    - Group
-   summary: Get Members (Paginated)
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: members_page
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: List of members.
- /groups/{group_id}/settings/roles:
-  get:
-   tags:
-    - Pages
-   summary: Group Roles Page
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Roles management page.
- /groups/{group_id}/settings/roles/create:
-  get:
-   tags:
-    - Pages
-   summary: Create Group Role Page
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Role creation page.
- /groups/{group_id}/settings/roles/{role_id}:
-  get:
-   tags:
-    - Pages
-   summary: Edit Group Role Page
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: role_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Role editing page.
- /groups/{group_id}/settings/members:
-  get:
-   tags:
-    - Pages
-   summary: Group Members Moderation Page
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Members moderation page.
- /groups/{group_id}/settings/audit:
-  get:
-   tags:
-    - Pages
-   summary: Group Audit Log Page
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Audit log page.
- /groups/{group_id}/settings/channels:
-  get:
-   tags:
-    - Pages
-   summary: Group Channels Page
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Channels management page.
- /groups/{group_id}/settings/channels/create:
-  get:
-   tags:
-    - Pages
-   summary: Create Group Channel Page
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Channel creation page.
- /groups/{group_id}/channels/create:
-  post:
-   tags:
-    - Group
-   summary: Create Channel
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/ChannelCreate"
-   responses:
-    "200":
-     description: Channel created.
- /groups/{group_id}/channels/{channel_id}:
-  put:
-   tags:
-    - Group
-   summary: Update Channel
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: channel_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/ChannelChange"
-   responses:
-    "200":
-     description: Channel updated.
-  delete:
-   tags:
-    - Group
-   summary: Delete Channel
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: channel_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Channel deleted.
- /groups/{group_id}/channels/{channel_id}/permissions:
-  post:
-   tags:
-    - Group
-   summary: Set Channel Permission Override
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: channel_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/ChannelPermissionForm"
-   responses:
-    "200":
-     description: Permission override updated.
- /groups/{group_id}/members/search:
-  get:
-   tags:
-    - Group
-   summary: Search Group Members
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: q
-      in: query
-      schema:
-       type: string
-    - name: role_id
-      in: query
-      schema:
-       type: integer
-    - name: channel_id
-      in: query
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: List of matching members.
-  post:
-   tags:
-    - Group
-   summary: Search Group Members
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/MemberSearchForm"
-   responses:
-    "200":
-     description: List of matching members.
- /groups/{group_id}/channels/{channel_id}/assignees:
-  post:
-   tags:
-    - Group
-   summary: Assign Member to Ticket Channel
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: channel_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/TicketAssignForm"
-   responses:
-    "200":
-     description: Member assigned to ticket.
- /groups/{group_id}/channels/{channel_id}/assignees/{user_id}:
-  delete:
-   tags:
-    - Group
-   summary: Remove Assignee from Ticket Channel
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: channel_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: user_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Member unassigned from ticket.
- /groups/{group_id}/tickets/search:
-  get:
-   tags:
-    - Group
-   summary: Search Ticket Channels
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: q
-      in: query
-      schema:
-       type: string
-    - name: exclude_id
-      in: query
-      schema:
-       type: integer
-    - name: mode
-      in: query
-      schema:
-       type: string
-   responses:
-    "200":
-     description: List of matching ticket channels.
-  post:
-   tags:
-    - Group
-   summary: Search Ticket Channels
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/TicketSearchForm"
-   responses:
-    "200":
-     description: List of matching ticket channels.
- /groups/{group_id}/channels/{parent_id}/tickets/create:
-  post:
-   tags:
-    - Group
-   summary: Create Ticket Subchannel
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: parent_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/TicketCreateForm"
-   responses:
-    "200":
-     description: Ticket created.
- /groups/{group_id}/channels/{channel_id}/tickets/edit:
-  post:
-   tags:
-    - Group
-   summary: Edit Ticket Subchannel
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: channel_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/TicketEditForm"
-   responses:
-    "200":
-     description: Ticket updated.
- /groups/{group_id}/channels/{channel_id}/status:
-  post:
-   tags:
-    - Group
-   summary: Update Ticket Status
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: channel_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   requestBody:
-    content:
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/TicketStatusForm"
-   responses:
-    "200":
-     description: Ticket status updated.
- /groups/{group_id}/channels/{channel_id}/messages/create:
-  post:
-   tags:
-    - Group
-   summary: Send Message to Channel
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: channel_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   requestBody:
-    content:
-     multipart/form-data:
-      schema:
-       $ref: "#/components/schemas/MessageCreate"
-     application/x-www-form-urlencoded:
-      schema:
-       $ref: "#/components/schemas/MessageCreate"
-   responses:
-    "200":
-     description: Message sent.
- /groups/{group_id}/channels/{channel_id}/messages/page/{messages_page}:
-  get:
-   tags:
-    - Group
-   summary: Get Channel Messages (Paginated)
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: channel_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: messages_page
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: List of messages.
- /groups/{group_id}/roles/create:
-  post:
-   tags:
-    - Group
-   summary: Create Group Role
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Role created.
- /groups/{group_id}/roles/{role_id}:
-  put:
-   tags:
-    - Group
-   summary: Update Group Role
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: role_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Role updated.
-  delete:
-   tags:
-    - Group
-   summary: Delete Group Role
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: role_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Role deleted.
- /groups/{group_id}/roles/{role_id}/move:
-  post:
-   tags:
-    - Group
-   summary: Reorder Group Role Position
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: role_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: direction
-      in: query
-      required: true
-      schema:
-       type: string
-       enum: [up, down]
-   responses:
-    "200":
-     description: Role reordered.
- /groups/{group_id}/members/{user_id}/roles:
-  post:
-   tags:
-    - Group
-   summary: Assign Role to Member
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: user_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Role assigned.
- /groups/{group_id}/members/{user_id}/roles/{role_id}:
-  delete:
-   tags:
-    - Group
-   summary: Remove Assigned Role from Member
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: user_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: role_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Role unassigned.
- /groups/{group_id}/members/{user_id}/kick:
-  post:
-   tags:
-    - Group
-   summary: Kick Member
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: user_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Member kicked.
- /groups/{group_id}/members/{user_id}/ban:
-  post:
-   tags:
-    - Group
-   summary: Ban Member
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: user_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Member banned.
- /groups/{group_id}/members/{user_id}/unban:
-  post:
-   tags:
-    - Group
-   summary: Unban Member
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-    - name: user_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "200":
-     description: Member unbanned.
- /groups/ws/{group_id}/:
-  get:
-   tags:
-    - Group
-   summary: WebSocket for Group
-   parameters:
-    - name: group_id
-      in: path
-      required: true
-      schema:
-       type: integer
-   responses:
-    "101":
-     description: Switching Protocols.
+  /:
+    get:
+      tags:
+        - Pages
+      summary: Homepage
+      responses:
+        "200":
+          description: The landing page.
+  /terms:
+    get:
+      tags:
+        - Pages
+      summary: Terms of Service
+      responses:
+        "200":
+          description: Terms of service page.
+  /privacy:
+    get:
+      tags:
+        - Pages
+      summary: Privacy Policy
+      responses:
+        "200":
+          description: Privacy policy page.
+  /acknowledgements:
+    get:
+      tags:
+        - Pages
+      summary: Acknowledgements
+      responses:
+        "200":
+          description: Open source acknowledgements page.
+  /docs:
+    get:
+      tags:
+        - Pages
+      summary: Documentation
+      responses:
+        "200":
+          description: This documentation page.
+  /settings:
+    get:
+      tags:
+        - Pages
+      summary: User Settings
+      responses:
+        "200":
+          description: User settings page. Requires authentication.
+        "302":
+          description: Redirects to homepage if not authenticated.
+  /chat:
+    get:
+      tags:
+        - Pages
+      summary: Chat Home
+      responses:
+        "200":
+          description: Main chat interface or login page if not authenticated.
+  /chat/groups/{group_id}:
+    get:
+      tags:
+        - Pages
+      summary: Group Chat Page
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Chat page for a specific group.
+        "302":
+          description: Redirects to /chat if not a member.
+  /chat/groups/{group_id}/channels/{channel_id}:
+    get:
+      tags:
+        - Pages
+      summary: Group Chat Channel Page
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: channel_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: status
+          in: query
+          required: false
+          description: Filter tickets by status (open, closed, all) for ticket channels.
+          schema:
+            type: string
+            enum: [open, closed, all]
+            default: open
+        - name: only_parents
+          in: query
+          required: false
+          description: Whether to show only parent/root tickets for ticket channels.
+          schema:
+            type: boolean
+            default: false
+        - name: q
+          in: query
+          required: false
+          description: Search query to filter tickets by title, ID, or description for ticket channels.
+          schema:
+            type: string
+        - name: assigned_to_me
+          in: query
+          required: false
+          description: Filter tickets assigned to the logged-in user.
+          schema:
+            type: boolean
+            default: false
+        - name: created_by_me
+          in: query
+          required: false
+          description: Filter tickets created by the logged-in user.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Chat page for a specific group channel.
+        "302":
+          description: Redirects to /chat if not a member.
+  /chat/groups/join/{group_name}:
+    get:
+      tags:
+        - Pages
+      summary: Join Group Page
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Page to join a public group.
+        "302":
+          description: Redirects to group chat if already a member.
+  /account:
+    post:
+      tags:
+        - Account
+      summary: Sign Up
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/UserSignUp"
+      responses:
+        "200":
+          description: Account created and logged in.
+        "400":
+          description: Validation error.
+    delete:
+      tags:
+        - Account
+      summary: Delete Account
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/UserDelete"
+      responses:
+        "200":
+          description: Account deleted.
+  /account/login:
+    post:
+      tags:
+        - Account
+      summary: Log In
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/UserLogin"
+      responses:
+        "200":
+          description: Logged in.
+        "401":
+          description: Invalid credentials.
+  /account/logout:
+    put:
+      tags:
+        - Account
+      summary: Log Out
+      responses:
+        "200":
+          description: Logged out.
+  /account/change/name:
+    put:
+      tags:
+        - Account
+      summary: Change Name/Nickname
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/UserChangeName"
+      responses:
+        "200":
+          description: Name changed.
+  /account/change/email:
+    put:
+      tags:
+        - Account
+      summary: Change Email
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/UserChangeEmail"
+      responses:
+        "200":
+          description: Email changed.
+  /account/change/phone:
+    put:
+      tags:
+        - Account
+      summary: Change Phone
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/UserChangePhone"
+      responses:
+        "200":
+          description: Phone changed.
+  /account/change/password:
+    put:
+      tags:
+        - Account
+      summary: Change Password
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/UserChangePassword"
+      responses:
+        "200":
+          description: Password changed.
+  /groups/search:
+    get:
+      tags:
+        - Group
+      summary: Search Groups
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of groups matching the query.
+  /groups/create:
+    post:
+      tags:
+        - Group
+      summary: Create Group
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/GroupCreate"
+      responses:
+        "200":
+          description: Group created.
+  /groups/{group_id}/join:
+    put:
+      tags:
+        - Group
+      summary: Join Group
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Joined group.
+  /groups/{group_id}/leave:
+    delete:
+      tags:
+        - Group
+      summary: Leave Group
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Left group.
+  /groups/{group_id}/change:
+    put:
+      tags:
+        - Group
+      summary: Change Group Details
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/GroupChange"
+      responses:
+        "200":
+          description: Group details updated.
+  /groups/{group_id}:
+    delete:
+      tags:
+        - Group
+      summary: Delete Group
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Group deleted.
+  /groups/{group_id}/messages/create:
+    post:
+      tags:
+        - Group
+      summary: Send Message
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/MessageCreate"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/MessageCreate"
+      responses:
+        "200":
+          description: Message sent.
+  /groups/{group_id}/messages/page/{messages_page}:
+    get:
+      tags:
+        - Group
+      summary: Get Messages (Paginated)
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: messages_page
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages.
+  /groups/{group_id}/members/page/{members_page}:
+    get:
+      tags:
+        - Group
+      summary: Get Members (Paginated)
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: members_page
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of members.
+  /groups/{group_id}/settings/roles:
+    get:
+      tags:
+        - Pages
+      summary: Group Roles Page
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Roles management page.
+  /groups/{group_id}/settings/roles/create:
+    get:
+      tags:
+        - Pages
+      summary: Create Group Role Page
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Role creation page.
+  /groups/{group_id}/settings/roles/{role_id}:
+    get:
+      tags:
+        - Pages
+      summary: Edit Group Role Page
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Role editing page.
+  /groups/{group_id}/settings/members:
+    get:
+      tags:
+        - Pages
+      summary: Group Members Moderation Page
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Members moderation page.
+  /groups/{group_id}/settings/audit:
+    get:
+      tags:
+        - Pages
+      summary: Group Audit Log Page
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Audit log page.
+  /groups/{group_id}/settings/channels:
+    get:
+      tags:
+        - Pages
+      summary: Group Channels Page
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Channels management page.
+  /groups/{group_id}/settings/channels/create:
+    get:
+      tags:
+        - Pages
+      summary: Create Group Channel Page
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Channel creation page.
+  /groups/{group_id}/channels/create:
+    post:
+      tags:
+        - Group
+      summary: Create Channel
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ChannelCreate"
+      responses:
+        "200":
+          description: Channel created.
+  /groups/{group_id}/channels/{channel_id}:
+    put:
+      tags:
+        - Group
+      summary: Update Channel
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: channel_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ChannelChange"
+      responses:
+        "200":
+          description: Channel updated.
+    delete:
+      tags:
+        - Group
+      summary: Delete Channel
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: channel_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Channel deleted.
+  /groups/{group_id}/channels/{channel_id}/permissions:
+    post:
+      tags:
+        - Group
+      summary: Set Channel Permission Override
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: channel_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ChannelPermissionForm"
+      responses:
+        "200":
+          description: Permission override updated.
+  /groups/{group_id}/members/search:
+    get:
+      tags:
+        - Group
+      summary: Search Group Members
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: role_id
+          in: query
+          schema:
+            type: integer
+        - name: channel_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of matching members.
+    post:
+      tags:
+        - Group
+      summary: Search Group Members
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/MemberSearchForm"
+      responses:
+        "200":
+          description: List of matching members.
+  /groups/{group_id}/channels/{channel_id}/assignees:
+    post:
+      tags:
+        - Group
+      summary: Assign Member to Ticket Channel
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: channel_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/TicketAssignForm"
+      responses:
+        "200":
+          description: Member assigned to ticket.
+  /groups/{group_id}/channels/{channel_id}/assignees/{user_id}:
+    delete:
+      tags:
+        - Group
+      summary: Remove Assignee from Ticket Channel
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: channel_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member unassigned from ticket.
+  /groups/{group_id}/tickets/search:
+    get:
+      tags:
+        - Group
+      summary: Search Ticket Channels
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: exclude_id
+          in: query
+          schema:
+            type: integer
+        - name: mode
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of matching ticket channels.
+    post:
+      tags:
+        - Group
+      summary: Search Ticket Channels
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/TicketSearchForm"
+      responses:
+        "200":
+          description: List of matching ticket channels.
+  /groups/{group_id}/channels/{parent_id}/tickets/create:
+    post:
+      tags:
+        - Group
+      summary: Create Ticket Subchannel
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: parent_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/TicketCreateForm"
+      responses:
+        "200":
+          description: Ticket created.
+  /groups/{group_id}/channels/{channel_id}/tickets/edit:
+    post:
+      tags:
+        - Group
+      summary: Edit Ticket Subchannel
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: channel_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/TicketEditForm"
+      responses:
+        "200":
+          description: Ticket updated.
+  /groups/{group_id}/channels/{channel_id}/status:
+    post:
+      tags:
+        - Group
+      summary: Update Ticket Status
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: channel_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/TicketStatusForm"
+      responses:
+        "200":
+          description: Ticket status updated.
+  /groups/{group_id}/channels/{channel_id}/messages/create:
+    post:
+      tags:
+        - Group
+      summary: Send Message to Channel
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: channel_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/MessageCreate"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/MessageCreate"
+      responses:
+        "200":
+          description: Message sent.
+  /groups/{group_id}/channels/{channel_id}/messages/page/{messages_page}:
+    get:
+      tags:
+        - Group
+      summary: Get Channel Messages (Paginated)
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: channel_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: messages_page
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages.
+  /groups/{group_id}/roles/create:
+    post:
+      tags:
+        - Group
+      summary: Create Group Role
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Role created.
+  /groups/{group_id}/roles/{role_id}:
+    put:
+      tags:
+        - Group
+      summary: Update Group Role
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Role updated.
+    delete:
+      tags:
+        - Group
+      summary: Delete Group Role
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Role deleted.
+  /groups/{group_id}/roles/{role_id}/move:
+    post:
+      tags:
+        - Group
+      summary: Reorder Group Role Position
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: direction
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [up, down]
+      responses:
+        "200":
+          description: Role reordered.
+  /groups/{group_id}/members/{user_id}/roles:
+    post:
+      tags:
+        - Group
+      summary: Assign Role to Member
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Role assigned.
+  /groups/{group_id}/members/{user_id}/roles/{role_id}:
+    delete:
+      tags:
+        - Group
+      summary: Remove Assigned Role from Member
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Role unassigned.
+  /groups/{group_id}/members/{user_id}/kick:
+    post:
+      tags:
+        - Group
+      summary: Kick Member
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member kicked.
+  /groups/{group_id}/members/{user_id}/ban:
+    post:
+      tags:
+        - Group
+      summary: Ban Member
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member banned.
+  /groups/{group_id}/members/{user_id}/unban:
+    post:
+      tags:
+        - Group
+      summary: Unban Member
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member unbanned.
+  /groups/ws/{group_id}/:
+    get:
+      tags:
+        - Group
+      summary: WebSocket for Group
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "101":
+          description: Switching Protocols.
 components:
- schemas:
-  UserSignUp:
-   type: object
-   required:
-    - moniker
-    - name
-    - email
-    - phone
-    - password
-    - confirm-password
-   properties:
-    moniker:
-     type: string
-     description: Display name.
-    name:
-     type: string
-     description: Unique username/handle.
-    email:
-     type: string
-     format: email
-    phone:
-     type: string
-    password:
-     type: string
-     format: password
-    confirm-password:
-     type: string
-     format: password
-  UserLogin:
-   type: object
-   required:
-    - email
-    - password
-   properties:
-    email:
-     type: string
-     format: email
-    password:
-     type: string
-     format: password
-  UserDelete:
-   type: object
-   required:
-    - current-password
-    - confirm-name
-   properties:
-    current-password:
-     type: string
-     format: password
-    confirm-name:
-     type: string
-     description: Must match the user's name to confirm deletion.
-  UserChangeName:
-   type: object
-   required:
-    - new-moniker
-    - new-name
-   properties:
-    new-moniker:
-     type: string
-    new-name:
-     type: string
-  UserChangeEmail:
-   type: object
-   required:
-    - current-password
-    - new-email
-   properties:
-    current-password:
-     type: string
-     format: password
-    new-email:
-     type: string
-     format: email
-  UserChangePhone:
-   type: object
-   required:
-    - current-password
-    - new-phone
-   properties:
-    current-password:
-     type: string
-     format: password
-    new-phone:
-     type: string
-  UserChangePassword:
-   type: object
-   required:
-    - current-password
-    - new-password
-    - confirm-password
-   properties:
-    current-password:
-     type: string
-     format: password
-    new-password:
-     type: string
-     format: password
-    confirm-password:
-     type: string
-     format: password
-  GroupCreate:
-   type: object
-   required:
-    - name
-    - nick
-    - mode
-   properties:
-    name:
-     type: string
-     description: Unique group handle.
-    nick:
-     type: string
-     description: Group display name.
-    password:
-     type: string
-     format: password
-     description: Optional password for protected groups.
-    mode:
-     type: string
-     enum: [public, protected, private]
-    description:
-     type: string
-    avatar:
-     type: string
-     format: uri
-  GroupChange:
-   type: object
-   properties:
-    name:
-     type: string
-    nick:
-     type: string
-    password:
-     type: string
-     format: password
-    mode:
-     type: string
-     enum: [public, protected, private]
-    description:
-     type: string
-    avatar:
-     type: string
-     format: uri
-  MessageCreate:
-   type: object
-   properties:
-    content:
-     type: string
-     maxLength: 8000
-    channel_id:
-     type: integer
-    attachment:
-     type: string
-     format: binary
-     description: Optional file attachment.
-  Message:
-   type: object
-   properties:
-    id:
-     type: integer
-    group_id:
-     type: integer
-    channel_id:
-     type: integer
-    author_id:
-     type: integer
-    content:
-     type: string
-    attachment_url:
-     type: string
-    attachment_name:
-     type: string
-    attachment_size:
-     type: integer
-    attachment_type:
-     type: string
-    created_at:
-     type: string
-     format: date-time
-  ChannelCreate:
-   type: object
-   required:
-    - name
-    - moniker
-   properties:
-    name:
-     type: string
-    moniker:
-     type: string
-    description:
-     type: string
-    type:
-     type: string
-     enum: [text, ticket]
-    parent_id:
-     type: integer
-  ChannelChange:
-   type: object
-   properties:
-    name:
-     type: string
-    moniker:
-     type: string
-    description:
-     type: string
-    type:
-     type: string
-     enum: [text, ticket]
-  TicketCreateForm:
-   type: object
-   required:
-    - title
-   properties:
-    title:
-     type: string
-    content:
-     type: string
-  TicketEditForm:
-   type: object
-   properties:
-    title:
-     type: string
-    content:
-     type: string
-    parent_ids:
-     type: array
-     items:
-      type: integer
-  TicketStatusForm:
-   type: object
-   required:
-    - status
-   properties:
-    status:
-     type: string
-     enum: [open, closed]
-    closed_reason:
-     type: string
-     enum: [completed, not_planned, duplicate]
-    duplicate_of_id:
-     type: integer
-  TicketAssignForm:
-   type: object
-   required:
-    - user_id
-   properties:
-    user_id:
-     type: integer
-  ChannelPermissionForm:
-   type: object
-   required:
-    - role_id
-   properties:
-    role_id:
-     type: integer
-    perm_messages:
-     type: string
-    perm_roles:
-     type: string
-    perm_members:
-     type: string
-    perm_group_change:
-     type: string
-    perm_admin:
-     type: string
-    inherit:
-     type: boolean
-  MemberSearchForm:
-   type: object
-   properties:
-    q:
-     type: string
-    role_id:
-     type: integer
-    channel_id:
-     type: integer
-  TicketSearchForm:
-   type: object
-   properties:
-    q:
-     type: string
-    exclude_id:
-     type: integer
-    mode:
-     type: string
+  schemas:
+    UserSignUp:
+      type: object
+      required:
+        - moniker
+        - name
+        - email
+        - phone
+        - password
+        - confirm-password
+      properties:
+        moniker:
+          type: string
+          description: Display name.
+        name:
+          type: string
+          description: Unique username/handle.
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        password:
+          type: string
+          format: password
+        confirm-password:
+          type: string
+          format: password
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    UserDelete:
+      type: object
+      required:
+        - current-password
+        - confirm-name
+      properties:
+        current-password:
+          type: string
+          format: password
+        confirm-name:
+          type: string
+          description: Must match the user's name to confirm deletion.
+    UserChangeName:
+      type: object
+      required:
+        - new-moniker
+        - new-name
+      properties:
+        new-moniker:
+          type: string
+        new-name:
+          type: string
+    UserChangeEmail:
+      type: object
+      required:
+        - current-password
+        - new-email
+      properties:
+        current-password:
+          type: string
+          format: password
+        new-email:
+          type: string
+          format: email
+    UserChangePhone:
+      type: object
+      required:
+        - current-password
+        - new-phone
+      properties:
+        current-password:
+          type: string
+          format: password
+        new-phone:
+          type: string
+    UserChangePassword:
+      type: object
+      required:
+        - current-password
+        - new-password
+        - confirm-password
+      properties:
+        current-password:
+          type: string
+          format: password
+        new-password:
+          type: string
+          format: password
+        confirm-password:
+          type: string
+          format: password
+    GroupCreate:
+      type: object
+      required:
+        - name
+        - nick
+        - mode
+      properties:
+        name:
+          type: string
+          description: Unique group handle.
+        nick:
+          type: string
+          description: Group display name.
+        password:
+          type: string
+          format: password
+          description: Optional password for protected groups.
+        mode:
+          type: string
+          enum: [public, protected, private]
+        description:
+          type: string
+        avatar:
+          type: string
+          format: uri
+    GroupChange:
+      type: object
+      properties:
+        name:
+          type: string
+        nick:
+          type: string
+        password:
+          type: string
+          format: password
+        mode:
+          type: string
+          enum: [public, protected, private]
+        description:
+          type: string
+        avatar:
+          type: string
+          format: uri
+    MessageCreate:
+      type: object
+      properties:
+        content:
+          type: string
+          maxLength: 8000
+        channel_id:
+          type: integer
+        attachment:
+          type: string
+          format: binary
+          description: Optional file attachment.
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        group_id:
+          type: integer
+        channel_id:
+          type: integer
+        author_id:
+          type: integer
+        content:
+          type: string
+        attachment_url:
+          type: string
+        attachment_name:
+          type: string
+        attachment_size:
+          type: integer
+        attachment_type:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    ChannelCreate:
+      type: object
+      required:
+        - name
+        - moniker
+      properties:
+        name:
+          type: string
+        moniker:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [text, ticket]
+        parent_id:
+          type: integer
+    ChannelChange:
+      type: object
+      properties:
+        name:
+          type: string
+        moniker:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [text, ticket]
+    TicketCreateForm:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+    TicketEditForm:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        parent_ids:
+          type: array
+          items:
+            type: integer
+    TicketStatusForm:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [open, closed]
+        closed_reason:
+          type: string
+          enum: [completed, not_planned, duplicate]
+        duplicate_of_id:
+          type: integer
+    TicketAssignForm:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: integer
+    ChannelPermissionForm:
+      type: object
+      required:
+        - role_id
+      properties:
+        role_id:
+          type: integer
+        perm_messages:
+          type: string
+        perm_roles:
+          type: string
+        perm_members:
+          type: string
+        perm_group_change:
+          type: string
+        perm_admin:
+          type: string
+        inherit:
+          type: boolean
+    MemberSearchForm:
+      type: object
+      properties:
+        q:
+          type: string
+        role_id:
+          type: integer
+        channel_id:
+          type: integer
+    TicketSearchForm:
+      type: object
+      properties:
+        q:
+          type: string
+        exclude_id:
+          type: integer
+        mode:
+          type: string

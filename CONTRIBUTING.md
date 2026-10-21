@@ -5,7 +5,7 @@
 1. Install required tools.
    - Git, obviously
    - [Go](https://go.dev/doc/install) `^1.27.2`
-   - [Deno](https://deno.com/) `^2.9.7`
+   - [Bun](https://bun.sh/) `^1.2.0`
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
    and
    [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
@@ -16,36 +16,31 @@
    or a [Codespace](https://docs.github.com/en/codespaces/quickstart).
 4. Open terminal. You can use built-in
    [VSC terminal](https://code.visualstudio.com/docs/terminal/getting-started).
-5. Run `deno install` to install required client dependencies.
+5. Run `bun install` to install required client dependencies.
 6. Run `go mod download` to install required server dependencies (optional).
-7. Run `deno task init` (or select **deno task init** from VS Code's **Tasks:
-   Run Task**) to configure the Git pre-commit hook. The `--no-git-hook` option
-   is available to skip or remove the managed hook.
-8. Environment (`.env`) creation, database table creation, and schema migrations
+7. Environment (`.env`) creation, database table creation, and schema migrations
    are executed automatically by the Go backend server upon startup. You can
    customize `.env` values (such as `JWT_KEY` or `PORT`) as needed.
-9. Run `deno task dev` to build client files and start the server.
-10. Open your browser and navigate to `http://localhost:3000` (or hold the
-    <kbd>Ctrl</kbd> key and click the link in the terminal).
+8. Run `bun run dev` to build client files and start the server.
+9. Open your browser and navigate to `http://localhost:3000` (or hold the
+   <kbd>Ctrl</kbd> key and click the link in the terminal).
 
 ## Making changes
 
-Run `deno task dev` to build and serve locally. It also watches client files and
+Run `bun run dev` to build and serve locally. It also watches client files and
 rebuilds frontend assets when they change:
 
 > [!NOTE]
 > You can use Visual Studio Code's task commands: `Tasks: Run Task`.
 >
-> - `deno task dev` to build frontend assets, watch for client changes, and run
+> - `bun run dev` to build frontend assets, watch for client changes, and run
 >   the development server.
 
 ```bash
-deno task dev
+bun run dev
 ```
 
-Other available VS Code tasks mirror the Deno tasks: `deno task init`,
-`deno task prepare`, `deno task back`, and `deno task front` for one-time
-frontend builds.
+Other available VS Code tasks mirror the Bun tasks: `bun lint`, `bun fmt`, `bun run back`, and `bun run front` for one-time frontend builds.
 
 ### Resources
 
@@ -131,13 +126,13 @@ Examples:
 You can get next version and changelog output without creating a release:
 
 ```bash
-deno task release
+bun run release
 ```
 
 You can also create a release from your machine, but it is not recommended:
 
 ```bash
-deno task release --force
+bun run release --force
 ```
 
 ## Compilation
@@ -159,34 +154,33 @@ Available go build tags:
 
 Example: `go -o dist/server.exe -tags lite,prod .`
 
-Available deno tasks:
+Available Bun tasks:
 
 ```bash
 # -tags prod
-deno task back
-deno task back:cross
+bun run back
+bun run back:cross
 
 # -tags lite
-deno task back dev
-deno task back:cross dev
+bun run back dev
+bun run back:cross dev
 ```
 
 ## Burn it all down
 
 ### Purge global caches & artifacts
 
-Even after deleting the folder, Deno and Go leave cached modules and build
+Even after deleting the folder, Bun and Go leave cached modules and build
 artifacts in your system directories. Run these commands to wipe them out
 completely from your local environment:
 
 ```bash
 # Remove cached modules, lockfiles, etc.
-deno clean
+bun pm cache rm
 # Remove all build and module download caches
 go clean -cache -modcache
 ```
 
-- Deno Registry Cache: Located at `~/.cache/deno` (Linux/macOS) or
-  `%LOCALAPPDATA%\deno` (Windows).
+- Bun Registry Cache: Located at `~/.bun/install/cache` (Linux/macOS).
 - Go Module Cache: Located at `$GOPATH/pkg/mod` (usually `~/go/pkg/mod`)
   (Linux/macOS) or `%USERPROFILE%\go\pkg\mod` (Windows).

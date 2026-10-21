@@ -1,9 +1,11 @@
 import { inc, type ReleaseType } from "semver";
 import { Octokit } from "@octokit/rest";
-import denojson from "../deno.json" with { type: "json" };
+import pkgJson from "../package.json" with { type: "json" };
 import { logRelease } from "./tool/constants.ts";
-import { existsSync, expandGlob } from "@std/fs";
-import { basename } from "@std/path";
+import { existsSync } from "node:fs";
+import fs from "node:fs/promises";
+import path, { basename } from "node:path";
+import { spawnSync } from "node:child_process";
 import isCI from "is-ci";
 import { showHelp } from "./tool/help.ts";
 
@@ -11,7 +13,7 @@ if (
 	showHelp({
 		name: "release",
 		description: "Calculate a release version and create a GitHub release.",
-		usage: "deno task release [release-type] [alpha|beta] [--dry-run]",
+		usage: "bun run release [release-type] [alpha|beta] [--dry-run]",
 		options: [
 			"-h, --help                  Show this help.",
 			"--dry-run                   Calculate the version and changelog without publishing.",
@@ -20,14 +22,15 @@ if (
 		],
 	})
 ) {
-	Deno.exit(0);
+	process.exit(0);
 }
 
 const gitLogFormat = "- [%h] %s (@%cN)";
 const preIdList = ["alpha", "beta"];
-const preId = Deno.args.find((a) => preIdList.includes(a));
+const args = process.argv.slice(2);
+const preId = args.find((a) => preIdList.includes(a));
 
-let isDryRun = Deno.args.includes("--dry-run");
+let isDryRun = args.includes("--dry-run");
 
 if (!isCI) {
 	isDryRun = true;
@@ -38,17 +41,17 @@ if (!isCI) {
 	);
 }
 
-if (!Deno.env.has("GITHUB_TOKEN")) {
+if (!process.env.GITHUB_TOKEN) {
 	logRelease.error("Environment variable GITHUB_TOKEN is not set.");
-	Deno.exit(1);
+	process.exit(1);
 }
 
-const manifestPath = "deno.json";
+const manifestPath = "package.json";
 const manifestExists = existsSync(manifestPath);
 
 if (!manifestExists) {
 	logRelease.error("Manifest file " + manifestPath + " not found.");
-	Deno.exit(1);
+	process.exit(1);
 }
 
 const latestTag = getLastTag();
@@ -61,19 +64,17 @@ const newChangelog = getNewChangelog(latestTag);
 if (isDryRun) {
 	logRelease.info("Changelog:\n" + newChangelog);
 }
-logRelease.info("Increment: " + denojson.version + " -> " + newVersion);
+logRelease.info("Increment: " + pkgJson.version + " -> " + newVersion);
 logRelease.info("Old latest tag: " + latestTagString);
 
-const { stdout: headStdout } = new Deno.Command("git", {
-	args: ["rev-parse", "HEAD"],
-}).outputSync();
-const preBumpCommitSha = new TextDecoder().decode(headStdout).trim();
+const headRes = spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf-8" });
+const preBumpCommitSha = headRes.stdout ? headRes.stdout.trim() : "";
 let hasPushedBump = false;
 
 try {
-	// 1. If not a dry run and version changed, update, commit, and push deno.json
-	if (newVersion !== denojson.version) {
-		const manifestOldContent = await Deno.readTextFile(manifestPath);
+	// 1. If not a dry run and version changed, update, commit, and push package.json
+	if (newVersion !== pkgJson.version) {
+		const manifestOldContent = await fs.readFile(manifestPath, "utf-8");
 		const manifestNewContent = manifestOldContent.replace(
 			/("version"\s*:\s*")([^"]+)(")/,
 			`$1${newVersion}$3`,
@@ -82,12 +83,14 @@ try {
 			const task = logRelease.task({
 				text: "Writing new version to " + manifestPath,
 			});
-			await Deno.writeTextFile(manifestPath, manifestNewContent);
+			await fs.writeFile(manifestPath, manifestNewContent, "utf-8");
 			task.end("completed");
 
-			const taskGit = logRelease.task({
-				text: "Committing and pushing version bump to git",
-			}).start();
+			const taskGit = logRelease
+				.task({
+					text: "Committing and pushing version bump to git",
+				})
+				.start();
 			commitAndPushManifest(newVersion);
 			hasPushedBump = true;
 			taskGit.end("completed");
@@ -96,34 +99,38 @@ try {
 
 	// 2. If not a dry run, compile client assets and cross-compile backend binaries
 	if (!isDryRun) {
-		const taskFront = logRelease.task({
-			text: "Compiling client frontend assets",
-		}).start();
-		const frontCmd = new Deno.Command("deno", {
-			args: ["task", "front"],
-		}).outputSync();
-		if (!frontCmd.success) {
+		const taskFront = logRelease
+			.task({
+				text: "Compiling client frontend assets",
+			})
+			.start();
+		const frontCmd = spawnSync("bun", ["run", "front"], { stdio: "inherit" });
+		if (frontCmd.status !== 0) {
 			taskFront.end("failed");
 			throw new Error("Failed to compile client frontend assets.");
 		}
 		taskFront.end("completed");
 
-		const taskBack = logRelease.task({
-			text: "Building cross-compiled binaries",
-		}).start();
-		const backCmd = new Deno.Command("deno", {
-			args: ["task", "back:cross"],
-		}).outputSync();
-		if (!backCmd.success) {
+		const taskBack = logRelease
+			.task({
+				text: "Building cross-compiled binaries",
+			})
+			.start();
+		const backCmd = spawnSync("bun", ["run", "back:cross"], {
+			stdio: "inherit",
+		});
+		if (backCmd.status !== 0) {
 			taskBack.end("failed");
 			throw new Error("Failed to build cross-compiled binaries.");
 		}
 		taskBack.end("completed");
 
 		// 2.1 Compute SHA-256 checksums and write to dist/checksums.txt
-		const taskChecksums = logRelease.task({
-			text: "Generating SHA-256 checksums",
-		}).start();
+		const taskChecksums = logRelease
+			.task({
+				text: "Generating SHA-256 checksums",
+			})
+			.start();
 		await writeChecksumsFile();
 		taskChecksums.end("completed");
 	}
@@ -133,7 +140,7 @@ try {
 	if (hasPushedBump) {
 		rollback(preBumpCommitSha);
 	}
-	Deno.exit(1);
+	process.exit(1);
 }
 
 // 3. If not a dry run, create tag and push it
@@ -153,15 +160,15 @@ if (!isDryRun) {
 }
 
 function getCurrentBranch(): string {
-	const githubRef = Deno.env.get("GITHUB_REF_NAME");
+	const githubRef = process.env.GITHUB_REF_NAME;
 	if (githubRef) {
 		return githubRef;
 	}
-	const { success, stdout } = new Deno.Command("git", {
-		args: ["rev-parse", "--abbrev-ref", "HEAD"],
-	}).outputSync();
-	if (success) {
-		const branch = new TextDecoder().decode(stdout).trim();
+	const res = spawnSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
+		encoding: "utf-8",
+	});
+	if (res.status === 0 && res.stdout) {
+		const branch = res.stdout.trim();
 		if (branch && branch !== "HEAD") {
 			return branch;
 		}
@@ -170,40 +177,42 @@ function getCurrentBranch(): string {
 }
 
 function commitAndPushManifest(version: string): void {
-	const addCmd = new Deno.Command("git", {
-		args: ["add", "deno.json"],
-	}).outputSync();
-	if (!addCmd.success) {
-		logRelease.error("Failed to git add deno.json");
-		Deno.exit(1);
+	const addCmd = spawnSync("git", ["add", "package.json"], {
+		stdio: "inherit",
+	});
+	if (addCmd.status !== 0) {
+		logRelease.error("Failed to git add package.json");
+		process.exit(1);
 	}
-	const commitCmd = new Deno.Command("git", {
-		args: ["commit", "-m", `chore(release): bump version to ${version}`],
-	}).outputSync();
-	if (!commitCmd.success) {
-		logRelease.error("Failed to git commit deno.json");
-		Deno.exit(1);
+	const commitCmd = spawnSync(
+		"git",
+		["commit", "-m", `chore(release): bump version to ${version}`],
+		{ stdio: "inherit" },
+	);
+	if (commitCmd.status !== 0) {
+		logRelease.error("Failed to git commit package.json");
+		process.exit(1);
 	}
 	const branchName = getCurrentBranch();
-	const pushCmd = new Deno.Command("git", {
-		args: ["push", "origin", `HEAD:${branchName}`],
-	}).outputSync();
-	if (!pushCmd.success) {
-		logRelease.error("Failed to git push deno.json");
-		Deno.exit(1);
+	const pushCmd = spawnSync("git", ["push", "origin", `HEAD:${branchName}`], {
+		stdio: "inherit",
+	});
+	if (pushCmd.status !== 0) {
+		logRelease.error("Failed to git push package.json");
+		process.exit(1);
 	}
 }
 
 function rollback(targetSha: string): void {
 	logRelease.warn("Initiating automated rollback...");
-	new Deno.Command("git", {
-		args: ["reset", "--hard", targetSha],
-	}).outputSync();
+	spawnSync("git", ["reset", "--hard", targetSha], { stdio: "inherit" });
 	const branchName = getCurrentBranch();
-	const pushCmd = new Deno.Command("git", {
-		args: ["push", "origin", `HEAD:${branchName}`, "--force"],
-	}).outputSync();
-	if (!pushCmd.success) {
+	const pushCmd = spawnSync(
+		"git",
+		["push", "origin", `HEAD:${branchName}`, "--force"],
+		{ stdio: "inherit" },
+	);
+	if (pushCmd.status !== 0) {
 		logRelease.error("Failed to force-push rollback commit.");
 	} else {
 		logRelease.success(
@@ -214,23 +223,33 @@ function rollback(targetSha: string): void {
 
 async function writeChecksumsFile(): Promise<void> {
 	let checksumsContent = "";
-	for await (const entry of expandGlob("dist/server-*")) {
-		if (!entry.isFile) continue;
-		const hash = await getSha256(entry.path);
-		checksumsContent += `${hash}  ${entry.name}\n`;
+	if (existsSync("dist")) {
+		const files = await fs.readdir("dist");
+		for (const file of files) {
+			if (!file.startsWith("server-")) continue;
+			const filePath = path.join("dist", file);
+			const stat = await fs.stat(filePath);
+			if (!stat.isFile()) continue;
+			const hash = await getSha256(filePath);
+			checksumsContent += `${hash}  ${file}\n`;
+		}
 	}
 	if (checksumsContent) {
-		await Deno.writeTextFile("dist/checksums.txt", checksumsContent);
+		await fs.writeFile("dist/checksums.txt", checksumsContent, "utf-8");
 	}
 }
 
 async function getSha256(filePath: string): Promise<string> {
-	const data = await Deno.readFile(filePath);
+	const data = await fs.readFile(filePath);
 	const hashBuffer = await crypto.subtle.digest("SHA-256", data);
 	const hashArray = Array.from(new Uint8Array(hashBuffer));
-	const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+	const hashHex = hashArray
+		.map((b) => b.toString(16).padStart(2, "0"))
+		.join("");
 	return hashHex;
 }
+
+type RepoInfo = { owner: string; repoName: string };
 
 async function createRelease(
 	name: string,
@@ -238,35 +257,39 @@ async function createRelease(
 	changelog: string,
 	{ owner, repoName }: RepoInfo,
 ): Promise<void> {
-	const o = new Octokit({ auth: Deno.env.get("GITHUB_TOKEN")! });
+	const o = new Octokit({ auth: process.env.GITHUB_TOKEN! });
 	const release = await o.repos.createRelease({
 		owner,
 		repo: repoName,
 		tag_name: tagName,
 		draft: true,
 		prerelease: tagName.includes("-"),
-
 		name,
 		body: changelog,
 	});
 
 	const assetsToUpload: string[] = [];
-	for await (const entry of expandGlob("dist/server-*")) {
-		if (entry.isFile) assetsToUpload.push(entry.path);
+	if (existsSync("dist")) {
+		const files = await fs.readdir("dist");
+		for (const file of files) {
+			if (file.startsWith("server-")) {
+				assetsToUpload.push(path.join("dist", file));
+			}
+		}
 	}
 	if (existsSync("dist/checksums.txt")) {
 		assetsToUpload.push("dist/checksums.txt");
 	}
 
 	for (const assetPath of assetsToUpload) {
-		const name = basename(assetPath);
-		const content = await Deno.readFile(assetPath);
+		const assetName = basename(assetPath);
+		const content = await fs.readFile(assetPath);
 
 		await o.repos.uploadReleaseAsset({
 			release_id: release.data.id,
 			owner,
 			repo: repoName,
-			name,
+			name: assetName,
 			data: content as unknown as string,
 			headers: {
 				"content-type": "application/octet-stream",
@@ -285,17 +308,12 @@ async function createRelease(
 	});
 }
 
-type RepoInfo = { owner: string; repoName: string };
 function getRepoInfo(): RepoInfo {
-	const { stdout } = new Deno.Command("git", {
-		args: [
-			"config",
-			"--get",
-			"remote.origin.url",
-		],
-	}).outputSync();
+	const res = spawnSync("git", ["config", "--get", "remote.origin.url"], {
+		encoding: "utf-8",
+	});
 
-	const output = new TextDecoder().decode(stdout).trim();
+	const output = res.stdout ? res.stdout.trim() : "";
 	const match = output.match(/github\.com[:/](.+)\/(.+?)(?:\.git)?$/);
 	if (!match) {
 		throw new Error(
@@ -310,15 +328,16 @@ function getRepoInfo(): RepoInfo {
 function getNewVersion(): string {
 	let releaseType: ReleaseType;
 
-	const found = (["major", "minor", "patch", "release"] as ReleaseType[])
-		.find((a) => Deno.args.includes(a));
+	const found = (["major", "minor", "patch", "release"] as ReleaseType[]).find(
+		(a) => args.includes(a),
+	);
 	let result: string | null;
 	if (preId !== undefined) {
-		releaseType = found ? ("pre" + found) as ReleaseType : "premajor";
-		result = inc(denojson.version, releaseType, preId);
+		releaseType = found ? (`pre${found}` as ReleaseType) : "premajor";
+		result = inc(pkgJson.version, releaseType, preId);
 	} else {
 		releaseType = found || getReleaseTypeFromCommits();
-		result = inc(denojson.version, releaseType);
+		result = inc(pkgJson.version, releaseType);
 	}
 
 	if (!result) throw new Error("Invalid inc result");
@@ -326,45 +345,37 @@ function getNewVersion(): string {
 }
 
 function createTag(name: string, changelog: string): void {
-	const tagCmd = new Deno.Command(`git`, {
-		args: [
-			"tag",
-			"-a",
-			name,
-			`-m`,
-			changelog,
-		],
-	}).outputSync();
-	if (!tagCmd.success) {
+	const tagCmd = spawnSync("git", ["tag", "-a", name, "-m", changelog], {
+		stdio: "inherit",
+	});
+	if (tagCmd.status !== 0) {
 		logRelease.error("Failed to git tag release version.");
-		Deno.exit(1);
+		process.exit(1);
 	}
 
-	const pushCmd = new Deno.Command(`git`, {
-		args: [
-			"push",
-			"origin",
-			`--tags`,
-		],
-	}).outputSync();
-	if (!pushCmd.success) {
+	const pushCmd = spawnSync("git", ["push", "origin", "--tags"], {
+		stdio: "inherit",
+	});
+	if (pushCmd.status !== 0) {
 		logRelease.error("Failed to push git tags.");
-		Deno.exit(1);
+		process.exit(1);
 	}
 }
 
 function getNewChangelog(from?: string): string {
-	const { stdout } = new Deno.Command(`git`, {
-		args: [
+	const res = spawnSync(
+		"git",
+		[
 			"log",
 			"--all",
 			"--reverse",
 			`--format=${gitLogFormat}`,
 			`${from ? `${from}..` : ""}HEAD`,
 		],
-	}).outputSync();
+		{ encoding: "utf-8" },
+	);
 
-	const output = new TextDecoder().decode(stdout);
+	const output = res.stdout ? res.stdout : "";
 	const lines = output.split("\n").filter((l) => l.trim() !== "");
 	if (lines.length === 0) {
 		return "Initial release.";
@@ -380,7 +391,6 @@ function getNewChangelog(from?: string): string {
 	};
 
 	for (const line of lines) {
-		// Example: "- [ab12cd3] feat(scope): add new login screen (@user)"
 		const match = line.match(
 			/^-\s*\[[0-9a-fA-F]+\]\s+([a-zA-Z]+)(?:\([a-zA-Z0-9._-]+\))?!?:\s*(.*)/,
 		);
@@ -424,7 +434,8 @@ function getReleaseTypeFromCommits(): ReleaseType {
 	const messageList = getCommitMessages().split("\n");
 	let result: ReleaseType = "patch";
 	for (const message of messageList) {
-		const isMajor = /^[a-zA-Z\d]+(\([a-zA-Z\d]+\))?!/g.test(message) ||
+		const isMajor =
+			/^[a-zA-Z\d]+(\([a-zA-Z\d]+\))?!/g.test(message) ||
 			major.some((s) => message.startsWith(s));
 		if (isMajor) {
 			return "major";
@@ -439,47 +450,35 @@ function getReleaseTypeFromCommits(): ReleaseType {
 }
 
 function getLastTag(): string | undefined {
-	const { code, stdout } = new Deno.Command("git", {
-		args: [
-			"describe",
-			"--tags",
-			"--match=*",
-			"--no-abbrev",
-			"HEAD",
-		],
-	}).outputSync();
+	const res = spawnSync(
+		"git",
+		["describe", "--tags", "--match=*", "--no-abbrev", "HEAD"],
+		{ encoding: "utf-8" },
+	);
 
-	if (code === 128) {
+	if (res.status !== 0 || !res.stdout) {
 		return undefined;
 	}
 
-	const output = new TextDecoder().decode(stdout);
-	return output.trim();
+	return res.stdout.trim();
 }
 
-type Commit = {
-	hash: string;
-	shortHash: string;
-	date: Date;
-	message: string;
-	body: string;
-};
-
 function getCommitMessages(from?: string): string {
-	const gitLogFormat = "%s";
-	const { code, stdout } = new Deno.Command(`git`, {
-		args: [
+	const formatStr = "%s";
+	const res = spawnSync(
+		"git",
+		[
 			"log",
 			"--reverse",
-			`--format=${gitLogFormat}`,
+			`--format=${formatStr}`,
 			`${from ? `${from}..` : ""}HEAD`,
 		],
-	}).outputSync();
+		{ encoding: "utf-8" },
+	);
 
-	if (code === 128) {
+	if (res.status !== 0 || !res.stdout) {
 		return "";
 	}
 
-	const output = new TextDecoder().decode(stdout);
-	return output;
+	return res.stdout;
 }

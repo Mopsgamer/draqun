@@ -6,11 +6,11 @@ if (
 	showHelp({
 		name: "back:cross",
 		description: "Cross-compile the backend for Windows, Linux, and macOS.",
-		usage: "deno task back:cross",
+		usage: "bun run back:cross",
 		options: ["-h, --help  Show this help."],
 	})
 ) {
-	Deno.exit(0);
+	process.exit(0);
 }
 
 const osList = ["windows", "linux", "darwin"] as const;
@@ -27,7 +27,7 @@ let success = true;
 logServerComp.info("Plan:");
 for (const [os, arch] of targets) {
 	const { filePath } = binaryInfo(os, arch);
-	logServerComp.info("\t" + filePath);
+	logServerComp.info(`\t${filePath}`);
 }
 for (const [os, arch] of targets) {
 	const { filePath } = binaryInfo(os, arch);
@@ -36,10 +36,10 @@ for (const [os, arch] of targets) {
 	});
 	task.start();
 	const result = await compile(os, arch);
-	success &&= result;
+	success = success && result;
 	task.end(result ? "completed" : "failed");
 }
 
 if (!success) {
-	Deno.exit(1);
+	process.exit(1);
 }

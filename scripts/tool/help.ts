@@ -9,10 +9,11 @@ export function showHelp(
 	{ name, description, usage, options = [] }: HelpOptions,
 	allowBareHelp = false,
 ): boolean {
+	const args = process.argv.slice(2);
 	if (
-		!Deno.args.includes("-h") &&
-		!Deno.args.includes("--help") &&
-		!(allowBareHelp && Deno.args.includes("help"))
+		!args.includes("-h") &&
+		!args.includes("--help") &&
+		!(allowBareHelp && args.includes("help"))
 	) {
 		return false;
 	}
@@ -29,6 +30,6 @@ ${options.map((option) => `  ${option}`).join("\n")}`);
 	}
 
 	console.log(`
-Run "deno task ${name} --help" to show this help.`);
+Run "bun run ${name} --help" to show this help.`);
 	return true;
 }

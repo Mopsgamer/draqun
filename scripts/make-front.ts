@@ -1,18 +1,15 @@
-import * as esbuild from "esbuild";
-import { denoPlugin } from "@deno/esbuild-plugin";
-import { existsSync } from "@std/fs";
-import { cp } from "node:fs/promises";
+import fs from "node:fs/promises";
+import fsSync from "node:fs";
+import path from "node:path";
+import postcss from "postcss";
+import tailwindcss from "@tailwindcss/postcss";
+import { transform } from "lightningcss";
+import { format, type TaskRunnerReturn } from "@jsr/m234__logger";
 import { distFolder, logClientComp } from "./tool/constants.ts";
-import tailwindcssPlugin from "esbuild-plugin-tailwindcss";
-import { format, type TaskRunnerReturn } from "@m234/logger";
 import { showHelp } from "./tool/help.ts";
 
-type BuildOptions = esbuild.BuildOptions & {
-	whenChange?: string[];
-};
-
 async function notifyHMR(type: "css" | "reload"): Promise<void> {
-	const port = Deno.env.get("PORT") || "3000";
+	const port = process.env.PORT || "3000";
 	try {
 		await fetch(`http://localhost:${port}/__hmr/notify?type=${type}`, {
 			method: "POST",
@@ -22,230 +19,264 @@ async function notifyHMR(type: "css" | "reload"): Promise<void> {
 	}
 }
 
-async function build(
-	options: BuildOptions,
+async function buildJs(
 	isWatch: boolean,
+	minify: boolean,
 ): Promise<TaskRunnerReturn> {
-	const { outdir, outfile, entryPoints = [], whenChange = [] } = options;
+	const entryPoints = [
+		"client/src/ts/app.ts",
+		"client/src/ts/docs.ts",
+		"client/src/ts/homepage.ts",
+		"client/src/ts/main.ts",
+		"client/src/ts/hmr.ts",
+	];
 
-	const entryPointsNormalized = Array.isArray(entryPoints)
-		? entryPoints
-		: Object.keys(entryPoints);
-
-	const badEntryPoints = entryPointsNormalized.filter((entry) => {
-		const pth = typeof entry === "string" ? entry : entry.in;
-
-		if (pth.includes("*")) {
-			return false;
+	for (const ep of entryPoints) {
+		if (!fsSync.existsSync(ep)) {
+			logClientComp.error(`File expected to exist: ${ep}`);
+			return "failed";
 		}
-
-		try {
-			return !existsSync(pth);
-		} catch {
-			return true;
-		}
-	});
-
-	if (badEntryPoints.length > 0) {
-		logClientComp.error(
-			format("File expected to exist: %o", badEntryPoints),
-		);
-		return "failed";
 	}
 
-	if (!outfile && !outdir) {
-		logClientComp.error("Provide outdir or outfile.");
-		return "failed";
-	}
+	const outdir = path.join(distFolder, "static/js");
 
-	if (outfile && outdir) {
-		logClientComp.error("Can not use outdir and outfile at the same time.");
-		return "failed";
-	}
-
-	const safeOptions = options;
-	delete safeOptions.whenChange;
-	let ctx: esbuild.BuildContext<esbuild.BuildOptions>;
 	try {
-		ctx = await esbuild.context(safeOptions as esbuild.BuildOptions);
+		const res = await Bun.build({
+			entrypoints: entryPoints,
+			outdir,
+			minify,
+			target: "browser",
+			format: "esm",
+			naming: "[name].[ext]",
+		});
+
+		if (!res.success) {
+			for (const log of res.logs) {
+				logClientComp.error(format(log));
+			}
+			return "failed";
+		}
 	} catch (error) {
 		logClientComp.error(format(error));
 		return "failed";
 	}
 
+	if (isWatch) {
+		watchDir("client/src/ts", async (paths) => {
+			const relevant = paths.filter(
+				(p) => p.endsWith(".ts") || p.endsWith(".js"),
+			);
+			if (relevant.length === 0) return;
+
+			let fileDesc: string;
+			if (relevant.length === 1) {
+				const p = relevant[0]!.replaceAll("\\", "/");
+				fileDesc = ` '${p.slice(p.lastIndexOf("/") + 1)}'`;
+			} else {
+				fileDesc = ` (${relevant.length} files)`;
+			}
+
+			try {
+				const start = performance.now();
+				const res = await Bun.build({
+					entrypoints: entryPoints,
+					outdir,
+					minify,
+					target: "browser",
+					format: "esm",
+					naming: "[name].[ext]",
+				});
+
+				if (!res.success) {
+					logClientComp.error(
+						`Frontend build failed at ${new Date().toLocaleTimeString()}${fileDesc}`,
+					);
+					return;
+				}
+
+				const duration = (performance.now() - start).toFixed(0);
+				logClientComp.info(
+					`Frontend rebuilt in ${duration}ms at ${new Date().toLocaleTimeString()}${fileDesc}`,
+				);
+				await notifyHMR("reload");
+			} catch (err) {
+				logClientComp.error(
+					`Frontend build failed at ${new Date().toLocaleTimeString()}${fileDesc}: ${
+						(err as Error).message
+					}`,
+				);
+			}
+		});
+	}
+
+	return "completed";
+}
+
+async function compileCssFile(
+	entryPath: string,
+	outPath: string,
+	minify: boolean,
+): Promise<void> {
+	const css = await fs.readFile(entryPath, "utf8");
+	const result = await postcss([tailwindcss()]).process(css, {
+		from: entryPath,
+		to: outPath,
+	});
+	await fs.mkdir(path.dirname(outPath), { recursive: true });
+
+	let code = result.css;
+	if (minify) {
+		const transformed = transform({
+			filename: entryPath,
+			code: Buffer.from(code),
+			minify: true,
+		});
+		code = transformed.code.toString();
+	}
+
+	await fs.writeFile(outPath, code, "utf8");
+}
+
+async function buildCss(
+	isWatch: boolean,
+	minify: boolean,
+): Promise<TaskRunnerReturn> {
+	const cssEntries = [
+		{
+			in: "client/src/tailwindcss/main.css",
+			out: path.join(distFolder, "static/css/main.css"),
+		},
+		{
+			in: "client/src/tailwindcss/homepage.css",
+			out: path.join(distFolder, "static/css/homepage.css"),
+		},
+		{
+			in: "client/src/tailwindcss/docs.css",
+			out: path.join(distFolder, "static/css/docs.css"),
+		},
+	];
+
+	for (const entry of cssEntries) {
+		if (!fsSync.existsSync(entry.in)) {
+			logClientComp.error(`File expected to exist: ${entry.in}`);
+			return "failed";
+		}
+	}
+
 	try {
-		await ctx.rebuild();
+		for (const entry of cssEntries) {
+			await compileCssFile(entry.in, entry.out, minify);
+		}
 	} catch (error) {
 		logClientComp.error((error as Error).message);
 		return "failed";
 	}
 
-	if (!isWatch) {
-		await ctx.dispose();
-		return "completed";
-	}
+	if (isWatch) {
+		const watchDirs = ["client/templates", "client/src/tailwindcss"];
+		for (const watchDirFolder of watchDirs) {
+			watchDir(watchDirFolder, async (paths) => {
+				const relevant = paths.filter(
+					(p) => p.endsWith(".css") || p.endsWith(".tmpl"),
+				);
+				if (relevant.length === 0) return;
 
-	try {
-		await ctx.watch();
-	} catch (error) {
-		logClientComp.error(format(error));
-		return "failed";
-	}
-
-	if (whenChange.length === 0) {
-		logClientComp.error("Nothing to watch: " + whenChange.join(", ") + ".");
-		await ctx.dispose();
-		return "failed";
-	}
-
-	let watcher: Deno.FsWatcher;
-	try {
-		watcher = Deno.watchFs(whenChange, { recursive: true });
-	} catch (error) {
-		logClientComp.error(format(error));
-		logClientComp.error(
-			"Bad paths, can not add watcher: " + whenChange.join(", ") + ".",
-		);
-		await ctx.dispose();
-		return "failed";
-	}
-
-	(async () => {
-		let debounceTimer: ReturnType<typeof setTimeout> | undefined;
-		let pendingPaths: string[] = [];
-
-		for await (const { paths, kind } of watcher) {
-			const isTargetEvent = kind === "modify" ||
-				kind === "create" ||
-				kind === "remove";
-
-			if (!isTargetEvent) continue;
-
-			const relevantPaths = paths.filter((p) => {
-				if (outdir && outdir.endsWith("/js")) {
-					return p.endsWith(".ts") || p.endsWith(".js");
+				let fileDesc: string;
+				if (relevant.length === 1) {
+					const p = relevant[0]!.replaceAll("\\", "/");
+					fileDesc = ` '${p.slice(p.lastIndexOf("/") + 1)}'`;
+				} else {
+					fileDesc = ` (${relevant.length} files)`;
 				}
-				if (outdir && outdir.endsWith("/css")) {
-					return p.endsWith(".css") || p.endsWith(".tmpl");
+
+				try {
+					const start = performance.now();
+					for (const entry of cssEntries) {
+						await compileCssFile(entry.in, entry.out, minify);
+					}
+					const duration = (performance.now() - start).toFixed(0);
+					logClientComp.info(
+						`Frontend rebuilt in ${duration}ms at ${new Date().toLocaleTimeString()}${fileDesc}`,
+					);
+
+					const isCssOnly = relevant.every((p) => p.endsWith(".css"));
+					await notifyHMR(isCssOnly ? "css" : "reload");
+				} catch (err) {
+					logClientComp.error(
+						`Frontend build failed at ${new Date().toLocaleTimeString()}${fileDesc}: ${
+							(err as Error).message
+						}`,
+					);
 				}
-				return false;
 			});
+		}
+	}
 
-			if (relevantPaths.length === 0) continue;
+	return "completed";
+}
 
-			pendingPaths.push(...relevantPaths);
+function watchDir(
+	dirPath: string,
+	callback: (changedPaths: string[]) => void,
+): void {
+	if (!fsSync.existsSync(dirPath)) return;
+
+	let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+	let pendingPaths: string[] = [];
+
+	try {
+		fsSync.watch(dirPath, { recursive: true }, (_eventType, filename) => {
+			if (!filename) return;
+			const fullPath = path.join(dirPath, filename);
+			pendingPaths.push(fullPath);
 
 			if (debounceTimer !== undefined) {
 				clearTimeout(debounceTimer);
 			}
 
-			debounceTimer = setTimeout(async () => {
+			debounceTimer = setTimeout(() => {
 				const currentPaths = [...new Set(pendingPaths)];
 				pendingPaths = [];
 				debounceTimer = undefined;
-
-				let x = " ";
-				if (currentPaths.length === 1) {
-					const path = currentPaths[0]!.replaceAll("\\", "/");
-					x = " '" + path.slice(path.lastIndexOf("/") + 1) + "'";
-				} else x = " (" + currentPaths.length + " files)";
-
-				try {
-					const start = performance.now();
-					await ctx.rebuild();
-					const duration = (performance.now() - start).toFixed(0);
-					logClientComp.info(
-						`Frontend rebuilt in ${duration}ms at ` +
-							new Date().toLocaleTimeString() + x,
-					);
-
-					const isCssOnly = currentPaths.every((p) => p.endsWith(".css"));
-					await notifyHMR(isCssOnly ? "css" : "reload");
-				} catch (error) {
-					const message = "Frontend build failed at " +
-						new Date().toLocaleTimeString() + x + ": " +
-						(error as Error).message;
-					logClientComp.error(message);
-				}
+				callback(currentPaths);
 			}, 150);
-		}
-
-		await ctx.dispose();
-	})();
-	return "completed";
+		});
+	} catch (err) {
+		logClientComp.error(`Watcher error for ${dirPath}: ${err}`);
+	}
 }
 
 export async function runMakeFront(
-	args: string[] = Deno.args,
+	args: string[] = process.argv.slice(2),
 ): Promise<void> {
 	const isWatch = args.includes("watch");
 	const isQuiet = args.includes("quiet");
 	const minify = args.includes("min");
 
-	const options: esbuild.BuildOptions = {
-		bundle: true,
-		minify: minify,
-		minifyIdentifiers: minify,
-		minifySyntax: minify,
-		minifyWhitespace: minify,
-		platform: "browser",
-		format: "esm",
-		target: "esnext",
-	};
-
 	const calls: [() => Promise<TaskRunnerReturn>, string, string[]][] = [
 		[
-			() =>
-				cp(
-					"client/src/assets",
-					distFolder + "/static/assets",
-					{ recursive: true },
-				),
-			distFolder + "/static/assets",
+			async () => {
+				const src = "client/src/assets";
+				const dest = path.join(distFolder, "static/assets");
+				if (fsSync.existsSync(src)) {
+					await fs.mkdir(dest, { recursive: true });
+					await fs.cp(src, dest, { recursive: true });
+				}
+				return "completed";
+			},
+			path.join(distFolder, "static/assets"),
 			["assets"],
 		],
 
 		[
-			() =>
-				build({
-					...options,
-					outdir: distFolder + "/static/js",
-					entryPoints: [
-						"client/src/ts/app.ts",
-						"client/src/ts/docs.ts",
-						"client/src/ts/homepage.ts",
-						"client/src/ts/main.ts",
-						"client/src/ts/hmr.ts",
-					],
-					whenChange: [
-						"client/src/ts",
-					],
-					plugins: [denoPlugin()],
-				}, isWatch),
-			distFolder + "/static/js",
+			() => buildJs(isWatch, minify),
+			path.join(distFolder, "static/js"),
 			["js"],
 		],
 
 		[
-			() =>
-				build({
-					...options,
-					outdir: distFolder + "/static/css",
-					entryPoints: [
-						"client/src/tailwindcss/main.css",
-						"client/src/tailwindcss/homepage.css",
-						"client/src/tailwindcss/docs.css",
-					],
-					whenChange: [
-						"client/templates",
-						"client/src/tailwindcss",
-					],
-					external: ["/static/assets/*"],
-					plugins: [
-						tailwindcssPlugin(),
-					],
-				}, isWatch),
-			distFolder + "/static/css",
+			() => buildCss(isWatch, minify),
+			path.join(distFolder, "static/css"),
 			["css"],
 		],
 	];
@@ -254,45 +285,39 @@ export async function runMakeFront(
 	const extraGroups = ["min", "watch", "quiet", "all"];
 	const availableGroups = [...extraGroups, ...existingGroups];
 
-	const unknownGroups = args.filter(
-		(a) => !availableGroups.includes(a),
-	);
+	const unknownGroups = args.filter((a) => !availableGroups.includes(a));
 	if (unknownGroups.length > 0) {
 		logClientComp.warn(
 			`Unknown groups: ${unknownGroups.join(", ")}\n` +
-				"Available groups: " +
-				availableGroups.join(", ") + ".",
+				`Available groups: ${availableGroups.join(", ")}.`,
 		);
 	}
 
-	const existingGroupsUsed = !args.includes("all") &&
-		existingGroups.some((g) => args.includes(g));
+	const existingGroupsUsed =
+		!args.includes("all") && existingGroups.some((g) => args.includes(g));
 
 	if (existingGroupsUsed) {
 		calls.splice(
 			0,
 			calls.length,
-			...calls.filter(
-				([, , groups]) => {
-					return groups.some((g) => {
-						const includes = args.includes(g);
-						return includes;
-					});
-				},
-			),
+			...calls.filter(([, , groups]) => groups.some((g) => args.includes(g))),
 		);
 	}
 
 	const startTime = performance.now();
-	await Promise.allSettled(calls.map(([builder, directory]) => {
-		const text = `Bundling '${directory}'`;
-		if (!isQuiet) return logClientComp.task({ text }).startRunner(builder);
-		return builder()
-			.then((result) => {
-				if (result === "failed") logClientComp.error(`${text} failed.`);
-			})
-			.catch((error) => logClientComp.error(`${text} failed: ${format(error)}`));
-	}));
+	await Promise.allSettled(
+		calls.map(([builder, directory]) => {
+			const text = `Bundling '${directory}'`;
+			if (!isQuiet) return logClientComp.task({ text }).startRunner(builder);
+			return builder()
+				.then((result) => {
+					if (result === "failed") logClientComp.error(`${text} failed.`);
+				})
+				.catch((error) =>
+					logClientComp.error(`${text} failed: ${format(error)}`),
+				);
+		}),
+	);
 
 	const totalMs = (performance.now() - startTime).toFixed(0);
 	if (!isQuiet) {
@@ -304,28 +329,31 @@ export async function runMakeFront(
 	}
 
 	if (!isWatch) {
-		Deno.exit(0);
+		process.exit(0);
 	}
 }
 
 if (import.meta.main) {
 	const extraGroups = ["min", "watch", "quiet", "all", "assets", "js", "css"];
 	if (
-		showHelp({
-			name: "front",
-			description: "Build client assets.",
-			usage: "deno task front [group ...] [options]",
-			options: [
-				"-h, --help  Show this help.",
-				`Groups: ${extraGroups.join(", ")}.`,
-				"min         Minify JavaScript and CSS.",
-				"watch       Watch for client CSS changes and rebuild.",
-				"quiet       Suppress progress output while building.",
-				"all         Build all asset groups (the default).",
-			],
-		}, true)
+		showHelp(
+			{
+				name: "front",
+				description: "Build client assets.",
+				usage: "bun run front [group ...] [options]",
+				options: [
+					"-h, --help  Show this help.",
+					`Groups: ${extraGroups.join(", ")}.`,
+					"min         Minify JavaScript and CSS.",
+					"watch       Watch for client CSS changes and rebuild.",
+					"quiet       Suppress progress output while building.",
+					"all         Build all asset groups (the default).",
+				],
+			},
+			true,
+		)
 	) {
-		Deno.exit();
+		process.exit(0);
 	}
 
 	await runMakeFront();

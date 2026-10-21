@@ -49,14 +49,11 @@ domLoaded.then(() => {
 		});
 	}
 
-	form.addEventListener(
-		"htmx:afterRequest",
-		() => {
-			form.reset();
-			updatePreview();
-			requestAnimationFrame(resizeInput);
-		},
-	);
+	form.addEventListener("htmx:afterRequest", () => {
+		form.reset();
+		updatePreview();
+		requestAnimationFrame(resizeInput);
+	});
 
 	findLastMessage()?.scrollIntoView();
 });

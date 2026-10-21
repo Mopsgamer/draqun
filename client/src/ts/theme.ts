@@ -49,18 +49,14 @@ function setTheme(theme: Theme): void {
 
 function updateThemeMenuElements(): void {
 	const theme = getTheme();
-	for (
-		const select of document.querySelectorAll<HTMLSelectElement>(
-			"select.theme-menu",
-		)
-	) {
+	for (const select of document.querySelectorAll<HTMLSelectElement>(
+		"select.theme-menu",
+	)) {
 		select.value = theme;
 	}
-	for (
-		const choice of document.querySelectorAll<HTMLInputElement>(
-			"input[name=theme-choice]",
-		)
-	) {
+	for (const choice of document.querySelectorAll<HTMLInputElement>(
+		"input[name=theme-choice]",
+	)) {
 		choice.checked = choice.value === theme;
 	}
 }
@@ -105,12 +101,9 @@ function initTheme(): void {
 	const theme = getTheme();
 	setTheme(theme);
 
-	matchMedia("(prefers-color-scheme: dark)").addEventListener(
-		"change",
-		() => {
-			if (getTheme() === Theme.system) setTheme(Theme.system);
-		},
-	);
+	matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+		if (getTheme() === Theme.system) setTheme(Theme.system);
+	});
 }
 
 initTheme();

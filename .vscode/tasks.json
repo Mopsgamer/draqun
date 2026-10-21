@@ -2,23 +2,11 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "deno task init",
+			"label": "bun lint",
 			"type": "shell",
-			"command": "deno",
-			"args": ["task", "init"],
-			"detail": "Create .env, initialize database tables, and configure the Git pre-commit hook; supports --no-env, --no-db, and --no-git-hook.",
-			"icon": {
-				"id": "gear",
-				"color": "terminal.ansiBlue"
-			},
-			"problemMatcher": []
-		},
-		{
-			"label": "deno task prepare",
-			"type": "shell",
-			"command": "deno",
-			"args": ["task", "prepare"],
-			"detail": "Check formatting, lint, and types before committing.",
+			"command": "bun",
+			"args": ["lint"],
+			"detail": "Check linting natively using Bun.",
 			"icon": {
 				"id": "check",
 				"color": "terminal.ansiGreen"
@@ -26,10 +14,22 @@
 			"problemMatcher": []
 		},
 		{
-			"label": "deno task dev",
+			"label": "bun fmt",
 			"type": "shell",
-			"command": "deno",
-			"args": ["task", "dev"],
+			"command": "bun",
+			"args": ["fmt"],
+			"detail": "Format code natively using Bun.",
+			"icon": {
+				"id": "paintcan",
+				"color": "terminal.ansiBlue"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "bun run dev",
+			"type": "shell",
+			"command": "bun",
+			"args": ["run", "dev"],
 			"detail": "Build frontend assets, then compile and run the development server.",
 			"icon": {
 				"id": "server",
@@ -38,10 +38,10 @@
 			"problemMatcher": []
 		},
 		{
-			"label": "deno task front",
+			"label": "bun run front",
 			"type": "shell",
-			"command": "deno",
-			"args": ["task", "front"],
+			"command": "bun",
+			"args": ["run", "front"],
 			"detail": "Build client assets.",
 			"icon": {
 				"id": "tools",
@@ -50,10 +50,10 @@
 			"problemMatcher": []
 		},
 		{
-			"label": "deno task front watch",
+			"label": "bun run front watch",
 			"type": "shell",
-			"command": "deno",
-			"args": ["task", "front", "watch"],
+			"command": "bun",
+			"args": ["run", "front", "watch"],
 			"detail": "Build client assets and watch for frontend changes.",
 			"icon": {
 				"id": "tools",
@@ -62,10 +62,10 @@
 			"problemMatcher": []
 		},
 		{
-			"label": "deno task back",
+			"label": "bun run back",
 			"type": "shell",
-			"command": "deno",
-			"args": ["task", "back"],
+			"command": "bun",
+			"args": ["run", "back"],
 			"detail": "Compile the backend.",
 			"icon": {
 				"id": "tools",

@@ -19,7 +19,7 @@ import (
 const AppName string = "Draqun"
 const GitHubRepo string = "https://github.com/Mopsgamer/draqun"
 const TemplateExt = ".tmpl"
-const DistFolder = "dist" // Consider using same value for go:embed comments and scripts/tool/contants.ts
+const DistFolder = "dist" // Consider using same value for go:embed comments and scripts/tool/constants.ts
 const StaticFolder = DistFolder + "/static"
 
 type BuildMode int
@@ -41,17 +41,17 @@ var (
 
 	GitHubCommit = ""
 	GitHubBranch = ""
-	DenoJson     DenoConfig
+	PkgJson      PackageJson
 	GitJson      GitInfo
 	GoMod        modfile.File
 
 	DBPath string
 )
 
-type DenoConfig struct {
-	Name    string            `json:"name"`
-	Version string            `json:"version"`
-	Imports map[string]string `json:"imports"`
+type PackageJson struct {
+	Name         string            `json:"name"`
+	Version      string            `json:"version"`
+	Dependencies map[string]string `json:"dependencies"`
 }
 
 type GitInfo struct {
@@ -61,7 +61,7 @@ type GitInfo struct {
 }
 
 func LoadMeta(embedFS fs.FS) {
-	DenoJson, _ = getJson[DenoConfig](embedFS, "deno.json")
+	PkgJson, _ = getJson[PackageJson](embedFS, "package.json")
 	GitJson, _ = getJson[GitInfo](embedFS, DistFolder+"/git.json")
 	GoMod, _ = getGoMod(embedFS)
 
@@ -154,11 +154,6 @@ func getenvInt(key string, or int64) int64 {
 
 	return result
 }
-
-// func getenvBool(key string) bool {
-// 	val := strings.TrimSpace(strings.ToLower(os.Getenv(key)))
-// 	return val == "1" || val == "true" || val == "y" || val == "yes"
-// }
 
 func getJson[T any](embedFS fs.FS, file string) (val T, err error) {
 	fsFile, err := embedFS.Open(file)
