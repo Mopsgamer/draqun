@@ -1,0 +1,241 @@
+<div class="page-container-lg">
+    <div class="section-header pb-4">
+        <div class="flex-row-start">
+            <span class="icon icon-[lucide--settings-2] size-6 text-base-content/80" aria-hidden="true"></span>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Group Settings</h1>
+            </div>
+        </div>
+        <button class="btn btn-ghost btn-sm text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
+            <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
+            Back
+        </button>
+    </div>
+
+    {{template "partials/group-settings-nav" .}}
+
+    <div class="flex flex-col gap-6">
+        <!-- Permission Rule Creator Bar -->
+        <div class="p-4 rounded-xl border border-base-content/10 bg-base-200/50 flex flex-col gap-3">
+            <h2 class="text-base font-bold flex items-center gap-2">
+                <span class="icon icon-[lucide--key-round] size-4 text-primary" aria-hidden="true"></span>
+                Create Permission Assignment Rule
+            </h2>
+            <form hx-post="/groups/{{.Group.Id}}/permissions" class="flex flex-wrap items-center gap-3">
+                <div class="flex flex-col gap-1 shrink-0">
+                    <label class="text-[11px] font-semibold text-base-content/70">Permission Name</label>
+                    <select name="name" class="select select-bordered select-sm text-xs">
+                        <option value="read">Read</option>
+                        <option value="write">Write</option>
+                        <option value="delete">Delete</option>
+                        <option value="members">Members</option>
+                        <option value="roles">Roles</option>
+                        <option value="settings">Settings</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-1 shrink-0">
+                    <label class="text-[11px] font-semibold text-base-content/70">Level</label>
+                    <select name="level" class="select select-bordered select-sm text-xs">
+                        <option value="all">All (Allow)</option>
+                        <option value="own">Own</option>
+                        <option value="disable">Disable (Deny)</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col justify-end mt-auto">
+                    <button type="submit" class="btn btn-primary btn-sm gap-1.5">
+                        <span class="icon icon-[lucide--plus] size-3.5" aria-hidden="true"></span>
+                        Create Rule
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Permission Cards List -->
+        <div class="flex flex-col gap-4">
+            <h2 class="text-base font-bold flex items-center gap-2 border-b border-base-content/10 pb-2">
+                <span class="icon icon-[lucide--shield-check] size-4 text-base-content/70" aria-hidden="true"></span>
+                Active Permission Rules
+            </h2>
+
+            {{$group := .Group}}
+            {{range .Permissions}}
+            {{$perm := .}}
+            <div class="p-4 rounded-xl border border-base-content/10 bg-base-100 shadow-sm flex flex-col gap-3">
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-base-content/5">
+                    <div class="flex items-center gap-2">
+                        <!-- Move controls -->
+                        <div class="flex flex-col gap-0.5 shrink-0">
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-square btn-xs size-4.5 min-h-0"
+                                hx-post="/groups/{{$group.Id}}/permissions/{{$perm.Id}}/move?direction=up"
+                                title="Move Up"
+                            >
+                                <span class="icon icon-[lucide--chevron-up] size-3"></span>
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-square btn-xs size-4.5 min-h-0"
+                                hx-post="/groups/{{$group.Id}}/permissions/{{$perm.Id}}/move?direction=down"
+                                title="Move Down"
+                            >
+                                <span class="icon icon-[lucide--chevron-down] size-3"></span>
+                            </button>
+                        </div>
+
+                        <!-- Editable fields form -->
+                        <form hx-put="/groups/{{$group.Id}}/permissions/{{$perm.Id}}" class="flex items-center gap-2">
+                            <select name="name" class="select select-bordered select-xs font-bold text-xs" onchange="this.form.requestSubmit()">
+                                <option value="read" {{if eq $perm.Name "read"}}selected{{end}}>read</option>
+                                <option value="write" {{if eq $perm.Name "write"}}selected{{end}}>write</option>
+                                <option value="delete" {{if eq $perm.Name "delete"}}selected{{end}}>delete</option>
+                                <option value="members" {{if eq $perm.Name "members"}}selected{{end}}>members</option>
+                                <option value="roles" {{if eq $perm.Name "roles"}}selected{{end}}>roles</option>
+                                <option value="settings" {{if eq $perm.Name "settings"}}selected{{end}}>settings</option>
+                                <option value="admin" {{if eq $perm.Name "admin"}}selected{{end}}>admin</option>
+                            </select>
+
+                            <select name="level" class="select select-bordered select-xs text-xs" onchange="this.form.requestSubmit()">
+                                <option value="all" {{if eq $perm.Level "all"}}selected{{end}}>all</option>
+                                <option value="own" {{if eq $perm.Level "own"}}selected{{end}}>own</option>
+                                <option value="disable" {{if eq $perm.Level "disable"}}selected{{end}}>disable</option>
+                            </select>
+                        </form>
+                    </div>
+
+                    <!-- Delete Rule Button -->
+                    <details class="dropdown dropdown-end">
+                        <summary class="btn btn-ghost btn-xs text-error gap-1 cursor-pointer">
+                            <span class="icon icon-[lucide--trash-2] size-3"></span>
+                            Delete
+                        </summary>
+                        <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-overlay rounded-lg border border-base-content/10 w-52 mt-1 flex flex-col gap-2">
+                            <span class="font-semibold text-xs text-error">Delete permission rule?</span>
+                            <button
+                                type="button"
+                                class="btn btn-error btn-xs w-full"
+                                hx-delete="/groups/{{$group.Id}}/permissions/{{$perm.Id}}"
+                            >Confirm Delete</button>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Attached Entities Section -->
+                <div class="flex flex-col gap-2">
+                    <div class="text-xs font-semibold text-base-content/70 flex items-center justify-between">
+                        <span>Attached Entities:</span>
+
+                        <!-- Inline Search Dropdowns to Attach Entity -->
+                        <div class="flex items-center gap-1.5">
+                            <details class="dropdown dropdown-end">
+                                <summary class="btn btn-ghost btn-xs gap-1 cursor-pointer">
+                                    <span class="icon icon-[lucide--plus] size-3"></span> Attach Entity
+                                </summary>
+                                <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-overlay rounded-lg border border-base-content/10 w-72 mt-1 flex flex-col gap-2">
+                                    <span class="font-semibold text-xs text-base-content">Attach Channel, Role, or User</span>
+                                    <div x-data="{ entityType: 'channel' }" class="flex flex-col gap-2">
+                                        <div class="flex gap-1 border-b border-base-content/10 pb-1">
+                                            <button
+                                                type="button"
+                                                class="btn btn-xs flex-1"
+                                                :class="entityType === 'channel' ? 'btn-primary' : 'btn-ghost'"
+                                                @click="entityType = 'channel'"
+                                            ># Channel</button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-xs flex-1"
+                                                :class="entityType === 'role' ? 'btn-primary' : 'btn-ghost'"
+                                                @click="entityType = 'role'"
+                                            >@ Role</button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-xs flex-1"
+                                                :class="entityType === 'user' ? 'btn-primary' : 'btn-ghost'"
+                                                @click="entityType = 'user'"
+                                            >@ User</button>
+                                        </div>
+
+                                        <input
+                                            type="text"
+                                            name="q"
+                                            class="input input-bordered w-full text-xs"
+                                            placeholder="Search entities..."
+                                            hx-get="/groups/{{$group.Id}}/permissions/entities/search"
+                                            hx-trigger="input changed delay:200ms, keyup changed delay:200ms, focus"
+                                            hx-target="#perm-search-results-{{$perm.Id}}"
+                                            hx-vals='js:{"perm_id": "{{$perm.Id}}", "entity_type": alpineEntityType(event)}'
+                                        />
+
+                                        <div id="perm-search-results-{{$perm.Id}}" class="max-h-40 overflow-y-auto border border-base-content/10 rounded-lg p-1 flex flex-col gap-0.5 mt-1">
+                                            <div class="p-2 text-xs text-base-content/50 italic text-center">Type above to search</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-1.5 min-h-6">
+                        {{range $perm.Channels}}
+                        <span class="badge badge-secondary badge-sm gap-1 text-xs font-mono">
+                            <span># {{.Moniker}}</span>
+                            <button
+                                type="button"
+                                class="hover:text-error ml-0.5 cursor-pointer"
+                                hx-delete="/groups/{{$group.Id}}/permissions/{{$perm.Id}}/detach/channel/{{.Id}}"
+                                title="Detach channel"
+                            >✕</button>
+                        </span>
+                        {{end}}
+
+                        {{range $perm.Roles}}
+                        <span class="badge badge-primary badge-sm gap-1 text-xs font-mono">
+                            <span>@ {{.Moniker}}</span>
+                            <button
+                                type="button"
+                                class="hover:text-error ml-0.5 cursor-pointer"
+                                hx-delete="/groups/{{$group.Id}}/permissions/{{$perm.Id}}/detach/role/{{.Id}}"
+                                title="Detach role"
+                            >✕</button>
+                        </span>
+                        {{end}}
+
+                        {{range $perm.Users}}
+                        <span class="badge badge-neutral badge-sm gap-1 text-xs font-mono">
+                            <span>@ {{.Moniker}}</span>
+                            <button
+                                type="button"
+                                class="hover:text-error ml-0.5 cursor-pointer"
+                                hx-delete="/groups/{{$group.Id}}/permissions/{{$perm.Id}}/detach/user/{{.Id}}"
+                                title="Detach user"
+                            >✕</button>
+                        </span>
+                        {{end}}
+
+                        {{if and (not $perm.Channels) (not $perm.Roles) (not $perm.Users)}}
+                        <span class="text-xs text-base-content/40 italic">No attached entities (Unassigned rule)</span>
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+            {{else}}
+            <div class="text-sm text-base-content/50 text-center py-8 border border-dashed border-base-content/20 rounded-xl">
+                No permission assignment rules defined for this group. Fallback defaults apply.
+            </div>
+            {{end}}
+        </div>
+    </div>
+</div>
+
+<script>
+function alpineEntityType(e) {
+    var container = e ? e.target.closest('[x-data]') : null;
+    if (container && container._x_dataStack && container._x_dataStack[0]) {
+        return container._x_dataStack[0].entityType || 'channel';
+    }
+    return 'channel';
+}
+</script>

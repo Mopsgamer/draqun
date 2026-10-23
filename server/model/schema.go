@@ -32,6 +32,7 @@ var createTableFiles = []string{
 	"queries/create_blocked_ips.sql",
 	"queries/create_user_logs.sql",
 	"queries/create_user_friends.sql",
+	"queries/create_permissions.sql",
 }
 
 type migrationEntry struct {

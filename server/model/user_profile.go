@@ -194,15 +194,11 @@ func IsDraqunAdminOrMod(actor User) (isAdmin bool, isMod bool) {
 		return true, true
 	}
 
-	member, err := NewMemberFromId(draqunGroup.Id, actor.Id)
-	if err == nil && member.IsAvailable() {
-		role := member.Role()
-		if role.PermAdmin.Has() {
-			return true, true
-		}
-		if role.PermMembers.CanKickBan() {
-			return false, true
-		}
+	if GetUserPermissionLevel(draqunGroup.Id, actor.Id, 0, PermNameAdmin) == PermLevelAll {
+		return true, true
+	}
+	if GetUserPermissionLevel(draqunGroup.Id, actor.Id, 0, PermNameMembers) != PermLevelDisable {
+		return false, true
 	}
 
 	return false, false

@@ -53,12 +53,9 @@ func renderUserProfileModal(ctx fiber.Ctx, targetUserId uint64) error {
 					groupMessageCount = int(m.MessagesCount())
 				}
 
-				callerMember, errCM := model.NewMemberFromId(group.Id, caller.Id)
-				if errCM == nil && callerMember.IsAvailable() {
-					callerRole := callerMember.Role()
-					if callerRole.PermMembers.CanKickBan() || callerRole.PermAdmin.Has() || caller.Id == group.OwnerId {
-						canKickBanGroup = true
-					}
+				callerLevel := model.GetUserPermissionLevel(group.Id, caller.Id, 0, model.PermNameMembers)
+				if callerLevel != model.PermLevelDisable || caller.Id == group.OwnerId {
+					canKickBanGroup = true
 				}
 			}
 		}

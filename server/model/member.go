@@ -89,22 +89,11 @@ func (member Member) Roles() []Role {
 
 func (member Member) Role() Role {
 	group := member.Group()
-	everyone := group.Everyone()
-	if group.OwnerId == member.UserId {
-		return NewAllAccessRole(true, everyone)
-	}
-
 	roleList := member.Roles()
-	if len(roleList) == 0 {
-		return everyone
+	if len(roleList) > 0 {
+		return roleList[0]
 	}
-
-	// Reverse roleList so lower priority (higher position) is merged first
-	// and higher priority (lower position) is merged last and takes precedence.
-	for i := len(roleList) - 1; i >= 0; i-- {
-		everyone.Merge(roleList[i])
-	}
-	return everyone
+	return group.Everyone()
 }
 
 func (member Member) Ban(creatorId uint64, endsAt TimeFuture, description Description) error {

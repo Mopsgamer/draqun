@@ -47,14 +47,12 @@
                 <!-- Group Avatar Row -->
                 <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
-                        <label class="avatar-upload-box size-16 {{if .Member.Role.PermGroupChange.Has}}cursor-pointer{{end}}" title="Click to upload avatar">
+                        <label class="avatar-upload-box size-16 cursor-pointer" title="Click to upload avatar">
                             <img id="change-group-avatar-preview" src="{{.Group.AvatarUrl}}" class="size-full object-cover rounded-xl" alt="Group avatar">
-                            {{if .Member.Role.PermGroupChange.Has}}
                             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
                                 <span class="icon icon-[lucide--camera] size-5"></span>
                             </div>
                             <input type="file" id="change-group-avatar" name="avatar" accept="image/*" class="hidden" onchange="if(this.files && this.files[0]){ const img=document.getElementById('change-group-avatar-preview'); img.src=URL.createObjectURL(this.files[0]); }">
-                            {{end}}
                         </label>
                         <div>
                             <div class="font-semibold text-sm">Group Icon</div>
@@ -67,25 +65,25 @@
                 <div class="py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="form-group">
                         <label class="form-label" for="change-group-nick">Display Moniker</label>
-                        <input class="input input-bordered w-full" type="text" id="change-group-nick" name="nick" required value="{{.Group.Moniker}}" {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>
+                        <input class="input input-bordered w-full" type="text" id="change-group-nick" name="nick" required value="{{.Group.Moniker}}">
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="change-group-name">Unique Handle</label>
-                        <input class="input input-bordered w-full font-mono text-sm" type="text" autocomplete="username" id="change-group-name" name="name" required value="{{.Group.Name}}" {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>
+                        <input class="input input-bordered w-full font-mono text-sm" type="text" autocomplete="username" id="change-group-name" name="name" required value="{{.Group.Name}}">
                     </div>
                 </div>
 
                 <!-- Description Row -->
                 <div class="py-4 flex flex-col gap-1.5">
                     <label class="form-label" for="change-group-description">Group Description</label>
-                    <textarea class="textarea textarea-bordered w-full min-h-20" id="change-group-description" name="description" placeholder="Group purpose or guidelines..." {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>{{.Group.Description}}</textarea>
+                    <textarea class="textarea textarea-bordered w-full min-h-20" id="change-group-description" name="description" placeholder="Group purpose or guidelines...">{{.Group.Description}}</textarea>
                 </div>
 
                 <!-- Privacy & Password Row -->
                 <div class="py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="form-group">
                         <label class="form-label" for="change-group-mode">Access Mode</label>
-                        <select class="select select-bordered w-full" id="change-group-mode" name="mode" required {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>
+                        <select class="select select-bordered w-full" id="change-group-mode" name="mode" required>
                             <option value="private" {{if eq .Group.Mode "private"}}selected{{end}}>Private (Invite only)</option>
                             <option value="public" {{if eq .Group.Mode "public"}}selected{{end}}>Public (Discoverable)</option>
                         </select>
@@ -93,7 +91,7 @@
                     <div class="form-group">
                         <label class="form-label" for="change-group-password">Group Password (Optional)</label>
                         <div class="relative w-full">
-                            <input class="input input-bordered w-full pr-10" type="password" autocomplete="new-password" id="change-group-password" name="password" placeholder="Leave empty for no password" {{if not .Member.Role.PermGroupChange.Has}}disabled{{end}}>
+                            <input class="input input-bordered w-full pr-10" type="password" autocomplete="new-password" id="change-group-password" name="password" placeholder="Leave empty for no password">
                             <button type="button" class="password-toggle-btn" aria-label="Show password" aria-pressed="false" data-toggle-password>
                                 <span class="icon icon-[lucide--eye] size-4" aria-hidden="true" data-password-visible></span>
                                 <span class="icon icon-[lucide--eye-off] size-4" aria-hidden="true" data-password-hidden hidden></span>
@@ -105,7 +103,6 @@
 
             <div id="group-change-error"></div>
 
-            {{if .Member.Role.PermGroupChange.Has}}
             <div class="form-actions pt-2">
                 <button class="btn btn-ghost btn-sm" type="button" onclick="history.back()">Cancel</button>
                 <button class="btn btn-primary btn-sm" type="submit" form="group-change-form">
@@ -113,7 +110,6 @@
                     Save Changes
                 </button>
             </div>
-            {{end}}
         </form>
 
         <!-- Section: Danger Zone -->
@@ -150,7 +146,6 @@
                             >Confirm Leave</button>
                         </div>
                     </details>
-                    {{if .Member.Role.PermGroupChange.Has}}
                     <details class="dropdown dropdown-end">
                         <summary class="btn btn-error btn-xs gap-1">
                             <span class="icon icon-[lucide--trash-2] size-3"></span>
@@ -166,7 +161,6 @@
                             >Confirm Delete</button>
                         </div>
                     </details>
-                    {{end}}
                 </div>
             </div>
         </section>

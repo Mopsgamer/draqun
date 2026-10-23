@@ -1,0 +1,61 @@
+
+    _______ __
+   / ____(_) /_  ___  _____
+  / /_  / / __ \/ _ \/ ___/
+ / __/ / / /_/ /  __/ /
+/_/   /_/_.___/\___/_/          v3.5.0
+--------------------------------------------------
+INFO Server started on: 	http://127.0.0.1:3000 (bound on host 0.0.0.0 and port 3000)
+INFO Application name: 		Draqun
+INFO Version: 			v0.0.0 Development Client embedded
+INFO Git: 			jules-91123790421100930-09088619 9d4d390
+INFO Total handlers: 		266
+INFO Prefork: 			Disabled
+INFO PID: 			1436522
+INFO Total process count: 	1
+
+08:16:49 |[93m 404 [0m|      34.678µs |       127.0.0.1 |[95m HEAD    [0m| /
+08:17:24 |[92m 200 [0m|   15.274727ms |       127.0.0.1 |[96m GET     [0m| /signup
+08:17:24 |[92m 200 [0m|    4.672264ms |       127.0.0.1 |[96m GET     [0m| /static/css/main.css
+08:17:24 |[92m 200 [0m|      88.883µs |       127.0.0.1 |[96m GET     [0m| /static/js/hmr.js
+08:17:24 |[92m 200 [0m|      74.371µs |       127.0.0.1 |[96m GET     [0m| /static/js/main.js
+08:17:24 |[92m 200 [0m|      53.201µs |       127.0.0.1 |[96m GET     [0m| /static/assets/logo.svg
+08:17:24 |[92m 200 [0m|      54.192µs |       127.0.0.1 |[96m GET     [0m| /__hmr
+08:17:24 |[92m 200 [0m|  135.291872ms |       127.0.0.1 |[92m POST    [0m| /account
+08:17:24 |[94m 303 [0m|    9.698911ms |       127.0.0.1 |[96m GET     [0m| /signup
+08:17:24 |[92m 200 [0m|    13.48943ms |       127.0.0.1 |[96m GET     [0m| /chat
+08:17:24 |[92m 200 [0m|      36.379µs |       127.0.0.1 |[96m GET     [0m| /static/js/app.js
+08:17:24 |[92m 200 [0m|      46.539µs |       127.0.0.1 |[96m GET     [0m| /static/js/hmr.js
+08:17:24 |[92m 200 [0m|      42.222µs |       127.0.0.1 |[96m GET     [0m| /static/css/main.css
+08:17:24 |[91m 101 [0m|    2.545774ms |       127.0.0.1 |[96m GET     [0m| /notifications/ws
+08:17:24 |[92m 200 [0m|      35.855µs |       127.0.0.1 |[96m GET     [0m| /static/assets/logo.svg
+08:17:25 |[92m 200 [0m|      59.257µs |       127.0.0.1 |[96m GET     [0m| /__hmr
+08:17:25 |[92m 200 [0m|   20.895264ms |       127.0.0.1 |[96m GET     [0m| /groups/create
+08:17:25 |[92m 200 [0m|     115.914µs |       127.0.0.1 |[96m GET     [0m| /static/css/main.css
+08:17:25 |[92m 200 [0m|      21.796µs |       127.0.0.1 |[96m GET     [0m| /static/js/hmr.js
+08:17:25 |[92m 200 [0m|       25.49µs |       127.0.0.1 |[96m GET     [0m| /static/js/main.js
+08:17:25 |[92m 200 [0m|     101.837µs |       127.0.0.1 |[96m GET     [0m| /static/assets/logo.svg
+08:17:25 |[92m 200 [0m|     307.732µs |       127.0.0.1 |[96m GET     [0m| /__hmr
+08:17:25 |[92m 200 [0m|   14.831904ms |       127.0.0.1 |[92m POST    [0m| /groups/create
+08:17:26 |[92m 200 [0m|    25.99284ms |       127.0.0.1 |[96m GET     [0m| /chat/groups/2
+08:17:26 |[92m 200 [0m|      38.965µs |       127.0.0.1 |[96m GET     [0m| /static/css/main.css
+08:17:26 |[92m 200 [0m|      34.036µs |       127.0.0.1 |[96m GET     [0m| /static/js/app.js
+08:17:26 |[92m 200 [0m|      60.119µs |       127.0.0.1 |[96m GET     [0m| /static/js/hmr.js
+08:17:26 |[91m 101 [0m|     752.035µs |       127.0.0.1 |[96m GET     [0m| /notifications/ws
+08:17:26 |[92m 200 [0m|      39.728µs |       127.0.0.1 |[96m GET     [0m| /static/assets/logo.svg
+08:17:26 |[91m 101 [0m|    2.559285ms |       127.0.0.1 |[96m GET     [0m| /groups/ws/2
+08:17:26 |[92m 200 [0m|      59.639µs |       127.0.0.1 |[96m GET     [0m| /__hmr
+08:17:26 |[92m 200 [0m|   17.672346ms |       127.0.0.1 |[96m GET     [0m| /groups/2/members/page/1
+08:17:27 |[92m 200 [0m|   19.624191ms |       127.0.0.1 |[96m GET     [0m| /groups/1/settings/permissions
+08:17:27 |[92m 200 [0m|      34.274µs |       127.0.0.1 |[96m GET     [0m| /static/css/main.css
+08:17:27 |[92m 200 [0m|      20.271µs |       127.0.0.1 |[96m GET     [0m| /static/js/main.js
+08:17:27 |[92m 200 [0m|      70.631µs |       127.0.0.1 |[96m GET     [0m| /static/js/hmr.js
+08:17:27 |[92m 200 [0m|      37.516µs |       127.0.0.1 |[96m GET     [0m| /static/assets/logo.svg
+08:17:27 |[92m 200 [0m|      32.096µs |       127.0.0.1 |[96m GET     [0m| /__hmr
+08:17:27 |[92m 200 [0m|   12.478535ms |       127.0.0.1 |[92m POST    [0m| /groups/1/permissions
+08:17:27 |[92m 200 [0m|   13.248678ms |       127.0.0.1 |[96m GET     [0m| /groups/1/settings/permissions
+08:17:27 |[92m 200 [0m|      37.889µs |       127.0.0.1 |[96m GET     [0m| /static/css/main.css
+08:17:27 |[92m 200 [0m|      93.776µs |       127.0.0.1 |[96m GET     [0m| /static/js/main.js
+08:17:27 |[92m 200 [0m|       42.29µs |       127.0.0.1 |[96m GET     [0m| /static/js/hmr.js
+08:17:27 |[92m 200 [0m|      41.496µs |       127.0.0.1 |[96m GET     [0m| /static/assets/logo.svg
+08:17:27 |[92m 200 [0m|      123.36µs |       127.0.0.1 |[96m GET     [0m| /__hmr

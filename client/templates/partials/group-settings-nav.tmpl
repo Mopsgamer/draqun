@@ -11,6 +11,10 @@
         <span class="icon icon-[lucide--shield] size-4" aria-hidden="true"></span>
         Roles
     </a>
+    <a href="/groups/{{.Group.Id}}/settings/permissions" class="nav-tab {{if eq .Tab "permissions"}}nav-tab-active{{end}}">
+        <span class="icon icon-[lucide--key] size-4" aria-hidden="true"></span>
+        Permissions
+    </a>
     <a href="/groups/{{.Group.Id}}/settings/members" class="nav-tab {{if eq .Tab "members"}}nav-tab-active{{end}}">
         <span class="icon icon-[lucide--users] size-4" aria-hidden="true"></span>
         Members

@@ -430,6 +430,26 @@ func RoutePages(app *fiber.App) {
 		},
 	)
 	app.Get(
+		"/groups/:group_id/settings/permissions",
+		func(ctx fiber.Ctx) error {
+			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
+				return ctx.Redirect().To("/chat")
+			}
+			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
+			role := fiber.Locals[model.Role](ctx, perms.LocalRights)
+			permissions, _ := model.GetGroupPermissions(group.Id)
+			return htmx.TryRenderPage(ctx, "group-permissions", MapPage(ctx, fiber.Map{
+				"Title":       "Group Permissions - " + group.Moniker,
+				"Group":       group,
+				"Member":      member,
+				"Role":        role,
+				"Permissions": permissions,
+				"Tab":         "permissions",
+			}), "partials/main")
+		},
+	)
+	app.Get(
 		"/groups/:group_id/settings/channels/create",
 		func(ctx fiber.Ctx) error {
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
