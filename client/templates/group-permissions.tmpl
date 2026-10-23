@@ -137,40 +137,78 @@
                                     <span class="icon icon-[lucide--plus] size-3"></span> Attach Entity
                                 </summary>
                                 <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-overlay rounded-lg border border-base-content/10 w-72 mt-1 flex flex-col gap-2">
-                                    <span class="font-semibold text-xs text-base-content">Attach Channel, Role, or User</span>
-                                    <div class="flex flex-col gap-2 entity-search-container" data-perm-id="{{$perm.Id}}">
-                                        <input type="hidden" class="entity-type-input" value="channel" />
-                                        <div class="flex gap-1 border-b border-base-content/10 pb-1">
-                                            <button
-                                                type="button"
-                                                class="btn btn-xs btn-primary flex-1 tab-btn-channel"
-                                                onclick="switchEntityType(this, 'channel')"
-                                            ># Channel</button>
-                                            <button
-                                                type="button"
-                                                class="btn btn-xs btn-ghost flex-1 tab-btn-role"
-                                                onclick="switchEntityType(this, 'role')"
-                                            >@ Role</button>
-                                            <button
-                                                type="button"
-                                                class="btn btn-xs btn-ghost flex-1 tab-btn-user"
-                                                onclick="switchEntityType(this, 'user')"
-                                            >@ User</button>
+                                    <span class="font-semibold text-xs text-base-content">Attach Entity to Rule</span>
+
+                                    <div class="flex flex-col gap-2">
+                                        <div role="tablist" class="tabs tabs-box tabs-xs">
+                                            <input
+                                                type="radio"
+                                                name="tab_{{$perm.Id}}"
+                                                role="tab"
+                                                class="tab"
+                                                aria-label="# Channel"
+                                                checked
+                                                onchange="document.getElementById('search-ch-{{$perm.Id}}').classList.remove('hidden'); document.getElementById('search-rl-{{$perm.Id}}').classList.add('hidden'); document.getElementById('search-us-{{$perm.Id}}').classList.add('hidden');"
+                                            />
+                                            <input
+                                                type="radio"
+                                                name="tab_{{$perm.Id}}"
+                                                role="tab"
+                                                class="tab"
+                                                aria-label="@ Role"
+                                                onchange="document.getElementById('search-rl-{{$perm.Id}}').classList.remove('hidden'); document.getElementById('search-ch-{{$perm.Id}}').classList.add('hidden'); document.getElementById('search-us-{{$perm.Id}}').classList.add('hidden');"
+                                            />
+                                            <input
+                                                type="radio"
+                                                name="tab_{{$perm.Id}}"
+                                                role="tab"
+                                                class="tab"
+                                                aria-label="@ User"
+                                                onchange="document.getElementById('search-us-{{$perm.Id}}').classList.remove('hidden'); document.getElementById('search-ch-{{$perm.Id}}').classList.add('hidden'); document.getElementById('search-rl-{{$perm.Id}}').classList.add('hidden');"
+                                            />
                                         </div>
 
-                                        <input
-                                            type="text"
-                                            name="q"
-                                            class="input input-bordered w-full text-xs search-input"
-                                            placeholder="Search entities..."
-                                            hx-get="/groups/{{$group.Id}}/permissions/entities/search"
-                                            hx-trigger="input changed delay:200ms, keyup changed delay:200ms, focus"
-                                            hx-target="#perm-search-results-{{$perm.Id}}"
-                                            hx-vals='js:{"perm_id": "{{$perm.Id}}", "entity_type": getEntityType(event)}'
-                                        />
+                                        <div id="search-ch-{{$perm.Id}}">
+                                            <input
+                                                type="text"
+                                                name="q"
+                                                class="input input-bordered w-full text-xs"
+                                                placeholder="Search channels..."
+                                                hx-get="/groups/{{$group.Id}}/permissions/entities/search"
+                                                hx-trigger="input changed delay:200ms, keyup changed delay:200ms, focus"
+                                                hx-target="#perm-search-results-{{$perm.Id}}"
+                                                hx-vals='{"perm_id": "{{$perm.Id}}", "entity_type": "channel"}'
+                                            />
+                                        </div>
 
-                                        <div id="perm-search-results-{{$perm.Id}}" class="max-h-40 overflow-y-auto border border-base-content/10 rounded-lg p-1 flex flex-col gap-0.5 mt-1">
-                                            <div class="p-2 text-xs text-base-content/50 italic text-center">Type above to search</div>
+                                        <div id="search-rl-{{$perm.Id}}" class="hidden">
+                                            <input
+                                                type="text"
+                                                name="q"
+                                                class="input input-bordered w-full text-xs"
+                                                placeholder="Search roles..."
+                                                hx-get="/groups/{{$group.Id}}/permissions/entities/search"
+                                                hx-trigger="input changed delay:200ms, keyup changed delay:200ms, focus"
+                                                hx-target="#perm-search-results-{{$perm.Id}}"
+                                                hx-vals='{"perm_id": "{{$perm.Id}}", "entity_type": "role"}'
+                                            />
+                                        </div>
+
+                                        <div id="search-us-{{$perm.Id}}" class="hidden">
+                                            <input
+                                                type="text"
+                                                name="q"
+                                                class="input input-bordered w-full text-xs"
+                                                placeholder="Search members..."
+                                                hx-get="/groups/{{$group.Id}}/permissions/entities/search"
+                                                hx-trigger="input changed delay:200ms, keyup changed delay:200ms, focus"
+                                                hx-target="#perm-search-results-{{$perm.Id}}"
+                                                hx-vals='{"perm_id": "{{$perm.Id}}", "entity_type": "user"}'
+                                            />
+                                        </div>
+
+                                        <div id="perm-search-results-{{$perm.Id}}" class="max-h-40 overflow-y-auto border border-base-content/10 rounded-lg p-1 flex flex-col gap-0.5 mt-1 bg-base-100">
+                                            <div class="p-2 text-xs text-base-content/50 italic text-center">Type or focus above to search</div>
                                         </div>
                                     </div>
                                 </div>
@@ -263,40 +301,4 @@ function updateLevelOptions(nameSelect) {
     }
 }
 
-function switchEntityType(btn, type) {
-    var container = btn.closest('.entity-search-container');
-    if (!container) return;
-    var typeInput = container.querySelector('.entity-type-input');
-    if (typeInput) typeInput.value = type;
-
-    var btnChannel = container.querySelector('.tab-btn-channel');
-    var btnRole = container.querySelector('.tab-btn-role');
-    var btnUser = container.querySelector('.tab-btn-user');
-
-    if (btnChannel) btnChannel.className = 'btn btn-xs flex-1 ' + (type === 'channel' ? 'btn-primary' : 'btn-ghost') + ' tab-btn-channel';
-    if (btnRole) btnRole.className = 'btn btn-xs flex-1 ' + (type === 'role' ? 'btn-primary' : 'btn-ghost') + ' tab-btn-role';
-    if (btnUser) btnUser.className = 'btn btn-xs flex-1 ' + (type === 'user' ? 'btn-primary' : 'btn-ghost') + ' tab-btn-user';
-
-    var permId = container.getAttribute('data-perm-id');
-    var searchInput = container.querySelector('.search-input');
-    var query = searchInput ? searchInput.value : '';
-    var searchUrl = searchInput ? searchInput.getAttribute('hx-get') : '';
-    var targetId = searchInput ? searchInput.getAttribute('hx-target') : '';
-
-    if (searchUrl && targetId) {
-        htmx.ajax('GET', searchUrl, {
-            target: targetId,
-            values: { perm_id: permId, entity_type: type, q: query }
-        });
-    }
-}
-
-function getEntityType(e) {
-    var container = e ? e.target.closest('.entity-search-container') : null;
-    if (container) {
-        var typeInput = container.querySelector('.entity-type-input');
-        if (typeInput) return typeInput.value;
-    }
-    return 'channel';
-}
 </script>
