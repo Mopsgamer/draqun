@@ -33,6 +33,10 @@ func GroupById(groupIdUri string) fiber.Handler {
 }
 
 func RequirePerm(groupIdUri string, permName model.PermName) fiber.Handler {
+	return RequirePermLevel(groupIdUri, permName, model.PermLevelOwn)
+}
+
+func RequirePermLevel(groupIdUri string, permName model.PermName, minLevel model.PermLevel) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		if err := MemberByAuthAndGroupIdFromCtx(ctx, groupIdUri); err != nil {
 			return err
@@ -44,6 +48,10 @@ func RequirePerm(groupIdUri string, permName model.PermName) fiber.Handler {
 
 		level := model.GetUserPermissionLevel(group.Id, user.Id, channelId, permName)
 		if level == model.PermLevelDisable {
+			return htmx.AlertGroupMemberNotAllowed
+		}
+
+		if minLevel == model.PermLevelAll && level != model.PermLevelAll {
 			return htmx.AlertGroupMemberNotAllowed
 		}
 

@@ -54,7 +54,7 @@ func renderUserProfileModal(ctx fiber.Ctx, targetUserId uint64) error {
 				}
 
 				callerLevel := model.GetUserPermissionLevel(group.Id, caller.Id, 0, model.PermNameMembers)
-				if callerLevel != model.PermLevelDisable || caller.Id == group.OwnerId {
+				if callerLevel == model.PermLevelAll || caller.Id == group.OwnerId {
 					canKickBanGroup = true
 				}
 			}

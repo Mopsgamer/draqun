@@ -1605,7 +1605,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Post("/:group_id/members/:user_id/kick",
-			perms.RequirePerm("group_id", model.PermNameMembers),
+			perms.RequirePermLevel("group_id", model.PermNameMembers, model.PermLevelAll),
 			perms.UseBind[MemberKickForm](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[MemberKickForm](ctx, perms.LocalForm)
@@ -1657,7 +1657,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Post("/:group_id/members/:user_id/ban",
-			perms.RequirePerm("group_id", model.PermNameMembers),
+			perms.RequirePermLevel("group_id", model.PermNameMembers, model.PermLevelAll),
 			perms.UseBind[MemberBanForm](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[MemberBanForm](ctx, perms.LocalForm)
@@ -1719,7 +1719,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Post("/:group_id/members/:user_id/unban",
-			perms.RequirePerm("group_id", model.PermNameMembers),
+			perms.RequirePermLevel("group_id", model.PermNameMembers, model.PermLevelAll),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)

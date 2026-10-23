@@ -197,7 +197,7 @@ func IsDraqunAdminOrMod(actor User) (isAdmin bool, isMod bool) {
 	if GetUserPermissionLevel(draqunGroup.Id, actor.Id, 0, PermNameAdmin) == PermLevelAll {
 		return true, true
 	}
-	if GetUserPermissionLevel(draqunGroup.Id, actor.Id, 0, PermNameMembers) != PermLevelDisable {
+	if GetUserPermissionLevel(draqunGroup.Id, actor.Id, 0, PermNameMembers) == PermLevelAll {
 		return false, true
 	}
 

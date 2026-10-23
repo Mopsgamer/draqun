@@ -303,15 +303,20 @@ func RoutePages(app *fiber.App) {
 					Target: b.Target(),
 				}
 			}
+			user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+			callerLevel := model.GetUserPermissionLevel(group.Id, user.Id, 0, model.PermNameMembers)
+			canKickBanGroup := (callerLevel == model.PermLevelAll || user.Id == group.OwnerId)
+
 			return htmx.TryRenderPage(ctx, "group-members", MapPage(ctx, fiber.Map{
-				"Title":       "Group Members - " + group.Moniker,
-				"Group":       group,
-				"Member":      member,
-				"Role":        role,
-				"MemberItems": memberItems,
-				"Roles":       roles,
-				"BanItems":    banItems,
-				"Tab":         "members",
+				"Title":           "Group Members - " + group.Moniker,
+				"Group":           group,
+				"Member":          member,
+				"Role":            role,
+				"MemberItems":     memberItems,
+				"Roles":           roles,
+				"BanItems":        banItems,
+				"CanKickBanGroup": canKickBanGroup,
+				"Tab":             "members",
 			}), "partials/main")
 		},
 	)
@@ -431,6 +436,7 @@ func RoutePages(app *fiber.App) {
 	)
 	app.Get(
 		"/groups/:group_id/settings/permissions",
+		perms.RequirePerm("group_id", model.PermNameRoles),
 		func(ctx fiber.Ctx) error {
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
 				return ctx.Redirect().To("/chat")
