@@ -126,7 +126,14 @@ func (p *Permission) LoadEntities() error {
 
 	p.Roles = []Role{}
 	sqlRo, argsRo, errRo := Goqu.From(TableRoles).
-		Select(goqu.I("app_group_roles.*")).
+		Select(
+			goqu.I("app_group_roles.id"),
+			goqu.I("app_group_roles.group_id"),
+			goqu.I("app_group_roles.position"),
+			goqu.I("app_group_roles.name"),
+			goqu.I("app_group_roles.moniker"),
+			goqu.I("app_group_roles.color"),
+		).
 		Join(
 			goqu.T(TablePermRoles),
 			goqu.On(goqu.I("app_group_roles.id").Eq(goqu.I("app_perm_roles.role_id"))),
