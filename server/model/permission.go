@@ -68,6 +68,12 @@ func (p Permission) Validate() htmx.Alert {
 	if !p.Level.IsValid() {
 		return htmx.AlertUseless
 	}
+	if p.Level == PermLevelOwn {
+		switch p.Name {
+		case PermNameAdmin, PermNameRoles, PermNameSettings:
+			return htmx.AlertUseless
+		}
+	}
 	return nil
 }
 

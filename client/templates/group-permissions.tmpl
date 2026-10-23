@@ -24,7 +24,7 @@
             <form hx-post="/groups/{{.Group.Id}}/permissions" class="flex flex-wrap items-center gap-3">
                 <div class="flex flex-col gap-1 shrink-0">
                     <label class="text-[11px] font-semibold text-base-content/70">Permission Name</label>
-                    <select name="name" class="select select-bordered select-sm text-xs">
+                    <select name="name" class="select select-bordered select-sm text-xs" onchange="updateLevelOptions(this)">
                         <option value="read">Read</option>
                         <option value="write">Write</option>
                         <option value="delete">Delete</option>
@@ -88,7 +88,7 @@
 
                         <!-- Editable fields form -->
                         <form hx-put="/groups/{{$group.Id}}/permissions/{{$perm.Id}}" class="flex items-center gap-2">
-                            <select name="name" class="select select-bordered select-xs font-bold text-xs" onchange="this.form.requestSubmit()">
+                            <select name="name" class="select select-bordered select-xs font-bold text-xs" onchange="updateLevelOptions(this); this.form.requestSubmit();">
                                 <option value="read" {{if eq $perm.Name "read"}}selected{{end}}>read</option>
                                 <option value="write" {{if eq $perm.Name "write"}}selected{{end}}>write</option>
                                 <option value="delete" {{if eq $perm.Name "delete"}}selected{{end}}>delete</option>
@@ -100,7 +100,9 @@
 
                             <select name="level" class="select select-bordered select-xs text-xs" onchange="this.form.requestSubmit()">
                                 <option value="all" {{if eq $perm.Level "all"}}selected{{end}}>all</option>
+                                {{if and (ne $perm.Name "admin") (ne $perm.Name "roles") (ne $perm.Name "settings")}}
                                 <option value="own" {{if eq $perm.Level "own"}}selected{{end}}>own</option>
+                                {{end}}
                                 <option value="disable" {{if eq $perm.Level "disable"}}selected{{end}}>disable</option>
                             </select>
                         </form>
@@ -231,6 +233,38 @@
 </div>
 
 <script>
+function updateLevelOptions(nameSelect) {
+    var form = nameSelect.form;
+    if (!form) return;
+    var levelSelect = form.querySelector('select[name="level"]');
+    if (!levelSelect) return;
+
+    var nameVal = nameSelect.value;
+    var isAdminOrSettings = (nameVal === 'admin' || nameVal === 'roles' || nameVal === 'settings');
+
+    var ownOption = levelSelect.querySelector('option[value="own"]');
+    if (isAdminOrSettings) {
+        if (ownOption) {
+            ownOption.remove();
+        }
+        if (levelSelect.value === 'own') {
+            levelSelect.value = 'all';
+        }
+    } else {
+        if (!ownOption) {
+            ownOption = document.createElement('option');
+            ownOption.value = 'own';
+            ownOption.textContent = levelSelect.classList.contains('select-sm') ? 'Own' : 'own';
+            var disableOption = levelSelect.querySelector('option[value="disable"]');
+            if (disableOption) {
+                levelSelect.insertBefore(ownOption, disableOption);
+            } else {
+                levelSelect.appendChild(ownOption);
+            }
+        }
+    }
+}
+
 function alpineEntityType(e) {
     var container = e ? e.target.closest('[x-data]') : null;
     if (container && container._x_dataStack && container._x_dataStack[0]) {

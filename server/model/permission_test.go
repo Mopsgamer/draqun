@@ -31,6 +31,35 @@ func TestPermissionCRUDAndEntities(t *testing.T) {
 	err = role.Insert()
 	assert.NoError(t, err)
 
+	// Test invalid permission name and level combinations
+	invalidNamePerm := Permission{
+		GroupId: group.Id,
+		Name:    PermName("abcbdjdbd"),
+		Level:   PermLevelAll,
+	}
+	assert.NotNil(t, invalidNamePerm.Validate())
+
+	adminOwnPerm := Permission{
+		GroupId: group.Id,
+		Name:    PermNameAdmin,
+		Level:   PermLevelOwn,
+	}
+	assert.NotNil(t, adminOwnPerm.Validate())
+
+	rolesOwnPerm := Permission{
+		GroupId: group.Id,
+		Name:    PermNameRoles,
+		Level:   PermLevelOwn,
+	}
+	assert.NotNil(t, rolesOwnPerm.Validate())
+
+	settingsOwnPerm := Permission{
+		GroupId: group.Id,
+		Name:    PermNameSettings,
+		Level:   PermLevelOwn,
+	}
+	assert.NotNil(t, settingsOwnPerm.Validate())
+
 	// 1. Create permission
 	perm := Permission{
 		GroupId:  group.Id,
