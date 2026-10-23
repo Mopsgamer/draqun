@@ -37,8 +37,8 @@ type PermissionUpdateForm struct {
 }
 
 type PermissionAttachForm struct {
-	EntityType string `form:"entity_type"`
-	EntityId   uint64 `form:"entity_id"`
+	EntityType string `form:"entity_type" json:"entity_type"`
+	EntityId   uint64 `form:"entity_id" json:"entity_id"`
 }
 
 type EntitySearchForm struct {
@@ -182,7 +182,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Post("/:group_id/permissions",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			perms.UseBind[PermissionCreateForm](),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
@@ -220,7 +220,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Put("/:group_id/permissions/:perm_id",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			perms.UseBind[PermissionUpdateForm](),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
@@ -252,7 +252,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Delete("/:group_id/permissions/:perm_id",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				permId := fiber.Params[uint64](ctx, "perm_id")
@@ -275,7 +275,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Post("/:group_id/permissions/:perm_id/move",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				permId := fiber.Params[uint64](ctx, "perm_id")
@@ -325,7 +325,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Post("/:group_id/permissions/:perm_id/attach",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			perms.UseBind[PermissionAttachForm](),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
@@ -337,13 +337,17 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertGroupNotFound
 				}
 
+				var attachErr error
 				switch request.EntityType {
 				case "channel":
-					_ = perm.AddChannel(request.EntityId)
+					attachErr = perm.AddChannel(request.EntityId)
 				case "role":
-					_ = perm.AddRole(request.EntityId)
+					attachErr = perm.AddRole(request.EntityId)
 				case "user":
-					_ = perm.AddUser(request.EntityId)
+					attachErr = perm.AddUser(request.EntityId)
+				}
+				if attachErr != nil {
+					return htmx.AlertDatabase.Join(attachErr)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -355,7 +359,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Delete("/:group_id/permissions/:perm_id/detach/:entity_type/:entity_id",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				permId := fiber.Params[uint64](ctx, "perm_id")
@@ -385,21 +389,21 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Get("/:group_id/permissions/entities/search",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			perms.UseBind[EntitySearchForm](),
 			func(ctx fiber.Ctx) error {
 				return handleEntitySearch(ctx)
 			},
 		).
 		Post("/:group_id/permissions/entities/search",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			perms.UseBind[EntitySearchForm](),
 			func(ctx fiber.Ctx) error {
 				return handleEntitySearch(ctx)
 			},
 		).
 		Post("/:group_id/roles/:role_id/move",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
@@ -459,7 +463,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Put("/:group_id/change",
-			perms.RequirePerm("group_id", model.PermNameSettings),
+			perms.RequirePermLevel("group_id", model.PermNameSettings, model.PermLevelAll),
 			perms.UseBind[GroupChange](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[GroupChange](ctx, perms.LocalForm)
@@ -559,7 +563,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Post("/:group_id/channels/:channel_id/move",
-			perms.RequirePerm("group_id", model.PermNameSettings),
+			perms.RequirePermLevel("group_id", model.PermNameSettings, model.PermLevelAll),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				channelId := fiber.Params[uint64](ctx, "channel_id")
@@ -607,7 +611,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Post("/:group_id/channels/create",
-			perms.RequirePerm("group_id", model.PermNameSettings),
+			perms.RequirePermLevel("group_id", model.PermNameSettings, model.PermLevelAll),
 			perms.UseBind[ChannelCreate](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[ChannelCreate](ctx, perms.LocalForm)
@@ -643,7 +647,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Put("/:group_id/channels/:channel_id",
-			perms.RequirePerm("group_id", model.PermNameSettings),
+			perms.RequirePermLevel("group_id", model.PermNameSettings, model.PermLevelAll),
 			perms.UseBind[ChannelChange](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[ChannelChange](ctx, perms.LocalForm)
@@ -685,7 +689,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Delete("/:group_id/channels/:channel_id",
-			perms.RequirePerm("group_id", model.PermNameSettings),
+			perms.RequirePermLevel("group_id", model.PermNameSettings, model.PermLevelAll),
 			func(ctx fiber.Ctx) error {
 				channelId := fiber.Params[uint64](ctx, "channel_id")
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
@@ -1340,7 +1344,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Delete("/:group_id",
-			perms.RequirePerm("group_id", model.PermNameSettings),
+			perms.RequirePermLevel("group_id", model.PermNameSettings, model.PermLevelAll),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				group.IsDeleted = true
@@ -1357,7 +1361,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Post("/:group_id/roles/create",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			perms.UseBind[RoleCreate](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[RoleCreate](ctx, perms.LocalForm)
@@ -1403,7 +1407,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Put("/:group_id/roles/:role_id",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			perms.UseBind[RoleChange](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[RoleChange](ctx, perms.LocalForm)
@@ -1457,7 +1461,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Delete("/:group_id/roles/:role_id",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)
@@ -1497,7 +1501,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Post("/:group_id/members/:user_id/roles",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			perms.UseBind[RoleAssignForm](),
 			func(ctx fiber.Ctx) error {
 				request := fiber.Locals[RoleAssignForm](ctx, perms.LocalForm)
@@ -1555,7 +1559,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Delete("/:group_id/members/:user_id/roles/:role_id",
-			perms.RequirePerm("group_id", model.PermNameRoles),
+			perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				caller := fiber.Locals[model.User](ctx, perms.LocalAuth)

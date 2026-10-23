@@ -89,7 +89,9 @@ func (p Permission) Delete() error {
 	_ = Delete(TablePermChannels, goqu.Ex{"perm_id": p.Id})
 	_ = Delete(TablePermUsers, goqu.Ex{"perm_id": p.Id})
 	_ = Delete(TablePermRoles, goqu.Ex{"perm_id": p.Id})
-	return Delete(TablePermissions, goqu.Ex{"id": p.Id, "group_id": p.GroupId})
+	err := Delete(TablePermissions, goqu.Ex{"id": p.Id, "group_id": p.GroupId})
+	p.Id = 0
+	return err
 }
 
 func NewPermissionFromId(id, groupId uint64) (Permission, error) {
@@ -258,41 +260,74 @@ func GetUserPermissionLevel(groupId, userId, channelId uint64, permName PermName
 		}
 	}
 
-	orConds := []goqu.Expression{
-		goqu.I("app_perms.id").In(
-			Goqu.From(TablePermUsers).Select("perm_id").Where(goqu.I("user_id").Eq(userId)),
-		),
-	}
-	if len(roleIds) > 0 {
-		orConds = append(orConds, goqu.I("app_perms.id").In(
-			Goqu.From(TablePermRoles).Select("perm_id").Where(goqu.I("role_id").In(roleIds)),
-		))
-	}
-	if channelId != 0 {
-		orConds = append(orConds, goqu.I("app_perms.id").In(
-			Goqu.From(TablePermChannels).Select("perm_id").Where(goqu.I("channel_id").Eq(channelId)),
-		))
-	}
-
-	var matchingPerm Permission
+	// Query all permission rules for this group and name sorted by priority DESC, id DESC
+	var perms []Permission
 	sqlStr, args, err := Goqu.From(TablePermissions).
 		Where(
 			goqu.I("app_perms.group_id").Eq(groupId),
 			goqu.I("app_perms.name").Eq(permName),
-			goqu.Or(orConds...),
 		).
 		Order(
 			goqu.I("app_perms.priority").Desc(),
 			goqu.I("app_perms.id").Desc(),
 		).
-		Limit(1).
 		Prepared(true).
 		ToSQL()
 
 	if err == nil {
-		if errGet := Sqlx.Get(&matchingPerm, sqlStr, args...); errGet == nil {
-			matchingPerm.SetFullfilled()
-			return matchingPerm.Level
+		_ = Sqlx.Select(&perms, sqlStr, args...)
+		for _, p := range perms {
+			p.SetFullfilled()
+			_ = p.LoadEntities()
+
+			// Check user/role scoping:
+			// A rule matches a user if the permission is attached via junction tables to the target user ID or any of the user's role IDs (including @everyone).
+			userRoleMatch := false
+			for _, u := range p.Users {
+				if u.Id == userId {
+					userRoleMatch = true
+					break
+				}
+			}
+			if !userRoleMatch {
+				for _, r := range p.Roles {
+					for _, rid := range roleIds {
+						if r.Id == rid {
+							userRoleMatch = true
+							break
+						}
+					}
+					if userRoleMatch {
+						break
+					}
+				}
+			}
+
+			if !userRoleMatch {
+				continue
+			}
+
+			// Check channel scoping:
+			// If rule has attached channels, current channelId must match at least one attached channel.
+			hasChannelAttachments := len(p.Channels) > 0
+			channelMatch := !hasChannelAttachments
+			if hasChannelAttachments {
+				if channelId != 0 {
+					for _, ch := range p.Channels {
+						if ch.Id == channelId {
+							channelMatch = true
+							break
+						}
+					}
+				}
+			}
+
+			if !channelMatch {
+				continue
+			}
+
+			// First matching rule by priority/id order wins
+			return p.Level
 		}
 	}
 

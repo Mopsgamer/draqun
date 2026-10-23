@@ -171,8 +171,8 @@ func TestGetUserPermissionLevel(t *testing.T) {
 	writeWithAdmin := GetUserPermissionLevel(group.Id, memberUser.Id, 0, PermNameWrite)
 	assert.Equal(t, PermLevelAll, writeWithAdmin)
 
-	// Remove admin perm attachment
-	_ = adminPerm.RemoveUser(memberUser.Id)
+	// Delete admin perm
+	_ = adminPerm.Delete()
 
 	// 5. Test specific channel level rule with higher priority overriding lower priority
 	lowPerm := Permission{
@@ -191,13 +191,15 @@ func TestGetUserPermissionLevel(t *testing.T) {
 		Priority: 50,
 	}
 	_ = highPerm.Insert()
+	_ = highPerm.AddUser(memberUser.Id)
 	_ = highPerm.AddChannel(channel.Id)
 
 	// Evaluation for channel -> highPerm (Priority 50) wins -> PermLevelAll
 	chanLevel := GetUserPermissionLevel(group.Id, memberUser.Id, channel.Id, PermNameWrite)
 	assert.Equal(t, PermLevelAll, chanLevel)
 
-	// Evaluation without channel -> lowPerm (Priority 5) wins -> PermLevelDisable
+	// Evaluation without channel (channelId = 0): highPerm is channel-scoped, so it does not match when channelId = 0.
+	// Therefore lowPerm (Priority 5) matches -> PermLevelDisable
 	noChanLevel := GetUserPermissionLevel(group.Id, memberUser.Id, 0, PermNameWrite)
 	assert.Equal(t, PermLevelDisable, noChanLevel)
 }

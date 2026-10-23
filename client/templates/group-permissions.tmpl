@@ -98,7 +98,7 @@
                                 <option value="admin" {{if eq $perm.Name "admin"}}selected{{end}}>admin</option>
                             </select>
 
-                            <select name="level" class="select select-bordered select-xs text-xs" onchange="this.form.requestSubmit()">
+                            <select name="level" class="select select-bordered select-xs text-xs min-w-20" onchange="this.form.requestSubmit()">
                                 <option value="all" {{if eq $perm.Level "all"}}selected{{end}}>all</option>
                                 {{if and (ne $perm.Name "admin") (ne $perm.Name "roles") (ne $perm.Name "settings")}}
                                 <option value="own" {{if eq $perm.Level "own"}}selected{{end}}>own</option>
@@ -138,37 +138,35 @@
                                 </summary>
                                 <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-overlay rounded-lg border border-base-content/10 w-72 mt-1 flex flex-col gap-2">
                                     <span class="font-semibold text-xs text-base-content">Attach Channel, Role, or User</span>
-                                    <div x-data="{ entityType: 'channel' }" class="flex flex-col gap-2">
+                                    <div class="flex flex-col gap-2 entity-search-container" data-perm-id="{{$perm.Id}}">
+                                        <input type="hidden" class="entity-type-input" value="channel" />
                                         <div class="flex gap-1 border-b border-base-content/10 pb-1">
                                             <button
                                                 type="button"
-                                                class="btn btn-xs flex-1"
-                                                :class="entityType === 'channel' ? 'btn-primary' : 'btn-ghost'"
-                                                @click="entityType = 'channel'"
+                                                class="btn btn-xs btn-primary flex-1 tab-btn-channel"
+                                                onclick="switchEntityType(this, 'channel')"
                                             ># Channel</button>
                                             <button
                                                 type="button"
-                                                class="btn btn-xs flex-1"
-                                                :class="entityType === 'role' ? 'btn-primary' : 'btn-ghost'"
-                                                @click="entityType = 'role'"
+                                                class="btn btn-xs btn-ghost flex-1 tab-btn-role"
+                                                onclick="switchEntityType(this, 'role')"
                                             >@ Role</button>
                                             <button
                                                 type="button"
-                                                class="btn btn-xs flex-1"
-                                                :class="entityType === 'user' ? 'btn-primary' : 'btn-ghost'"
-                                                @click="entityType = 'user'"
+                                                class="btn btn-xs btn-ghost flex-1 tab-btn-user"
+                                                onclick="switchEntityType(this, 'user')"
                                             >@ User</button>
                                         </div>
 
                                         <input
                                             type="text"
                                             name="q"
-                                            class="input input-bordered w-full text-xs"
+                                            class="input input-bordered w-full text-xs search-input"
                                             placeholder="Search entities..."
                                             hx-get="/groups/{{$group.Id}}/permissions/entities/search"
                                             hx-trigger="input changed delay:200ms, keyup changed delay:200ms, focus"
                                             hx-target="#perm-search-results-{{$perm.Id}}"
-                                            hx-vals='js:{"perm_id": "{{$perm.Id}}", "entity_type": alpineEntityType(event)}'
+                                            hx-vals='js:{"perm_id": "{{$perm.Id}}", "entity_type": getEntityType(event)}'
                                         />
 
                                         <div id="perm-search-results-{{$perm.Id}}" class="max-h-40 overflow-y-auto border border-base-content/10 rounded-lg p-1 flex flex-col gap-0.5 mt-1">
@@ -265,10 +263,39 @@ function updateLevelOptions(nameSelect) {
     }
 }
 
-function alpineEntityType(e) {
-    var container = e ? e.target.closest('[x-data]') : null;
-    if (container && container._x_dataStack && container._x_dataStack[0]) {
-        return container._x_dataStack[0].entityType || 'channel';
+function switchEntityType(btn, type) {
+    var container = btn.closest('.entity-search-container');
+    if (!container) return;
+    var typeInput = container.querySelector('.entity-type-input');
+    if (typeInput) typeInput.value = type;
+
+    var btnChannel = container.querySelector('.tab-btn-channel');
+    var btnRole = container.querySelector('.tab-btn-role');
+    var btnUser = container.querySelector('.tab-btn-user');
+
+    if (btnChannel) btnChannel.className = 'btn btn-xs flex-1 ' + (type === 'channel' ? 'btn-primary' : 'btn-ghost') + ' tab-btn-channel';
+    if (btnRole) btnRole.className = 'btn btn-xs flex-1 ' + (type === 'role' ? 'btn-primary' : 'btn-ghost') + ' tab-btn-role';
+    if (btnUser) btnUser.className = 'btn btn-xs flex-1 ' + (type === 'user' ? 'btn-primary' : 'btn-ghost') + ' tab-btn-user';
+
+    var permId = container.getAttribute('data-perm-id');
+    var searchInput = container.querySelector('.search-input');
+    var query = searchInput ? searchInput.value : '';
+    var searchUrl = searchInput ? searchInput.getAttribute('hx-get') : '';
+    var targetId = searchInput ? searchInput.getAttribute('hx-target') : '';
+
+    if (searchUrl && targetId) {
+        htmx.ajax('GET', searchUrl, {
+            target: targetId,
+            values: { perm_id: permId, entity_type: type, q: query }
+        });
+    }
+}
+
+function getEntityType(e) {
+    var container = e ? e.target.closest('.entity-search-container') : null;
+    if (container) {
+        var typeInput = container.querySelector('.entity-type-input');
+        if (typeInput) return typeInput.value;
     }
     return 'channel';
 }
