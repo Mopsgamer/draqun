@@ -128,7 +128,6 @@ func (group Group) Everyone() Role {
 func (group Group) Roles() []Role {
 	roleList := []Role{}
 	sql, args, err := Goqu.From(TableRoles).
-		Select("id", "group_id", "position", "name", "moniker", "color").
 		Where(goqu.Ex{"group_id": group.Id}).
 		Order(goqu.I("position").Asc(), goqu.I("id").Asc()).
 		Prepared(true).ToSQL()
@@ -386,6 +385,9 @@ func (group Group) UsersPage(page, limit uint) []User {
 	err = Sqlx.Select(&userList, sql, args...)
 	if err != nil {
 		handleErr(err)
+	}
+	for i := range userList {
+		userList[i].SetFullfilled()
 	}
 
 	return userList

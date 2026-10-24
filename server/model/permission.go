@@ -126,14 +126,7 @@ func (p *Permission) LoadEntities() error {
 
 	p.Roles = []Role{}
 	sqlRo, argsRo, errRo := Goqu.From(TableRoles).
-		Select(
-			goqu.I("app_group_roles.id"),
-			goqu.I("app_group_roles.group_id"),
-			goqu.I("app_group_roles.position"),
-			goqu.I("app_group_roles.name"),
-			goqu.I("app_group_roles.moniker"),
-			goqu.I("app_group_roles.color"),
-		).
+		Select(goqu.I("app_group_roles.*")).
 		Join(
 			goqu.T(TablePermRoles),
 			goqu.On(goqu.I("app_group_roles.id").Eq(goqu.I("app_perm_roles.role_id"))),
@@ -287,25 +280,40 @@ func GetUserPermissionLevel(groupId, userId, channelId uint64, permName PermName
 			p.SetFullfilled()
 			_ = p.LoadEntities()
 
-			// Check user/role scoping:
-			// A rule matches a user if the permission is attached via junction tables to the target user ID or any of the user's role IDs (including @everyone).
-			userRoleMatch := false
-			for _, u := range p.Users {
-				if u.Id == userId {
-					userRoleMatch = true
-					break
-				}
+			// An unassigned rule (0 attached channels, 0 attached roles, 0 attached users) matches nothing.
+			hasUserAttachments := len(p.Users) > 0
+			hasRoleAttachments := len(p.Roles) > 0
+			hasChannelAttachments := len(p.Channels) > 0
+
+			if !hasUserAttachments && !hasRoleAttachments && !hasChannelAttachments {
+				continue
 			}
-			if !userRoleMatch {
-				for _, r := range p.Roles {
-					for _, rid := range roleIds {
-						if r.Id == rid {
+
+			// User/Role Scoping:
+			// If rule has attached users or roles, current user/roles must match at least one.
+			// If rule has no attached users and no attached roles, it applies to all users.
+			userRoleMatch := true
+			if hasUserAttachments || hasRoleAttachments {
+				userRoleMatch = false
+				if hasUserAttachments {
+					for _, u := range p.Users {
+						if u.Id == userId {
 							userRoleMatch = true
 							break
 						}
 					}
-					if userRoleMatch {
-						break
+				}
+				if !userRoleMatch && hasRoleAttachments {
+					for _, r := range p.Roles {
+						for _, rid := range roleIds {
+							if r.Id == rid {
+								userRoleMatch = true
+								break
+							}
+						}
+						if userRoleMatch {
+							break
+						}
 					}
 				}
 			}
@@ -314,11 +322,12 @@ func GetUserPermissionLevel(groupId, userId, channelId uint64, permName PermName
 				continue
 			}
 
-			// Check channel scoping:
+			// Channel Scoping:
 			// If rule has attached channels, current channelId must match at least one attached channel.
-			hasChannelAttachments := len(p.Channels) > 0
-			channelMatch := !hasChannelAttachments
+			// If rule has no attached channels, it applies group-wide.
+			channelMatch := true
 			if hasChannelAttachments {
+				channelMatch = false
 				if channelId != 0 {
 					for _, ch := range p.Channels {
 						if ch.Id == channelId {

@@ -67,14 +67,7 @@ func (member Member) Group() Group {
 
 func (member Member) Roles() []Role {
 	roleList := []Role{}
-	sql, args, err := Goqu.From(TableRoles).Select(
-		goqu.I(TableRoles+".id"),
-		goqu.I(TableRoles+".group_id"),
-		goqu.I(TableRoles+".position"),
-		goqu.I(TableRoles+".name"),
-		goqu.I(TableRoles+".moniker"),
-		goqu.I(TableRoles+".color"),
-	).
+	sql, args, err := Goqu.From(TableRoles).Select(TableRoles+".*").
 		LeftJoin(goqu.T(TableRoleAssignees), goqu.On(
 			goqu.I(TableRoleAssignees+".role_id").Eq(goqu.C("id").Table(TableRoles)),
 		)).

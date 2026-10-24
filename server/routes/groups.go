@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -331,6 +332,15 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				permId := fiber.Params[uint64](ctx, "perm_id")
 				request := fiber.Locals[PermissionAttachForm](ctx, perms.LocalForm)
+
+				if request.EntityType == "" {
+					request.EntityType = ctx.FormValue("entity_type")
+				}
+				if request.EntityId == 0 {
+					if eidStr := ctx.FormValue("entity_id"); eidStr != "" {
+						request.EntityId, _ = strconv.ParseUint(eidStr, 10, 64)
+					}
+				}
 
 				perm, err := model.NewPermissionFromId(permId, group.Id)
 				if err != nil || perm.IsEmpty() {
@@ -1172,7 +1182,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 				ctx.Locals(perms.LocalGroup, group)
 
-				member := model.NewMember(group.Id, user.Id, "")
+				member := model.NewMember(group.Id, user.Id, user.Moniker)
 				if err := member.Insert(); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
@@ -1180,6 +1190,11 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				everyone := model.NewRoleEveryone(group.Id)
 				if err := everyone.Insert(); err != nil {
 					return htmx.AlertDatabase.Join(err)
+				}
+
+				generalCh := model.NewChannel("general", "general", "General discussion channel", model.ChannelTypeText)
+				if err := generalCh.Insert(); err == nil {
+					_ = model.AddGroupChannel(group.Id, generalCh.Id, 1)
 				}
 
 				if htmx.IsHtmx(ctx) {
@@ -1879,18 +1894,33 @@ func handleEntitySearch(ctx fiber.Ctx) error {
 	group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 	request := fiber.Locals[EntitySearchForm](ctx, perms.LocalForm)
 
-	perm, _ := model.NewPermissionFromId(request.PermId, group.Id)
+	permId := request.PermId
+	if permId == 0 {
+		if pidStr := ctx.Query("perm_id"); pidStr != "" {
+			permId, _ = strconv.ParseUint(pidStr, 10, 64)
+		}
+	}
+	entityType := request.EntityType
+	if entityType == "" {
+		entityType = ctx.Query("entity_type")
+	}
+	qVal := request.Q
+	if qVal == "" {
+		qVal = ctx.Query("q")
+	}
+
+	perm, _ := model.NewPermissionFromId(permId, group.Id)
 
 	var items []EntityResultItem
-	q := strings.ToLower(strings.TrimSpace(request.Q))
+	q := strings.ToLower(strings.TrimSpace(qVal))
 
-	switch request.EntityType {
+	switch entityType {
 	case "channel":
 		attachedMap := make(map[uint64]bool)
 		for _, ch := range perm.Channels {
 			attachedMap[ch.Id] = true
 		}
-		channels, _ := model.GetGroupChannels(group.Id)
+		channels, _ := model.GetAllGroupChannels(group.Id)
 		for _, ch := range channels {
 			if attachedMap[ch.Id] {
 				continue
@@ -1928,7 +1958,7 @@ func handleEntitySearch(ctx fiber.Ctx) error {
 		for _, u := range perm.Users {
 			attachedMap[u.Id] = true
 		}
-		users, _ := group.SearchUsers(request.Q, 10)
+		users, _ := group.SearchUsers(qVal, 10)
 		for _, u := range users {
 			if attachedMap[u.Id] {
 				continue
@@ -1945,8 +1975,8 @@ func handleEntitySearch(ctx fiber.Ctx) error {
 	if htmx.IsHtmx(ctx) {
 		return ctx.Render("partials/perm-entity-search-results", fiber.Map{
 			"Group":      group,
-			"PermId":     request.PermId,
-			"EntityType": request.EntityType,
+			"PermId":     permId,
+			"EntityType": entityType,
 			"Results":    items,
 		})
 	}

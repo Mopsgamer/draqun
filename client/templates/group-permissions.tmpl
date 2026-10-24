@@ -148,7 +148,7 @@
                                                 class="tab"
                                                 aria-label="# Channel"
                                                 checked
-                                                onchange="document.getElementById('search-ch-{{$perm.Id}}').classList.remove('hidden'); document.getElementById('search-rl-{{$perm.Id}}').classList.add('hidden'); document.getElementById('search-us-{{$perm.Id}}').classList.add('hidden');"
+                                                onchange="document.getElementById('search-ch-{{$perm.Id}}').classList.remove('hidden'); document.getElementById('search-rl-{{$perm.Id}}').classList.add('hidden'); document.getElementById('search-us-{{$perm.Id}}').classList.add('hidden'); document.querySelector('#search-ch-{{$perm.Id}} input').focus();"
                                             />
                                             <input
                                                 type="radio"
@@ -156,7 +156,7 @@
                                                 role="tab"
                                                 class="tab"
                                                 aria-label="@ Role"
-                                                onchange="document.getElementById('search-rl-{{$perm.Id}}').classList.remove('hidden'); document.getElementById('search-ch-{{$perm.Id}}').classList.add('hidden'); document.getElementById('search-us-{{$perm.Id}}').classList.add('hidden');"
+                                                onchange="document.getElementById('search-rl-{{$perm.Id}}').classList.remove('hidden'); document.getElementById('search-ch-{{$perm.Id}}').classList.add('hidden'); document.getElementById('search-us-{{$perm.Id}}').classList.add('hidden'); document.querySelector('#search-rl-{{$perm.Id}} input').focus();"
                                             />
                                             <input
                                                 type="radio"
@@ -164,7 +164,7 @@
                                                 role="tab"
                                                 class="tab"
                                                 aria-label="@ User"
-                                                onchange="document.getElementById('search-us-{{$perm.Id}}').classList.remove('hidden'); document.getElementById('search-ch-{{$perm.Id}}').classList.add('hidden'); document.getElementById('search-rl-{{$perm.Id}}').classList.add('hidden');"
+                                                onchange="document.getElementById('search-us-{{$perm.Id}}').classList.remove('hidden'); document.getElementById('search-ch-{{$perm.Id}}').classList.add('hidden'); document.getElementById('search-rl-{{$perm.Id}}').classList.add('hidden'); document.querySelector('#search-us-{{$perm.Id}} input').focus();"
                                             />
                                         </div>
 
