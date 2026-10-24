@@ -174,7 +174,7 @@
                                                 name="q"
                                                 class="input input-bordered w-full text-xs"
                                                 placeholder="Search channels..."
-                                                hx-get="/groups/{{$group.Id}}/permissions/entities/search"
+                                                hx-post="/groups/{{$group.Id}}/permissions/entities/search"
                                                 hx-trigger="input changed delay:200ms, keyup changed delay:200ms, focus"
                                                 hx-target="#perm-search-results-{{$perm.Id}}"
                                                 hx-vals='{"perm_id": "{{$perm.Id}}", "entity_type": "channel"}'
@@ -187,7 +187,7 @@
                                                 name="q"
                                                 class="input input-bordered w-full text-xs"
                                                 placeholder="Search roles..."
-                                                hx-get="/groups/{{$group.Id}}/permissions/entities/search"
+                                                hx-post="/groups/{{$group.Id}}/permissions/entities/search"
                                                 hx-trigger="input changed delay:200ms, keyup changed delay:200ms, focus"
                                                 hx-target="#perm-search-results-{{$perm.Id}}"
                                                 hx-vals='{"perm_id": "{{$perm.Id}}", "entity_type": "role"}'
@@ -200,7 +200,7 @@
                                                 name="q"
                                                 class="input input-bordered w-full text-xs"
                                                 placeholder="Search members..."
-                                                hx-get="/groups/{{$group.Id}}/permissions/entities/search"
+                                                hx-post="/groups/{{$group.Id}}/permissions/entities/search"
                                                 hx-trigger="input changed delay:200ms, keyup changed delay:200ms, focus"
                                                 hx-target="#perm-search-results-{{$perm.Id}}"
                                                 hx-vals='{"perm_id": "{{$perm.Id}}", "entity_type": "user"}'
