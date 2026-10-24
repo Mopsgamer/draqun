@@ -4,9 +4,17 @@
     {{$entityType := .EntityType}}
     {{range .Results}}
     <div class="flex items-center justify-between p-1.5 hover:bg-base-content/5 rounded text-xs">
-        <div class="flex flex-col min-w-0">
-            <span class="font-bold truncate">{{.Moniker}}</span>
-            <span class="text-[10px] text-base-content/50 font-mono">({{.Name}})</span>
+        <div class="flex items-center gap-1.5 min-w-0">
+            {{if eq $entityType "channel"}}
+            <span class="font-bold truncate"># {{.Moniker}}</span>
+            <span class="text-[10px] text-base-content/50 font-mono">#{{.Name}}</span>
+            {{else if eq $entityType "role"}}
+            <span class="font-bold truncate">@ {{.Moniker}}</span>
+            <span class="text-[10px] text-base-content/50 font-mono">@{{.Name}}</span>
+            {{else}}
+            <span class="font-bold truncate">@ {{.Moniker}}</span>
+            <span class="text-[10px] text-base-content/50 font-mono">@{{.Name}}</span>
+            {{end}}
         </div>
         <button
             type="button"
