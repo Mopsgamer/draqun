@@ -522,57 +522,6 @@ func GetUserDirectChannels(userId uint64) ([]DirectChannelItem, error) {
 	return items, nil
 }
 
-// Channel Permission Overrides
-type ChannelPermission struct {
-	ChannelId       uint64       `db:"channel_id"`
-	RoleId          uint64       `db:"role_id"`
-	PermMessages    PermMessages `db:"perm_messages"`
-	PermRoles       PermSwitch   `db:"perm_roles"`
-	PermMembers     PermMembers  `db:"perm_members"`
-	PermGroupChange PermSwitch   `db:"perm_group_change"`
-	PermAdmin       PermSwitch   `db:"perm_admin"`
-	Inherit         bool         `db:"inherit"`
-}
-
-func SetChannelPermission(cp ChannelPermission) error {
-	_ = Delete(TableChannelPermissions, goqu.Ex{"channel_id": cp.ChannelId, "role_id": cp.RoleId})
-	return Insert(TableChannelPermissions, &cp)
-}
-
-func GetChannelPermission(channelId, roleId uint64) (*ChannelPermission, error) {
-	cp := new(ChannelPermission)
-	err := First(TableChannelPermissions, goqu.Ex{"channel_id": channelId, "role_id": roleId}, cp)
-	if err != nil {
-		return nil, err
-	}
-	return cp, nil
-}
-
-func EffectiveRolePermission(channelId uint64, groupRole Role) Role {
-	cp, err := GetChannelPermission(channelId, groupRole.Id)
-	if err != nil || cp == nil || cp.Inherit {
-		return groupRole
-	}
-
-	role := groupRole
-	if cp.PermMessages != "" {
-		role.PermMessages = cp.PermMessages
-	}
-	if cp.PermRoles != "" {
-		role.PermRoles = cp.PermRoles
-	}
-	if cp.PermMembers != "" {
-		role.PermMembers = cp.PermMembers
-	}
-	if cp.PermGroupChange != "" {
-		role.PermGroupChange = cp.PermGroupChange
-	}
-	if cp.PermAdmin != "" {
-		role.PermAdmin = cp.PermAdmin
-	}
-	return role
-}
-
 // Channel Messages Queries
 func (channel Channel) MessagesPage(page, limit uint) []Message {
 	messageList := []Message{}

@@ -36,6 +36,10 @@ const (
 	TableBlockedIPs         = "app_blocked_ips"
 	TableUserLogs           = "app_user_logs"
 	TableUserFriends        = "app_user_friends"
+	TablePermissions        = "app_perms"
+	TablePermChannels       = "app_perm_channels"
+	TablePermUsers          = "app_perm_users"
+	TablePermRoles          = "app_perm_roles"
 )
 
 func LoadDB() error {

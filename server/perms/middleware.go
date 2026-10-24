@@ -32,6 +32,33 @@ func GroupById(groupIdUri string) fiber.Handler {
 	}
 }
 
+func RequirePerm(groupIdUri string, permName model.PermName) fiber.Handler {
+	return RequirePermLevel(groupIdUri, permName, model.PermLevelOwn)
+}
+
+func RequirePermLevel(groupIdUri string, permName model.PermName, minLevel model.PermLevel) fiber.Handler {
+	return func(ctx fiber.Ctx) error {
+		if err := MemberByAuthAndGroupIdFromCtx(ctx, groupIdUri); err != nil {
+			return err
+		}
+
+		group := fiber.Locals[model.Group](ctx, LocalGroup)
+		user := fiber.Locals[model.User](ctx, LocalAuth)
+		channelId := fiber.Params[uint64](ctx, "channel_id")
+
+		level := model.GetUserPermissionLevel(group.Id, user.Id, channelId, permName)
+		if level == model.PermLevelDisable {
+			return htmx.AlertGroupMemberNotAllowed
+		}
+
+		if minLevel == model.PermLevelAll && level != model.PermLevelAll {
+			return htmx.AlertGroupMemberNotAllowed
+		}
+
+		return ctx.Next()
+	}
+}
+
 func GroupByName(groupNameUri string) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		group, err := GroupByNameFromCtx(ctx, groupNameUri)
@@ -61,11 +88,11 @@ func MemberByAuthAndGroupId(groupIdUri string, rights RightsChecker) fiber.Handl
 
 		group := fiber.Locals[model.Group](ctx, LocalGroup)
 		role := fiber.Locals[model.Role](ctx, LocalRights)
-		if role.PermAdmin.Has() || member.UserId == group.OwnerId {
+		if member.UserId == group.OwnerId {
 			return ctx.Next()
 		}
 
-		if rights == nil || !rights(ctx, role) {
+		if rights != nil && !rights(ctx, role) {
 			return htmx.AlertGroupMemberNotAllowed
 		}
 

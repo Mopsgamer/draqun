@@ -282,10 +282,9 @@ func TestModelRoles(t *testing.T) {
 
 	// Role Custom
 	custom := Role{
-		GroupId:      group.Id,
-		Name:         "admin",
-		Moniker:      "Admin",
-		PermMessages: PermMessagesDelete,
+		GroupId: group.Id,
+		Name:    "admin",
+		Moniker: "Admin",
 	}
 	if err := custom.Insert(); err != nil {
 		t.Fatalf("failed to insert custom role: %v", err)
@@ -305,8 +304,8 @@ func TestModelRoles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to fetch role: %v", err)
 	}
-	if fetched.PermMessages != PermMessagesDelete {
-		t.Errorf("expected PermMessagesDelete, got %v", fetched.PermMessages)
+	if fetched.Moniker != "Admin" {
+		t.Errorf("expected Admin, got %v", fetched.Moniker)
 	}
 }
 

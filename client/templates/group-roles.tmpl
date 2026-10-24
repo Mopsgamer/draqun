@@ -20,19 +20,16 @@
                 <span class="icon icon-[lucide--shield-alert] size-4 text-base-content/70" aria-hidden="true"></span>
                 Role Hierarchy
             </h2>
-            {{if or .Role.PermRoles.Has .Role.PermAdmin.Has (eq .Member.UserId .Group.OwnerId)}}
             <a class="btn btn-primary btn-xs gap-1.5" href="/groups/{{.Group.Id}}/settings/roles/create">
                 <span class="icon icon-[lucide--plus] size-3.5" aria-hidden="true"></span>
                 Create Role
             </a>
-            {{end}}
         </div>
 
         <div class="divide-y divide-base-content/10">
             {{range $index, $role := .Roles}}
             <div class="py-3.5 flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5 min-w-0">
-                    {{if or $.Role.PermRoles.Has $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)}}
                     <div class="flex flex-col gap-0.5 shrink-0">
                         <button
                             type="button"
@@ -51,7 +48,6 @@
                             <span class="icon icon-[lucide--chevron-down] size-3"></span>
                         </button>
                     </div>
-                    {{end}}
 
                     <span class="size-3.5 rounded-full shrink-0" style="background-color: {{$role.Color.Hex}}"></span>
 
@@ -59,12 +55,6 @@
                         <div class="font-bold text-sm flex items-center gap-2">
                             <span>{{$role.Moniker}}</span>
                             <span class="text-xs text-base-content/50 font-mono">({{$role.Name}})</span>
-                        </div>
-                        <div class="text-[11px] text-base-content/50 flex flex-wrap gap-2 mt-0.5 font-mono">
-                            <span>Msg: {{$role.PermMessages}}</span>
-                            <span>Roles: {{$role.PermRoles}}</span>
-                            <span>Members: {{$role.PermMembers}}</span>
-                            <span>Admin: {{$role.PermAdmin}}</span>
                         </div>
 
                         <!-- Assigned members for this role -->
@@ -75,14 +65,12 @@
                             <span class="badge badge-neutral badge-sm gap-1 text-xs">
                                 <div class="avatar shrink-0"><div class="w-4 h-4 rounded-full"><img src="{{.AvatarUrl}}" class="size-full object-cover rounded-full" alt="Avatar"></div></div>
                                 <span>{{.Moniker}}</span>
-                                {{if or $.Role.PermRoles.Has $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)}}
                                 <button
                                     type="button"
                                     class="hover:text-error ml-0.5 cursor-pointer"
                                     hx-delete="/groups/{{$.Group.Id}}/members/{{.Id}}/roles/{{$role.Id}}"
                                     title="Remove role"
                                 >✕</button>
-                                {{end}}
                             </span>
                             {{end}}
                         </div>
@@ -90,7 +78,7 @@
                     </div>
                 </div>
 
-                {{if and (ne $role.Name "@everyone") (or $.Role.PermRoles.Has $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId))}}
+                {{if ne $role.Name "@everyone"}}
                 <div class="flex items-center gap-1 shrink-0">
                     <details class="dropdown dropdown-end">
                         <summary class="btn btn-ghost btn-xs gap-1 cursor-pointer">
@@ -116,7 +104,6 @@
                     <a class="btn btn-ghost btn-xs gap-1" href="/groups/{{$.Group.Id}}/settings/roles/{{$role.Id}}">
                         <span class="icon icon-[lucide--pencil] size-3"></span> Edit
                     </a>
-                    {{if ne $role.Name "@everyone"}}
                     <details class="dropdown dropdown-end">
                         <summary class="btn btn-ghost btn-xs text-error gap-1">
                             <span class="icon icon-[lucide--trash-2] size-3"></span> Delete
@@ -130,7 +117,6 @@
                             >Confirm Delete</button>
                         </div>
                     </details>
-                    {{end}}
                 </div>
                 {{end}}
             </div>
