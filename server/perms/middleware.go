@@ -45,6 +45,9 @@ func RequirePermLevel(groupIdUri string, permName model.PermName, minLevel model
 		group := fiber.Locals[model.Group](ctx, LocalGroup)
 		user := fiber.Locals[model.User](ctx, LocalAuth)
 		channelId := fiber.Params[uint64](ctx, "channel_id")
+		if channelId == 0 {
+			channelId = fiber.Params[uint64](ctx, "parent_id")
+		}
 
 		level := model.GetUserPermissionLevel(group.Id, user.Id, channelId, permName)
 		if level == model.PermLevelDisable {
