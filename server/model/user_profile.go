@@ -150,22 +150,200 @@ func GetOrCreateDraqunGroup(ownerId uint64) (Group, error) {
 	everyone := NewRoleEveryone(newGroup.Id)
 	_ = everyone.Insert()
 
+	adminRole := Role{
+		GroupId:  newGroup.Id,
+		Position: 1,
+		Name:     "admin",
+		Moniker:  "Admin",
+		Color:    ParseColorHex("#ef4444"),
+	}
+	_ = adminRole.Insert()
+
+	supportRole := Role{
+		GroupId:  newGroup.Id,
+		Position: 2,
+		Name:     "support",
+		Moniker:  "Support",
+		Color:    ParseColorHex("#3b82f6"),
+	}
+	_ = supportRole.Insert()
+
+	punisherRole := Role{
+		GroupId:  newGroup.Id,
+		Position: 3,
+		Name:     "punisher",
+		Moniker:  "Punisher",
+		Color:    ParseColorHex("#a855f7"),
+	}
+	_ = punisherRole.Insert()
+
+	if ownerId != 0 && adminRole.Id != 0 {
+		ra := RoleAssignee{
+			RoleId: adminRole.Id,
+			UserId: ownerId,
+		}
+		_ = ra.Insert()
+	}
+
+	if adminRole.Id != 0 {
+		adminGroupPerm := Permission{
+			GroupId:  newGroup.Id,
+			Name:     PermNameAdmin,
+			Level:    PermLevelAll,
+			Priority: 10,
+		}
+		if err := adminGroupPerm.Insert(); err == nil {
+			_ = adminGroupPerm.AddRole(adminRole.Id)
+		}
+	}
+
 	mandatoryChannels := []struct {
 		Name        Name
 		Moniker     Moniker
 		Description Description
 		Type        ChannelType
 	}{
-		{Name("general"), Moniker("General"), Description("General discussion channel"), ChannelTypeText},
-		{Name("bugs"), Moniker("Bugs"), Description("Bug reports ticket channel"), ChannelTypeTicket},
-		{Name("feats"), Moniker("Feats"), Description("Feature requests ticket channel"), ChannelTypeTicket},
-		{Name("reports"), Moniker("Reports"), Description("User reports ticket channel"), ChannelTypeTicket},
+		{Name("general"), Moniker("General"), Description("The main hub for community conversations, casual chat, and general discussions."), ChannelTypeText},
+		{Name("internal"), Moniker("Internal"), Description("Private internal discussion channel for moderators and staff members."), ChannelTypeText},
+		{Name("bugs"), Moniker("Bugs"), Description("Report bugs, technical glitches, and platform issues to help us fix them."), ChannelTypeTicket},
+		{Name("feats"), Moniker("Feats"), Description("Propose new features, improvements, and ideas to shape the future of Draqun."), ChannelTypeTicket},
+		{Name("admin-requests"), Moniker("Admin Requests"), Description("Internal channel for moderators and staff to submit escalation requests directly to administrators."), ChannelTypeTicket},
+		{Name("private-support"), Moniker("Private Support"), Description("Open a private ticket to get 1-on-1 assistance from the support team for account or personal issues."), ChannelTypeTicket},
+		{Name("public-support"), Moniker("Public Support"), Description("Community-wide support channel for common questions and shared knowledge, managed by support staff."), ChannelTypeTicket},
 	}
 
+	createdChannels := make(map[Name]Channel)
 	for i, chSpec := range mandatoryChannels {
 		ch := NewChannel(chSpec.Name, chSpec.Moniker, chSpec.Description, chSpec.Type)
 		if err := ch.Insert(); err == nil {
 			_ = AddGroupChannel(newGroup.Id, ch.Id, uint(i+1))
+			createdChannels[chSpec.Name] = ch
+		}
+	}
+
+	// 0) Internal text channel: only support and punisher have read all access, isAdmin has full access, everyone has no access
+	if internalCh, ok := createdChannels["internal"]; ok {
+		pNoEveryone := Permission{
+			GroupId:  newGroup.Id,
+			Name:     PermNameRead,
+			Level:    PermLevelDisable,
+			Priority: 10,
+		}
+		if err := pNoEveryone.Insert(); err == nil {
+			_ = pNoEveryone.AddChannel(internalCh.Id)
+			_ = pNoEveryone.AddRole(everyone.Id)
+		}
+
+		pReadAllStaff := Permission{
+			GroupId:  newGroup.Id,
+			Name:     PermNameRead,
+			Level:    PermLevelAll,
+			Priority: 20,
+		}
+		if err := pReadAllStaff.Insert(); err == nil {
+			_ = pReadAllStaff.AddChannel(internalCh.Id)
+			if supportRole.Id != 0 {
+				_ = pReadAllStaff.AddRole(supportRole.Id)
+			}
+			if punisherRole.Id != 0 {
+				_ = pReadAllStaff.AddRole(punisherRole.Id)
+			}
+		}
+	}
+
+	// 1) Admin requests: only support and punisher have read all access, isAdmin has full access, everyone has no access
+	if adminReqCh, ok := createdChannels["admin-requests"]; ok {
+		pNoEveryone := Permission{
+			GroupId:  newGroup.Id,
+			Name:     PermNameRead,
+			Level:    PermLevelDisable,
+			Priority: 10,
+		}
+		if err := pNoEveryone.Insert(); err == nil {
+			_ = pNoEveryone.AddChannel(adminReqCh.Id)
+			_ = pNoEveryone.AddRole(everyone.Id)
+		}
+
+		pReadAllStaff := Permission{
+			GroupId:  newGroup.Id,
+			Name:     PermNameRead,
+			Level:    PermLevelAll,
+			Priority: 20,
+		}
+		if err := pReadAllStaff.Insert(); err == nil {
+			_ = pReadAllStaff.AddChannel(adminReqCh.Id)
+			if supportRole.Id != 0 {
+				_ = pReadAllStaff.AddRole(supportRole.Id)
+			}
+			if punisherRole.Id != 0 {
+				_ = pReadAllStaff.AddRole(punisherRole.Id)
+			}
+		}
+	}
+
+	// 2) Private Support: everyone read own
+	if privSuppCh, ok := createdChannels["private-support"]; ok {
+		pReadOwn := Permission{
+			GroupId:  newGroup.Id,
+			Name:     PermNameRead,
+			Level:    PermLevelOwn,
+			Priority: 10,
+		}
+		if err := pReadOwn.Insert(); err == nil {
+			_ = pReadOwn.AddChannel(privSuppCh.Id)
+			_ = pReadOwn.AddRole(everyone.Id)
+		}
+	}
+
+	// 3) Public Support: read all, write disabled, delete disabled. Only Support and Admin can have write access.
+	if pubSuppCh, ok := createdChannels["public-support"]; ok {
+		pReadAll := Permission{
+			GroupId:  newGroup.Id,
+			Name:     PermNameRead,
+			Level:    PermLevelAll,
+			Priority: 10,
+		}
+		if err := pReadAll.Insert(); err == nil {
+			_ = pReadAll.AddChannel(pubSuppCh.Id)
+			_ = pReadAll.AddRole(everyone.Id)
+		}
+
+		pWriteDisable := Permission{
+			GroupId:  newGroup.Id,
+			Name:     PermNameWrite,
+			Level:    PermLevelDisable,
+			Priority: 10,
+		}
+		if err := pWriteDisable.Insert(); err == nil {
+			_ = pWriteDisable.AddChannel(pubSuppCh.Id)
+			_ = pWriteDisable.AddRole(everyone.Id)
+		}
+
+		pDeleteDisable := Permission{
+			GroupId:  newGroup.Id,
+			Name:     PermNameDelete,
+			Level:    PermLevelDisable,
+			Priority: 10,
+		}
+		if err := pDeleteDisable.Insert(); err == nil {
+			_ = pDeleteDisable.AddChannel(pubSuppCh.Id)
+			_ = pDeleteDisable.AddRole(everyone.Id)
+		}
+
+		pWriteStaff := Permission{
+			GroupId:  newGroup.Id,
+			Name:     PermNameWrite,
+			Level:    PermLevelAll,
+			Priority: 20,
+		}
+		if err := pWriteStaff.Insert(); err == nil {
+			_ = pWriteStaff.AddChannel(pubSuppCh.Id)
+			if supportRole.Id != 0 {
+				_ = pWriteStaff.AddRole(supportRole.Id)
+			}
+			if adminRole.Id != 0 {
+				_ = pWriteStaff.AddRole(adminRole.Id)
+			}
 		}
 	}
 
