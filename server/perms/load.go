@@ -144,6 +144,11 @@ func checkUser(token *jwt.Token) (user model.User, err error) {
 		return
 	}
 
+	if user.IsSuspended {
+		err = htmx.AlertUserUnauthorized
+		return
+	}
+
 	if password != user.Password {
 		err = htmx.AlertToken.Join(errors.New("incorrect password"))
 	}
@@ -186,6 +191,22 @@ func UserByAuthFromCtx(ctx fiber.Ctx) (user model.User, err error) {
 
 	model.RecordUserIP(user.Id, ip)
 	user.TouchLastSeen()
+
+	// Sliding session window refresh:
+	// If the token is past 50% of its lifespan, issue an updated token cookie.
+	if exp, errExp := token.Claims.GetExpirationTime(); errExp == nil && exp != nil {
+		remaining := time.Until(exp.Time)
+		halfLifespan := environment.UserAuthTokenExpiration / 2
+		if remaining < halfLifespan {
+			if newTokenString, errToken := user.GenerateToken(); errToken == nil {
+				ctx.Cookie(&fiber.Cookie{
+					Name:    fiber.HeaderAuthorization,
+					Value:   newTokenString,
+					Expires: time.Now().Add(environment.UserAuthTokenExpiration),
+				})
+			}
+		}
+	}
 
 	ctx.Locals(LocalAuth, user)
 	return
