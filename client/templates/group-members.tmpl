@@ -75,7 +75,7 @@
                         >
                             <span class="icon icon-[lucide--user] size-3.5"></span> Profile
                         </button>
-                        {{if and (or $.Role.PermMembers.CanKickBan $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)) (ne .User.Id $.Group.OwnerId)}}
+                        {{if and $.CanKickBanGroup (ne .User.Id $.Group.OwnerId)}}
                         <details class="dropdown dropdown-end">
                             <summary class="btn btn-warning btn-xs gap-1">Kick</summary>
                             <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
@@ -129,14 +129,12 @@
                         </div>
                         <div class="text-xs text-base-content/70 mt-0.5">Reason: {{.Ban.Description}}</div>
                     </div>
-                    {{if or $.Role.PermMembers.CanKickBan $.Role.PermAdmin.Has (eq $.Member.UserId $.Group.OwnerId)}}
                     <button
                         class="btn btn-ghost btn-xs text-success hover:bg-success/10 gap-1 shrink-0"
                         hx-post="/groups/{{$.Group.Id}}/members/{{.Target.Id}}/unban"
                     >
                         <span class="icon icon-[lucide--check-circle] size-3"></span> Unban
                     </button>
-                    {{end}}
                 </div>
                 {{end}}
             </div>

@@ -5,97 +5,6 @@ import (
 	"github.com/doug-martin/goqu/v9"
 )
 
-type PermSwitch string
-
-const (
-	PermSwitchNone     PermSwitch = ""
-	PermSwitchDisallow PermSwitch = "disallow"
-	PermSwitchAllow    PermSwitch = "allow"
-)
-
-func (perm PermSwitch) IsValid() bool {
-	return perm == PermSwitchNone ||
-		perm == PermSwitchDisallow ||
-		perm == PermSwitchAllow
-}
-
-func (perm PermSwitch) Has() bool {
-	return perm == PermSwitchAllow
-}
-
-type PermMessages string
-
-const (
-	PermMessagesNone   PermMessages = ""
-	PermMessagesHidden PermMessages = "hidden" // Can not see any messages. Channel info can be available.
-	PermMessagesRead   PermMessages = "read"   // Can read chat messages.
-	PermMessagesWrite  PermMessages = "write"  // Can read, write and delete own messages.
-	PermMessagesDelete PermMessages = "delete" // Can read, write and delete own messages. Can delete other people's messages.
-)
-
-func (perm PermMessages) IsValid() bool {
-	return perm == PermMessagesNone ||
-		perm == PermMessagesHidden ||
-		perm == PermMessagesRead ||
-		perm == PermMessagesWrite ||
-		perm == PermMessagesDelete
-}
-
-func (perm PermMessages) CanReadMessages() bool {
-	return perm == PermMessagesRead ||
-		perm == PermMessagesWrite ||
-		perm == PermMessagesDelete
-}
-
-func (perm PermMessages) CanWriteMessages() bool {
-	return perm == PermMessagesWrite ||
-		perm == PermMessagesDelete
-}
-
-func (perm PermMessages) CanDeleteMessages() bool {
-	return perm == PermMessagesDelete
-}
-
-type PermMembers string
-
-const (
-	PermMembersNone   PermMembers = ""
-	PermMembersRead   PermMembers = "read"   // Can see all information about all users.
-	PermMembersInvite PermMembers = "invite" // Can invite new users.
-	PermMembersWrite  PermMembers = "write"  // Can invite new users and change other people's monikers.
-	PermMembersDelete PermMembers = "delete" // Can invite, change monikers, kick and ban people.
-)
-
-func (perm PermMembers) IsValid() bool {
-	return perm == PermMembersNone ||
-		perm == PermMembersRead ||
-		perm == PermMembersInvite ||
-		perm == PermMembersWrite ||
-		perm == PermMembersDelete
-}
-
-func (perm PermMembers) CanSee() bool {
-	return perm == PermMembersRead ||
-		perm == PermMembersInvite ||
-		perm == PermMembersWrite ||
-		perm == PermMembersDelete
-}
-
-func (perm PermMembers) CanInvite() bool {
-	return perm == PermMembersInvite ||
-		perm == PermMembersWrite ||
-		perm == PermMembersDelete
-}
-
-func (perm PermMembers) CanManage() bool {
-	return perm == PermMembersWrite ||
-		perm == PermMembersDelete
-}
-
-func (perm PermMembers) CanKickBan() bool {
-	return perm == PermMembersDelete
-}
-
 type Role struct {
 	checkEmpty
 	Id       uint64  `db:"id" goqu:"skipinsert"`
@@ -104,12 +13,6 @@ type Role struct {
 	Name     Name    `db:"name"`
 	Moniker  Moniker `db:"moniker"`
 	Color    Color   `db:"color"`
-
-	PermMessages    PermMessages `db:"perm_messages"`
-	PermRoles       PermSwitch   `db:"perm_roles"`
-	PermMembers     PermMembers  `db:"perm_members"`
-	PermGroupChange PermSwitch   `db:"perm_group_change"`
-	PermAdmin       PermSwitch   `db:"perm_admin"`
 }
 
 var _ Model = (*Role)(nil)
@@ -124,54 +27,7 @@ func (role Role) Validate() htmx.Alert {
 	if !role.Color.IsValid() {
 		return htmx.AlertFormatColor
 	}
-
-	if !role.PermMessages.IsValid() {
-		return htmx.AlertFormatGroupPermMessages
-	}
-	if !role.PermRoles.IsValid() {
-		return htmx.AlertFormatGroupPermSwitch
-	}
-	if !role.PermMembers.IsValid() {
-		return htmx.AlertFormatGroupPermMembers
-	}
-	if !role.PermGroupChange.IsValid() {
-		return htmx.AlertFormatGroupPermSwitch
-	}
-	if !role.PermAdmin.IsValid() {
-		return htmx.AlertFormatGroupPermSwitch
-	}
-
 	return nil
-}
-
-// permissions
-//
-// NOTE: Highest permissions have priority. Neutral/None is at the end.
-var (
-	permSwitch   = []PermSwitch{PermSwitchAllow, PermSwitchDisallow, PermSwitchNone}
-	permMembers  = []PermMembers{PermMembersDelete, PermMembersWrite, PermMembersInvite, PermMembersRead, PermMembersNone}
-	permMessages = []PermMessages{PermMessagesDelete, PermMessagesWrite, PermMessagesRead, PermMessagesHidden, PermMessagesNone}
-)
-
-// Higher priority roles override lower priority roles. Neutral/None ("") inherits from lower roles.
-func (r *Role) Merge(roleList ...Role) {
-	for _, role := range roleList {
-		if role.PermMessages != PermMessagesNone {
-			r.PermMessages = role.PermMessages
-		}
-		if role.PermRoles != PermSwitchNone {
-			r.PermRoles = role.PermRoles
-		}
-		if role.PermMembers != PermMembersNone {
-			r.PermMembers = role.PermMembers
-		}
-		if role.PermGroupChange != PermSwitchNone {
-			r.PermGroupChange = role.PermGroupChange
-		}
-		if role.PermAdmin != PermSwitchNone {
-			r.PermAdmin = role.PermAdmin
-		}
-	}
 }
 
 func NewRoleFromId(id uint64, groupId uint64) (Role, error) {
@@ -191,31 +47,7 @@ func NewRoleEveryone(groupId uint64) Role {
 		GroupId: groupId,
 		Name:    roleNameEveryone,
 		Moniker: "everyone",
-
-		PermMessages:    PermMessagesWrite,
-		PermRoles:       PermSwitchDisallow,
-		PermMembers:     PermMembersRead,
-		PermGroupChange: PermSwitchDisallow,
-		PermAdmin:       PermSwitchDisallow,
 	}
-}
-
-func NewAllAccessRole(allow bool, role Role) Role {
-	if allow {
-		role.PermMessages = PermMessagesDelete
-		role.PermRoles = PermSwitchAllow
-		role.PermMembers = PermMembersDelete
-		role.PermGroupChange = PermSwitchAllow
-		role.PermAdmin = PermSwitchAllow
-		return role
-	}
-
-	role.PermMessages = PermMessagesHidden
-	role.PermRoles = PermSwitchDisallow
-	role.PermMembers = PermMembersRead
-	role.PermGroupChange = PermSwitchDisallow
-	role.PermAdmin = PermSwitchDisallow
-	return role
 }
 
 func (role *Role) Insert() error {

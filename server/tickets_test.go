@@ -429,12 +429,15 @@ func TestTicketPermissionsAndEdgeCases(t *testing.T) {
 	// Register Non-Member User
 	cookieNonMember, _ := createTestUserCookie(t, ts, "Non Member User", "non_member_user", "non_member@example.com")
 
-	// Set @everyone role to PermMessagesRead (read-only)
-	everyoneRole := group.Everyone()
-	everyoneRole.PermMessages = model.PermMessagesRead
-	if err := everyoneRole.Update(); err != nil {
-		t.Fatalf("failed to update everyone role to read-only: %v", err)
+	// Set read permission to disable for @everyone via Permission rule
+	readOnlyPerm := model.Permission{
+		GroupId:  group.Id,
+		Name:     model.PermNameWrite,
+		Level:    model.PermLevelDisable,
+		Priority: 10,
 	}
+	_ = readOnlyPerm.Insert()
+	_ = readOnlyPerm.AddRole(group.Everyone().Id)
 
 	// Create top-level Ticket channel as Owner
 	respCreateTicketCh, err := ts.Client.R().
@@ -541,18 +544,18 @@ func TestTicketPermissionsAndEdgeCases(t *testing.T) {
 	respReadOnlyStatus.Close()
 
 	// 6. Channel Permission Override Test for Ticket Channel
-	// Set ChannelPermission on ticketChannel for @everyone to PermMessagesWrite
-	err = model.SetChannelPermission(model.ChannelPermission{
-		ChannelId:    ticketChannel.Id,
-		RoleId:       everyoneRole.Id,
-		PermMessages: model.PermMessagesWrite,
-		Inherit:      false,
-	})
-	if err != nil {
-		t.Fatalf("failed to set channel permission override: %v", err)
+	// Grant high priority write permission for ticketChannel to readOnlyUser
+	overridePerm := model.Permission{
+		GroupId:  group.Id,
+		Name:     model.PermNameWrite,
+		Level:    model.PermLevelAll,
+		Priority: 50,
 	}
+	_ = overridePerm.Insert()
+	_ = overridePerm.AddChannel(ticketChannel.Id)
+	_ = overridePerm.AddUser(readOnlyUser.Id)
 
-	// Now read-only user (who has @everyone role) SHOULD be allowed to create a ticket in ticketChannel due to override
+	// Now read-only user SHOULD be allowed to create a ticket in ticketChannel due to override
 	respOverrideCreate, err := ts.Client.R().
 		SetHeader("Cookie", cookieReadOnly).
 		SetFormDataWithMap(map[string]string{
@@ -584,16 +587,16 @@ func TestTicketPermissionsAndEdgeCases(t *testing.T) {
 		t.Fatalf("failed to find ticket created via override")
 	}
 
-	// Test channel permission override blocking write (PermMessagesRead on issueOverride for @everyone)
-	err = model.SetChannelPermission(model.ChannelPermission{
-		ChannelId:    issueOverride.Id,
-		RoleId:       everyoneRole.Id,
-		PermMessages: model.PermMessagesRead,
-		Inherit:      false,
-	})
-	if err != nil {
-		t.Fatalf("failed to set channel permission override on issue: %v", err)
+	// Disable write permission for issueOverride
+	blockPerm := model.Permission{
+		GroupId:  group.Id,
+		Name:     model.PermNameWrite,
+		Level:    model.PermLevelDisable,
+		Priority: 100,
 	}
+	_ = blockPerm.Insert()
+	_ = blockPerm.AddChannel(issueOverride.Id)
+	_ = blockPerm.AddUser(readOnlyUser.Id)
 
 	// Read-only member attempts to edit issueOverride -> Should be denied (403 Forbidden)
 	respDeniedEditOverride, err := ts.Client.R().
@@ -723,10 +726,9 @@ func TestNewValidationRules(t *testing.T) {
 
 	// Create custom Role
 	role := model.Role{
-		GroupId:      group.Id,
-		Name:         "mod",
-		Moniker:      "Moderator",
-		PermMessages: model.PermMessagesWrite,
+		GroupId: group.Id,
+		Name:    "mod",
+		Moniker: "Moderator",
 	}
 	if err := role.Insert(); err != nil {
 		t.Fatalf("failed to insert role: %v", err)

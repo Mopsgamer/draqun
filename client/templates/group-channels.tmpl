@@ -23,23 +23,19 @@
                     Group Channels ({{len .ChannelItems}})
                 </h2>
             </div>
-            {{if .Member.Role.PermGroupChange.Has}}
             <a class="btn btn-primary btn-xs" href="/groups/{{.Group.Id}}/settings/channels/create">
                 <span class="icon icon-[lucide--plus] size-3.5"></span>
                 Create Channel
             </a>
-            {{end}}
         </div>
 
         {{if eq (len .ChannelItems) 0}}
         <div class="py-8 text-center text-sm text-base-content/60 flex flex-col items-center gap-3">
             <span>No channels in this group yet.</span>
-            {{if .Member.Role.PermGroupChange.Has}}
             <a class="btn btn-primary btn-sm" href="/groups/{{.Group.Id}}/settings/channels/create">
                 <span class="icon icon-[lucide--plus] size-3.5"></span>
                 Create First Channel
             </a>
-            {{end}}
         </div>
         {{else}}
         <div class="flex flex-col divide-y divide-base-content/10">
@@ -47,7 +43,6 @@
             <div class="py-4 flex flex-col gap-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2.5 min-w-0">
-                        {{if $.Member.Role.PermGroupChange.Has}}
                         <div class="flex flex-col gap-0.5 shrink-0">
                             <button
                                 type="button"
@@ -66,7 +61,6 @@
                                 <span class="icon icon-[lucide--chevron-down] size-3"></span>
                             </button>
                         </div>
-                        {{end}}
                         <span class="icon {{template "partials/channel-icon-class" .Channel.Type}} size-5 text-primary shrink-0"></span>
                         <div>
                             <span class="font-semibold text-sm">{{.Channel.Moniker}}</span>
@@ -81,7 +75,6 @@
                             <span class="icon icon-[lucide--external-link] size-3"></span>
                             View
                         </a>
-                        {{if $.Member.Role.PermGroupChange.Has}}
                         <details class="dropdown dropdown-end">
                             <summary class="btn btn-error btn-xs gap-1 cursor-pointer">
                                 <span class="icon icon-[lucide--trash-2] size-3"></span> Delete
@@ -95,7 +88,6 @@
                                 >Confirm Delete</button>
                             </div>
                         </details>
-                        {{end}}
                     </div>
                 </div>
 
@@ -112,7 +104,6 @@
                         </div>
                         <div class="flex items-center gap-1.5">
                             <a class="btn btn-ghost btn-xs text-xs" href="/chat/groups/{{$.Group.Id}}/channels/{{.Id}}">View</a>
-                            {{if $.Member.Role.PermGroupChange.Has}}
                             <details class="dropdown dropdown-end">
                                 <summary class="btn btn-ghost btn-xs text-error text-xs cursor-pointer">
                                     Delete
@@ -126,54 +117,10 @@
                                     >Confirm Delete</button>
                                 </div>
                             </details>
-                            {{end}}
                         </div>
                     </div>
                     {{end}}
                 </div>
-                {{end}}
-
-                <!-- Permission Overrides Section for Channel -->
-                {{if $.Member.Role.PermRoles.Has}}
-                <details class="mt-1 pt-2 text-xs">
-                    <summary class="cursor-pointer text-xs text-primary font-medium hover:underline flex items-center gap-1">
-                        <span class="icon icon-[lucide--shield-alert] size-3.5"></span>
-                        Configure Role Permission Overrides
-                    </summary>
-                    <form
-                        class="mt-2 flex flex-col gap-3 py-3 px-4 rounded-lg bg-surface-inset"
-                        hx-post="/groups/{{$.Group.Id}}/channels/{{.Channel.Id}}/permissions"
-                    >
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div>
-                                <label class="block font-semibold mb-1">Target Role</label>
-                                <select class="select select-bordered select-xs w-full" name="role_id" required>
-                                    {{range $.Roles}}
-                                    <option value="{{.Id}}">{{.Moniker}}</option>
-                                    {{end}}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block font-semibold mb-1">Messages Permission</label>
-                                <select class="select select-bordered select-xs w-full" name="perm_messages">
-                                    <option value="write">Allow Write</option>
-                                    <option value="read">Read Only</option>
-                                    <option value="hidden">Hidden</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block font-semibold mb-1">Inherit Server Rights</label>
-                                <select class="select select-bordered select-xs w-full" name="inherit">
-                                    <option value="false">Override</option>
-                                    <option value="true">Inherit</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="flex justify-end mt-1">
-                            <button class="btn btn-primary btn-xs" type="submit">Save Override</button>
-                        </div>
-                    </form>
-                </details>
                 {{end}}
             </div>
             {{end}}

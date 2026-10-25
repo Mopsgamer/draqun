@@ -94,14 +94,9 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 	respCreateRole, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
 		SetFormDataWithMap(map[string]string{
-			"name":              "moderator",
-			"moniker":           "Moderator",
-			"color":             "#ff5500",
-			"perm_messages":     "delete",
-			"perm_roles":        "disallow",
-			"perm_members":      "delete",
-			"perm_group_change": "disallow",
-			"perm_admin":        "disallow",
+			"name":    "moderator",
+			"moniker": "Moderator",
+			"color":   "#ff5500",
 		}).
 		Post(fmt.Sprintf("/groups/%d/roles/create", group.Id))
 	if err != nil {
@@ -139,14 +134,9 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 	respUpdateRole, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
 		SetFormDataWithMap(map[string]string{
-			"name":              "moderator",
-			"moniker":           "Senior Moderator",
-			"color":             "#00ffaa",
-			"perm_messages":     "delete",
-			"perm_roles":        "allow",
-			"perm_members":      "delete",
-			"perm_group_change": "disallow",
-			"perm_admin":        "disallow",
+			"name":    "moderator",
+			"moniker": "Senior Moderator",
+			"color":   "#00ffaa",
 		}).
 		Put(fmt.Sprintf("/groups/%d/roles/%d", group.Id, modRole.Id))
 	if err != nil {

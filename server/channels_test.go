@@ -198,25 +198,19 @@ func TestChannelsManagementAndMessaging(t *testing.T) {
 		t.Errorf("expected 200 for channel messages page, got %d", respGetMsgs.StatusCode())
 	}
 
-	// 6. Test Channel Permission Override
-	everyoneRole := group.Everyone()
+	// 6. Test Permission Rule Creation
 	respSetPerm, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
 		SetFormDataWithMap(map[string]string{
-			"role_id":       fmt.Sprintf("%d", everyoneRole.Id),
-			"perm_messages": "read",
-			"inherit":       "false",
+			"name":     "read",
+			"level":    "own",
+			"priority": "10",
 		}).
-		Post(fmt.Sprintf("/groups/%d/channels/%d/permissions", group.Id, subChannel.Id))
+		Post(fmt.Sprintf("/groups/%d/permissions", group.Id))
 	if err != nil {
-		t.Fatalf("set channel permission override failed: %v", err)
+		t.Fatalf("create permission rule failed: %v", err)
 	}
 	respSetPerm.Close()
-
-	effectiveRole := model.EffectiveRolePermission(subChannel.Id, everyoneRole)
-	if effectiveRole.PermMessages != model.PermMessagesRead {
-		t.Errorf("expected effective PermMessages to be 'read', got '%s'", effectiveRole.PermMessages)
-	}
 
 	// 7. GET /chat/groups/:id/channels/:channel_id -> View channel chat page
 	respViewChannel, err := ts.Client.R().
