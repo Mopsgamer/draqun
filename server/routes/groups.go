@@ -148,6 +148,9 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				if group.IsBanned(user.Id) {
 					return htmx.AlertGroupMemberNotAllowed
 				}
+				if group.Mode == model.GroupModePrivate {
+					return htmx.AlertGroupMemberNotAllowed
+				}
 
 				perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id")
 				member := fiber.Locals[model.Member](ctx, perms.LocalMember)
@@ -1855,17 +1858,34 @@ func handleMemberSearch(ctx fiber.Ctx) error {
 	group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 	request := fiber.Locals[MemberSearchForm](ctx, perms.LocalForm)
 
-	results, err := group.SearchUsers(request.Q, 10)
+	qVal := request.Q
+	if qVal == "" {
+		qVal = ctx.Query("q")
+	}
+	roleId := request.RoleId
+	if roleId == 0 {
+		if ridStr := ctx.Query("role_id"); ridStr != "" {
+			roleId, _ = strconv.ParseUint(ridStr, 10, 64)
+		}
+	}
+	channelId := request.ChannelId
+	if channelId == 0 {
+		if cidStr := ctx.Query("channel_id"); cidStr != "" {
+			channelId, _ = strconv.ParseUint(cidStr, 10, 64)
+		}
+	}
+
+	results, err := group.SearchUsers(qVal, 10)
 	if err != nil {
 		return htmx.AlertDatabase.Join(err)
 	}
 
 	var filtered []model.User
 	for _, u := range results {
-		if request.RoleId != 0 && model.IsRoleAssigned(u.Id, request.RoleId) {
+		if roleId != 0 && model.IsRoleAssigned(u.Id, roleId) {
 			continue
 		}
-		if request.ChannelId != 0 && model.IsChannelAssignee(request.ChannelId, u.Id) {
+		if channelId != 0 && model.IsChannelAssignee(channelId, u.Id) {
 			continue
 		}
 		filtered = append(filtered, u)
@@ -1875,8 +1895,8 @@ func handleMemberSearch(ctx fiber.Ctx) error {
 		return ctx.Render("partials/member-search-results", fiber.Map{
 			"Group":     group,
 			"Results":   filtered,
-			"ChannelId": request.ChannelId,
-			"RoleId":    request.RoleId,
+			"ChannelId": channelId,
+			"RoleId":    roleId,
 		})
 	}
 
@@ -1987,18 +2007,29 @@ func handleEntitySearch(ctx fiber.Ctx) error {
 func handleTicketSearch(ctx fiber.Ctx) error {
 	group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 	request := fiber.Locals[TicketSearchForm](ctx, perms.LocalForm)
+
+	qVal := request.Q
+	if qVal == "" {
+		qVal = ctx.Query("q")
+	}
+	excludeId := request.ExcludeId
+	if excludeId == 0 {
+		if eidStr := ctx.Query("exclude_id"); eidStr != "" {
+			excludeId, _ = strconv.ParseUint(eidStr, 10, 64)
+		}
+	}
 	mode := request.Mode
 	if mode == "" {
-		mode = "parent"
+		mode = ctx.Query("mode", "parent")
 	}
 
-	results, err := model.SearchTicketChannels(group.Id, request.Q, request.ExcludeId, 10)
+	results, err := model.SearchTicketChannels(group.Id, qVal, excludeId, 10)
 	if err != nil {
 		return htmx.AlertDatabase.Join(err)
 	}
 
-	if request.ExcludeId != 0 && mode == "parent" {
-		existingParents, _ := model.GetParentChannels(request.ExcludeId)
+	if excludeId != 0 && mode == "parent" {
+		existingParents, _ := model.GetParentChannels(excludeId)
 		if len(existingParents) > 0 {
 			parentMap := make(map[uint64]bool)
 			for _, p := range existingParents {
