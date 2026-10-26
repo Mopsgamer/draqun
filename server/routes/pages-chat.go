@@ -49,7 +49,13 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			}
 
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
-			channels, _ := model.GetGroupChannels(group.Id)
+			allChannels, _ := model.GetGroupChannels(group.Id)
+			var channels []model.Channel
+			for _, ch := range allChannels {
+				if model.GetUserPermissionLevel(group.Id, user.Id, ch.Id, model.PermNameRead) != model.PermLevelDisable {
+					channels = append(channels, ch)
+				}
+			}
 			subchannelsMap := make(map[uint64][]model.Channel)
 			for _, ch := range channels {
 				if !ch.IsTicket() {
@@ -107,6 +113,10 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			channelId := fiber.Params[uint64](ctx, "channel_id")
 			activeChannel, err := model.NewChannelFromId(channelId)
 			if err != nil || !activeChannel.IsAvailable() {
+				return ctx.Redirect().To(group.Url(ctx))
+			}
+
+			if model.GetUserPermissionLevel(group.Id, user.Id, activeChannel.Id, model.PermNameRead) == model.PermLevelDisable {
 				return ctx.Redirect().To(group.Url(ctx))
 			}
 
@@ -339,9 +349,20 @@ func enrichTicketContext(ctx fiber.Ctx, activeChannel model.Channel, bind fiber.
 				}
 			}
 
+			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+			groupId := group.Id
+			if groupId == 0 {
+				if g, errG := model.GetChannelGroup(activeChannel.Id); errG == nil && g != nil {
+					groupId = g.Id
+				}
+			}
+
 			qLower := strings.ToLower(strings.TrimSpace(qQuery))
 			var filteredSubchs []model.Channel
 			for _, sub := range candidates {
+				if groupId != 0 && model.GetUserPermissionLevel(groupId, currentUser.Id, sub.Id, model.PermNameRead) == model.PermLevelDisable {
+					continue
+				}
 				if statusFilter == "open" && sub.Status != "open" {
 					continue
 				}

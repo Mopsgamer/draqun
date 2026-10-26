@@ -1102,6 +1102,10 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					}
 				}
 
+				if model.GetUserPermissionLevel(group.Id, user.Id, channelId, model.PermNameWrite) == model.PermLevelDisable {
+					return htmx.AlertGroupMemberNotAllowed
+				}
+
 				message := model.NewMessageFilled(channelId, group.Id, user.Id, request.Content)
 
 				if err := saveMessageAttachment(ctx, group.Id, &message); err != nil {
@@ -1273,10 +1277,17 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			perms.RequirePerm("group_id", model.PermNameRead),
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				page := fiber.Params[uint](ctx, "messages_page")
 				const MessagesPagination uint = 5
 
-				channels, _ := model.GetAllGroupChannels(group.Id)
+				allChannels, _ := model.GetAllGroupChannels(group.Id)
+				var channels []model.Channel
+				for _, ch := range allChannels {
+					if model.GetUserPermissionLevel(group.Id, user.Id, ch.Id, model.PermNameRead) != model.PermLevelDisable {
+						channels = append(channels, ch)
+					}
+				}
 				var messageList []model.Message
 				var activeChannel model.Channel
 
@@ -1856,6 +1867,7 @@ func broadcastGroupMemberLeave(app *fiber.App, group model.Group, userId uint64)
 
 func handleMemberSearch(ctx fiber.Ctx) error {
 	group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+	user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 	request := fiber.Locals[MemberSearchForm](ctx, perms.LocalForm)
 
 	qVal := request.Q
@@ -1873,6 +1885,10 @@ func handleMemberSearch(ctx fiber.Ctx) error {
 		if cidStr := ctx.Query("channel_id"); cidStr != "" {
 			channelId, _ = strconv.ParseUint(cidStr, 10, 64)
 		}
+	}
+
+	if channelId != 0 && model.GetUserPermissionLevel(group.Id, user.Id, channelId, model.PermNameRead) == model.PermLevelDisable {
+		return htmx.AlertGroupMemberNotAllowed
 	}
 
 	results, err := group.SearchUsers(qVal, 10)
@@ -2006,6 +2022,7 @@ func handleEntitySearch(ctx fiber.Ctx) error {
 
 func handleTicketSearch(ctx fiber.Ctx) error {
 	group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+	user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 	request := fiber.Locals[TicketSearchForm](ctx, perms.LocalForm)
 
 	qVal := request.Q
@@ -2027,6 +2044,14 @@ func handleTicketSearch(ctx fiber.Ctx) error {
 	if err != nil {
 		return htmx.AlertDatabase.Join(err)
 	}
+
+	var permFiltered []model.Channel
+	for _, ch := range results {
+		if model.GetUserPermissionLevel(group.Id, user.Id, ch.Id, model.PermNameRead) != model.PermLevelDisable {
+			permFiltered = append(permFiltered, ch)
+		}
+	}
+	results = permFiltered
 
 	if excludeId != 0 && mode == "parent" {
 		existingParents, _ := model.GetParentChannels(excludeId)
