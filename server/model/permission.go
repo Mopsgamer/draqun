@@ -342,6 +342,20 @@ func GetUserPermissionLevel(groupId, userId, channelId uint64, permName PermName
 							break
 						}
 					}
+					if !channelMatch {
+						parentChannels, _ := GetParentChannels(channelId)
+						for _, pch := range parentChannels {
+							for _, ch := range p.Channels {
+								if ch.Id == pch.Id {
+									channelMatch = true
+									break
+								}
+							}
+							if channelMatch {
+								break
+							}
+						}
+					}
 				}
 			}
 
@@ -350,16 +364,42 @@ func GetUserPermissionLevel(groupId, userId, channelId uint64, permName PermName
 			}
 
 			// First matching rule by priority/id order wins
-			return p.Level
+			return resolveLevelForChannel(p.Level, channelId, userId)
 		}
 	}
 
+	defaultLevel := PermLevelDisable
 	switch permName {
 	case PermNameRead, PermNameWrite, PermNameDelete, PermNameMembers:
-		return PermLevelOwn
+		defaultLevel = PermLevelOwn
 	case PermNameRoles, PermNameSettings, PermNameAdmin:
-		return PermLevelDisable
+		defaultLevel = PermLevelDisable
 	default:
-		return PermLevelDisable
+		defaultLevel = PermLevelDisable
 	}
+	return resolveLevelForChannel(defaultLevel, channelId, userId)
+}
+
+func resolveLevelForChannel(level PermLevel, channelId uint64, userId uint64) PermLevel {
+	if level != PermLevelOwn || channelId == 0 {
+		return level
+	}
+
+	channel, err := NewChannelFromId(channelId)
+	if err != nil || !channel.IsAvailable() {
+		return level
+	}
+
+	parentChannels := channel.ParentChannels()
+	isSubchannelOrTicket := channel.AuthorId != 0 || len(parentChannels) > 0
+
+	if !isSubchannelOrTicket {
+		return PermLevelOwn
+	}
+
+	if userId != 0 && (channel.AuthorId == userId || IsChannelAssignee(channelId, userId)) {
+		return PermLevelOwn
+	}
+
+	return PermLevelDisable
 }

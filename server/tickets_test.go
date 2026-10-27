@@ -952,3 +952,441 @@ func TestTicketChannelHeaderRefactor(t *testing.T) {
 		t.Errorf("expected 'Root Ticket Alpha' for assigned_to_me=true, got: %s", bodyAssignedTo)
 	}
 }
+
+func TestPrivateSupportTicketAccessControl(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	// 1. First user registration automatically creates Draqun group
+	cookieAdmin, adminUser := createTestUserCookie(t, ts, "Admin User", "admin_user", "admin@example.com")
+	draqunGroup, err := model.NewGroupFromName("draqun")
+	if err != nil || draqunGroup.IsEmpty() {
+		t.Fatalf("expected draqun group to be created on first registration: %v", err)
+	}
+
+	// 2. Register Support User and assign support role
+	cookieSupport, supportUser := createTestUserCookie(t, ts, "Support User", "support_user", "supp@example.com")
+	respJoinSupp, _ := ts.Client.R().SetHeader("Cookie", cookieSupport).Put(fmt.Sprintf("/groups/%d/join", draqunGroup.Id))
+	respJoinSupp.Close()
+
+	supportRole, errRole := model.NewRoleFromName("support", draqunGroup.Id)
+	if errRole != nil || supportRole.IsEmpty() {
+		t.Fatalf("expected support role to exist in draqun group")
+	}
+	ra := model.RoleAssignee{RoleId: supportRole.Id, UserId: supportUser.Id}
+	_ = ra.Insert()
+
+	// 3. Register Regular User A and Regular User B
+	cookieUserA, userA := createTestUserCookie(t, ts, "Regular User A", "user_a", "usera@example.com")
+	respJoinA, _ := ts.Client.R().SetHeader("Cookie", cookieUserA).Put(fmt.Sprintf("/groups/%d/join", draqunGroup.Id))
+	respJoinA.Close()
+
+	cookieUserB, userB := createTestUserCookie(t, ts, "Regular User B", "user_b", "userb@example.com")
+	respJoinB, _ := ts.Client.R().SetHeader("Cookie", cookieUserB).Put(fmt.Sprintf("/groups/%d/join", draqunGroup.Id))
+	respJoinB.Close()
+
+	// Find private-support channel
+	channels, errCh := model.GetGroupChannels(draqunGroup.Id)
+	if errCh != nil {
+		t.Fatalf("failed to fetch channels: %v", errCh)
+	}
+	var privSuppCh model.Channel
+	for _, ch := range channels {
+		if ch.Name == "private-support" {
+			privSuppCh = ch
+			break
+		}
+	}
+	if privSuppCh.IsEmpty() {
+		t.Fatalf("private-support channel not found")
+	}
+
+	// 4. User A creates Ticket A
+	respCreateA, err := ts.Client.R().
+		SetHeader("Cookie", cookieUserA).
+		SetFormDataWithMap(map[string]string{
+			"title":   "Ticket A Private Issue",
+			"content": "Account problem for User A",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/create", draqunGroup.Id, privSuppCh.Id))
+	if err != nil {
+		t.Fatalf("User A create ticket failed: %v", err)
+	}
+	respCreateA.Close()
+
+	// 5. User B creates Ticket B
+	respCreateB, err := ts.Client.R().
+		SetHeader("Cookie", cookieUserB).
+		SetFormDataWithMap(map[string]string{
+			"title":   "Ticket B Private Issue",
+			"content": "Billing problem for User B",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/create", draqunGroup.Id, privSuppCh.Id))
+	if err != nil {
+		t.Fatalf("User B create ticket failed: %v", err)
+	}
+	respCreateB.Close()
+
+	subchs, _ := model.GetSubchannels(privSuppCh.Id)
+	var ticketA, ticketB model.Channel
+	for _, sub := range subchs {
+		if sub.Moniker == "Ticket A Private Issue" {
+			ticketA = sub
+		}
+		if sub.Moniker == "Ticket B Private Issue" {
+			ticketB = sub
+		}
+	}
+	if ticketA.IsEmpty() || ticketB.IsEmpty() {
+		t.Fatalf("expected both ticket A and ticket B to be created")
+	}
+
+	// 6. User A checks
+	// User A views private-support channel container -> Should see Ticket A, but NOT Ticket B
+	respListA, err := ts.Client.R().SetHeader("Cookie", cookieUserA).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, privSuppCh.Id))
+	if err != nil {
+		t.Fatalf("User A view private support failed: %v", err)
+	}
+	bodyListA := respListA.String()
+	respListA.Close()
+
+	if !strings.Contains(bodyListA, "Ticket A Private Issue") {
+		t.Errorf("expected User A to see Ticket A in private support list, got: %s", bodyListA)
+	}
+	if strings.Contains(bodyListA, "Ticket B Private Issue") {
+		t.Errorf("expected User A to NOT see Ticket B in private support list, got: %s", bodyListA)
+	}
+
+	// User A tries to view Ticket B directly -> Should be redirected to group URL
+	respDetailAOnB, err := ts.Client.R().SetHeader("Cookie", cookieUserA).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, ticketB.Id))
+	if err != nil {
+		t.Fatalf("User A view Ticket B failed: %v", err)
+	}
+	defer respDetailAOnB.Close()
+	if strings.Contains(respDetailAOnB.String(), "Billing problem for User B") {
+		t.Errorf("expected User A to be denied view of Ticket B, but body contained Ticket B content: %s", respDetailAOnB.String())
+	}
+
+	// User A searches tickets -> Should see Ticket A, but NOT Ticket B
+	respSearchA, err := ts.Client.R().SetHeader("Cookie", cookieUserA).Get(fmt.Sprintf("/groups/%d/tickets/search?q=Ticket", draqunGroup.Id))
+	if err != nil {
+		t.Fatalf("User A ticket search failed: %v", err)
+	}
+	bodySearchA := respSearchA.String()
+	respSearchA.Close()
+
+	if !strings.Contains(bodySearchA, "Ticket A Private Issue") {
+		t.Errorf("expected User A search to find Ticket A, got: %s", bodySearchA)
+	}
+	if strings.Contains(bodySearchA, "Ticket B Private Issue") {
+		t.Errorf("expected User A search to NOT find Ticket B, got: %s", bodySearchA)
+	}
+
+	// 7. User B checks
+	// User B views private-support channel container -> Should see Ticket B, but NOT Ticket A
+	respListB, err := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, privSuppCh.Id))
+	if err != nil {
+		t.Fatalf("User B view private support failed: %v", err)
+	}
+	bodyListB := respListB.String()
+	respListB.Close()
+
+	if !strings.Contains(bodyListB, "Ticket B Private Issue") {
+		t.Errorf("expected User B to see Ticket B in private support list, got: %s", bodyListB)
+	}
+	if strings.Contains(bodyListB, "Ticket A Private Issue") {
+		t.Errorf("expected User B to NOT see Ticket A in private support list, got: %s", bodyListB)
+	}
+
+	// User B tries to view Ticket A directly -> Should be denied
+	respDetailBOnA, err := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, ticketA.Id))
+	if err != nil {
+		t.Fatalf("User B view Ticket A failed: %v", err)
+	}
+	defer respDetailBOnA.Close()
+	if strings.Contains(respDetailBOnA.String(), "Account problem for User A") {
+		t.Errorf("expected User B to be denied view of Ticket A, but body contained Ticket A content: %s", respDetailBOnA.String())
+	}
+
+	// 8. Support User checks -> Should see BOTH Ticket A and Ticket B
+	respListSupp, err := ts.Client.R().SetHeader("Cookie", cookieSupport).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, privSuppCh.Id))
+	if err != nil {
+		t.Fatalf("Support User view private support failed: %v", err)
+	}
+	bodyListSupp := respListSupp.String()
+	respListSupp.Close()
+
+	if !strings.Contains(bodyListSupp, "Ticket A Private Issue") || !strings.Contains(bodyListSupp, "Ticket B Private Issue") {
+		t.Errorf("expected Support User to see both Ticket A and Ticket B in private support list, got: %s", bodyListSupp)
+	}
+
+	// 9. Admin User checks -> Should see BOTH Ticket A and Ticket B
+	respListAdmin, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, privSuppCh.Id))
+	if err != nil {
+		t.Fatalf("Admin User view private support failed: %v", err)
+	}
+	bodyListAdmin := respListAdmin.String()
+	respListAdmin.Close()
+
+	if !strings.Contains(bodyListAdmin, "Ticket A Private Issue") {
+		t.Errorf("expected Admin User to see Ticket A in private support list, got: %s", bodyListAdmin)
+	}
+	if !strings.Contains(bodyListAdmin, "Ticket B Private Issue") {
+		t.Errorf("expected Admin User to see Ticket B in private support list, got: %s", bodyListAdmin)
+	}
+
+	_ = adminUser
+	_ = cookieAdmin
+	_ = userA
+	_ = userB
+}
+
+func TestInternalChannelAccessAndSidebarVisibility(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	// 1. First user registration automatically creates Draqun group
+	cookieAdmin, _ := createTestUserCookie(t, ts, "Admin Staff", "admin_staff", "admin_staff@example.com")
+	draqunGroup, err := model.NewGroupFromName("draqun")
+	if err != nil || draqunGroup.IsEmpty() {
+		t.Fatalf("expected draqun group to be created on first registration: %v", err)
+	}
+
+	// 2. Register Support User and assign support role
+	cookieSupport, supportUser := createTestUserCookie(t, ts, "Support Staff", "supp_staff", "supp_staff@example.com")
+	respJoinSupp, _ := ts.Client.R().SetHeader("Cookie", cookieSupport).Put(fmt.Sprintf("/groups/%d/join", draqunGroup.Id))
+	respJoinSupp.Close()
+
+	supportRole, errRole := model.NewRoleFromName("support", draqunGroup.Id)
+	if errRole != nil || supportRole.IsEmpty() {
+		t.Fatalf("expected support role to exist in draqun group")
+	}
+	ra := model.RoleAssignee{RoleId: supportRole.Id, UserId: supportUser.Id}
+	_ = ra.Insert()
+
+	// 3. Register Regular User
+	cookieRegular, _ := createTestUserCookie(t, ts, "Ordinary Member", "ordinary_member", "ordinary_member@example.com")
+	respJoinReg, _ := ts.Client.R().SetHeader("Cookie", cookieRegular).Put(fmt.Sprintf("/groups/%d/join", draqunGroup.Id))
+	respJoinReg.Close()
+
+	// Find internal channel
+	channels, errCh := model.GetGroupChannels(draqunGroup.Id)
+	if errCh != nil {
+		t.Fatalf("failed to fetch channels: %v", errCh)
+	}
+	var internalCh model.Channel
+	for _, ch := range channels {
+		if ch.Name == "internal" {
+			internalCh = ch
+			break
+		}
+	}
+	if internalCh.IsEmpty() {
+		t.Fatalf("internal channel not found")
+	}
+
+	internalUrlPath := fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, internalCh.Id)
+
+	// 4. Regular User checks:
+	// a) Viewing group main page -> Should NOT see internal channel link in sidebar
+	respRegGroup, err := ts.Client.R().SetHeader("Cookie", cookieRegular).Get(fmt.Sprintf("/chat/groups/%d", draqunGroup.Id))
+	if err != nil {
+		t.Fatalf("regular user group view failed: %v", err)
+	}
+	bodyRegGroup := respRegGroup.String()
+	respRegGroup.Close()
+
+	if strings.Contains(bodyRegGroup, internalUrlPath) || strings.Contains(bodyRegGroup, "#internal") {
+		t.Errorf("expected ordinary user to NOT see internal channel link in sidebar, got: %s", bodyRegGroup)
+	}
+
+	// b) Direct navigation to internal channel -> Should be denied (redirected)
+	respRegDirect, err := ts.Client.R().SetHeader("Cookie", cookieRegular).Get(internalUrlPath)
+	if err != nil {
+		t.Fatalf("regular user direct internal view failed: %v", err)
+	}
+	defer respRegDirect.Close()
+	if strings.Contains(respRegDirect.String(), "Private internal discussion channel for moderators") {
+		t.Errorf("expected ordinary user to be denied access to internal channel, but content was returned")
+	}
+
+	// 5. Support User checks:
+	// a) Viewing group main page -> SHOULD see internal channel link in sidebar
+	respSuppGroup, err := ts.Client.R().SetHeader("Cookie", cookieSupport).Get(fmt.Sprintf("/chat/groups/%d", draqunGroup.Id))
+	if err != nil {
+		t.Fatalf("support user group view failed: %v", err)
+	}
+	bodySuppGroup := respSuppGroup.String()
+	respSuppGroup.Close()
+
+	if !strings.Contains(bodySuppGroup, internalUrlPath) {
+		t.Errorf("expected support user to see Internal channel link in sidebar, got: %s", bodySuppGroup)
+	}
+
+	// b) Direct navigation to internal channel -> Allowed
+	respSuppDirect, err := ts.Client.R().SetHeader("Cookie", cookieSupport).Get(internalUrlPath)
+	if err != nil {
+		t.Fatalf("support user direct internal view failed: %v", err)
+	}
+	defer respSuppDirect.Close()
+	if !strings.Contains(respSuppDirect.String(), "Private internal discussion channel for moderators") {
+		t.Errorf("expected support user to have access to internal channel")
+	}
+
+	// 6. Admin User checks:
+	// Viewing group main page -> SHOULD see internal channel link in sidebar
+	respAdminGroup, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/chat/groups/%d", draqunGroup.Id))
+	if err != nil {
+		t.Fatalf("admin user group view failed: %v", err)
+	}
+	bodyAdminGroup := respAdminGroup.String()
+	respAdminGroup.Close()
+
+	if !strings.Contains(bodyAdminGroup, internalUrlPath) {
+		t.Errorf("expected admin user to see Internal channel link in sidebar, got: %s", bodyAdminGroup)
+	}
+}
+
+func TestAPIAccessControlForPrivateChannelsAndTickets(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	// 1. Admin creates Draqun group
+	cookieAdmin, _ := createTestUserCookie(t, ts, "API Admin User", "api_admin", "api_admin@example.com")
+	draqunGroup, err := model.NewGroupFromName("draqun")
+	if err != nil || draqunGroup.IsEmpty() {
+		t.Fatalf("expected draqun group to be created on first registration: %v", err)
+	}
+
+	// 2. Register Regular User A and Regular User B
+	cookieUserA, userA := createTestUserCookie(t, ts, "API User A", "api_user_a", "api_usera@example.com")
+	respJoinA, _ := ts.Client.R().SetHeader("Cookie", cookieUserA).Put(fmt.Sprintf("/groups/%d/join", draqunGroup.Id))
+	respJoinA.Close()
+
+	cookieUserB, userB := createTestUserCookie(t, ts, "API User B", "api_user_b", "api_userb@example.com")
+	respJoinB, _ := ts.Client.R().SetHeader("Cookie", cookieUserB).Put(fmt.Sprintf("/groups/%d/join", draqunGroup.Id))
+	respJoinB.Close()
+
+	// Find internal and private-support channels
+	channels, errCh := model.GetGroupChannels(draqunGroup.Id)
+	if errCh != nil {
+		t.Fatalf("failed to fetch channels: %v", errCh)
+	}
+	var internalCh, privSuppCh model.Channel
+	for _, ch := range channels {
+		if ch.Name == "internal" {
+			internalCh = ch
+		}
+		if ch.Name == "private-support" {
+			privSuppCh = ch
+		}
+	}
+	if internalCh.IsEmpty() || privSuppCh.IsEmpty() {
+		t.Fatalf("required channels not found")
+	}
+
+	// 3. User A creates Ticket A in private-support
+	respCreateA, err := ts.Client.R().
+		SetHeader("Cookie", cookieUserA).
+		SetFormDataWithMap(map[string]string{
+			"title":   "User A Confidential Ticket",
+			"content": "Secret information of User A",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/create", draqunGroup.Id, privSuppCh.Id))
+	if err != nil {
+		t.Fatalf("User A create ticket failed: %v", err)
+	}
+	respCreateA.Close()
+
+	subchs, _ := model.GetSubchannels(privSuppCh.Id)
+	var ticketA model.Channel
+	for _, sub := range subchs {
+		if sub.Moniker == "User A Confidential Ticket" {
+			ticketA = sub
+			break
+		}
+	}
+	if ticketA.IsEmpty() {
+		t.Fatalf("ticket A not found")
+	}
+
+	// 4. User B attempts API calls on internal channel -> Expect 403 Forbidden
+	respMsgPageInt, _ := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/groups/%d/channels/%d/messages/page/1", draqunGroup.Id, internalCh.Id))
+	if respMsgPageInt.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for User B getting internal messages, got %d", respMsgPageInt.StatusCode())
+	}
+	respMsgPageInt.Close()
+
+	respMsgPostInt, _ := ts.Client.R().SetHeader("Cookie", cookieUserB).SetFormDataWithMap(map[string]string{"content": "unauthorized msg"}).Post(fmt.Sprintf("/groups/%d/channels/%d/messages/create", draqunGroup.Id, internalCh.Id))
+	if respMsgPostInt.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for User B posting to internal channel, got %d", respMsgPostInt.StatusCode())
+	}
+	respMsgPostInt.Close()
+
+	respMsgPostGroupInt, _ := ts.Client.R().SetHeader("Cookie", cookieUserB).SetFormDataWithMap(map[string]string{"content": "unauthorized msg", "channel_id": fmt.Sprintf("%d", internalCh.Id)}).Post(fmt.Sprintf("/groups/%d/messages/create", draqunGroup.Id))
+	if respMsgPostGroupInt.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for User B posting to group with internal channel_id, got %d", respMsgPostGroupInt.StatusCode())
+	}
+	respMsgPostGroupInt.Close()
+
+	// 5. User B attempts API calls on User A's Ticket A -> Expect 403 Forbidden
+	respMsgPageTicketA, _ := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/groups/%d/channels/%d/messages/page/1", draqunGroup.Id, ticketA.Id))
+	if respMsgPageTicketA.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for User B getting Ticket A messages, got %d", respMsgPageTicketA.StatusCode())
+	}
+	respMsgPageTicketA.Close()
+
+	respMsgPostTicketA, _ := ts.Client.R().SetHeader("Cookie", cookieUserB).SetFormDataWithMap(map[string]string{"content": "unauthorized comment"}).Post(fmt.Sprintf("/groups/%d/channels/%d/messages/create", draqunGroup.Id, ticketA.Id))
+	if respMsgPostTicketA.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for User B posting to Ticket A, got %d", respMsgPostTicketA.StatusCode())
+	}
+	respMsgPostTicketA.Close()
+
+	respMsgPostGroupTicketA, _ := ts.Client.R().SetHeader("Cookie", cookieUserB).SetFormDataWithMap(map[string]string{"content": "unauthorized comment", "channel_id": fmt.Sprintf("%d", ticketA.Id)}).Post(fmt.Sprintf("/groups/%d/messages/create", draqunGroup.Id))
+	if respMsgPostGroupTicketA.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for User B posting to group with Ticket A channel_id, got %d", respMsgPostGroupTicketA.StatusCode())
+	}
+	respMsgPostGroupTicketA.Close()
+
+	respEditTicketA, _ := ts.Client.R().SetHeader("Cookie", cookieUserB).SetFormDataWithMap(map[string]string{"title": "Hacked Title", "parent_ids": fmt.Sprintf("%d", privSuppCh.Id)}).Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/edit", draqunGroup.Id, ticketA.Id))
+	if respEditTicketA.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for User B editing Ticket A, got %d", respEditTicketA.StatusCode())
+	}
+	respEditTicketA.Close()
+
+	respStatusTicketA, _ := ts.Client.R().SetHeader("Cookie", cookieUserB).SetFormDataWithMap(map[string]string{"status": "closed", "closed_reason": "completed"}).Post(fmt.Sprintf("/groups/%d/channels/%d/status", draqunGroup.Id, ticketA.Id))
+	if respStatusTicketA.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for User B changing status of Ticket A, got %d", respStatusTicketA.StatusCode())
+	}
+	respStatusTicketA.Close()
+
+	// 6. User A (author) performs API calls on Ticket A -> Expect 200 OK
+	respMsgPostUserA, _ := ts.Client.R().SetHeader("Cookie", cookieUserA).SetFormDataWithMap(map[string]string{"content": "User A legitimate comment"}).Post(fmt.Sprintf("/groups/%d/channels/%d/messages/create", draqunGroup.Id, ticketA.Id))
+	if respMsgPostUserA.StatusCode() != http.StatusOK {
+		t.Errorf("expected 200 OK for User A posting to Ticket A, got %d", respMsgPostUserA.StatusCode())
+	}
+	respMsgPostUserA.Close()
+
+	respMsgPageUserA, _ := ts.Client.R().SetHeader("Cookie", cookieUserA).Get(fmt.Sprintf("/groups/%d/channels/%d/messages/page/1", draqunGroup.Id, ticketA.Id))
+	if respMsgPageUserA.StatusCode() != http.StatusOK {
+		t.Errorf("expected 200 OK for User A getting Ticket A messages, got %d", respMsgPageUserA.StatusCode())
+	}
+	respMsgPageUserA.Close()
+
+	// 7. Member search with private channel_id by User B -> Expect 403 Forbidden
+	respMemSearchInt, _ := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/groups/%d/members/search?channel_id=%d&q=API", draqunGroup.Id, internalCh.Id))
+	if respMemSearchInt.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for User B member search with internal channel_id, got %d", respMemSearchInt.StatusCode())
+	}
+	respMemSearchInt.Close()
+
+	respMemSearchTicketA, _ := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/groups/%d/members/search?channel_id=%d&q=API", draqunGroup.Id, ticketA.Id))
+	if respMemSearchTicketA.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for User B member search with Ticket A channel_id, got %d", respMemSearchTicketA.StatusCode())
+	}
+	respMemSearchTicketA.Close()
+
+	_ = cookieAdmin
+	_ = userA
+	_ = userB
+}

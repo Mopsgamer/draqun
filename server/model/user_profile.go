@@ -221,67 +221,71 @@ func GetOrCreateDraqunGroup(ownerId uint64) (Group, error) {
 		}
 	}
 
-	// 0) Internal text channel: only support and punisher have read all access, isAdmin has full access, everyone has no access
+	// 0) Internal text channel: only support and punisher have read/write access, isAdmin has full access, everyone has no access
 	if internalCh, ok := createdChannels["internal"]; ok {
-		pNoEveryone := Permission{
-			GroupId:  newGroup.Id,
-			Name:     PermNameRead,
-			Level:    PermLevelDisable,
-			Priority: 10,
-		}
-		if err := pNoEveryone.Insert(); err == nil {
-			_ = pNoEveryone.AddChannel(internalCh.Id)
-			_ = pNoEveryone.AddRole(everyone.Id)
-		}
-
-		pReadAllStaff := Permission{
-			GroupId:  newGroup.Id,
-			Name:     PermNameRead,
-			Level:    PermLevelAll,
-			Priority: 20,
-		}
-		if err := pReadAllStaff.Insert(); err == nil {
-			_ = pReadAllStaff.AddChannel(internalCh.Id)
-			if supportRole.Id != 0 {
-				_ = pReadAllStaff.AddRole(supportRole.Id)
+		for _, permName := range []PermName{PermNameRead, PermNameWrite, PermNameDelete} {
+			pNoEveryone := Permission{
+				GroupId:  newGroup.Id,
+				Name:     permName,
+				Level:    PermLevelDisable,
+				Priority: 10,
 			}
-			if punisherRole.Id != 0 {
-				_ = pReadAllStaff.AddRole(punisherRole.Id)
+			if err := pNoEveryone.Insert(); err == nil {
+				_ = pNoEveryone.AddChannel(internalCh.Id)
+				_ = pNoEveryone.AddRole(everyone.Id)
+			}
+
+			pReadAllStaff := Permission{
+				GroupId:  newGroup.Id,
+				Name:     permName,
+				Level:    PermLevelAll,
+				Priority: 20,
+			}
+			if err := pReadAllStaff.Insert(); err == nil {
+				_ = pReadAllStaff.AddChannel(internalCh.Id)
+				if supportRole.Id != 0 {
+					_ = pReadAllStaff.AddRole(supportRole.Id)
+				}
+				if punisherRole.Id != 0 {
+					_ = pReadAllStaff.AddRole(punisherRole.Id)
+				}
 			}
 		}
 	}
 
-	// 1) Admin requests: only support and punisher have read all access, isAdmin has full access, everyone has no access
+	// 1) Admin requests: only support and punisher have read/write access, isAdmin has full access, everyone has no access
 	if adminReqCh, ok := createdChannels["admin-requests"]; ok {
-		pNoEveryone := Permission{
-			GroupId:  newGroup.Id,
-			Name:     PermNameRead,
-			Level:    PermLevelDisable,
-			Priority: 10,
-		}
-		if err := pNoEveryone.Insert(); err == nil {
-			_ = pNoEveryone.AddChannel(adminReqCh.Id)
-			_ = pNoEveryone.AddRole(everyone.Id)
-		}
-
-		pReadAllStaff := Permission{
-			GroupId:  newGroup.Id,
-			Name:     PermNameRead,
-			Level:    PermLevelAll,
-			Priority: 20,
-		}
-		if err := pReadAllStaff.Insert(); err == nil {
-			_ = pReadAllStaff.AddChannel(adminReqCh.Id)
-			if supportRole.Id != 0 {
-				_ = pReadAllStaff.AddRole(supportRole.Id)
+		for _, permName := range []PermName{PermNameRead, PermNameWrite, PermNameDelete} {
+			pNoEveryone := Permission{
+				GroupId:  newGroup.Id,
+				Name:     permName,
+				Level:    PermLevelDisable,
+				Priority: 10,
 			}
-			if punisherRole.Id != 0 {
-				_ = pReadAllStaff.AddRole(punisherRole.Id)
+			if err := pNoEveryone.Insert(); err == nil {
+				_ = pNoEveryone.AddChannel(adminReqCh.Id)
+				_ = pNoEveryone.AddRole(everyone.Id)
+			}
+
+			pReadAllStaff := Permission{
+				GroupId:  newGroup.Id,
+				Name:     permName,
+				Level:    PermLevelAll,
+				Priority: 20,
+			}
+			if err := pReadAllStaff.Insert(); err == nil {
+				_ = pReadAllStaff.AddChannel(adminReqCh.Id)
+				if supportRole.Id != 0 {
+					_ = pReadAllStaff.AddRole(supportRole.Id)
+				}
+				if punisherRole.Id != 0 {
+					_ = pReadAllStaff.AddRole(punisherRole.Id)
+				}
 			}
 		}
 	}
 
-	// 2) Private Support: everyone read own
+	// 2) Private Support: everyone read own, support staff read all
 	if privSuppCh, ok := createdChannels["private-support"]; ok {
 		pReadOwn := Permission{
 			GroupId:  newGroup.Id,
@@ -292,6 +296,19 @@ func GetOrCreateDraqunGroup(ownerId uint64) (Group, error) {
 		if err := pReadOwn.Insert(); err == nil {
 			_ = pReadOwn.AddChannel(privSuppCh.Id)
 			_ = pReadOwn.AddRole(everyone.Id)
+		}
+
+		pReadAllStaff := Permission{
+			GroupId:  newGroup.Id,
+			Name:     PermNameRead,
+			Level:    PermLevelAll,
+			Priority: 20,
+		}
+		if err := pReadAllStaff.Insert(); err == nil {
+			_ = pReadAllStaff.AddChannel(privSuppCh.Id)
+			if supportRole.Id != 0 {
+				_ = pReadAllStaff.AddRole(supportRole.Id)
+			}
 		}
 	}
 
