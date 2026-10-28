@@ -14,10 +14,24 @@ type ChannelType string
 const (
 	ChannelTypeText   ChannelType = "text"
 	ChannelTypeTicket ChannelType = "ticket"
+	ChannelTypeOtel   ChannelType = "otel"
+
+	OtelVirtualChannelID uint64 = ^uint64(0)
 )
 
+func GetOtelVirtualChannel() Channel {
+	return Channel{
+		Id:          OtelVirtualChannelID,
+		Name:        Name("otel"),
+		Moniker:     Moniker("OpenTelemetry"),
+		Description: Description("OpenTelemetry traces, metrics, and server performance stats for Draqun system administrators."),
+		Type:        ChannelTypeOtel,
+		Status:      "open",
+	}
+}
+
 func (ct ChannelType) IsValid() bool {
-	return ct == ChannelTypeText || ct == ChannelTypeTicket
+	return ct == ChannelTypeText || ct == ChannelTypeTicket || ct == ChannelTypeOtel
 }
 
 type Channel struct {
@@ -57,6 +71,9 @@ func NewChannel(name Name, moniker Moniker, description Description, channelType
 }
 
 func NewChannelFromId(id uint64) (Channel, error) {
+	if id == OtelVirtualChannelID {
+		return GetOtelVirtualChannel(), nil
+	}
 	channel := Channel{}
 	return channel, First(TableChannels, goqu.Ex{"id": id, "is_deleted": false}, &channel)
 }
@@ -620,6 +637,10 @@ func (channel Channel) Assignees() []User {
 
 func (channel Channel) IsTicket() bool {
 	return channel.Type == ChannelTypeTicket
+}
+
+func (channel Channel) IsOtel() bool {
+	return channel.Type == ChannelTypeOtel
 }
 
 func (channel Channel) AuthorUser() User {

@@ -49,12 +49,17 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			}
 
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+			isAdmin, isMod := model.IsDraqunAdminOrMod(user)
+			isGlobalAdmin := isAdmin || isMod
 			allChannels, _ := model.GetGroupChannels(group.Id)
 			var channels []model.Channel
 			for _, ch := range allChannels {
 				if model.GetUserPermissionLevel(group.Id, user.Id, ch.Id, model.PermNameRead) != model.PermLevelDisable {
 					channels = append(channels, ch)
 				}
+			}
+			if isGlobalAdmin && group.Name == "draqun" {
+				channels = append(channels, model.GetOtelVirtualChannel())
 			}
 			subchannelsMap := make(map[uint64][]model.Channel)
 			for _, ch := range channels {
@@ -110,20 +115,36 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			}
 
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+			isAdmin, isMod := model.IsDraqunAdminOrMod(user)
+			isGlobalAdmin := isAdmin || isMod
 			channelId := fiber.Params[uint64](ctx, "channel_id")
 			activeChannel, err := model.NewChannelFromId(channelId)
-			if err != nil || !activeChannel.IsAvailable() {
+			if err != nil || (!activeChannel.IsAvailable() && activeChannel.Id != model.OtelVirtualChannelID) {
 				return ctx.Redirect().To(group.Url(ctx))
 			}
 
-			if model.GetUserPermissionLevel(group.Id, user.Id, activeChannel.Id, model.PermNameRead) == model.PermLevelDisable {
+			if activeChannel.IsOtel() {
+				if !isGlobalAdmin {
+					return ctx.Redirect().To(group.Url(ctx))
+				}
+			} else if model.GetUserPermissionLevel(group.Id, user.Id, activeChannel.Id, model.PermNameRead) == model.PermLevelDisable {
 				return ctx.Redirect().To(group.Url(ctx))
 			}
 
-			channels, _ := model.GetGroupChannels(group.Id)
+			allChannels, _ := model.GetGroupChannels(group.Id)
+			var channels []model.Channel
+			for _, ch := range allChannels {
+				if model.GetUserPermissionLevel(group.Id, user.Id, ch.Id, model.PermNameRead) != model.PermLevelDisable {
+					channels = append(channels, ch)
+				}
+			}
+			if isGlobalAdmin && group.Name == "draqun" {
+				channels = append(channels, model.GetOtelVirtualChannel())
+			}
+
 			subchannelsMap := make(map[uint64][]model.Channel)
 			for _, ch := range channels {
-				if !ch.IsTicket() {
+				if !ch.IsTicket() && !ch.IsOtel() {
 					subchs, _ := model.GetSubchannels(ch.Id)
 					subchannelsMap[ch.Id] = subchs
 				}
@@ -149,6 +170,10 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				"ActiveChannel":  activeChannel,
 				"StarredIdsMap":  starredIdsMap,
 				"IsStarred":      isStarred,
+			}
+			if activeChannel.IsOtel() {
+				bind["IsOtel"] = true
+				bind["OtelStats"] = model.GetOtelStats()
 			}
 			enrichTicketContext(ctx, activeChannel, bind)
 

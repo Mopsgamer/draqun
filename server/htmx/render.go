@@ -6,15 +6,22 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
+var OnRenderError func(name string, err error, path string)
+
 func TryRenderPage(ctx fiber.Ctx, name string, bind fiber.Map, layouts ...string) error {
 	err := ctx.Render(name, bind, layouts...)
-	maps.Copy(bind, fiber.Map{
-		"Title":         "500",
-		"StatusCode":    fiber.StatusInternalServerError,
-		"StatusMessage": fiber.ErrInternalServerError.Message,
-	})
+
 	if err != nil {
-		ctx.Render(
+		if OnRenderError != nil {
+			OnRenderError(name, err, ctx.Path())
+		}
+
+		maps.Copy(bind, fiber.Map{
+			"Title":         "500",
+			"StatusCode":    fiber.StatusInternalServerError,
+			"StatusMessage": fiber.ErrInternalServerError.Message,
+		})
+		_ = ctx.Render(
 			"partials/x",
 			bind,
 			"partials/main",

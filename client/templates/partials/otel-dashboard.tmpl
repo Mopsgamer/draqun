@@ -1,0 +1,140 @@
+<div class="flex flex-col flex-1 h-full overflow-y-auto bg-surface-canvas p-6 gap-6">
+    {{if .OtelStats}}
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-base-content/10">
+        <div class="flex items-center gap-3">
+            <span class="icon icon-[lucide--activity] size-6 text-primary" aria-hidden="true"></span>
+            <div class="flex flex-col">
+                <h1 class="text-2xl font-bold tracking-tight">OpenTelemetry Monitor</h1>
+                <p class="text-xs text-base-content/60 mt-0.5">Real-time system performance, HTTP metrics, and OpenTelemetry trace spans</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button
+                class="btn btn-outline btn-sm gap-1.5"
+                type="button"
+                onclick="window.location.reload()"
+            >
+                <span class="icon icon-[lucide--refresh-cw] size-3.5"></span>
+                Refresh Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Uptime -->
+        <div class="card bg-surface-card border border-base-content/10 p-4 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between text-base-content/60">
+                <span class="text-xs font-medium uppercase tracking-wider">Uptime</span>
+                <span class="icon icon-[lucide--clock] size-4 text-primary"></span>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-bold tracking-tight">{{.OtelStats.UptimeSeconds}}s</span>
+            </div>
+            <span class="text-[11px] text-base-content/50">Server running smoothly</span>
+        </div>
+
+        <!-- Total Requests -->
+        <div class="card bg-surface-card border border-base-content/10 p-4 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between text-base-content/60">
+                <span class="text-xs font-medium uppercase tracking-wider">Total Requests</span>
+                <span class="icon icon-[lucide--arrow-up-right] size-4 text-secondary"></span>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-bold tracking-tight">{{.OtelStats.TotalRequests}}</span>
+                {{if gt .OtelStats.ErrorCount 0}}
+                <span class="badge badge-error badge-xs font-mono">{{.OtelStats.ErrorCount}} errs</span>
+                {{end}}
+            </div>
+            <span class="text-[11px] text-base-content/50">HTTP spans recorded</span>
+        </div>
+
+        <!-- Avg Latency -->
+        <div class="card bg-surface-card border border-base-content/10 p-4 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between text-base-content/60">
+                <span class="text-xs font-medium uppercase tracking-wider">Avg Latency</span>
+                <span class="icon icon-[lucide--zap] size-4 text-warning"></span>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-bold tracking-tight">{{printf "%.2f" .OtelStats.AvgLatencyMs}} ms</span>
+            </div>
+            <span class="text-[11px] text-base-content/50">Average request duration</span>
+        </div>
+
+        <!-- System Memory & Goroutines -->
+        <div class="card bg-surface-card border border-base-content/10 p-4 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between text-base-content/60">
+                <span class="text-xs font-medium uppercase tracking-wider">Memory / Goroutines</span>
+                <span class="icon icon-[lucide--cpu] size-4 text-accent"></span>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-bold tracking-tight">{{printf "%.1f" .OtelStats.MemAllocMB}} MB</span>
+                <span class="text-xs font-mono text-base-content/60">/ {{.OtelStats.ActiveGoroutines}} routines</span>
+            </div>
+            <span class="text-[11px] text-base-content/50">Heap allocated memory</span>
+        </div>
+    </div>
+
+    <!-- Trace Spans Table -->
+    <div class="card bg-surface-card border border-base-content/10 flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-base-content/10 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="icon icon-[lucide--list-tree] size-4 text-primary"></span>
+                <h2 class="font-bold text-sm">Recent OpenTelemetry Trace Spans</h2>
+            </div>
+            <span class="text-xs text-base-content/50 font-mono">{{len .OtelStats.RecentSpans}} spans captured</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="table table-sm w-full font-mono text-xs">
+                <thead>
+                    <tr class="bg-base-200/50 text-base-content/70">
+                        <th>Timestamp</th>
+                        <th>Name / Endpoint</th>
+                        <th>Kind</th>
+                        <th>Status</th>
+                        <th>Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{if eq (len .OtelStats.RecentSpans) 0}}
+                    <tr>
+                        <td colspan="5" class="text-center py-8 text-base-content/60">
+                            No telemetry trace spans recorded yet. Generate HTTP traffic to view spans.
+                        </td>
+                    </tr>
+                    {{else}}
+                    {{range .OtelStats.RecentSpans}}
+                    <tr class="hover:bg-base-200/30 transition-colors">
+                        <td class="text-base-content/60 whitespace-nowrap">{{.Timestamp}}</td>
+                        <td class="font-semibold text-base-content">{{.Name}}</td>
+                        <td><span class="badge badge-outline badge-xs">{{.Kind}}</span></td>
+                        <td>
+                            {{if eq .Status "OK"}}
+                            <span class="badge badge-success badge-xs gap-1">
+                                <span class="size-1.5 rounded-full bg-white"></span>
+                                {{.StatusCode}} OK
+                            </span>
+                            {{else}}
+                            <span class="badge badge-error badge-xs gap-1">
+                                <span class="size-1.5 rounded-full bg-white"></span>
+                                {{.StatusCode}} ERR
+                            </span>
+                            {{end}}
+                        </td>
+                        <td class="font-bold {{if gt .DurationMs 100.0}}text-warning{{else}}text-base-content/80{{end}}">
+                            {{printf "%.2f" .DurationMs}} ms
+                        </td>
+                    </tr>
+                    {{end}}
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {{else}}
+    <div class="p-8 text-center text-xs text-base-content/60">
+        Telemetry statistics unavailable.
+    </div>
+    {{end}}
+</div>
