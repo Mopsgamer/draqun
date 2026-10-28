@@ -122,14 +122,23 @@ func NewAppHtmlEngine(embedFS fs.FS, clientEmbedded bool, directory string) *htm
 			return markdown.Render(str, ctx)
 		},
 		"channelMarkdown": func(val any) template.HTML {
+			if val == nil {
+				return ""
+			}
 			str := fmt.Sprintf("%v", val)
 			return markdown.Render(str, markdown.ContextChannelDescription)
 		},
 		"groupMarkdown": func(val any) template.HTML {
+			if val == nil {
+				return ""
+			}
 			str := fmt.Sprintf("%v", val)
 			return markdown.Render(str, markdown.ContextGroupDescription)
 		},
 		"messageMarkdown": func(val any) template.HTML {
+			if val == nil {
+				return ""
+			}
 			str := fmt.Sprintf("%v", val)
 			return markdown.Render(str, markdown.ContextMessage)
 		},

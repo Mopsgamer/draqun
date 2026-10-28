@@ -29,12 +29,12 @@ const (
 )
 
 var (
-	calloutMarkerRegex       = regexp.MustCompile(`(?m)^(\s*>\s*)\[\!(NOTE|WARNING|TIP|IMPORTANT|CAUTION)\][ \t]*`)
-	calloutMatchRegex        = regexp.MustCompile(`(?i)%%CALLOUT:(NOTE|WARNING|TIP|IMPORTANT|CAUTION)%%`)
-	discordSubtextRegex      = regexp.MustCompile(`(?m)^(\s*)-\#\s+(.+)$`)
+	calloutMarkerRegex      = regexp.MustCompile(`(?m)^(\s*>\s*)\[\!(NOTE|WARNING|TIP|IMPORTANT|CAUTION)\][ \t]*`)
+	calloutMatchRegex       = regexp.MustCompile(`(?i)%%CALLOUT:(NOTE|WARNING|TIP|IMPORTANT|CAUTION)%%`)
+	discordSubtextRegex     = regexp.MustCompile(`(?m)^(\s*)-\#\s+(.+)$`)
 	subtextPlaceholderRegex = regexp.MustCompile(`%%SUBTEXT_START%%(.*?)%%SUBTEXT_END%%`)
 	mentionRegex            = regexp.MustCompile(`(?:^|[^a-zA-Z0-9_/\.-])@([a-zA-Z0-9._]{1,64})\b`)
-	codeBlockWrapperRegex   = regexp.MustCompile(`(?s)<div class="code-block-wrapper">.*?</div>|<pre.*?>.*?</pre>`)
+	codeBlockWrapperRegex   = regexp.MustCompile(`(?s)<div class="code-block-wrapper">.*?<pre.*?>.*?</pre>\s*</div>|<pre.*?>.*?</pre>`)
 	htmlTagRegex            = regexp.MustCompile(`<[^>]+>`)
 )
 

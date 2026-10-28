@@ -14,6 +14,7 @@ ignore (
 )
 
 require (
+	github.com/alecthomas/chroma/v2 v2.15.0
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/fasthttp/websocket v1.5.12
 	github.com/fatih/color v1.19.0
@@ -25,6 +26,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-colorable v0.1.16
 	github.com/stretchr/testify v1.12.1
+	github.com/yuin/goldmark v1.7.17
 	golang.org/x/crypto v0.58.0
 	golang.org/x/exp v0.0.0-20261007192929-f45ad48fbe92
 	golang.org/x/mod v0.41.0
@@ -32,7 +34,6 @@ require (
 )
 
 require (
-	github.com/alecthomas/chroma/v2 v2.15.0 // indirect
 	github.com/dlclark/regexp2 v1.11.4 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
@@ -51,7 +52,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.75.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	github.com/yuin/goldmark v1.7.12 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect

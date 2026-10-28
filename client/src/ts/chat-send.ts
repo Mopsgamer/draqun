@@ -38,29 +38,34 @@ domLoaded.then(() => {
 				chip.className =
 					"inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-base-content/15 text-xs font-medium text-base-content/90 bg-surface-card";
 
-				chip.innerHTML = `
-					<span class="icon icon-[lucide--paperclip] size-3.5 text-primary"></span>
-					<span class="truncate max-w-xs">${file.name}</span>
-					<button
-						type="button"
-						class="btn btn-ghost btn-xs btn-circle p-0 size-4 min-h-0 text-base-content/50 hover:text-error ml-1 cursor-pointer"
-						title="Remove attachment"
-					>✕</button>
-				`;
+				const icon = document.createElement("span");
+				icon.className = "icon icon-[lucide--paperclip] size-3.5 text-primary";
 
-				const removeBtn = chip.querySelector("button");
-				if (removeBtn) {
-					removeBtn.addEventListener("click", () => {
-						const dt = new DataTransfer();
-						if (fileInput.files) {
-							Array.from(fileInput.files).forEach((f, i) => {
-								if (i !== idx) dt.items.add(f);
-							});
-						}
-						fileInput.files = dt.files;
-						updatePreview();
-					});
-				}
+				const nameSpan = document.createElement("span");
+				nameSpan.className = "truncate max-w-xs";
+				nameSpan.textContent = file.name;
+
+				const removeBtn = document.createElement("button");
+				removeBtn.type = "button";
+				removeBtn.className =
+					"btn btn-ghost btn-xs btn-circle p-0 size-4 min-h-0 text-base-content/50 hover:text-error ml-1 cursor-pointer";
+				removeBtn.title = "Remove attachment";
+				removeBtn.textContent = "✕";
+
+				removeBtn.addEventListener("click", () => {
+					const dt = new DataTransfer();
+					if (fileInput.files) {
+						Array.from(fileInput.files).forEach((f, i) => {
+							if (i !== idx) dt.items.add(f);
+						});
+					}
+					fileInput.files = dt.files;
+					updatePreview();
+				});
+
+				chip.appendChild(icon);
+				chip.appendChild(nameSpan);
+				chip.appendChild(removeBtn);
 
 				previewContainer.appendChild(chip);
 			});
