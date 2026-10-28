@@ -39,8 +39,8 @@ func TestOtelChannelAccessAndMetrics(t *testing.T) {
 	}
 	// Check content does not contain OpenTelemetry Monitor title for non-admin
 	if respReg.StatusCode() == http.StatusOK && string(respReg.Body()) != "" {
-		if containsString(string(respReg.Body()), "OpenTelemetry Monitor") {
-			t.Fatalf("non-admin should not see OpenTelemetry Monitor dashboard")
+		if containsString(string(respReg.Body()), "OpenTelemetry Trace Spans") {
+			t.Fatalf("non-admin should not see OpenTelemetry Trace Spans dashboard")
 		}
 	}
 
@@ -57,8 +57,8 @@ func TestOtelChannelAccessAndMetrics(t *testing.T) {
 	}
 
 	bodyAdmin := string(respAdmin.Body())
-	if !containsString(bodyAdmin, "OpenTelemetry Monitor") {
-		t.Errorf("admin response should contain OpenTelemetry Monitor dashboard")
+	if !containsString(bodyAdmin, "OpenTelemetry Trace Spans") {
+		t.Errorf("admin response should contain OpenTelemetry Trace Spans dashboard")
 	}
 
 	_ = regUser

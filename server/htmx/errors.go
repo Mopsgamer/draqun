@@ -90,6 +90,16 @@ var (
 		"Your account has been locked down due to security precautions.",
 		Danger,
 	)
+	AlertServerLockdown = NewAlert(
+		errors.Join(fiber.ErrForbidden, errors.New("server is in lockdown mode")),
+		"The server is currently in read-only lockdown mode.",
+		Danger,
+	)
+	AlertFileTooLarge = NewAlert(
+		errors.Join(ErrFormat, errors.New("file too large")),
+		"The uploaded file size exceeds the maximum allowed limit.",
+		Warning,
+	)
 	AlertIPBlocked = NewAlert(
 		errors.Join(fiber.ErrForbidden, errors.New("ip: address is blocked")),
 		"Your IP address has been blocked.",

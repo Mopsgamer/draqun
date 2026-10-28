@@ -41,6 +41,7 @@ const (
 	TablePermUsers          = "app_perm_users"
 	TablePermRoles          = "app_perm_roles"
 	TableMessageAttachments = "app_group_message_attachments"
+	TableServerConfig       = "app_server_config"
 )
 
 func LoadDB() error {
@@ -61,6 +62,8 @@ func LoadDB() error {
 	if err := initSchema(); err != nil {
 		return err
 	}
+
+	ReloadServerConfig()
 
 	return nil
 }

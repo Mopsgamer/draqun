@@ -59,11 +59,11 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				}
 			}
 			if isGlobalAdmin && group.Name == "draqun" {
-				channels = append(channels, model.GetOtelVirtualChannel())
+				channels = append(channels, model.GetOtelVirtualChannel(), model.GetConfigVirtualChannel())
 			}
 			subchannelsMap := make(map[uint64][]model.Channel)
 			for _, ch := range channels {
-				if !ch.IsTicket() {
+				if !ch.IsTicket() && !ch.IsOtel() && !ch.IsConfig() {
 					subchs, _ := model.GetSubchannels(ch.Id)
 					subchannelsMap[ch.Id] = subchs
 				}
@@ -119,11 +119,11 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			isGlobalAdmin := isAdmin || isMod
 			channelId := fiber.Params[uint64](ctx, "channel_id")
 			activeChannel, err := model.NewChannelFromId(channelId)
-			if err != nil || (!activeChannel.IsAvailable() && activeChannel.Id != model.OtelVirtualChannelID) {
+			if err != nil || (!activeChannel.IsAvailable() && activeChannel.Id != model.OtelVirtualChannelID && activeChannel.Id != model.ConfigVirtualChannelID) {
 				return ctx.Redirect().To(group.Url(ctx))
 			}
 
-			if activeChannel.IsOtel() {
+			if activeChannel.IsOtel() || activeChannel.IsConfig() {
 				if !isGlobalAdmin {
 					return ctx.Redirect().To(group.Url(ctx))
 				}
@@ -139,12 +139,12 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				}
 			}
 			if isGlobalAdmin && group.Name == "draqun" {
-				channels = append(channels, model.GetOtelVirtualChannel())
+				channels = append(channels, model.GetOtelVirtualChannel(), model.GetConfigVirtualChannel())
 			}
 
 			subchannelsMap := make(map[uint64][]model.Channel)
 			for _, ch := range channels {
-				if !ch.IsTicket() && !ch.IsOtel() {
+				if !ch.IsTicket() && !ch.IsOtel() && !ch.IsConfig() {
 					subchs, _ := model.GetSubchannels(ch.Id)
 					subchannelsMap[ch.Id] = subchs
 				}
@@ -174,6 +174,9 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			if activeChannel.IsOtel() {
 				bind["IsOtel"] = true
 				bind["OtelStats"] = model.GetOtelStats()
+			} else if activeChannel.IsConfig() {
+				bind["IsConfig"] = true
+				bind["Config"] = model.GetServerConfig()
 			}
 			enrichTicketContext(ctx, activeChannel, bind)
 

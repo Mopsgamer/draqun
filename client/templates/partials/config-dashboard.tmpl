@@ -1,0 +1,113 @@
+<main id="chat" class="flex-1 overflow-y-auto p-4 md:p-6 bg-surface-canvas">
+    <div class="max-w-3xl mx-auto flex flex-col gap-6">
+        <form hx-post="/groups/{{.Group.Id}}/config" hx-swap="none" class="flex flex-col gap-8">
+            <!-- Section: Core Parameters -->
+            <section class="flex flex-col gap-4">
+                <div class="pb-2 border-b border-base-content/10">
+                    <h2 class="text-base font-bold flex items-center gap-2">
+                        <span class="icon icon-[lucide--sliders] size-4 text-primary" aria-hidden="true"></span>
+                        Core Parameters
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="form-group">
+                        <label class="form-label" for="max_message_size">Max Message Size</label>
+                        <input
+                            id="max_message_size"
+                            name="max_message_size"
+                            type="number"
+                            min="1"
+                            class="input input-bordered w-full"
+                            value="{{.Config.MaxMessageSize}}"
+                            required
+                        />
+                        <span class="text-[11px] text-base-content/50">Max characters per chat message.</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="user_token_expiration">Token Expiration (minutes)</label>
+                        <input
+                            id="user_token_expiration"
+                            name="user_token_expiration"
+                            type="number"
+                            min="1"
+                            class="input input-bordered w-full"
+                            value="{{.Config.UserTokenExpiration}}"
+                            required
+                        />
+                        <span class="text-[11px] text-base-content/50">User JWT session lifetime in minutes.</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="max_file_size">Max File Size (MB)</label>
+                        <input
+                            id="max_file_size"
+                            name="max_file_size"
+                            type="number"
+                            min="0"
+                            class="input input-bordered w-full"
+                            value="{{.Config.MaxFileSize}}"
+                            required
+                        />
+                        <span class="text-[11px] text-base-content/50">Max file upload limit in megabytes (e.g. 10 = 10 MB).</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Notice Message -->
+            <section class="flex flex-col gap-4">
+                <div class="pb-2 border-b border-base-content/10">
+                    <h2 class="text-base font-bold flex items-center gap-2">
+                        <span class="icon icon-[lucide--megaphone] size-4 text-primary" aria-hidden="true"></span>
+                        Site-Wide Notice
+                    </h2>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="notice_message">Notice Message (Markdown)</label>
+                    <textarea
+                        id="notice_message"
+                        name="notice_message"
+                        rows="3"
+                        class="textarea textarea-bordered w-full min-h-20"
+                        placeholder="e.g. **Scheduled Maintenance:** Server upgrades taking place tonight."
+                    >{{.Config.NoticeMessage}}</textarea>
+                    <span class="text-[11px] text-base-content/50">Leave empty to disable. Renders Markdown.</span>
+                </div>
+            </section>
+
+            <!-- Section: System Lockdown -->
+            <section class="flex flex-col gap-4">
+                <div class="pb-2 border-b border-base-content/10">
+                    <h2 class="text-base font-bold flex items-center gap-2 text-error">
+                        <span class="icon icon-[lucide--shield-alert] size-4" aria-hidden="true"></span>
+                        System Lockdown
+                    </h2>
+                </div>
+
+                <div class="flex items-center justify-between py-2">
+                    <div>
+                        <div class="font-semibold text-sm">Read-Only Lockdown Mode</div>
+                        <div class="text-xs text-base-content/60 max-w-md">Disables state mutations across the application. Makes notice header red.</div>
+                    </div>
+                    <input
+                        type="checkbox"
+                        id="lockdown"
+                        name="lockdown"
+                        class="toggle toggle-error toggle-sm"
+                        value="true"
+                        {{if .Config.Lockdown}}checked{{end}}
+                    />
+                </div>
+            </section>
+
+            <div class="flex items-center justify-end pt-2">
+                <button type="submit" class="btn btn-primary btn-sm gap-1.5">
+                    <span class="icon icon-[lucide--check] size-3.5"></span>
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</main>

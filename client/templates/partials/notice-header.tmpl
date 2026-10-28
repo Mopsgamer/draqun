@@ -1,0 +1,8 @@
+{{if .NoticeMessageHTML}}
+<div id="notice-header" class="w-full text-center px-4 py-2 text-sm font-medium border-b flex items-center justify-center gap-2 {{if .IsLockdown}}bg-red-950/80 border-red-700/80 text-red-200{{else}}bg-teal-950/80 border-teal-700/80 text-teal-200{{end}} shrink-0 z-50">
+    <span class="icon {{if .IsLockdown}}icon-[lucide--shield-alert] text-red-400{{else}}icon-[lucide--info] text-teal-400{{end}} size-4 shrink-0" aria-hidden="true"></span>
+    <div class="prose-sm max-w-none text-current">
+        {{.NoticeMessageHTML}}
+    </div>
+</div>
+{{end}}

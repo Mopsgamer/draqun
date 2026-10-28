@@ -218,6 +218,11 @@ func routeAccountChange(router fiber.Router) fiber.Router {
 					return htmx.AlertFormatAvatar.Join(err)
 				}
 
+				maxSize := model.GetServerConfig().MaxFileSizeBytes()
+				if maxSize > 0 && file.Size > maxSize {
+					return htmx.AlertFileTooLarge
+				}
+
 				if err := os.MkdirAll("uploads", 0755); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
