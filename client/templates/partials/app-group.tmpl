@@ -102,6 +102,8 @@
         {{- template "partials/ticket-list" .}}
         {{else if .IsTicketDetail}}
         {{- template "partials/ticket-detail" .}}
+        {{else if .IsOtel}}
+        {{- template "partials/otel-dashboard" .}}
         {{else}}
         <main id="chat">
             <div id="chat-messages-{{.ActiveChannel.Id}}" class="flex flex-col w-full">

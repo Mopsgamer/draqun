@@ -8,8 +8,11 @@ import (
 	"os"
 	"strings"
 
+	"time"
+
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/routes"
 
 	"github.com/gofiber/fiber/v3"
@@ -19,6 +22,19 @@ import (
 
 // Initialize gofiber application, including DB and view engine.
 func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
+	htmx.OnRenderError = func(name string, err error, path string) {
+		model.RecordOtelSpan(
+			"TEMPLATE ERROR: "+name,
+			"TEMPLATE RENDER",
+			fiber.StatusInternalServerError,
+			0,
+			map[string]string{
+				"template.name":  name,
+				"template.error": err.Error(),
+				"http.path":      path,
+			},
+		)
+	}
 	engine := NewAppHtmlEngine(embedFS, clientEmbedded, "client/templates")
 	app := fiber.New(fiber.Config{
 		AppName:           environment.AppName,
@@ -26,6 +42,19 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		PassLocalsToViews: true,
 		ColorScheme:       fiber.DefaultColors,
 		ErrorHandler: func(ctx fiber.Ctx, err error) error {
+			if err != nil {
+				model.RecordOtelSpan(
+					"SERVER ERROR: "+ctx.Path(),
+					"ERROR HANDLER",
+					fiber.StatusInternalServerError,
+					0,
+					map[string]string{
+						"error":     err.Error(),
+						"http.path": ctx.Path(),
+					},
+				)
+			}
+
 			if htmx.IsHtmx(ctx) {
 				return htmx.HandleHTMXError(ctx, err)
 			}
@@ -52,6 +81,36 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	app.Use(logger.New(logger.Config{
 		ForceColors: true,
 	}))
+
+	app.Use(func(ctx fiber.Ctx) error {
+		start := time.Now()
+		err := ctx.Next()
+		duration := time.Since(start)
+
+		status := ctx.Response().StatusCode()
+		if err != nil {
+			var fiberErr *fiber.Error
+			if errors.As(err, &fiberErr) {
+				status = fiberErr.Code
+			} else {
+				status = fiber.StatusInternalServerError
+			}
+		}
+
+		model.RecordOtelSpan(
+			ctx.Method()+" "+ctx.Path(),
+			"HTTP SERVER",
+			status,
+			duration,
+			map[string]string{
+				"http.method":      ctx.Method(),
+				"http.path":        ctx.Path(),
+				"http.status_code": fmt.Sprintf("%d", status),
+			},
+		)
+
+		return err
+	})
 
 	routes.RouteHMR(app)
 	routes.RouteStatic(embedFS, clientEmbedded, app)

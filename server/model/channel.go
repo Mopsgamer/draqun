@@ -14,10 +14,11 @@ type ChannelType string
 const (
 	ChannelTypeText   ChannelType = "text"
 	ChannelTypeTicket ChannelType = "ticket"
+	ChannelTypeOtel   ChannelType = "otel"
 )
 
 func (ct ChannelType) IsValid() bool {
-	return ct == ChannelTypeText || ct == ChannelTypeTicket
+	return ct == ChannelTypeText || ct == ChannelTypeTicket || ct == ChannelTypeOtel
 }
 
 type Channel struct {
@@ -620,6 +621,10 @@ func (channel Channel) Assignees() []User {
 
 func (channel Channel) IsTicket() bool {
 	return channel.Type == ChannelTypeTicket
+}
+
+func (channel Channel) IsOtel() bool {
+	return channel.Type == ChannelTypeOtel
 }
 
 func (channel Channel) AuthorUser() User {
