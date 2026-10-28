@@ -51,7 +51,7 @@ func MapPage(ctx fiber.Ctx, bind fiber.Map) fiber.Map {
 		"Notifications":     notifications,
 		"ServerConfig":      serverConfig,
 		"NoticeMessageHTML": noticeHTML,
-		"IsLockdown":          serverConfig.Lockdown,
+		"IsLockdown":        serverConfig.Lockdown,
 
 		"AppName":      environment.AppName,
 		"GitHubRepo":   environment.GitHubRepo,
