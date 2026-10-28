@@ -20,18 +20,7 @@ func TestOtelChannelAccessAndMetrics(t *testing.T) {
 		t.Fatalf("failed to get or create draqun group: %v", err)
 	}
 
-	channels, err := model.GetGroupChannels(draqunGroup.Id)
-	if err != nil {
-		t.Fatalf("failed to get group channels: %v", err)
-	}
-
-	var otelCh model.Channel
-	for _, ch := range channels {
-		if ch.IsOtel() {
-			otelCh = ch
-			break
-		}
-	}
+	otelCh := model.GetOtelVirtualChannel()
 	if otelCh.IsEmpty() {
 		t.Fatalf("expected otel channel to exist in Draqun group")
 	}

@@ -47,7 +47,6 @@ func TestFirstUserAutomaticDraqunGroupCreation(t *testing.T) {
 		"admin-requests":  ChannelTypeTicket,
 		"private-support": ChannelTypeTicket,
 		"public-support":  ChannelTypeTicket,
-		"otel":            ChannelTypeOtel,
 	}
 
 	if len(channels) != len(expectedChannels) {

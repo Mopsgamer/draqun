@@ -210,7 +210,6 @@ func GetOrCreateDraqunGroup(ownerId uint64) (Group, error) {
 		{Name("admin-requests"), Moniker("Admin Requests"), Description("Internal channel for moderators and staff to submit escalation requests directly to administrators."), ChannelTypeTicket},
 		{Name("private-support"), Moniker("Private Support"), Description("Open a private ticket to get 1-on-1 assistance from the support team for account or personal issues."), ChannelTypeTicket},
 		{Name("public-support"), Moniker("Public Support"), Description("Community-wide support channel for common questions and shared knowledge, managed by support staff."), ChannelTypeTicket},
-		{Name("otel"), Moniker("OpenTelemetry"), Description("OpenTelemetry traces, metrics, and server performance stats for Draqun system administrators."), ChannelTypeOtel},
 	}
 
 	createdChannels := make(map[Name]Channel)
@@ -361,22 +360,6 @@ func GetOrCreateDraqunGroup(ownerId uint64) (Group, error) {
 			}
 			if adminRole.Id != 0 {
 				_ = pWriteStaff.AddRole(adminRole.Id)
-			}
-		}
-	}
-
-	// 4) OTel channel: disabled for everyone by default (route checks enforce global admin)
-	if otelCh, ok := createdChannels["otel"]; ok {
-		for _, permName := range []PermName{PermNameRead, PermNameWrite, PermNameDelete} {
-			pNoEveryone := Permission{
-				GroupId:  newGroup.Id,
-				Name:     permName,
-				Level:    PermLevelDisable,
-				Priority: 10,
-			}
-			if err := pNoEveryone.Insert(); err == nil {
-				_ = pNoEveryone.AddChannel(otelCh.Id)
-				_ = pNoEveryone.AddRole(everyone.Id)
 			}
 		}
 	}

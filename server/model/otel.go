@@ -23,14 +23,14 @@ type OtelSpan struct {
 }
 
 type OtelStats struct {
-	UptimeSeconds   uint64     `json:"uptime_seconds"`
-	TotalRequests   uint64     `json:"total_requests"`
-	ErrorCount      uint64     `json:"error_count"`
-	AvgLatencyMs    float64    `json:"avg_latency_ms"`
-	ActiveGoroutines int       `json:"active_goroutines"`
-	MemAllocMB      float64    `json:"mem_alloc_mb"`
-	MemSysMB        float64    `json:"mem_sys_mb"`
-	RecentSpans     []OtelSpan `json:"recent_spans"`
+	UptimeSeconds    uint64     `json:"uptime_seconds"`
+	TotalRequests    uint64     `json:"total_requests"`
+	ErrorCount       uint64     `json:"error_count"`
+	AvgLatencyMs     float64    `json:"avg_latency_ms"`
+	ActiveGoroutines int        `json:"active_goroutines"`
+	MemAllocMB       float64    `json:"mem_alloc_mb"`
+	MemSysMB         float64    `json:"mem_sys_mb"`
+	RecentSpans      []OtelSpan `json:"recent_spans"`
 }
 
 type otelCollector struct {
