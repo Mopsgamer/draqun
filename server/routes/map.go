@@ -2,6 +2,7 @@ package routes
 
 import (
 	"errors"
+	"html/template"
 	"maps"
 	"strconv"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/Mopsgamer/draqun/server/environment"
 	"github.com/Mopsgamer/draqun/server/htmx"
+	"github.com/Mopsgamer/draqun/server/markdown"
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/perms"
 	"github.com/gofiber/fiber/v3"
@@ -31,12 +33,25 @@ func MapPage(ctx fiber.Ctx, bind fiber.Map) fiber.Map {
 		notifications, _ = model.GetUserNotifications(user.Id, 20)
 	}
 
+	serverConfig := model.GetServerConfig()
+	var noticeHTML template.HTML
+	noticeText := strings.TrimSpace(serverConfig.NoticeMessage)
+	if noticeText == "" && serverConfig.Lockdown {
+		noticeText = "**Server Lockdown:** The server is currently in read-only lockdown mode."
+	}
+	if noticeText != "" {
+		noticeHTML = markdown.Render(noticeText, markdown.ContextMessage)
+	}
+
 	// other values
 	bindx := fiber.Map{
-		"Ctx":           ctx,
-		"User":          user,
-		"UnreadCount":   unreadCount,
-		"Notifications": notifications,
+		"Ctx":               ctx,
+		"User":              user,
+		"UnreadCount":       unreadCount,
+		"Notifications":     notifications,
+		"ServerConfig":      serverConfig,
+		"NoticeMessageHTML": noticeHTML,
+		"IsLockdown":        serverConfig.Lockdown,
 
 		"AppName":      environment.AppName,
 		"GitHubRepo":   environment.GitHubRepo,

@@ -112,6 +112,19 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		return err
 	})
 
+	app.Use(func(ctx fiber.Ctx) error {
+		method := ctx.Method()
+		if method == fiber.MethodPost || method == fiber.MethodPut || method == fiber.MethodDelete || method == fiber.MethodPatch {
+			path := ctx.Path()
+			if path != "/login" && path != "/signup" && path != "/logout" && !strings.HasSuffix(path, "/config") {
+				if model.GetServerConfig().Lockdown {
+					return htmx.AlertServerLockdown
+				}
+			}
+		}
+		return ctx.Next()
+	})
+
 	routes.RouteHMR(app)
 	routes.RouteStatic(embedFS, clientEmbedded, app)
 	routes.RoutePages(app)

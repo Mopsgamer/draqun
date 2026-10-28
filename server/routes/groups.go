@@ -138,6 +138,14 @@ type GroupChange struct {
 	Avatar      model.Avatar           `form:"avatar"`
 }
 
+type ServerConfigForm struct {
+	MaxMessageSize      int    `form:"max_message_size"`
+	UserTokenExpiration int    `form:"user_token_expiration"`
+	MaxFileSize         int64  `form:"max_file_size"`
+	NoticeMessage       string `form:"notice_message"`
+	Lockdown            bool   `form:"lockdown"`
+}
+
 func RouteGroups(app *fiber.App) fiber.Router {
 	return app.Group("/groups").
 		Put("/:group_id/join",
@@ -485,6 +493,10 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 				file, errFile := ctx.FormFile("avatar")
 				if errFile == nil && file != nil {
+					maxFileSize := model.GetServerConfig().MaxFileSizeBytes()
+					if maxFileSize > 0 && file.Size > maxFileSize {
+						return htmx.AlertFileTooLarge
+					}
 					if err := os.MkdirAll("uploads", 0755); err != nil {
 						return htmx.AlertDatabase.Join(err)
 					}
@@ -1176,6 +1188,10 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				avatarPath := request.Avatar
 				file, errFile := ctx.FormFile("avatar")
 				if errFile == nil && file != nil {
+					maxFileSize := model.GetServerConfig().MaxFileSizeBytes()
+					if maxFileSize > 0 && file.Size > maxFileSize {
+						return htmx.AlertFileTooLarge
+					}
 					if err := os.MkdirAll("uploads", 0755); err != nil {
 						return htmx.AlertDatabase.Join(err)
 					}
@@ -1786,6 +1802,46 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
+		Post("/:group_id/config",
+			perms.UserByAuth(),
+			perms.UseBind[ServerConfigForm](),
+			func(ctx fiber.Ctx) error {
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				isAdmin, isMod := model.IsDraqunAdminOrMod(user)
+				if !(isAdmin || isMod) {
+					return htmx.AlertGroupMemberNotAllowed
+				}
+				groupId := fiber.Params[uint64](ctx, "group_id")
+				request := fiber.Locals[ServerConfigForm](ctx, perms.LocalForm)
+
+				lockdownVal := ctx.FormValue("lockdown")
+				lockdownBool := lockdownVal == "true" || lockdownVal == "1" || lockdownVal == "on"
+
+				cfg := model.GetServerConfig()
+				if request.MaxMessageSize > 0 {
+					cfg.MaxMessageSize = request.MaxMessageSize
+				}
+				if request.UserTokenExpiration > 0 {
+					cfg.UserTokenExpiration = request.UserTokenExpiration
+				}
+				if request.MaxFileSize >= 0 {
+					cfg.MaxFileSize = request.MaxFileSize
+				}
+				cfg.NoticeMessage = request.NoticeMessage
+				cfg.Lockdown = lockdownBool
+
+				if err := cfg.Update(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", groupId, model.ConfigVirtualChannelID))
+					return nil
+				}
+
+				return ctx.Redirect().To(fmt.Sprintf("/chat/groups/%d/channels/%d", groupId, model.ConfigVirtualChannelID))
+			},
+		).
 		Get("/ws/:group_id/",
 			perms.RequirePerm("group_id", model.PermNameRead),
 			func(ctx fiber.Ctx) error {
@@ -2122,6 +2178,13 @@ func saveMessageAttachments(ctx fiber.Ctx, groupId uint64, message *model.Messag
 
 	if err := os.MkdirAll("uploads", 0755); err != nil {
 		return htmx.AlertDatabase.Join(err)
+	}
+
+	maxFileSize := model.GetServerConfig().MaxFileSizeBytes()
+	for _, file := range files {
+		if maxFileSize > 0 && file.Size > maxFileSize {
+			return htmx.AlertFileTooLarge
+		}
 	}
 
 	for i, file := range files {

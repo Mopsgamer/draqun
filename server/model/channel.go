@@ -15,8 +15,10 @@ const (
 	ChannelTypeText   ChannelType = "text"
 	ChannelTypeTicket ChannelType = "ticket"
 	ChannelTypeOtel   ChannelType = "otel"
+	ChannelTypeConfig ChannelType = "config"
 
-	OtelVirtualChannelID uint64 = ^uint64(0)
+	OtelVirtualChannelID   uint64 = ^uint64(0)
+	ConfigVirtualChannelID uint64 = ^uint64(1)
 )
 
 func GetOtelVirtualChannel() Channel {
@@ -30,8 +32,19 @@ func GetOtelVirtualChannel() Channel {
 	}
 }
 
+func GetConfigVirtualChannel() Channel {
+	return Channel{
+		Id:          ConfigVirtualChannelID,
+		Name:        Name("config"),
+		Moniker:     Moniker("Server Configuration"),
+		Description: Description("Global server configuration settings and site-wide management."),
+		Type:        ChannelTypeConfig,
+		Status:      "open",
+	}
+}
+
 func (ct ChannelType) IsValid() bool {
-	return ct == ChannelTypeText || ct == ChannelTypeTicket || ct == ChannelTypeOtel
+	return ct == ChannelTypeText || ct == ChannelTypeTicket || ct == ChannelTypeOtel || ct == ChannelTypeConfig
 }
 
 type Channel struct {
@@ -73,6 +86,9 @@ func NewChannel(name Name, moniker Moniker, description Description, channelType
 func NewChannelFromId(id uint64) (Channel, error) {
 	if id == OtelVirtualChannelID {
 		return GetOtelVirtualChannel(), nil
+	}
+	if id == ConfigVirtualChannelID {
+		return GetConfigVirtualChannel(), nil
 	}
 	channel := Channel{}
 	return channel, First(TableChannels, goqu.Ex{"id": id, "is_deleted": false}, &channel)
@@ -641,6 +657,10 @@ func (channel Channel) IsTicket() bool {
 
 func (channel Channel) IsOtel() bool {
 	return channel.Type == ChannelTypeOtel
+}
+
+func (channel Channel) IsConfig() bool {
+	return channel.Type == ChannelTypeConfig
 }
 
 func (channel Channel) AuthorUser() User {

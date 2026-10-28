@@ -1,24 +1,15 @@
 <div class="flex flex-col flex-1 h-full overflow-y-auto bg-surface-canvas p-6 gap-6">
     {{if .OtelStats}}
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-base-content/10">
-        <div class="flex items-center gap-3">
-            <span class="icon icon-[lucide--activity] size-6 text-primary" aria-hidden="true"></span>
-            <div class="flex flex-col">
-                <h1 class="text-2xl font-bold tracking-tight">OpenTelemetry Monitor</h1>
-                <p class="text-xs text-base-content/60 mt-0.5">Real-time system performance, HTTP metrics, and OpenTelemetry trace spans</p>
-            </div>
-        </div>
-        <div class="flex items-center gap-2">
-            <button
-                class="btn btn-outline btn-sm gap-1.5"
-                type="button"
-                onclick="window.location.reload()"
-            >
-                <span class="icon icon-[lucide--refresh-cw] size-3.5"></span>
-                Refresh Data
-            </button>
-        </div>
+    <!-- Header with Refresh Controls -->
+    <div class="flex items-center justify-end pb-2">
+        <button
+            class="btn btn-outline btn-sm gap-1.5"
+            type="button"
+            onclick="window.location.reload()"
+        >
+            <span class="icon icon-[lucide--refresh-cw] size-3.5"></span>
+            Refresh Data
+        </button>
     </div>
 
     <!-- Stats Summary Cards -->
