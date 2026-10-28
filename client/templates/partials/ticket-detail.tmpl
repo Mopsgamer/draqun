@@ -231,7 +231,7 @@
         <!-- Main Ticket Description Block -->
         <div class="text-sm leading-relaxed text-base-content/90 break-words py-1">
             {{if ne .ActiveChannel.Description ""}}
-                {{.ActiveChannel.Description}}
+                {{markdown .ActiveChannel.Description "channel-description"}}
             {{else}}
                 <span class="italic text-base-content/40">No description provided.</span>
             {{end}}

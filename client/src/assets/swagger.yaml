@@ -269,6 +269,27 @@ paths:
       responses:
         "200":
           description: Password changed.
+  /users/by-name/{username}/profile:
+    get:
+      tags:
+        - Account
+      summary: Get User Profile Modal by Username
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: group_id
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User profile modal data or HTML partial.
+        "404":
+          description: User not found.
   /groups/search:
     get:
       tags:
@@ -1207,10 +1228,12 @@ components:
           maxLength: 8000
         channel_id:
           type: integer
-        attachment:
-          type: string
-          format: binary
-          description: Optional file attachment.
+        attachments:
+          type: array
+          items:
+            type: string
+            format: binary
+          description: Multiple file attachments.
     Message:
       type: object
       properties:

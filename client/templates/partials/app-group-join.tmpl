@@ -13,7 +13,7 @@
 
         {{- with .Group.Description -}}
         <div class="py-2 px-3 rounded-lg text-xs text-base-content/70 w-full">
-            {{.}}
+            {{markdown . "group-description"}}
         </div>
         {{- end -}}
 
