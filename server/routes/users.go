@@ -126,6 +126,19 @@ func RouteUsers(app *fiber.App) {
 		},
 	)
 
+	app.Get("/users/by-name/:username/profile",
+		perms.UserByAuth(),
+		func(ctx fiber.Ctx) error {
+			username := fiber.Params[string](ctx, "username")
+			username = strings.TrimPrefix(username, "@")
+			u, err := model.NewUserFromName(model.Name(username))
+			if err != nil || u.IsEmpty() {
+				return htmx.AlertUserNotFound
+			}
+			return renderUserProfileModal(ctx, u.Id)
+		},
+	)
+
 	app.Post("/admin/users/:user_id/reset-avatar",
 		perms.UserByAuth(),
 		func(ctx fiber.Ctx) error {

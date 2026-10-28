@@ -43,34 +43,87 @@
         </div>
     </div>
     {{if ne $message.Content ""}}
-    <div class="text">{{$message.Content}}</div>
+    <div class="text">{{markdown $message.Content "message"}}</div>
     {{end}}
-    {{if ne $message.AttachmentUrl ""}}
-    <div class="attachment">
-        {{if $message.IsImageAttachment}}
-        <div class="relative group/img inline-block max-w-sm rounded-lg overflow-hidden border border-base-content/10">
-            <a href="{{$message.AttachmentUrl}}" target="_blank" rel="noopener noreferrer" class="block hover:opacity-90 transition-opacity" title="View image">
-                <img src="{{$message.AttachmentUrl}}" alt="{{$message.AttachmentName}}" class="max-h-64 object-cover rounded-lg" />
-            </a>
-            <a
-                href="{{$message.AttachmentUrl}}"
-                download="{{$message.AttachmentName}}"
-                class="absolute top-2 right-2 btn btn-xs btn-circle btn-neutral opacity-0 group-hover/img:opacity-100 transition-opacity shadow-md"
-                title="Download {{$message.AttachmentName}}"
-                aria-label="Download {{$message.AttachmentName}}"
-            >
-                <span class="icon icon-[lucide--download] size-3.5" aria-hidden="true"></span>
-            </a>
-        </div>
-        {{else}}
-        <a href="{{$message.AttachmentUrl}}" download="{{$message.AttachmentName}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2.5 p-2.5 rounded-lg border border-base-content/15 hover:bg-surface-card-hover transition-colors text-xs font-medium max-w-sm" title="Download {{$message.AttachmentName}}">
-            <span class="icon icon-[lucide--file-text] size-6 text-primary shrink-0" aria-hidden="true"></span>
-            <div class="flex flex-col min-w-0 flex-1">
-                <span class="truncate font-semibold text-base-content">{{$message.AttachmentName}}</span>
-                <span class="text-[11px] text-base-content/50 font-mono">{{$message.FormattedSize}}</span>
+    {{$attachments := $message.GetAttachments}}
+    {{if $attachments}}
+    <div class="attachments-container">
+        {{range $att := $attachments}}
+            {{if $att.IsImage}}
+            <div class="relative group/img inline-block max-w-sm rounded-lg overflow-hidden border border-base-content/10 bg-surface-card">
+                <a href="{{$att.AttachmentUrl}}" target="_blank" rel="noopener noreferrer" class="block hover:opacity-90 transition-opacity" title="View image {{$att.AttachmentName}}">
+                    <img src="{{$att.AttachmentUrl}}" alt="{{$att.AttachmentName}}" class="max-h-72 object-cover rounded-lg" />
+                </a>
+                <a
+                    href="{{$att.AttachmentUrl}}"
+                    download="{{$att.AttachmentName}}"
+                    class="absolute top-2 right-2 btn btn-xs btn-circle btn-neutral opacity-0 group-hover/img:opacity-100 transition-opacity shadow-md"
+                    title="Download {{$att.AttachmentName}}"
+                    aria-label="Download {{$att.AttachmentName}}"
+                >
+                    <span class="icon icon-[lucide--download] size-3.5" aria-hidden="true"></span>
+                </a>
             </div>
-            <span class="icon icon-[lucide--download] size-4 text-base-content/60 shrink-0 ml-1" aria-hidden="true"></span>
-        </a>
+            {{else if $att.IsVideo}}
+            <div class="inline-block max-w-md rounded-lg overflow-hidden border border-base-content/15 bg-black/90 p-1">
+                <video controls preload="metadata" class="max-h-80 w-full rounded-md">
+                    <source src="{{$att.AttachmentUrl}}" type="{{$att.AttachmentType}}">
+                    Your browser does not support video playback.
+                </video>
+                <div class="flex items-center justify-between px-2 py-1 text-xs text-white/80">
+                    <span class="truncate max-w-xs font-medium">{{$att.AttachmentName}}</span>
+                    <a href="{{$att.AttachmentUrl}}" download="{{$att.AttachmentName}}" class="hover:text-white" title="Download video"><span class="icon icon-[lucide--download] size-4"></span></a>
+                </div>
+            </div>
+            {{else if $att.IsAudio}}
+            <div class="inline-flex flex-col gap-1 p-2.5 rounded-lg border border-base-content/15 bg-surface-card max-w-md w-full">
+                <div class="flex items-center gap-2 text-xs font-semibold text-base-content/80">
+                    <span class="icon icon-[lucide--music] size-4 text-primary shrink-0"></span>
+                    <span class="truncate flex-1">{{$att.AttachmentName}}</span>
+                    <span class="text-[11px] text-base-content/50 font-mono">{{$att.FormattedSize}}</span>
+                </div>
+                <audio controls class="w-full mt-1 h-8">
+                    <source src="{{$att.AttachmentUrl}}" type="{{$att.AttachmentType}}">
+                    Your browser does not support audio playback.
+                </audio>
+            </div>
+            {{else if $att.IsPDF}}
+            <div class="inline-flex items-center gap-2.5 p-2.5 rounded-lg border border-base-content/15 bg-surface-card hover:bg-surface-card-hover transition-colors text-xs font-medium max-w-sm w-full">
+                <span class="icon icon-[lucide--file-text] size-6 text-error shrink-0" aria-hidden="true"></span>
+                <div class="flex flex-col min-w-0 flex-1">
+                    <span class="truncate font-semibold text-base-content">{{$att.AttachmentName}}</span>
+                    <span class="text-[11px] text-base-content/50 font-mono">{{$att.FormattedSize}}</span>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                    <a href="{{$att.AttachmentUrl}}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-xs btn-square" title="View PDF">
+                        <span class="icon icon-[lucide--external-link] size-3.5"></span>
+                    </a>
+                    <a href="{{$att.AttachmentUrl}}" download="{{$att.AttachmentName}}" class="btn btn-ghost btn-xs btn-square" title="Download {{$att.AttachmentName}}">
+                        <span class="icon icon-[lucide--download] size-3.5"></span>
+                    </a>
+                </div>
+            </div>
+            {{else if $att.IsCode}}
+            <div class="inline-flex items-center gap-2.5 p-2.5 rounded-lg border border-base-content/15 bg-surface-card hover:bg-surface-card-hover transition-colors text-xs font-medium max-w-sm w-full">
+                <span class="icon icon-[lucide--code] size-6 text-info shrink-0" aria-hidden="true"></span>
+                <div class="flex flex-col min-w-0 flex-1">
+                    <span class="truncate font-semibold text-base-content">{{$att.AttachmentName}}</span>
+                    <span class="text-[11px] text-base-content/50 font-mono">{{$att.FormattedSize}}</span>
+                </div>
+                <a href="{{$att.AttachmentUrl}}" download="{{$att.AttachmentName}}" class="btn btn-ghost btn-xs btn-square shrink-0" title="Download {{$att.AttachmentName}}">
+                    <span class="icon icon-[lucide--download] size-3.5"></span>
+                </a>
+            </div>
+            {{else}}
+            <a href="{{$att.AttachmentUrl}}" download="{{$att.AttachmentName}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2.5 p-2.5 rounded-lg border border-base-content/15 bg-surface-card hover:bg-surface-card-hover transition-colors text-xs font-medium max-w-sm" title="Download {{$att.AttachmentName}}">
+                <span class="icon icon-[lucide--file] size-6 text-primary shrink-0" aria-hidden="true"></span>
+                <div class="flex flex-col min-w-0 flex-1">
+                    <span class="truncate font-semibold text-base-content">{{$att.AttachmentName}}</span>
+                    <span class="text-[11px] text-base-content/50 font-mono">{{$att.FormattedSize}}</span>
+                </div>
+                <span class="icon icon-[lucide--download] size-4 text-base-content/60 shrink-0 ml-1" aria-hidden="true"></span>
+            </a>
+            {{end}}
         {{end}}
     </div>
     {{end}}

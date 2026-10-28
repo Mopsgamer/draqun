@@ -101,3 +101,13 @@ func (message *Message) Author() User {
 	user, _ := NewUserFromId(message.AuthorId)
 	return user
 }
+
+func (message Message) GetAttachments() []Attachment {
+	if message.Id != 0 {
+		attachments, err := GetMessageAttachments(message.Id)
+		if err == nil {
+			return attachments
+		}
+	}
+	return nil
+}

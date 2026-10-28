@@ -152,8 +152,8 @@
             </div>
         </div>
         {{if and .ActiveChannel (not .ActiveChannel.IsEmpty) (ne .ActiveChannel.Description "") (not .IsTicketDetail)}}
-        <div class="flex items-center text-sm justify-between min-h-10 pb-2 border-b border-base-content/10 text-base-content/70">
-            {{.ActiveChannel.Description}}
+        <div class="flex items-center justify-between min-h-10 pb-2 border-b border-base-content/10">
+            {{markdown .ActiveChannel.Description "channel-description"}}
         </div>
         {{end}}
         <div class="text-xs font-semibold text-base-content/60 uppercase tracking-wider py-1">

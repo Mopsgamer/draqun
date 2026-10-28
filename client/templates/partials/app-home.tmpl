@@ -122,7 +122,7 @@
                                 {{- $group.Moniker -}}
                             </span>
                             {{- if $group.Description -}}
-                            <span class="line-clamp-2 text-sm text-base-content/70">{{$group.Description}}</span>
+                            <div class="line-clamp-2 text-sm text-base-content/70">{{markdown $group.Description "group-description"}}</div>
                             {{- end -}}
                         </div>
                     </a>

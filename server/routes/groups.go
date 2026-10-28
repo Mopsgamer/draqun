@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -980,17 +981,21 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				message := model.NewMessageFilled(channelId, 0, user.Id, request.Content)
-
-				if err := saveMessageAttachment(ctx, 0, &message); err != nil {
-					return err
+				if hasFormAttachments(ctx) {
+					message.AttachmentUrl = "pending"
 				}
 
 				if err := message.Validate(); err != nil {
 					return err
 				}
 
+				message.AttachmentUrl = ""
 				if err := message.Insert(); err != nil {
 					return htmx.AlertDatabase.Join(err)
+				}
+
+				if err := saveMessageAttachments(ctx, 0, &message); err != nil {
+					return err
 				}
 
 				// Push notification & message update to the recipient in DM
@@ -1048,17 +1053,21 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				channelId := fiber.Params[uint64](ctx, "channel_id")
 
 				message := model.NewMessageFilled(channelId, group.Id, user.Id, request.Content)
-
-				if err := saveMessageAttachment(ctx, group.Id, &message); err != nil {
-					return err
+				if hasFormAttachments(ctx) {
+					message.AttachmentUrl = "pending"
 				}
 
 				if err := message.Validate(); err != nil {
 					return err
 				}
 
+				message.AttachmentUrl = ""
 				if err := message.Insert(); err != nil {
 					return htmx.AlertDatabase.Join(err)
+				}
+
+				if err := saveMessageAttachments(ctx, group.Id, &message); err != nil {
+					return err
 				}
 
 				model.ProcessMessageMentions(app, message)
@@ -1078,10 +1087,10 @@ func RouteGroups(app *fiber.App) fiber.Router {
 						oobMsg,
 					)
 
-					return ctx.SendStatus(fiber.StatusOK)
+					return ctx.Status(fiber.StatusOK).SendString("")
 				}
 
-				return ctx.SendStatus(fiber.StatusOK)
+				return ctx.Status(fiber.StatusOK).SendString("")
 			},
 		).
 		Post("/:group_id/messages/create",
@@ -1107,17 +1116,21 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				message := model.NewMessageFilled(channelId, group.Id, user.Id, request.Content)
-
-				if err := saveMessageAttachment(ctx, group.Id, &message); err != nil {
-					return err
+				if hasFormAttachments(ctx) {
+					message.AttachmentUrl = "pending"
 				}
 
 				if err := message.Validate(); err != nil {
 					return err
 				}
 
+				message.AttachmentUrl = ""
 				if err := message.Insert(); err != nil {
 					return htmx.AlertDatabase.Join(err)
+				}
+
+				if err := saveMessageAttachments(ctx, group.Id, &message); err != nil {
+					return err
 				}
 
 				model.ProcessMessageMentions(app, message)
@@ -1137,10 +1150,10 @@ func RouteGroups(app *fiber.App) fiber.Router {
 						oobMsg,
 					)
 
-					return ctx.SendStatus(fiber.StatusOK)
+					return ctx.Status(fiber.StatusOK).SendString("")
 				}
 
-				return ctx.SendStatus(fiber.StatusOK)
+				return ctx.Status(fiber.StatusOK).SendString("")
 			},
 		).
 		Post("/create",
@@ -2090,26 +2103,66 @@ func handleTicketSearch(ctx fiber.Ctx) error {
 	return ctx.JSON(results)
 }
 
-func saveMessageAttachment(ctx fiber.Ctx, groupId uint64, message *model.Message) error {
-	file, errFile := ctx.FormFile("attachment")
-	if errFile != nil {
-		file, errFile = ctx.FormFile("file")
+func saveMessageAttachments(ctx fiber.Ctx, groupId uint64, message *model.Message) error {
+	form, errForm := ctx.MultipartForm()
+	if errForm != nil || form == nil || form.File == nil {
+		return nil
 	}
-	if errFile == nil && file != nil {
-		if err := os.MkdirAll("uploads", 0755); err != nil {
-			return htmx.AlertDatabase.Join(err)
+
+	var files []*multipart.FileHeader
+	for _, key := range []string{"attachments", "attachment", "files", "file"} {
+		if headers, ok := form.File[key]; ok && len(headers) > 0 {
+			files = append(files, headers...)
 		}
+	}
+
+	if len(files) == 0 {
+		return nil
+	}
+
+	if err := os.MkdirAll("uploads", 0755); err != nil {
+		return htmx.AlertDatabase.Join(err)
+	}
+
+	for i, file := range files {
 		ext := filepath.Ext(file.Filename)
 		sanitizedName := filepath.Base(file.Filename)
-		filename := fmt.Sprintf("file-%d-%d%s", groupId, time.Now().UnixNano(), ext)
+		filename := fmt.Sprintf("file-%d-%d-%d%s", groupId, time.Now().UnixNano(), i, ext)
 		dst := filepath.Join("uploads", filename)
 		if err := ctx.SaveFile(file, dst); err != nil {
 			return htmx.AlertDatabase.Join(err)
 		}
-		message.AttachmentUrl = "/uploads/" + filename
-		message.AttachmentName = sanitizedName
-		message.AttachmentSize = file.Size
-		message.AttachmentType = file.Header.Get("Content-Type")
+
+		attachment := model.NewAttachment(
+			message.Id,
+			"/uploads/"+filename,
+			sanitizedName,
+			file.Header.Get("Content-Type"),
+			file.Size,
+		)
+		_ = attachment.Insert()
+
+		if i == 0 {
+			message.AttachmentUrl = attachment.AttachmentUrl
+			message.AttachmentName = attachment.AttachmentName
+			message.AttachmentSize = attachment.AttachmentSize
+			message.AttachmentType = attachment.AttachmentType
+			_ = message.Update()
+		}
 	}
+
 	return nil
+}
+
+func hasFormAttachments(ctx fiber.Ctx) bool {
+	form, errForm := ctx.MultipartForm()
+	if errForm != nil || form == nil || form.File == nil {
+		return false
+	}
+	for _, key := range []string{"attachments", "attachment", "files", "file"} {
+		if headers, ok := form.File[key]; ok && len(headers) > 0 {
+			return true
+		}
+	}
+	return false
 }

@@ -1,12 +1,16 @@
 package internal
 
 import (
+	"fmt"
 	"io/fs"
 	"net/http"
 	"strings"
 	"time"
 
+	"html/template"
+
 	"github.com/Mopsgamer/draqun/server/environment"
+	"github.com/Mopsgamer/draqun/server/markdown"
 	"github.com/Mopsgamer/draqun/server/model"
 
 	"github.com/gofiber/fiber/v3"
@@ -98,6 +102,36 @@ func NewAppHtmlEngine(embedFS fs.FS, clientEmbedded bool, directory string) *htm
 				result[k] = v
 			}
 			return result
+		},
+		"markdown": func(val any, contextType ...string) template.HTML {
+			str := ""
+			if val != nil {
+				switch v := val.(type) {
+				case string:
+					str = v
+				case fmt.Stringer:
+					str = v.String()
+				default:
+					str = fmt.Sprintf("%v", val)
+				}
+			}
+			ctx := markdown.ContextMessage
+			if len(contextType) > 0 {
+				ctx = markdown.ContextType(contextType[0])
+			}
+			return markdown.Render(str, ctx)
+		},
+		"channelMarkdown": func(val any) template.HTML {
+			str := fmt.Sprintf("%v", val)
+			return markdown.Render(str, markdown.ContextChannelDescription)
+		},
+		"groupMarkdown": func(val any) template.HTML {
+			str := fmt.Sprintf("%v", val)
+			return markdown.Render(str, markdown.ContextGroupDescription)
+		},
+		"messageMarkdown": func(val any) template.HTML {
+			str := fmt.Sprintf("%v", val)
+			return markdown.Render(str, markdown.ContextMessage)
 		},
 	})
 
