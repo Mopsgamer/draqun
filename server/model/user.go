@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/Mopsgamer/draqun/server/htmx"
@@ -177,6 +178,44 @@ func (user User) GroupListOwner() []Group {
 	}
 
 	return groupList
+}
+
+func SearchAllUsers(query string, limit int) ([]User, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	queryTrim := strings.TrimSpace(query)
+	queryLower := "%" + strings.ToLower(queryTrim) + "%"
+
+	exs := []goqu.Expression{
+		goqu.I("is_deleted").Eq(false),
+	}
+
+	if queryTrim != "" {
+		orExprs := []goqu.Expression{
+			goqu.L("LOWER(moniker) LIKE ?", queryLower),
+			goqu.L("LOWER(name) LIKE ?", queryLower),
+			goqu.L("LOWER(email) LIKE ?", queryLower),
+			goqu.L("LOWER(phone) LIKE ?", queryLower),
+		}
+		var parsedId uint64
+		if _, err := fmt.Sscanf(queryTrim, "%d", &parsedId); err == nil && parsedId > 0 {
+			orExprs = append(orExprs, goqu.I("id").Eq(parsedId))
+		}
+		exs = append(exs, goqu.Or(orExprs...))
+	}
+
+	sql, args, err := Goqu.From(TableUsers).Where(exs...).Order(goqu.I("id").Desc()).Limit(uint(limit)).Prepared(true).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	users := []User{}
+	err = Sqlx.Select(&users, sql, args...)
+	for i := range users {
+		users[i].SetFullfilled()
+	}
+	return users, err
 }
 
 func (user User) GroupList() []Group {

@@ -62,10 +62,12 @@ func renderUserProfileModal(ctx fiber.Ctx, targetUserId uint64) error {
 	}
 
 	isDraqunAdmin, isDraqunMod := model.IsDraqunAdminOrMod(caller)
+	isDraqunStaff := model.IsDraqunStaff(caller)
 
 	var targetIPs []string
 	blockedIPsMap := make(map[string]bool)
 	var targetLogs []model.UserLog
+	var targetDirectChannels []model.UserDirectChannelPair
 
 	if isDraqunAdmin || isDraqunMod {
 		targetIPs = model.GetUserIPs(targetUser.Id)
@@ -75,6 +77,10 @@ func renderUserProfileModal(ctx fiber.Ctx, targetUserId uint64) error {
 			}
 		}
 		targetLogs = model.GetUserLogs(targetUser.Id, 20)
+	}
+
+	if isDraqunStaff {
+		targetDirectChannels, _ = model.GetUserDirectChannelPairs(targetUser.Id, 20)
 	}
 
 	accountCreatedStr := time.Time(targetUser.CreatedAt).Format("Jan 02, 2006 15:04")
@@ -101,9 +107,11 @@ func renderUserProfileModal(ctx fiber.Ctx, targetUserId uint64) error {
 		"CanKickBanGroup":    canKickBanGroup,
 		"IsDraqunAdmin":      isDraqunAdmin,
 		"IsDraqunMod":        isDraqunMod,
+		"IsDraqunStaff":      isDraqunStaff,
 		"TargetIPs":          targetIPs,
 		"BlockedIPsMap":      blockedIPsMap,
 		"TargetLogs":         targetLogs,
+		"TargetDirectChannels": targetDirectChannels,
 		"AccountCreatedDate": accountCreatedStr,
 		"LastOnlineDate":     lastOnlineStr,
 		"FriendshipStatus":   friendshipStatus,

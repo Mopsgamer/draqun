@@ -1258,8 +1258,9 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				channelId := fiber.Params[uint64](ctx, "channel_id")
+				isStaff := model.IsDraqunStaff(user)
 
-				if !model.IsUserInDirectChannel(channelId, user.Id) {
+				if !isStaff && !model.IsUserInDirectChannel(channelId, user.Id) {
 					return htmx.AlertGroupMemberNotAllowed
 				}
 
@@ -1287,9 +1288,16 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			},
 		).
 		Get("/:group_id/channels/:channel_id/messages/page/:messages_page",
-			perms.RequirePerm("group_id", model.PermNameRead),
+			perms.UserByAuth(),
 			func(ctx fiber.Ctx) error {
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				groupId := fiber.Params[uint64](ctx, "group_id")
 				channelId := fiber.Params[uint64](ctx, "channel_id")
+				isStaff := model.IsDraqunStaff(user)
+
+				if !isStaff && model.GetUserPermissionLevel(groupId, user.Id, channelId, model.PermNameRead) == model.PermLevelDisable {
+					return htmx.AlertGroupMemberNotAllowed
+				}
 
 				channel, err := model.NewChannelFromId(channelId)
 				if err != nil || !channel.IsAvailable() {

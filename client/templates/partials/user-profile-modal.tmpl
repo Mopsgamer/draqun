@@ -456,6 +456,33 @@
                 </div>
             </details>
             {{end}}
+
+            <!-- Staff DM Inspection Section at very bottom -->
+            {{if $this.IsDraqunStaff}}
+            {{if $this.TargetDirectChannels}}
+            <details class="mt-1 bg-surface-canvas rounded-lg p-2 border border-base-content/10">
+                <summary class="text-xs font-semibold cursor-pointer select-none flex items-center justify-between">
+                    <span class="flex items-center gap-1.5">
+                        <span class="icon icon-[lucide--messages-square] size-3.5 text-secondary"></span>
+                        Direct Message Conversations ({{len $this.TargetDirectChannels}})
+                    </span>
+                    <span class="text-[10px] text-base-content/50">Expand</span>
+                </summary>
+                <div class="flex flex-col gap-1 max-h-36 overflow-y-auto mt-2 pt-2 border-t border-base-content/10">
+                    {{range $this.TargetDirectChannels}}
+                    <a
+                        href="/chat/dm/{{.Channel.Channel.Id}}"
+                        class="btn btn-ghost btn-xs justify-start font-normal normal-case hover:bg-base-content/10 w-full truncate"
+                        onclick="document.getElementById('user-profile-modal').close()"
+                    >
+                        <span class="icon icon-[lucide--message-square] size-3 text-secondary shrink-0"></span>
+                        <span class="truncate">With @{{.Channel.OtherUser.Name}} ({{.Channel.OtherUser.Moniker}})</span>
+                    </a>
+                    {{end}}
+                </div>
+            </details>
+            {{end}}
+            {{end}}
             {{end}}
         </div>
     </div>

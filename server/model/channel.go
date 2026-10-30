@@ -488,6 +488,20 @@ func IsUserInDirectChannel(channelId, userId uint64) bool {
 	return count > 0
 }
 
+func GetDirectChannelUsers(channelId uint64) (User, User, error) {
+	dc := DirectChannel{}
+	err := First(TableDirectChannels, goqu.Ex{"channel_id": channelId}, &dc)
+	if err != nil {
+		return User{}, User{}, err
+	}
+	u1, err1 := NewUserFromId(dc.User1Id)
+	u2, err2 := NewUserFromId(dc.User2Id)
+	if err1 != nil || err2 != nil || u1.IsEmpty() || u2.IsEmpty() {
+		return User{}, User{}, fmt.Errorf("direct channel users not found")
+	}
+	return u1, u2, nil
+}
+
 func GetDirectChannelOtherUser(channelId, userId uint64) (*User, error) {
 	dc := DirectChannel{}
 	err := First(TableDirectChannels, goqu.Ex{"channel_id": channelId}, &dc)
@@ -501,7 +515,8 @@ func GetDirectChannelOtherUser(channelId, userId uint64) (*User, error) {
 	} else if dc.User2Id == userId {
 		otherId = dc.User1Id
 	} else {
-		return nil, fmt.Errorf("user %d not in direct channel %d", userId, channelId)
+		// Fallback for staff inspection: return User1 if caller is neither participant
+		otherId = dc.User1Id
 	}
 
 	u, errU := NewUserFromId(otherId)
@@ -511,9 +526,18 @@ func GetDirectChannelOtherUser(channelId, userId uint64) (*User, error) {
 	return &u, nil
 }
 
-func GetUserDirectChannels(userId uint64) ([]DirectChannelItem, error) {
+type UserDirectChannelPair struct {
+	Channel DirectChannelItem
+	User1   User
+	User2   User
+}
+
+func GetUserDirectChannelPairs(userId uint64, limit int) ([]UserDirectChannelPair, error) {
 	if userId == 0 {
 		return nil, nil
+	}
+	if limit <= 0 {
+		limit = 20
 	}
 	var dcs []DirectChannel
 	sql, args, err := Goqu.From(TableDirectChannels).
@@ -521,6 +545,8 @@ func GetUserDirectChannels(userId uint64) ([]DirectChannelItem, error) {
 			goqu.Ex{"user1_id": userId},
 			goqu.Ex{"user2_id": userId},
 		)).
+		Order(goqu.I("channel_id").Desc()).
+		Limit(uint(limit)).
 		Prepared(true).ToSQL()
 	if err != nil {
 		return nil, err
@@ -531,26 +557,42 @@ func GetUserDirectChannels(userId uint64) ([]DirectChannelItem, error) {
 		return nil, err
 	}
 
-	var items []DirectChannelItem
+	var pairs []UserDirectChannelPair
 	for _, dc := range dcs {
 		ch, errCh := NewChannelFromId(dc.ChannelId)
 		if errCh != nil || !ch.IsAvailable() {
 			continue
 		}
-		var otherId uint64
-		if dc.User1Id == userId {
-			otherId = dc.User2Id
-		} else {
-			otherId = dc.User1Id
-		}
-		otherUser, errU := NewUserFromId(otherId)
-		if errU != nil || otherUser.IsEmpty() {
+		u1, u2, errUsers := GetDirectChannelUsers(dc.ChannelId)
+		if errUsers != nil {
 			continue
 		}
-		items = append(items, DirectChannelItem{
-			Channel:   ch,
-			OtherUser: otherUser,
+		var otherUser User
+		if userId == u1.Id {
+			otherUser = u2
+		} else {
+			otherUser = u1
+		}
+		pairs = append(pairs, UserDirectChannelPair{
+			Channel: DirectChannelItem{
+				Channel:   ch,
+				OtherUser: otherUser,
+			},
+			User1: u1,
+			User2: u2,
 		})
+	}
+	return pairs, nil
+}
+
+func GetUserDirectChannels(userId uint64) ([]DirectChannelItem, error) {
+	pairs, err := GetUserDirectChannelPairs(userId, 50)
+	if err != nil {
+		return nil, err
+	}
+	var items []DirectChannelItem
+	for _, p := range pairs {
+		items = append(items, p.Channel)
 	}
 	return items, nil
 }

@@ -31,7 +31,12 @@ func routePagesChat(router fiber.Router) fiber.Router {
 	chat.Get(
 		"/",
 		func(ctx fiber.Ctx) error {
-			return htmx.TryRenderPage(ctx, "chat", MapPage(ctx, fiber.Map{"Title": "Home"}), "partials/layout-chat")
+			user, _ := perms.UserByAuthFromCtx(ctx)
+			bind := fiber.Map{
+				"Title":        "Home",
+				"IsDraqunStaff": model.IsDraqunStaff(user),
+			}
+			return htmx.TryRenderPage(ctx, "chat", MapPage(ctx, bind), "partials/layout-chat")
 		},
 	).Name("page.chat")
 
@@ -40,21 +45,27 @@ func routePagesChat(router fiber.Router) fiber.Router {
 		func(ctx fiber.Ctx) error {
 			user, _ := perms.UserByAuthFromCtx(ctx)
 			groupId := fiber.Params[uint64](ctx, "group_id")
-			if group, errG := model.NewGroupFromId(groupId); errG == nil && !group.IsEmpty() && group.IsBanned(user.Id) {
+			isStaff := model.IsDraqunStaff(user)
+
+			if group, errG := model.NewGroupFromId(groupId); errG == nil && !group.IsEmpty() && group.IsBanned(user.Id) && !isStaff {
 				return ctx.Redirect().To(group.UrlJoin(ctx))
 			}
 
-			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
+			group, errGroup := model.NewGroupFromId(groupId)
+			if errGroup != nil || group.IsEmpty() || group.IsDeleted {
 				return ctx.Redirect().To("/chat")
 			}
 
-			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil && !isStaff {
+				return ctx.Redirect().To("/chat")
+			}
+
 			isAdmin, isMod := model.IsDraqunAdminOrMod(user)
 			isGlobalAdmin := isAdmin || isMod
 			allChannels, _ := model.GetGroupChannels(group.Id)
 			var channels []model.Channel
 			for _, ch := range allChannels {
-				if model.GetUserPermissionLevel(group.Id, user.Id, ch.Id, model.PermNameRead) != model.PermLevelDisable {
+				if isStaff || model.GetUserPermissionLevel(group.Id, user.Id, ch.Id, model.PermNameRead) != model.PermLevelDisable {
 					channels = append(channels, ch)
 				}
 			}
@@ -106,15 +117,21 @@ func routePagesChat(router fiber.Router) fiber.Router {
 		func(ctx fiber.Ctx) error {
 			user, _ := perms.UserByAuthFromCtx(ctx)
 			groupId := fiber.Params[uint64](ctx, "group_id")
-			if group, errG := model.NewGroupFromId(groupId); errG == nil && !group.IsEmpty() && group.IsBanned(user.Id) {
+			isStaff := model.IsDraqunStaff(user)
+
+			if group, errG := model.NewGroupFromId(groupId); errG == nil && !group.IsEmpty() && group.IsBanned(user.Id) && !isStaff {
 				return ctx.Redirect().To(group.UrlJoin(ctx))
 			}
 
-			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
+			group, errGroup := model.NewGroupFromId(groupId)
+			if errGroup != nil || group.IsEmpty() || group.IsDeleted {
 				return ctx.Redirect().To("/chat")
 			}
 
-			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil && !isStaff {
+				return ctx.Redirect().To("/chat")
+			}
+
 			isAdmin, isMod := model.IsDraqunAdminOrMod(user)
 			isGlobalAdmin := isAdmin || isMod
 			channelId := fiber.Params[uint64](ctx, "channel_id")
@@ -127,14 +144,14 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				if !isGlobalAdmin {
 					return ctx.Redirect().To(group.Url(ctx))
 				}
-			} else if model.GetUserPermissionLevel(group.Id, user.Id, activeChannel.Id, model.PermNameRead) == model.PermLevelDisable {
+			} else if !isStaff && model.GetUserPermissionLevel(group.Id, user.Id, activeChannel.Id, model.PermNameRead) == model.PermLevelDisable {
 				return ctx.Redirect().To(group.Url(ctx))
 			}
 
 			allChannels, _ := model.GetGroupChannels(group.Id)
 			var channels []model.Channel
 			for _, ch := range allChannels {
-				if model.GetUserPermissionLevel(group.Id, user.Id, ch.Id, model.PermNameRead) != model.PermLevelDisable {
+				if isStaff || model.GetUserPermissionLevel(group.Id, user.Id, ch.Id, model.PermNameRead) != model.PermLevelDisable {
 					channels = append(channels, ch)
 				}
 			}
@@ -248,12 +265,112 @@ func routePagesChat(router fiber.Router) fiber.Router {
 	).Name("page.group.join")
 
 	chat.Get(
+		"/admin/search",
+		func(ctx fiber.Ctx) error {
+			user, _ := perms.UserByAuthFromCtx(ctx)
+			if !model.IsDraqunStaff(user) {
+				return ctx.Redirect().To("/chat")
+			}
+
+			q := strings.TrimSpace(ctx.Query("q", ""))
+			filterType := ctx.Query("type", "all")
+			if filterType != "groups" && filterType != "users" {
+				filterType = "all"
+			}
+
+			bind := fiber.Map{
+				"Title": "Global Admin Search",
+				"Query": q,
+				"Type":  filterType,
+			}
+
+			var groups []model.Group
+			var users []model.User
+
+			if filterType == "all" || filterType == "groups" {
+				groups, _ = model.SearchAllGroups(q, 30)
+			}
+			if filterType == "all" || filterType == "users" {
+				users, _ = model.SearchAllUsers(q, 30)
+			}
+
+			type UserWithDMs struct {
+				model.User
+				DirectChannels []model.UserDirectChannelPair
+			}
+			var userItems []UserWithDMs
+			for _, u := range users {
+				dps, _ := model.GetUserDirectChannelPairs(u.Id, 10)
+				userItems = append(userItems, UserWithDMs{
+					User:           u,
+					DirectChannels: dps,
+				})
+			}
+
+			bind["Groups"] = groups
+			bind["Users"] = userItems
+
+			return htmx.TryRenderPage(ctx, "admin-search", MapPage(ctx, bind), "partials/layout-chat")
+		},
+	).Name("page.admin.search")
+
+	chat.Get(
+		"/admin/search/results",
+		func(ctx fiber.Ctx) error {
+			user, _ := perms.UserByAuthFromCtx(ctx)
+			if !model.IsDraqunStaff(user) {
+				return ctx.Status(fiber.StatusForbidden).SendString("Unauthorized")
+			}
+
+			q := strings.TrimSpace(ctx.Query("q", ""))
+			filterType := ctx.Query("type", "all")
+			if filterType != "groups" && filterType != "users" {
+				filterType = "all"
+			}
+
+			bind := fiber.Map{
+				"Query": q,
+				"Type":  filterType,
+			}
+
+			var groups []model.Group
+			var users []model.User
+
+			if filterType == "all" || filterType == "groups" {
+				groups, _ = model.SearchAllGroups(q, 30)
+			}
+			if filterType == "all" || filterType == "users" {
+				users, _ = model.SearchAllUsers(q, 30)
+			}
+
+			type UserWithDMs struct {
+				model.User
+				DirectChannels []model.UserDirectChannelPair
+			}
+			var userItems []UserWithDMs
+			for _, u := range users {
+				dps, _ := model.GetUserDirectChannelPairs(u.Id, 10)
+				userItems = append(userItems, UserWithDMs{
+					User:           u,
+					DirectChannels: dps,
+				})
+			}
+
+			bind["Groups"] = groups
+			bind["Users"] = userItems
+
+			return ctx.Render("partials/admin-search-results", bind)
+		},
+	).Name("page.admin.search.results")
+
+	chat.Get(
 		"/dm/:channel_id",
 		func(ctx fiber.Ctx) error {
 			user, _ := perms.UserByAuthFromCtx(ctx)
 			channelId := fiber.Params[uint64](ctx, "channel_id")
+			isStaff := model.IsDraqunStaff(user)
 
-			if !model.IsUserInDirectChannel(channelId, user.Id) {
+			if !isStaff && !model.IsUserInDirectChannel(channelId, user.Id) {
 				return ctx.Redirect().To("/chat")
 			}
 
@@ -262,15 +379,24 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				return ctx.Redirect().To("/chat")
 			}
 
-			otherUser, errOther := model.GetDirectChannelOtherUser(channelId, user.Id)
-			if errOther != nil || otherUser.IsEmpty() {
+			u1, u2, errUsers := model.GetDirectChannelUsers(channelId)
+			if errUsers != nil {
 				return ctx.Redirect().To("/chat")
+			}
+
+			var otherUser model.User
+			if user.Id == u1.Id {
+				otherUser = u2
+			} else if user.Id == u2.Id {
+				otherUser = u1
+			} else {
+				otherUser = u1
 			}
 
 			bind := fiber.Map{
 				"Title":         otherUser.Moniker,
 				"ActiveChannel": activeChannel,
-				"OtherUser":     *otherUser,
+				"OtherUser":     otherUser,
 				"IsDirectChat":  true,
 			}
 

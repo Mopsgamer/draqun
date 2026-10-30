@@ -394,6 +394,43 @@ func (group Group) UsersPage(page, limit uint) []User {
 	return userList
 }
 
+func SearchAllGroups(query string, limit int) ([]Group, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	queryTrim := strings.TrimSpace(query)
+	queryLower := "%" + strings.ToLower(queryTrim) + "%"
+
+	exs := []goqu.Expression{
+		goqu.I("is_deleted").Eq(false),
+	}
+
+	if queryTrim != "" {
+		orExprs := []goqu.Expression{
+			goqu.L("LOWER(moniker) LIKE ?", queryLower),
+			goqu.L("LOWER(name) LIKE ?", queryLower),
+			goqu.L("LOWER(description) LIKE ?", queryLower),
+		}
+		var parsedId uint64
+		if _, err := fmt.Sscanf(queryTrim, "%d", &parsedId); err == nil && parsedId > 0 {
+			orExprs = append(orExprs, goqu.I("id").Eq(parsedId))
+		}
+		exs = append(exs, goqu.Or(orExprs...))
+	}
+
+	sql, args, err := Goqu.From(TableGroups).Where(exs...).Order(goqu.I("id").Desc()).Limit(uint(limit)).Prepared(true).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	groups := []Group{}
+	err = Sqlx.Select(&groups, sql, args...)
+	for i := range groups {
+		groups[i].SetFullfilled()
+	}
+	return groups, err
+}
+
 func (group Group) SearchUsers(query string, limit int) ([]User, error) {
 	if limit <= 0 {
 		limit = 10

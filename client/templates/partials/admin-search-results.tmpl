@@ -1,0 +1,65 @@
+{{- if or .Groups .Users -}}
+    {{- if .Groups -}}
+    <div class="flex flex-col gap-2">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-base-content/60 px-1">Groups ({{len .Groups}})</h3>
+        <div class="divide-y divide-base-content/10">
+            {{- range .Groups -}}
+            <a href="/chat/groups/{{.Id}}" class="flex items-center justify-between py-2.5 px-2 gap-3 hover:bg-base-200/60 transition-colors group">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div class="avatar shrink-0">
+                        <div class="w-8 rounded-lg">
+                            <img src="{{.AvatarUrl}}" alt="{{.Moniker}} avatar">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 min-w-0 flex-1">
+                        <span class="font-bold text-sm truncate group-hover:underline">{{.Moniker}}</span>
+                        <span class="badge badge-sm badge-ghost font-mono shrink-0">#{{.Id}}</span>
+                        <span class="text-xs font-mono text-base-content/60 truncate">@{{.Name}}</span>
+                        <span class="badge badge-outline badge-xs capitalize shrink-0">{{.Mode}}</span>
+                    </div>
+                </div>
+                <span class="icon icon-[lucide--chevron-right] size-4 text-base-content/40 group-hover:text-base-content shrink-0"></span>
+            </a>
+            {{- end -}}
+        </div>
+    </div>
+    {{- end -}}
+
+    {{- if .Users -}}
+    <div class="flex flex-col gap-2">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-base-content/60 px-1">Users ({{len .Users}})</h3>
+        <div class="divide-y divide-base-content/10">
+            {{- range .Users -}}
+            {{- $u := . -}}
+            <div
+                class="flex items-center justify-between py-2.5 px-2 gap-3 hover:bg-base-200/60 transition-colors group cursor-pointer"
+                onclick="htmx.ajax('GET', '/users/{{.Id}}/profile', '#user-profile-modal-content'); document.getElementById('user-profile-modal').showModal();"
+            >
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div class="avatar {{if .IsOnline}}avatar-online{{else}}avatar-offline{{end}} shrink-0">
+                        <div class="w-8 rounded-full border border-base-content/10">
+                            <img src="{{.AvatarUrl}}" alt="{{.Moniker}} avatar">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 min-w-0 flex-1">
+                        <span class="font-bold text-sm truncate group-hover:underline">{{.Moniker}}</span>
+                        <span class="badge badge-sm badge-ghost font-mono shrink-0">#{{.Id}}</span>
+                        <span class="text-xs font-mono text-base-content/60 truncate">@{{.Name}}</span>
+                        {{- if .Email -}}
+                        <span class="text-xs text-base-content/50 truncate hidden sm:inline">• {{.Email}}</span>
+                        {{- end -}}
+                    </div>
+                </div>
+                <span class="icon icon-[lucide--chevron-right] size-4 text-base-content/40 group-hover:text-base-content shrink-0"></span>
+            </div>
+            {{- end -}}
+        </div>
+    </div>
+    {{- end -}}
+{{- else -}}
+    <div class="py-12 text-center flex flex-col items-center justify-center gap-2 text-base-content/60">
+        <span class="icon icon-[lucide--search-x] size-8"></span>
+        <span class="font-semibold text-sm">No groups or users found</span>
+        <span class="text-xs">Try searching with a different moniker, username, email, or ID.</span>
+    </div>
+{{- end -}}

@@ -428,3 +428,31 @@ func IsDraqunAdminOrMod(actor User) (isAdmin bool, isMod bool) {
 
 	return false, false
 }
+
+func IsDraqunStaff(actor User) bool {
+	if actor.IsEmpty() {
+		return false
+	}
+
+	isAdmin, isMod := IsDraqunAdminOrMod(actor)
+	if isAdmin || isMod {
+		return true
+	}
+
+	draqunGroup, err := NewGroupFromName("draqun")
+	if err != nil || draqunGroup.IsEmpty() {
+		return false
+	}
+
+	punisherRole, errP := NewRoleFromName("punisher", draqunGroup.Id)
+	if errP == nil && !punisherRole.IsEmpty() && IsRoleAssigned(actor.Id, punisherRole.Id) {
+		return true
+	}
+
+	supportRole, errS := NewRoleFromName("support", draqunGroup.Id)
+	if errS == nil && !supportRole.IsEmpty() && IsRoleAssigned(actor.Id, supportRole.Id) {
+		return true
+	}
+
+	return false
+}
