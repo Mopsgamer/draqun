@@ -736,6 +736,12 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return ctx.SendStatus(fiber.StatusOK)
 			},
 		).
+		Get("/:group_id/mention-autocomplete",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				return handleMentionAutocomplete(ctx)
+			},
+		).
 		Get("/:group_id/members/search",
 			perms.RequirePerm("group_id", model.PermNameMembers),
 			perms.UseBind[MemberSearchForm](),
@@ -1239,6 +1245,12 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Get("/dm/channels/:channel_id/mention-autocomplete",
+			perms.UserByAuth(),
+			func(ctx fiber.Ctx) error {
+				return handleDmMentionAutocomplete(ctx)
 			},
 		).
 		Get("/dm/channels/:channel_id/messages/page/:messages_page",
@@ -1986,6 +1998,216 @@ func handleMemberSearch(ctx fiber.Ctx) error {
 	}
 
 	return ctx.JSON(filtered)
+}
+
+type MentionAutocompleteItem struct {
+	Type    string `json:"type"`    // "u", "r", "c", "g"
+	Id      uint64 `json:"id"`
+	Moniker string `json:"moniker"`
+	Name    string `json:"name"`
+	Syntax  string `json:"syntax"`  // "@u:123", "@r:456", "@c:789", "@g:101"
+}
+
+func handleDmMentionAutocomplete(ctx fiber.Ctx) error {
+	user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+	channelId := fiber.Params[uint64](ctx, "channel_id")
+
+	if !model.IsUserInDirectChannel(channelId, user.Id) {
+		return htmx.AlertGroupMemberNotAllowed
+	}
+
+	qVal := strings.ToLower(strings.TrimSpace(ctx.Query("q")))
+	var items []MentionAutocompleteItem
+
+	// 1. Other user in DM
+	otherUser, errOther := model.GetDirectChannelOtherUser(channelId, user.Id)
+	if errOther == nil && otherUser != nil && !otherUser.IsEmpty() && !otherUser.IsSuspended {
+		oMon := strings.ToLower(string(otherUser.Moniker))
+		oName := strings.ToLower(string(otherUser.Name))
+		if qVal == "" || strings.Contains(oMon, qVal) || strings.Contains(oName, qVal) {
+			moniker := string(otherUser.Moniker)
+			if moniker == "" {
+				moniker = string(otherUser.Name)
+			}
+			items = append(items, MentionAutocompleteItem{
+				Type:    "u",
+				Id:      otherUser.Id,
+				Moniker: moniker,
+				Name:    string(otherUser.Name),
+				Syntax:  fmt.Sprintf("@u:%d", otherUser.Id),
+			})
+		}
+	}
+
+	// 2. Friends of the user
+	friends, errF := model.GetUserFriends(user.Id)
+	if errF == nil {
+		for _, f := range friends {
+			if f.Id == user.Id || (otherUser != nil && f.Id == otherUser.Id) || f.IsSuspended {
+				continue
+			}
+			fMon := strings.ToLower(string(f.Moniker))
+			fName := strings.ToLower(string(f.Name))
+			if qVal == "" || strings.Contains(fMon, qVal) || strings.Contains(fName, qVal) {
+				moniker := string(f.Moniker)
+				if moniker == "" {
+					moniker = string(f.Name)
+				}
+				items = append(items, MentionAutocompleteItem{
+					Type:    "u",
+					Id:      f.Id,
+					Moniker: moniker,
+					Name:    string(f.Name),
+					Syntax:  fmt.Sprintf("@u:%d", f.Id),
+				})
+			}
+		}
+	}
+
+	// 3. Groups the user is a member of & Channels in those groups
+	userGroups := user.GroupList()
+	for _, g := range userGroups {
+		gMon := strings.ToLower(string(g.Moniker))
+		gName := strings.ToLower(string(g.Name))
+		if qVal == "" || strings.Contains(gMon, qVal) || strings.Contains(gName, qVal) {
+			moniker := string(g.Moniker)
+			if moniker == "" {
+				moniker = string(g.Name)
+			}
+			items = append(items, MentionAutocompleteItem{
+				Type:    "g",
+				Id:      g.Id,
+				Moniker: moniker,
+				Name:    string(g.Name),
+				Syntax:  fmt.Sprintf("@g:%d", g.Id),
+			})
+		}
+
+		channels, errC := model.GetAllGroupChannels(g.Id)
+		if errC == nil {
+			for _, ch := range channels {
+				if !ch.IsAvailable() {
+					continue
+				}
+				if model.GetUserPermissionLevel(g.Id, user.Id, ch.Id, model.PermNameRead) == model.PermLevelDisable {
+					continue
+				}
+				cMon := strings.ToLower(string(ch.Moniker))
+				cName := strings.ToLower(string(ch.Name))
+				if qVal == "" || strings.Contains(cMon, qVal) || strings.Contains(cName, qVal) {
+					moniker := string(ch.Moniker)
+					if moniker == "" {
+						moniker = string(ch.Name)
+					}
+					items = append(items, MentionAutocompleteItem{
+						Type:    "c",
+						Id:      ch.Id,
+						Moniker: moniker,
+						Name:    string(ch.Name),
+						Syntax:  fmt.Sprintf("@c:%d", ch.Id),
+					})
+				}
+			}
+		}
+	}
+
+	return ctx.JSON(items)
+}
+
+func handleMentionAutocomplete(ctx fiber.Ctx) error {
+	group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+	user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+	qVal := strings.ToLower(strings.TrimSpace(ctx.Query("q")))
+
+	var items []MentionAutocompleteItem
+
+	// 1. Search Users in group
+	users, errU := group.SearchUsers(qVal, 10)
+	if errU == nil {
+		for _, u := range users {
+			if u.IsSuspended {
+				continue
+			}
+			moniker := string(u.Moniker)
+			if moniker == "" {
+				moniker = string(u.Name)
+			}
+			items = append(items, MentionAutocompleteItem{
+				Type:    "u",
+				Id:      u.Id,
+				Moniker: moniker,
+				Name:    string(u.Name),
+				Syntax:  fmt.Sprintf("@u:%d", u.Id),
+			})
+		}
+	}
+
+	// 2. Search Roles in group
+	roles := group.Roles()
+	for _, r := range roles {
+		rMon := strings.ToLower(string(r.Moniker))
+		rName := strings.ToLower(string(r.Name))
+		if qVal == "" || strings.Contains(rMon, qVal) || strings.Contains(rName, qVal) {
+			moniker := string(r.Moniker)
+			if moniker == "" {
+				moniker = string(r.Name)
+			}
+			items = append(items, MentionAutocompleteItem{
+				Type:    "r",
+				Id:      r.Id,
+				Moniker: moniker,
+				Name:    string(r.Name),
+				Syntax:  fmt.Sprintf("@r:%d", r.Id),
+			})
+		}
+	}
+
+	// 3. Search Channels in group (checking caller's read permissions!)
+	channels, errC := model.GetAllGroupChannels(group.Id)
+	if errC == nil {
+		for _, ch := range channels {
+			if !ch.IsAvailable() {
+				continue
+			}
+			if model.GetUserPermissionLevel(group.Id, user.Id, ch.Id, model.PermNameRead) == model.PermLevelDisable {
+				continue
+			}
+			cMon := strings.ToLower(string(ch.Moniker))
+			cName := strings.ToLower(string(ch.Name))
+			if qVal == "" || strings.Contains(cMon, qVal) || strings.Contains(cName, qVal) {
+				moniker := string(ch.Moniker)
+				if moniker == "" {
+					moniker = string(ch.Name)
+				}
+				items = append(items, MentionAutocompleteItem{
+					Type:    "c",
+					Id:      ch.Id,
+					Moniker: moniker,
+					Name:    string(ch.Name),
+					Syntax:  fmt.Sprintf("@c:%d", ch.Id),
+				})
+			}
+		}
+	}
+
+	// 4. Search Group
+	gMon := strings.ToLower(string(group.Moniker))
+	gName := strings.ToLower(string(group.Name))
+	if qVal == "" || strings.Contains(gMon, qVal) || strings.Contains(gName, qVal) {
+		moniker := string(group.Moniker)
+		if moniker == "" {
+			moniker = string(group.Name)
+		}
+		items = append(items, MentionAutocompleteItem{
+			Type:    "g",
+			Id:      group.Id,
+			Moniker: moniker,
+			Name:    string(group.Name),
+			Syntax:  fmt.Sprintf("@g:%d", group.Id),
+		})
+	}
+
+	return ctx.JSON(items)
 }
 
 type EntityResultItem struct {

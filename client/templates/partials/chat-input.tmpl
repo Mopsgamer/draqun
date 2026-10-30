@@ -32,9 +32,10 @@
             multiple
             class="hidden"
         />
-        <div class="flex flex-col flex-1 min-w-0">
+        <div class="flex flex-col flex-1 min-w-0 relative">
             <div id="attachment-preview" class="hidden pb-2 flex-wrap gap-1.5"></div>
             <div id="send-message-error" class="w-full text-error text-xs font-semibold pb-1 empty:pb-0"></div>
+            <div id="mention-popover" class="hidden absolute bottom-full mb-2 left-0 right-0 z-30 bg-surface-overlay border border-base-content/15 rounded-xl shadow-xl max-h-48 overflow-y-auto p-1 text-xs"></div>
             <textarea
                 class="textarea textarea-bordered w-full h-10 min-h-10 max-h-32 field-sizing-content text-base leading-snug rounded-lg"
                 id="new-message-input"
@@ -43,6 +44,7 @@
                 name="content"
                 rows="1"
                 data-autoresize
+                {{if .Group}}data-group-id="{{.Group.Id}}"{{else if .IsDirectChat}}data-dm-channel-id="{{.ActiveChannel.Id}}"{{end}}
             ></textarea>
         </div>
         <div>

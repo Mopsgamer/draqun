@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"html/template"
 	"regexp"
+	"strconv"
 	"strings"
 
+	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/alecthomas/chroma/v2"
 	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/alecthomas/chroma/v2/styles"
+	"github.com/doug-martin/goqu/v9"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/extension"
@@ -33,7 +36,7 @@ var (
 	calloutMatchRegex       = regexp.MustCompile(`(?i)%%CALLOUT:(NOTE|WARNING|TIP|IMPORTANT|CAUTION)%%`)
 	discordSubtextRegex     = regexp.MustCompile(`(?m)^(\s*)-\#\s+(.+)$`)
 	subtextPlaceholderRegex = regexp.MustCompile(`%%SUBTEXT_START%%(.*?)%%SUBTEXT_END%%`)
-	mentionRegex            = regexp.MustCompile(`(?:^|[^a-zA-Z0-9_/\.-])@([a-zA-Z0-9._]{1,64})\b`)
+	entityMentionRegex      = regexp.MustCompile(`(?i)@(u|r|c|g|user|role|channel|group):(\d+)`)
 	codeBlockWrapperRegex   = regexp.MustCompile(`(?s)<div class="code-block-wrapper">.*?<pre.*?>.*?</pre>\s*</div>|<pre.*?>.*?</pre>`)
 	htmlTagRegex            = regexp.MustCompile(`<[^>]+>`)
 )
@@ -66,14 +69,100 @@ func postprocessHTML(htmlInput string) string {
 	})
 
 	// 3. Process mentions in plain text
-	processedText := mentionRegex.ReplaceAllStringFunc(protected, func(m string) string {
-		match := mentionRegex.FindStringSubmatch(m)
-		if len(match) < 2 {
+	processedText := entityMentionRegex.ReplaceAllStringFunc(protected, func(m string) string {
+		match := entityMentionRegex.FindStringSubmatch(m)
+		if len(match) < 3 {
 			return m
 		}
 		prefix := m[:strings.Index(m, "@")]
-		username := match[1]
-		badge := fmt.Sprintf(`<button type="button" class="mention-badge" hx-get="/users/by-name/%s/profile" hx-target="#user-profile-modal-content" onclick="document.getElementById('user-profile-modal').showModal()">@%s</button>`, username, username)
+		entityType := strings.ToLower(match[1])
+		idVal, err := strconv.ParseUint(match[2], 10, 64)
+		if err != nil || idVal == 0 {
+			return m
+		}
+
+		var badge string
+		switch entityType {
+		case "u", "user":
+			if model.Goqu != nil {
+				user, errU := model.NewUserFromId(idVal)
+				if errU == nil && !user.IsEmpty() && !user.IsSuspended {
+					moniker := string(user.Moniker)
+					if moniker == "" {
+						moniker = string(user.Name)
+					}
+					badge = fmt.Sprintf(`<button type="button" class="mention-badge" hx-get="/users/%d/profile" hx-target="#user-profile-modal-content" onclick="document.getElementById('user-profile-modal').showModal()">@%s</button>`, user.Id, template.HTMLEscapeString(moniker))
+				}
+			}
+			if badge == "" {
+				badge = fmt.Sprintf("@user:%d", idVal)
+			}
+
+		case "r", "role":
+			if model.Goqu != nil {
+				role := model.Role{}
+				errR := model.First(model.TableRoles, goqu.Ex{"id": idVal}, &role)
+				if errR == nil && !role.IsEmpty() {
+					moniker := string(role.Moniker)
+					if moniker == "" {
+						moniker = string(role.Name)
+					}
+					badge = fmt.Sprintf(`<span class="mention-badge">@%s</span>`, template.HTMLEscapeString(moniker))
+				}
+			}
+			if badge == "" {
+				badge = fmt.Sprintf("@role:%d", idVal)
+			}
+
+		case "c", "channel":
+			if model.Goqu != nil {
+				channel, errC := model.NewChannelFromId(idVal)
+				if errC == nil && channel.IsAvailable() {
+					groupChannel := model.GroupChannel{}
+					errGc := model.First(model.TableGroupChannels, goqu.Ex{"channel_id": channel.Id}, &groupChannel)
+					moniker := string(channel.Moniker)
+					if moniker == "" {
+						moniker = string(channel.Name)
+					}
+					if errGc == nil && groupChannel.GroupId != 0 {
+						group, errG := model.NewGroupFromId(groupChannel.GroupId)
+						if errG == nil && !group.IsEmpty() && !group.IsDeleted && group.Mode != model.GroupModePrivate {
+							badge = fmt.Sprintf(`<a href="/chat/groups/%d/channels/%d" class="mention-badge">@%s</a>`, groupChannel.GroupId, channel.Id, template.HTMLEscapeString(moniker))
+						} else {
+							badge = fmt.Sprintf(`<span class="mention-badge">@%s</span>`, template.HTMLEscapeString(moniker))
+						}
+					} else {
+						badge = fmt.Sprintf(`<span class="mention-badge">@%s</span>`, template.HTMLEscapeString(moniker))
+					}
+				}
+			}
+			if badge == "" {
+				badge = fmt.Sprintf("@channel:%d", idVal)
+			}
+
+		case "g", "group":
+			if model.Goqu != nil {
+				group, errG := model.NewGroupFromId(idVal)
+				if errG == nil && !group.IsEmpty() && !group.IsDeleted {
+					moniker := string(group.Moniker)
+					if moniker == "" {
+						moniker = string(group.Name)
+					}
+					if group.Mode == model.GroupModePrivate {
+						badge = fmt.Sprintf(`<span class="mention-badge">@%s</span>`, template.HTMLEscapeString(moniker))
+					} else {
+						badge = fmt.Sprintf(`<a href="/chat/groups/%d" class="mention-badge">@%s</a>`, group.Id, template.HTMLEscapeString(moniker))
+					}
+				}
+			}
+			if badge == "" {
+				badge = fmt.Sprintf("@group:%d", idVal)
+			}
+
+		default:
+			return m
+		}
+
 		return prefix + badge
 	})
 
