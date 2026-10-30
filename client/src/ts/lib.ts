@@ -192,7 +192,7 @@ export function initAnchorHeader(hAnchor: HTMLHeadingElement): void {
 	usedAnchorIds.add(hashId);
 
 	const a = document.createElement("a");
-	a.href = "#" + hashId;
+	a.href = `#${hashId}`;
 	a.classList.add("anchor-header-link");
 	a.append("#");
 	hAnchor.append(a);

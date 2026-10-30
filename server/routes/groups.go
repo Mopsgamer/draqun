@@ -2001,11 +2001,11 @@ func handleMemberSearch(ctx fiber.Ctx) error {
 }
 
 type MentionAutocompleteItem struct {
-	Type    string `json:"type"`    // "u", "r", "c", "g"
+	Type    string `json:"type"` // "u", "r", "c", "g"
 	Id      uint64 `json:"id"`
 	Moniker string `json:"moniker"`
 	Name    string `json:"name"`
-	Syntax  string `json:"syntax"`  // "@u:123", "@r:456", "@c:789", "@g:101"
+	Syntax  string `json:"syntax"` // "@u:123", "@r:456", "@c:789", "@g:101"
 }
 
 func handleDmMentionAutocomplete(ctx fiber.Ctx) error {

@@ -1,7 +1,7 @@
 import htmx from "htmx.org";
 import { getFormPropData } from "./lib.ts";
 
-const onEvent: htmx.HtmxExtension["onEvent"] = function (name, event): boolean {
+const onEvent: htmx.HtmxExtension["onEvent"] = (name, event): boolean => {
 	if (name === "htmx:beforeRequest" || name === "htmx:afterRequest") {
 		const enable = name === "htmx:beforeRequest";
 		let control: EventTarget | null = event.target;

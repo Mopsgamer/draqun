@@ -18,7 +18,7 @@ domLoaded.then(() => {
 	const resizeInput = () => {
 		if (!input) return;
 		input.style.height = "auto";
-		input.style.height = Math.min(input.scrollHeight, 80) + "px";
+		input.style.height = `${Math.min(input.scrollHeight, 80)}px`;
 	};
 	if (input) {
 		input.addEventListener("input", resizeInput);
@@ -29,7 +29,7 @@ domLoaded.then(() => {
 		if (!previewContainer) return;
 		previewContainer.innerHTML = "";
 
-		if (fileInput && fileInput.files && fileInput.files.length > 0) {
+		if (fileInput?.files && fileInput.files.length > 0) {
 			previewContainer.classList.remove("hidden");
 			previewContainer.classList.add("flex");
 
@@ -105,9 +105,13 @@ domLoaded.then(() => {
 		if (pastedFiles.length > 0) {
 			const dt = new DataTransfer();
 			if (fileInput.files) {
-				Array.from(fileInput.files).forEach((f) => dt.items.add(f));
+				Array.from(fileInput.files).forEach((f) => {
+					dt.items.add(f);
+				});
 			}
-			pastedFiles.forEach((f) => dt.items.add(f));
+			pastedFiles.forEach((f) => {
+				dt.items.add(f);
+			});
 			fileInput.files = dt.files;
 			updatePreview();
 		}
@@ -193,7 +197,8 @@ domLoaded.then(() => {
 			left.appendChild(label);
 
 			const right = document.createElement("span");
-			right.className = "text-[11px] text-base-content/50 truncate ml-2 font-mono";
+			right.className =
+				"text-[11px] text-base-content/50 truncate ml-2 font-mono";
 			right.textContent = item.syntax;
 
 			row.appendChild(left);
@@ -242,7 +247,10 @@ domLoaded.then(() => {
 		const fullMatch = match[0];
 		const q = match[1];
 
-		matchStart = cursorPos - fullMatch.length + (fullMatch.startsWith(" ") || fullMatch.startsWith("\n") ? 1 : 0);
+		matchStart =
+			cursorPos -
+			fullMatch.length +
+			(fullMatch.startsWith(" ") || fullMatch.startsWith("\n") ? 1 : 0);
 		queryLen = cursorPos - matchStart;
 
 		let groupId = input.dataset.groupId;
@@ -284,14 +292,21 @@ domLoaded.then(() => {
 
 	if (input) {
 		input.addEventListener("keyup", (e) => {
-			if (["ArrowUp", "ArrowDown", "Enter", "Tab", "Escape"].includes(e.key) && currentItems.length > 0) {
+			if (
+				["ArrowUp", "ArrowDown", "Enter", "Tab", "Escape"].includes(e.key) &&
+				currentItems.length > 0
+			) {
 				return;
 			}
 			checkMentionTrigger();
 		});
 
 		input.addEventListener("keydown", (e) => {
-			if (currentItems.length === 0 || !popover || popover.classList.contains("hidden")) {
+			if (
+				currentItems.length === 0 ||
+				!popover ||
+				popover.classList.contains("hidden")
+			) {
 				return;
 			}
 
@@ -301,7 +316,8 @@ domLoaded.then(() => {
 				renderPopover();
 			} else if (e.key === "ArrowUp") {
 				e.preventDefault();
-				selectedIndex = (selectedIndex - 1 + currentItems.length) % currentItems.length;
+				selectedIndex =
+					(selectedIndex - 1 + currentItems.length) % currentItems.length;
 				renderPopover();
 			} else if (e.key === "Enter" || e.key === "Tab") {
 				if (selectedIndex >= 0 && selectedIndex < currentItems.length) {
