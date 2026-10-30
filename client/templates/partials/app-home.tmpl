@@ -23,7 +23,7 @@
                 </button>
             </div>
         </div>
-        <div id="channels" class="flex flex-col gap-1 py-1 overflow-y-auto flex-1">
+        <div id="channels" class="flex flex-col gap-1 overflow-y-auto flex-1">
             {{- template "partials/home-channels" . -}}
         </div>
     </div>
@@ -118,12 +118,12 @@
                 {{- range $i, $member := $memberList -}}
                 {{- $group := index $groupList $i -}}
                 {{- $rights := $member.Role -}}
-                <div class="relative min-w-0">
+                <div class="relative min-h-36">
                     <a
                         id="my-group-{{$group.Id}}"
                         data-id="{{$group.Id}}"
                         href="/chat/groups/{{$group.Id}}"
-                        class="card bg-surface-card hover:bg-[var(--surface-card-hover)] p-4 min-h-36 flex flex-col justify-between border border-base-content/10 transition-colors"
+                        class="card bg-surface-card hover:bg-[var(--surface-card-hover)] p-4 h-full flex flex-col justify-between border border-base-content/10 transition-colors"
                     >
                         <div class="avatar shrink-0" aria-hidden="true">
                             <div class="w-10 rounded-xl">
@@ -139,11 +139,6 @@
                             {{- end -}}
                         </div>
                     </a>
-                    {{- if not $member.IsEmpty}}
-                        <div class="absolute top-2 right-2 z-10">
-                            {{template "partials/group-actions" $group}}
-                        </div>
-                    {{- end}}
                 </div>
                 {{- end -}}
             </div>
@@ -179,9 +174,9 @@
             hx-post="/friends/request"
             hx-target="#friend-request-alert"
             hx-swap="innerHTML"
-            class="flex flex-col gap-1.5 py-2 border-b border-base-content/10"
+            class="flex flex-col gap-1.5 pb-2 border-b border-base-content/10"
         >
-            <div id="friend-request-alert"></div>
+            <div id="friend-request-alert" class="empty:hidden"></div>
             <div class="flex items-center gap-1.5">
                 <input
                     type="text"
@@ -196,7 +191,7 @@
                 </button>
             </div>
         </form>
-        <div id="friends-list" class="flex flex-col gap-1 py-1 overflow-y-auto flex-1">
+        <div id="friends-list" class="flex flex-col gap-1 overflow-y-auto flex-1">
             {{- template "partials/friends-list" . -}}
         </div>
     </div>

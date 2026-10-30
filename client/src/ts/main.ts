@@ -60,7 +60,7 @@ domLoaded.then(() => {
 
 		const dismiss = target.closest<HTMLButtonElement>("[data-close-alert]");
 		if (dismiss) {
-			dismiss.closest('[role="alert"]')?.remove();
+			dismiss.closest('[role="alert"], #notice-header')?.remove();
 			return;
 		}
 
