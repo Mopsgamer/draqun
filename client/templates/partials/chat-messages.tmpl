@@ -34,12 +34,24 @@
             </div>
             <span class="font-bold text-sm truncate max-w-52 group-hover/author:underline">{{$message.Author.Moniker}}</span>
         </div>
-        <div class="suffix">
+        <div class="suffix flex items-center gap-1">
             <time
                 class="date"
                 datetime="{{jsonTime $message.CreatedAt.Value}}"
                 data-format-date
             >{{jsonTime $message.CreatedAt.Value}}</time>
+            <details class="dropdown dropdown-end">
+                <summary class="btn btn-ghost btn-xs btn-circle text-base-content/40 hover:text-error cursor-pointer" title="Report Message">
+                    <span class="icon icon-[lucide--flag] size-3.5"></span>
+                </summary>
+                <div class="dropdown-content z-30 p-2.5 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-60 mt-1 flex flex-col gap-2">
+                    <span class="font-semibold text-xs text-error">Report Message</span>
+                    <form hx-post="/reports/message/{{$message.Id}}" hx-target="#alert-container" class="flex flex-col gap-2">
+                        <input type="text" name="reason" placeholder="Reason for report..." required class="input input-bordered input-xs w-full">
+                        <button type="submit" class="btn btn-error btn-xs w-full cursor-pointer">Submit Report</button>
+                    </form>
+                </div>
+            </details>
         </div>
     </div>
     {{if ne $message.Content ""}}

@@ -866,6 +866,18 @@ func GetTicketSubchannels(parentId uint64, statusFilter string) ([]Channel, erro
 	return channels, err
 }
 
+func GetOrCreateReportsChannel(groupId uint64) (Channel, htmx.Alert) {
+	channels, err := GetGroupChannels(groupId)
+	if err == nil {
+		for _, ch := range channels {
+			if ch.Name == "reports" {
+				return ch, nil
+			}
+		}
+	}
+	return Channel{}, htmx.AlertChannelNotFound
+}
+
 func (channel Channel) MessageLast() *Message {
 	message := new(Message)
 

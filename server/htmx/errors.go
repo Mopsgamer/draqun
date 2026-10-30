@@ -106,9 +106,29 @@ var (
 		Danger,
 	)
 
+	AlertChannelNotFound = NewAlert(
+		errors.Join(fiber.ErrNotFound, errors.New("channel: not found")),
+		"The channel was not found.",
+		Danger,
+	)
+	AlertInvalidInput = NewAlert(
+		errors.Join(ErrFormat, errors.New("invalid input")),
+		"The provided input is invalid.",
+		Warning,
+	)
+	AlertUserNotAllowed = NewAlert(
+		errors.Join(fiber.ErrForbidden, errors.New("user: not allowed")),
+		"You are not allowed to perform this action.",
+		Danger,
+	)
 	AlertGroupNotFound = NewAlert(
 		errors.Join(fiber.ErrNotFound, errors.New("group: not found")),
 		"The group was not found.",
+		Danger,
+	)
+	AlertMessageNotFound = NewAlert(
+		errors.Join(fiber.ErrNotFound, errors.New("message: not found")),
+		"The message was not found.",
 		Danger,
 	)
 	AlertGroupExistsName = NewAlert(

@@ -73,6 +73,9 @@ func (a alert) Is(err error) bool {
 }
 
 func (a alert) Error() string {
+	if a.err == nil {
+		return a.local
+	}
 	return a.err.Error()
 }
 
