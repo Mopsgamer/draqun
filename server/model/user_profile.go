@@ -210,6 +210,7 @@ func GetOrCreateDraqunGroup(ownerId uint64) (Group, error) {
 		{Name("admin-requests"), Moniker("Admin Requests"), Description("Internal channel for moderators and staff to submit escalation requests directly to administrators."), ChannelTypeTicket},
 		{Name("private-support"), Moniker("Private Support"), Description("Open a private ticket to get 1-on-1 assistance from the support team for account or personal issues."), ChannelTypeTicket},
 		{Name("public-support"), Moniker("Public Support"), Description("Community-wide support channel for common questions and shared knowledge, managed by support staff."), ChannelTypeTicket},
+		{Name("reports"), Moniker("Reports"), Description("Reports submitted for groups, users, and messages across the network."), ChannelTypeTicket},
 	}
 
 	createdChannels := make(map[Name]Channel)
@@ -308,6 +309,35 @@ func GetOrCreateDraqunGroup(ownerId uint64) (Group, error) {
 			_ = pReadAllStaff.AddChannel(privSuppCh.Id)
 			if supportRole.Id != 0 {
 				_ = pReadAllStaff.AddRole(supportRole.Id)
+			}
+		}
+	}
+
+	// 4) Reports: only punisher role has read and write access, everyone disabled
+	if reportsCh, ok := createdChannels["reports"]; ok {
+		for _, permName := range []PermName{PermNameRead, PermNameWrite, PermNameDelete} {
+			pNoEveryone := Permission{
+				GroupId:  newGroup.Id,
+				Name:     permName,
+				Level:    PermLevelDisable,
+				Priority: 10,
+			}
+			if err := pNoEveryone.Insert(); err == nil {
+				_ = pNoEveryone.AddChannel(reportsCh.Id)
+				_ = pNoEveryone.AddRole(everyone.Id)
+			}
+
+			pReadAllPunisher := Permission{
+				GroupId:  newGroup.Id,
+				Name:     permName,
+				Level:    PermLevelAll,
+				Priority: 20,
+			}
+			if err := pReadAllPunisher.Insert(); err == nil {
+				_ = pReadAllPunisher.AddChannel(reportsCh.Id)
+				if punisherRole.Id != 0 {
+					_ = pReadAllPunisher.AddRole(punisherRole.Id)
+				}
 			}
 		}
 	}

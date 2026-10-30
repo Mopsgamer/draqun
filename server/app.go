@@ -133,6 +133,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	routes.RouteNotifications(app)
 	routes.RouteUsers(app)
 	routes.RouteFriends(app)
+	routes.RouteReports(app)
 
 	app.Hooks().OnPreStartupMessage(func(sm *fiber.PreStartupMessageData) error {
 		sm.AddInfo("app-version", "Version", "\t\t"+versionString(clientEmbedded), 9)

@@ -130,6 +130,20 @@
                     Add Friend
                 </button>
                 {{end}}
+
+                <details class="dropdown dropdown-end">
+                    <summary class="btn btn-ghost btn-xs text-error gap-1 cursor-pointer">
+                        <span class="icon icon-[lucide--flag] size-3.5"></span>
+                        Report User
+                    </summary>
+                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
+                        <span class="font-semibold text-xs text-error">Report User</span>
+                        <form hx-post="/reports/user/{{$target.Id}}" hx-target="#alert-container" class="flex flex-col gap-2">
+                            <input type="text" name="reason" placeholder="Reason for report..." required class="input input-bordered input-xs w-full">
+                            <button type="submit" class="btn btn-error btn-xs w-full cursor-pointer">Submit Report</button>
+                        </form>
+                    </div>
+                </details>
             </div>
             {{end}}
         </div>

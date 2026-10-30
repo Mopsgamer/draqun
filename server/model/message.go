@@ -93,6 +93,23 @@ func (message Message) Update() error {
 	return Update(TableMessages, message, goqu.Ex{"id": message.Id})
 }
 
+func NewMessageFromId(id uint64) (Message, error) {
+	message := Message{}
+	if id == 0 {
+		return message, nil
+	}
+	sql, args, err := Goqu.From(TableMessages).Where(goqu.Ex{"id": id}).Prepared(true).ToSQL()
+	if err != nil {
+		handleErr(err)
+		return message, err
+	}
+	err = Sqlx.Get(&message, sql, args...)
+	if err == nil {
+		message.SetFullfilled()
+	}
+	return message, err
+}
+
 func (message Message) Delete() error {
 	return Delete(TableMessages, goqu.Ex{"id": message.Id})
 }

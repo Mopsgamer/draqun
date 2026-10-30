@@ -47,6 +47,7 @@ func TestFirstUserAutomaticDraqunGroupCreation(t *testing.T) {
 		"admin-requests":  ChannelTypeTicket,
 		"private-support": ChannelTypeTicket,
 		"public-support":  ChannelTypeTicket,
+		"reports":         ChannelTypeTicket,
 	}
 
 	if len(channels) != len(expectedChannels) {
@@ -121,6 +122,21 @@ func TestFirstUserAutomaticDraqunGroupCreation(t *testing.T) {
 	}
 	privSuppCh := channelMap["private-support"]
 	pubSuppCh := channelMap["public-support"]
+	reportsCh := channelMap["reports"]
+
+	// Reports permissions:
+	if level := GetUserPermissionLevel(draqunGroup.Id, user.Id, reportsCh.Id, PermNameRead); level != PermLevelAll {
+		t.Errorf("owner expected PermLevelAll on reports read, got %s", level)
+	}
+	if level := GetUserPermissionLevel(draqunGroup.Id, punisherUser.Id, reportsCh.Id, PermNameRead); level != PermLevelAll {
+		t.Errorf("punisher expected PermLevelAll on reports read, got %s", level)
+	}
+	if level := GetUserPermissionLevel(draqunGroup.Id, punisherUser.Id, reportsCh.Id, PermNameWrite); level != PermLevelAll {
+		t.Errorf("punisher expected PermLevelAll on reports write, got %s", level)
+	}
+	if level := GetUserPermissionLevel(draqunGroup.Id, regularUser.Id, reportsCh.Id, PermNameRead); level != PermLevelDisable {
+		t.Errorf("regular user expected PermLevelDisable on reports read, got %s", level)
+	}
 
 	// Admin requests permissions:
 	// Owner (Admin): Has all access
