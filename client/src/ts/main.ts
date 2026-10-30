@@ -1,7 +1,7 @@
 import "./theme.ts";
 
-import htmx from "htmx.org";
 import type HTMX from "htmx.org";
+import htmx from "htmx.org";
 import "./htmx-extension.ts";
 import { domLoaded, initAnchorHeadersFor } from "./lib.ts";
 

@@ -28,7 +28,8 @@ func TestNotificationAndMentions(t *testing.T) {
 	_ = model.AddGroupChannel(group.Id, channel.Id, 0)
 
 	// 2. Test mention extraction
-	mentioned, err := model.ExtractMentionedUsers(group.Id, "Hello @notif_user2 welcome!")
+	mentionStr := fmt.Sprintf("Hello @u:%d welcome!", user2.Id)
+	mentioned, err := model.ExtractMentionedUsers(group.Id, mentionStr)
 	if err != nil {
 		t.Fatalf("failed to extract mentioned users: %v", err)
 	}
@@ -37,7 +38,8 @@ func TestNotificationAndMentions(t *testing.T) {
 	}
 
 	// 3. Process message mentions
-	msg := model.NewMessageFilled(channel.Id, group.Id, user1.Id, "Hey @notif_user2 check this out")
+	msgContent := fmt.Sprintf("Hey @u:%d check this out", user2.Id)
+	msg := model.NewMessageFilled(channel.Id, group.Id, user1.Id, msgContent)
 	_ = msg.Insert()
 	model.ProcessMessageMentions(app, msg)
 

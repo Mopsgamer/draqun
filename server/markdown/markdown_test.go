@@ -110,18 +110,16 @@ func TestXSSProtection(t *testing.T) {
 }
 
 func TestMentions(t *testing.T) {
-	input := "Hello @tester and @jules_01, welcome!\n\n```go\n// @code_user should not be a button\n```\n\nLink: [User @link_user](https://example.com/@link_user)"
+	input := "Hello @u:1 and @u:2, welcome!\n\n```go\n// @u:3 should not be replaced\n```\n\nLink: [User @u:4](https://example.com/@u:4)"
 	html := string(Render(input, ContextMessage))
 
-	assert.Contains(t, html, `mention-badge`)
-	assert.Contains(t, html, `hx-get="/users/by-name/tester/profile"`)
-	assert.Contains(t, html, `hx-get="/users/by-name/jules_01/profile"`)
-	assert.Contains(t, html, `@tester</button>`)
+	// Non-existent IDs in isolated test environment should render fallbacks safely
+	assert.Contains(t, html, `@user:1`)
+	assert.Contains(t, html, `@user:2`)
 
-	// @code_user inside code block should NOT be replaced with button
-	assert.Contains(t, html, `@code_user`)
-	assert.NotContains(t, html, `hx-get="/users/by-name/code_user/profile"`)
+	// Mentions inside code blocks should NOT be altered
+	assert.Contains(t, html, `@u:3`)
 
-	// @link_user inside href URL attribute should NOT be replaced with button
-	assert.Contains(t, html, `href="https://example.com/@link_user"`)
+	// Mentions inside tag attributes should NOT be altered
+	assert.Contains(t, html, `href="https://example.com/@u:4"`)
 }
