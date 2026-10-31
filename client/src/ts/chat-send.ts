@@ -1,39 +1,26 @@
 import { domLoaded, findLastMessage } from "./lib.ts";
 
-domLoaded.then(() => {
-	const form = document.getElementById(
-		"send-message-form",
-	) as HTMLFormElement | null;
+export function setupMultiAttachment(
+	container: HTMLElement,
+	fileInput: HTMLInputElement,
+	previewContainer: HTMLElement,
+	pasteTarget?: HTMLElement | null,
+) {
+	let selectedFiles: File[] = [];
 
-	if (!form) return;
+	const syncInputAndRender = () => {
+		const dt = new DataTransfer();
+		selectedFiles.forEach((f) => dt.items.add(f));
+		fileInput.files = dt.files;
 
-	const input = form.querySelector<HTMLTextAreaElement>(
-		"textarea[data-autoresize]",
-	);
-	const fileInput = document.getElementById(
-		"file-attachment-input",
-	) as HTMLInputElement | null;
-	const previewContainer = document.getElementById("attachment-preview");
-
-	const resizeInput = () => {
-		if (!input) return;
-		input.style.height = "auto";
-		input.style.height = `${Math.min(input.scrollHeight, 80)}px`;
-	};
-	if (input) {
-		input.addEventListener("input", resizeInput);
-		resizeInput();
-	}
-
-	const updatePreview = () => {
 		if (!previewContainer) return;
 		previewContainer.innerHTML = "";
 
-		if (fileInput?.files && fileInput.files.length > 0) {
+		if (selectedFiles.length > 0) {
 			previewContainer.classList.remove("hidden");
 			previewContainer.classList.add("flex");
 
-			Array.from(fileInput.files).forEach((file, idx) => {
+			selectedFiles.forEach((file, idx) => {
 				const chip = document.createElement("span");
 				chip.className =
 					"inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-base-content/15 text-xs font-medium text-base-content/90 bg-surface-card";
@@ -53,14 +40,8 @@ domLoaded.then(() => {
 				removeBtn.textContent = "✕";
 
 				removeBtn.addEventListener("click", () => {
-					const dt = new DataTransfer();
-					if (fileInput.files) {
-						Array.from(fileInput.files).forEach((f, i) => {
-							if (i !== idx) dt.items.add(f);
-						});
-					}
-					fileInput.files = dt.files;
-					updatePreview();
+					selectedFiles.splice(idx, 1);
+					syncInputAndRender();
 				});
 
 				chip.appendChild(icon);
@@ -75,12 +56,26 @@ domLoaded.then(() => {
 		}
 	};
 
-	if (fileInput) {
-		fileInput.addEventListener("change", updatePreview);
-	}
+	fileInput.addEventListener("change", () => {
+		if (fileInput.files && fileInput.files.length > 0) {
+			const newFiles = Array.from(fileInput.files);
+			for (const file of newFiles) {
+				const isDuplicate = selectedFiles.some(
+					(f) =>
+						f.name === file.name &&
+						f.size === file.size &&
+						f.lastModified === file.lastModified,
+				);
+				if (!isDuplicate) {
+					selectedFiles.push(file);
+				}
+			}
+		}
+		syncInputAndRender();
+	});
 
 	const handlePaste = (e: ClipboardEvent) => {
-		if (!e.clipboardData || !fileInput) return;
+		if (!e.clipboardData) return;
 
 		const items = e.clipboardData.items;
 		if (!items) return;
@@ -103,22 +98,70 @@ domLoaded.then(() => {
 		}
 
 		if (pastedFiles.length > 0) {
-			const dt = new DataTransfer();
-			if (fileInput.files) {
-				Array.from(fileInput.files).forEach((f) => {
-					dt.items.add(f);
-				});
-			}
-			pastedFiles.forEach((f) => {
-				dt.items.add(f);
-			});
-			fileInput.files = dt.files;
-			updatePreview();
+			pastedFiles.forEach((f) => selectedFiles.push(f));
+			syncInputAndRender();
 		}
 	};
 
+	if (pasteTarget) {
+		pasteTarget.addEventListener("paste", handlePaste);
+	}
+
+	const reset = () => {
+		selectedFiles = [];
+		syncInputAndRender();
+	};
+
+	if (container && container.tagName === "FORM") {
+		container.addEventListener("reset", () => {
+			setTimeout(() => {
+				selectedFiles = [];
+				syncInputAndRender();
+			}, 0);
+		});
+	}
+
+	return {
+		updatePreview: syncInputAndRender,
+		reset,
+		handlePaste,
+	};
+}
+
+function initChatSend() {
+	const form = document.getElementById(
+		"send-message-form",
+	) as HTMLFormElement | null;
+
+	if (!form || form.dataset.initialized === "true") return;
+	form.dataset.initialized = "true";
+
+	const input = form.querySelector<HTMLTextAreaElement>(
+		"textarea[data-autoresize]",
+	);
+	const fileInput = document.getElementById(
+		"file-attachment-input",
+	) as HTMLInputElement | null;
+	const previewContainer = document.getElementById("attachment-preview");
+
+	const resizeInput = () => {
+		if (!input) return;
+		input.style.height = "auto";
+		input.style.height = `${Math.min(input.scrollHeight, 80)}px`;
+	};
 	if (input) {
-		input.addEventListener("paste", handlePaste);
+		input.addEventListener("input", resizeInput);
+		resizeInput();
+	}
+
+	let attachmentHandler: ReturnType<typeof setupMultiAttachment> | null = null;
+	if (fileInput && previewContainer) {
+		attachmentHandler = setupMultiAttachment(
+			form,
+			fileInput,
+			previewContainer,
+			input,
+		);
 	}
 
 	// Mention Autocompletion
@@ -337,10 +380,50 @@ domLoaded.then(() => {
 
 	form.addEventListener("htmx:afterRequest", () => {
 		form.reset();
-		updatePreview();
+		attachmentHandler?.reset();
 		hidePopover();
 		requestAnimationFrame(resizeInput);
 	});
 
 	findLastMessage()?.scrollIntoView();
+}
+
+function initWallEdit() {
+	const form = document.getElementById(
+		"wall-container",
+	) as HTMLFormElement | null;
+	if (!form || form.tagName !== "FORM" || form.dataset.initialized === "true")
+		return;
+	form.dataset.initialized = "true";
+
+	const fileInput = document.getElementById(
+		"wall-attachments-input",
+	) as HTMLInputElement | null;
+	const previewContainer = document.getElementById("wall-attachment-preview");
+	const textarea = document.getElementById(
+		"wall-content-input",
+	) as HTMLTextAreaElement | null;
+
+	if (textarea) {
+		const resizeTextarea = () => {
+			textarea.style.height = "auto";
+			textarea.style.height = `${Math.max(textarea.scrollHeight, 128)}px`;
+		};
+		textarea.addEventListener("input", resizeTextarea);
+		requestAnimationFrame(resizeTextarea);
+	}
+
+	if (fileInput && previewContainer) {
+		setupMultiAttachment(form, fileInput, previewContainer, textarea);
+	}
+}
+
+domLoaded.then(() => {
+	initChatSend();
+	initWallEdit();
+
+	document.body.addEventListener("htmx:load", () => {
+		initChatSend();
+		initWallEdit();
+	});
 });

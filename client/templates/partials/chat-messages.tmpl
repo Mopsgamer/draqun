@@ -62,9 +62,9 @@
     <div class="attachments-container">
         {{range $att := $attachments}}
             {{if $att.IsImage}}
-            <div class="relative group/img inline-block max-w-sm rounded-lg overflow-hidden border border-base-content/10 bg-surface-card">
+            <div class="relative group/img inline-block w-fit max-w-sm rounded-lg overflow-hidden border border-base-content/10 bg-surface-card">
                 <a href="{{$att.AttachmentUrl}}" target="_blank" rel="noopener noreferrer" class="block hover:opacity-90 transition-opacity" title="View image {{$att.AttachmentName}}">
-                    <img src="{{$att.AttachmentUrl}}" alt="{{$att.AttachmentName}}" class="max-h-72 object-cover rounded-lg" />
+                    <img src="{{$att.AttachmentUrl}}" alt="{{$att.AttachmentName}}" class="block max-h-72 w-auto max-w-full object-cover rounded-lg" />
                 </a>
                 <a
                     href="{{$att.AttachmentUrl}}"

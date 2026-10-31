@@ -35,6 +35,7 @@ var createTableFiles = []string{
 	"queries/create_permissions.sql",
 	"queries/create_group_message_attachments.sql",
 	"queries/create_server_config.sql",
+	"queries/create_channel_attachments.sql",
 }
 
 type migrationEntry struct {
@@ -49,6 +50,7 @@ var migrationsList = []migrationEntry{
 	{version: 4, file: "queries/migrate/alter_users.sql"},
 	{version: 5, file: "queries/migrate/create_user_friends.sql"},
 	{version: 6, file: "queries/migrate/create_group_message_attachments.sql"},
+	{version: 7, file: "queries/migrate/create_channel_attachments.sql"},
 }
 
 func initSchema() error {

@@ -7,7 +7,7 @@
         hx-headers='{"HX-Error-Wrap": false}'
         hx-encoding="multipart/form-data"
         hx-swap="innerHTML"
-        hx-on::after-request="if(event.detail.successful) { this.reset(); const preview = document.getElementById('attachment-preview'); if(preview) { preview.innerHTML = ''; preview.classList.add('hidden'); } }"
+        hx-on::after-request="if(event.detail.successful) { this.reset(); }"
         {{if .IsDirectChat}}
         hx-post="/groups/dm/channels/{{.ActiveChannel.Id}}/messages/create"
         {{else if and .ActiveChannel (not .ActiveChannel.IsEmpty)}}

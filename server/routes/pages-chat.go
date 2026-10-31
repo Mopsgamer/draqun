@@ -33,7 +33,7 @@ func routePagesChat(router fiber.Router) fiber.Router {
 		func(ctx fiber.Ctx) error {
 			user, _ := perms.UserByAuthFromCtx(ctx)
 			bind := fiber.Map{
-				"Title":        "Home",
+				"Title":         "Home",
 				"IsDraqunStaff": model.IsDraqunStaff(user),
 			}
 			return htmx.TryRenderPage(ctx, "chat", MapPage(ctx, bind), "partials/layout-chat")
@@ -105,6 +105,11 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				"ActiveChannel":  activeChannel,
 				"StarredIdsMap":  starredIdsMap,
 				"IsStarred":      isStarred,
+			}
+			if activeChannel.IsWall() {
+				bind["IsWall"] = true
+				bind["WallAttachments"], _ = model.GetChannelAttachments(activeChannel.Id)
+				bind["CanWriteDisabled"] = model.GetUserPermissionLevel(group.Id, user.Id, activeChannel.Id, model.PermNameWrite) == model.PermLevelDisable
 			}
 			enrichTicketContext(ctx, activeChannel, bind)
 
@@ -194,6 +199,10 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			} else if activeChannel.IsConfig() {
 				bind["IsConfig"] = true
 				bind["Config"] = model.GetServerConfig()
+			} else if activeChannel.IsWall() {
+				bind["IsWall"] = true
+				bind["WallAttachments"], _ = model.GetChannelAttachments(activeChannel.Id)
+				bind["CanWriteDisabled"] = model.GetUserPermissionLevel(group.Id, user.Id, activeChannel.Id, model.PermNameWrite) == model.PermLevelDisable
 			}
 			enrichTicketContext(ctx, activeChannel, bind)
 
