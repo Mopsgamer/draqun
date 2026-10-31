@@ -4,6 +4,7 @@
     hx-post="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/wall"
     hx-target="#wall-container"
     hx-swap="outerHTML"
+    hx-encoding="multipart/form-data"
     enctype="multipart/form-data"
 >
     <div class="form-group flex-1 flex flex-col min-h-64 pt-0">
@@ -16,15 +17,26 @@
         >{{.ActiveChannel.Description}}</textarea>
     </div>
 
-    <div class="form-group shrink-0">
-        <label class="form-label text-xs font-semibold uppercase tracking-wider text-base-content/70" for="wall-attachments-input">Add Attachments</label>
+    <div class="form-group shrink-0 flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+            <label class="form-label text-xs font-semibold uppercase tracking-wider text-base-content/70" for="wall-attachments-input">Add Attachments</label>
+            <button
+                type="button"
+                class="btn btn-ghost btn-sm gap-1.5 cursor-pointer text-base-content/70 hover:text-base-content"
+                onclick="document.getElementById('wall-attachments-input').click()"
+            >
+                <span class="icon icon-[lucide--paperclip] size-4 text-primary" aria-hidden="true"></span>
+                <span class="text-xs">Choose files</span>
+            </button>
+        </div>
         <input
             id="wall-attachments-input"
             type="file"
             name="attachments"
             multiple
-            class="file-input file-input-bordered file-input-sm w-full max-w-md"
+            class="hidden"
         />
+        <div id="wall-attachment-preview" class="hidden pb-2 flex-wrap gap-1.5"></div>
     </div>
 
     {{if .WallAttachments}}

@@ -33,7 +33,7 @@ func routePagesChat(router fiber.Router) fiber.Router {
 		func(ctx fiber.Ctx) error {
 			user, _ := perms.UserByAuthFromCtx(ctx)
 			bind := fiber.Map{
-				"Title":        "Home",
+				"Title":         "Home",
 				"IsDraqunStaff": model.IsDraqunStaff(user),
 			}
 			return htmx.TryRenderPage(ctx, "chat", MapPage(ctx, bind), "partials/layout-chat")

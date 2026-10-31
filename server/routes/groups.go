@@ -1946,7 +1946,9 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return htmx.AlertDatabase.Join(err)
 				}
 
-				_ = saveWallAttachments(ctx, channel.Id)
+				if err := saveWallAttachments(ctx, channel.Id); err != nil {
+					return err
+				}
 
 				attachments, _ := model.GetChannelAttachments(channel.Id)
 				canWriteDisabled := model.GetUserPermissionLevel(group.Id, user.Id, channel.Id, model.PermNameWrite) == model.PermLevelDisable

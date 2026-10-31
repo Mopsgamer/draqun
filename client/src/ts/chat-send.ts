@@ -1,35 +1,16 @@
 import { domLoaded, findLastMessage } from "./lib.ts";
 
-domLoaded.then(() => {
-	const form = document.getElementById(
-		"send-message-form",
-	) as HTMLFormElement | null;
-
-	if (!form) return;
-
-	const input = form.querySelector<HTMLTextAreaElement>(
-		"textarea[data-autoresize]",
-	);
-	const fileInput = document.getElementById(
-		"file-attachment-input",
-	) as HTMLInputElement | null;
-	const previewContainer = document.getElementById("attachment-preview");
-
-	const resizeInput = () => {
-		if (!input) return;
-		input.style.height = "auto";
-		input.style.height = `${Math.min(input.scrollHeight, 80)}px`;
-	};
-	if (input) {
-		input.addEventListener("input", resizeInput);
-		resizeInput();
-	}
-
+export function setupMultiAttachment(
+	container: HTMLElement,
+	fileInput: HTMLInputElement,
+	previewContainer: HTMLElement,
+	pasteTarget?: HTMLElement | null,
+) {
 	const updatePreview = () => {
 		if (!previewContainer) return;
 		previewContainer.innerHTML = "";
 
-		if (fileInput?.files && fileInput.files.length > 0) {
+		if (fileInput.files && fileInput.files.length > 0) {
 			previewContainer.classList.remove("hidden");
 			previewContainer.classList.add("flex");
 
@@ -75,12 +56,10 @@ domLoaded.then(() => {
 		}
 	};
 
-	if (fileInput) {
-		fileInput.addEventListener("change", updatePreview);
-	}
+	fileInput.addEventListener("change", updatePreview);
 
 	const handlePaste = (e: ClipboardEvent) => {
-		if (!e.clipboardData || !fileInput) return;
+		if (!e.clipboardData) return;
 
 		const items = e.clipboardData.items;
 		if (!items) return;
@@ -117,8 +96,50 @@ domLoaded.then(() => {
 		}
 	};
 
+	if (pasteTarget) {
+		pasteTarget.addEventListener("paste", handlePaste);
+	}
+
+	return {
+		updatePreview,
+		handlePaste,
+	};
+}
+
+function initChatSend() {
+	const form = document.getElementById(
+		"send-message-form",
+	) as HTMLFormElement | null;
+
+	if (!form || form.dataset.initialized === "true") return;
+	form.dataset.initialized = "true";
+
+	const input = form.querySelector<HTMLTextAreaElement>(
+		"textarea[data-autoresize]",
+	);
+	const fileInput = document.getElementById(
+		"file-attachment-input",
+	) as HTMLInputElement | null;
+	const previewContainer = document.getElementById("attachment-preview");
+
+	const resizeInput = () => {
+		if (!input) return;
+		input.style.height = "auto";
+		input.style.height = `${Math.min(input.scrollHeight, 80)}px`;
+	};
 	if (input) {
-		input.addEventListener("paste", handlePaste);
+		input.addEventListener("input", resizeInput);
+		resizeInput();
+	}
+
+	let attachmentHandler: ReturnType<typeof setupMultiAttachment> | null = null;
+	if (fileInput && previewContainer) {
+		attachmentHandler = setupMultiAttachment(
+			form,
+			fileInput,
+			previewContainer,
+			input,
+		);
 	}
 
 	// Mention Autocompletion
@@ -337,10 +358,43 @@ domLoaded.then(() => {
 
 	form.addEventListener("htmx:afterRequest", () => {
 		form.reset();
-		updatePreview();
+		attachmentHandler?.updatePreview();
 		hidePopover();
 		requestAnimationFrame(resizeInput);
 	});
 
 	findLastMessage()?.scrollIntoView();
+}
+
+function initWallEdit() {
+	const form = document.getElementById(
+		"wall-container",
+	) as HTMLFormElement | null;
+	if (!form || form.tagName !== "FORM" || form.dataset.initialized === "true")
+		return;
+	form.dataset.initialized = "true";
+
+	const fileInput = document.getElementById(
+		"wall-attachments-input",
+	) as HTMLInputElement | null;
+	const previewContainer = document.getElementById(
+		"wall-attachment-preview",
+	);
+	const textarea = document.getElementById(
+		"wall-content-input",
+	) as HTMLTextAreaElement | null;
+
+	if (fileInput && previewContainer) {
+		setupMultiAttachment(form, fileInput, previewContainer, textarea);
+	}
+}
+
+domLoaded.then(() => {
+	initChatSend();
+	initWallEdit();
+
+	document.body.addEventListener("htmx:load", () => {
+		initChatSend();
+		initWallEdit();
+	});
 });

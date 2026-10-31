@@ -50,7 +50,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label" for="channel-type">Channel Type</label>
-                <input class="input input-bordered w-full text-sm opacity-80" type="text" id="channel-type" value="{{if eq .TargetChannel.Type "ticket"}}Ticket System{{else if eq .TargetChannel.Type "otel"}}OpenTelemetry{{else if eq .TargetChannel.Type "config"}}Server Configuration{{else}}Text Chat{{end}}" disabled readonly>
+                <input class="input input-bordered w-full text-sm opacity-80" type="text" id="channel-type" value="{{if eq .TargetChannel.Type "ticket"}}Ticket System{{else if eq .TargetChannel.Type "otel"}}OpenTelemetry{{else if eq .TargetChannel.Type "config"}}Server Configuration{{else if eq .TargetChannel.Type "wall"}}Wall{{else}}Text Chat{{end}}" disabled readonly>
             </div>
             <div class="form-group">
                 <label class="form-label" for="channel-parent">Parent Channel (Optional Subchannel)</label>
