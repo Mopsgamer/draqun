@@ -84,7 +84,7 @@ your pull request description.
 > [!NOTE]
 > You should be a repository owner or have write access to create a release.
 
-You can create new release and git tag automatically using GitHub workflow.
+You can create a new release and git tag automatically using GitHub workflow.
 
 Available options:
 
