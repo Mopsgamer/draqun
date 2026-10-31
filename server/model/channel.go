@@ -16,6 +16,7 @@ const (
 	ChannelTypeTicket ChannelType = "ticket"
 	ChannelTypeOtel   ChannelType = "otel"
 	ChannelTypeConfig ChannelType = "config"
+	ChannelTypeWall   ChannelType = "wall"
 
 	OtelVirtualChannelID   uint64 = ^uint64(0)
 	ConfigVirtualChannelID uint64 = ^uint64(1)
@@ -44,7 +45,7 @@ func GetConfigVirtualChannel() Channel {
 }
 
 func (ct ChannelType) IsValid() bool {
-	return ct == ChannelTypeText || ct == ChannelTypeTicket || ct == ChannelTypeOtel || ct == ChannelTypeConfig
+	return ct == ChannelTypeText || ct == ChannelTypeTicket || ct == ChannelTypeOtel || ct == ChannelTypeConfig || ct == ChannelTypeWall
 }
 
 type Channel struct {
@@ -104,7 +105,7 @@ func (channel Channel) Validate() htmx.Alert {
 	if !channel.Type.IsValid() {
 		return htmx.AlertFormatGroupMode
 	}
-	if !channel.Description.IsValid() {
+	if !channel.IsWall() && !channel.Description.IsValid() {
 		return htmx.AlertFormatDescription
 	}
 	if !channel.CreatedAt.IsValid() {
@@ -112,6 +113,10 @@ func (channel Channel) Validate() htmx.Alert {
 	}
 
 	return nil
+}
+
+func (channel Channel) IsWall() bool {
+	return channel.Type == ChannelTypeWall
 }
 
 func (channel Channel) IsEmpty() bool {

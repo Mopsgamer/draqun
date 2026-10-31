@@ -140,3 +140,104 @@ func GetMessageAttachments(messageId uint64) ([]Attachment, error) {
 	}
 	return attachments, nil
 }
+
+type ChannelAttachment struct {
+	checkEmpty
+	Id        uint64   `db:"id" goqu:"skipinsert"`
+	ChannelId uint64   `db:"channel_id"`
+	Filename  string   `db:"filename"`
+	FilePath  string   `db:"file_path"`
+	FileSize  int64    `db:"file_size"`
+	FileType  string   `db:"file_type"`
+	CreatedAt TimePast `db:"created_at"`
+}
+
+var _ Model = (*ChannelAttachment)(nil)
+
+func NewChannelAttachment(channelId uint64, path, name, mimeType string, size int64) ChannelAttachment {
+	return ChannelAttachment{
+		ChannelId: channelId,
+		FilePath:  path,
+		Filename:  name,
+		FileType:  mimeType,
+		FileSize:  size,
+		CreatedAt: TimePast(time.Now()),
+	}
+}
+
+func (a ChannelAttachment) Validate() htmx.Alert {
+	if a.FilePath == "" {
+		return htmx.AlertFormatMessageContent
+	}
+	return nil
+}
+
+func (a *ChannelAttachment) Insert() error {
+	return InsertId(TableChannelAttachments, a, &a.Id)
+}
+
+func (a ChannelAttachment) Update() error {
+	return Update(TableChannelAttachments, a, goqu.Ex{"id": a.Id})
+}
+
+func (a ChannelAttachment) Delete() error {
+	return Delete(TableChannelAttachments, goqu.Ex{"id": a.Id})
+}
+
+func (a ChannelAttachment) IsImage() bool {
+	if a.FilePath == "" {
+		return false
+	}
+	ext := strings.ToLower(filepath.Ext(a.Filename))
+	switch ext {
+	case ".svg", ".xml", ".html", ".htm", ".xhtml", ".js", ".ts", ".docx", ".doc", ".pdf", ".json", ".css", ".zip", ".rar", ".exe", ".sh":
+		return false
+	case ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".ico":
+		return true
+	}
+	if strings.HasPrefix(a.FileType, "image/") && !strings.Contains(a.FileType, "svg") {
+		return true
+	}
+	return false
+}
+
+func (a ChannelAttachment) FormattedSize() string {
+	bytes := a.FileSize
+	if bytes < 1024 {
+		return fmt.Sprintf("%d B", bytes)
+	} else if bytes < 1024*1024 {
+		return fmt.Sprintf("%.1f KB", float64(bytes)/1024.0)
+	} else {
+		return fmt.Sprintf("%.1f MB", float64(bytes)/(1024.0*1024.0))
+	}
+}
+
+func GetChannelAttachments(channelId uint64) ([]ChannelAttachment, error) {
+	var attachments []ChannelAttachment
+	sql, args, err := Goqu.From(TableChannelAttachments).Where(goqu.C("channel_id").Eq(channelId)).Order(goqu.C("id").Asc()).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	err = Sqlx.Select(&attachments, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	for i := range attachments {
+		attachments[i].SetFullfilled()
+	}
+	return attachments, nil
+}
+
+func GetChannelAttachmentById(id uint64) (*ChannelAttachment, error) {
+	var attachment ChannelAttachment
+	sql, args, err := Goqu.From(TableChannelAttachments).Where(goqu.C("id").Eq(id)).Limit(1).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+	err = Sqlx.Get(&attachment, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	attachment.SetFullfilled()
+	return &attachment, nil
+}

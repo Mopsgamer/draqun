@@ -106,6 +106,8 @@
         {{- template "partials/otel-dashboard" .}}
         {{else if .IsConfig}}
         {{- template "partials/config-dashboard" .}}
+        {{else if .IsWall}}
+        {{- template "partials/wall-view" .}}
         {{else}}
         <main id="chat">
             <div id="chat-messages-{{.ActiveChannel.Id}}" class="flex flex-col w-full">
@@ -155,7 +157,7 @@
                 </button>
             </div>
         </div>
-        {{if and .ActiveChannel (not .ActiveChannel.IsEmpty) (ne .ActiveChannel.Description "") (not .IsTicketDetail)}}
+        {{if and .ActiveChannel (not .ActiveChannel.IsEmpty) (ne .ActiveChannel.Description "") (not .IsTicketDetail) (not .IsWall)}}
         <div class="flex items-center justify-between min-h-10 pb-2 border-b border-base-content/10">
             {{markdown .ActiveChannel.Description "channel-description"}}
         </div>

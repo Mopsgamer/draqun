@@ -106,6 +106,11 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				"StarredIdsMap":  starredIdsMap,
 				"IsStarred":      isStarred,
 			}
+			if activeChannel.IsWall() {
+				bind["IsWall"] = true
+				bind["WallAttachments"], _ = model.GetChannelAttachments(activeChannel.Id)
+				bind["CanWriteDisabled"] = model.GetUserPermissionLevel(group.Id, user.Id, activeChannel.Id, model.PermNameWrite) == model.PermLevelDisable
+			}
 			enrichTicketContext(ctx, activeChannel, bind)
 
 			return htmx.TryRenderPage(ctx, "chat-group", MapPage(ctx, bind), "partials/layout-chat")
@@ -194,6 +199,10 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			} else if activeChannel.IsConfig() {
 				bind["IsConfig"] = true
 				bind["Config"] = model.GetServerConfig()
+			} else if activeChannel.IsWall() {
+				bind["IsWall"] = true
+				bind["WallAttachments"], _ = model.GetChannelAttachments(activeChannel.Id)
+				bind["CanWriteDisabled"] = model.GetUserPermissionLevel(group.Id, user.Id, activeChannel.Id, model.PermNameWrite) == model.PermLevelDisable
 			}
 			enrichTicketContext(ctx, activeChannel, bind)
 

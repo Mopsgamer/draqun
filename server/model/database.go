@@ -42,6 +42,7 @@ const (
 	TablePermRoles          = "app_perm_roles"
 	TableMessageAttachments = "app_group_message_attachments"
 	TableServerConfig       = "app_server_config"
+	TableChannelAttachments = "app_channel_attachments"
 )
 
 func LoadDB() error {

@@ -146,6 +146,10 @@ type ServerConfigForm struct {
 	Lockdown            bool   `form:"lockdown"`
 }
 
+type WallEditForm struct {
+	Content string `form:"content"`
+}
+
 func RouteGroups(app *fiber.App) fiber.Router {
 	return app.Group("/groups").
 		Put("/:group_id/join",
@@ -1865,6 +1869,138 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return ctx.Redirect().To(fmt.Sprintf("/chat/groups/%d/channels/%d", groupId, model.ConfigVirtualChannelID))
 			},
 		).
+		Get("/:group_id/channels/:channel_id/wall/edit",
+			perms.RequirePerm("group_id", model.PermNameWrite),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() || !channel.IsWall() {
+					return htmx.AlertGroupNotFound
+				}
+
+				attachments, _ := model.GetChannelAttachments(channel.Id)
+				canWriteDisabled := model.GetUserPermissionLevel(group.Id, user.Id, channel.Id, model.PermNameWrite) == model.PermLevelDisable
+
+				bind := fiber.Map{
+					"Group":            group,
+					"ActiveChannel":    channel,
+					"WallAttachments":  attachments,
+					"CanWriteDisabled": canWriteDisabled,
+				}
+
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/wall-edit", bind)
+				}
+				return ctx.Render("partials/wall-edit", bind)
+			},
+		).
+		Get("/:group_id/channels/:channel_id/wall/view",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() || !channel.IsWall() {
+					return htmx.AlertGroupNotFound
+				}
+
+				attachments, _ := model.GetChannelAttachments(channel.Id)
+				canWriteDisabled := model.GetUserPermissionLevel(group.Id, user.Id, channel.Id, model.PermNameWrite) == model.PermLevelDisable
+
+				bind := fiber.Map{
+					"Group":            group,
+					"ActiveChannel":    channel,
+					"WallAttachments":  attachments,
+					"CanWriteDisabled": canWriteDisabled,
+				}
+
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/wall-view", bind)
+				}
+				return ctx.Render("partials/wall-view", bind)
+			},
+		).
+		Post("/:group_id/channels/:channel_id/wall",
+			perms.RequirePerm("group_id", model.PermNameWrite),
+			perms.UseBind[WallEditForm](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[WallEditForm](ctx, perms.LocalForm)
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() || !channel.IsWall() {
+					return htmx.AlertGroupNotFound
+				}
+
+				channel.Description = model.Description(request.Content)
+				channel.UpdatedAt = model.TimePast(time.Now())
+
+				if err := channel.Update(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				_ = saveWallAttachments(ctx, channel.Id)
+
+				attachments, _ := model.GetChannelAttachments(channel.Id)
+				canWriteDisabled := model.GetUserPermissionLevel(group.Id, user.Id, channel.Id, model.PermNameWrite) == model.PermLevelDisable
+
+				bind := fiber.Map{
+					"Group":            group,
+					"ActiveChannel":    channel,
+					"WallAttachments":  attachments,
+					"CanWriteDisabled": canWriteDisabled,
+				}
+
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/wall-view", bind)
+				}
+				return ctx.Render("partials/wall-view", bind)
+			},
+		).
+		Delete("/:group_id/channels/:channel_id/wall/attachments/:attachment_id",
+			perms.RequirePerm("group_id", model.PermNameWrite),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				attachmentId := fiber.Params[uint64](ctx, "attachment_id")
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() || !channel.IsWall() {
+					return htmx.AlertGroupNotFound
+				}
+
+				att, errA := model.GetChannelAttachmentById(attachmentId)
+				if errA == nil && att != nil && att.ChannelId == channel.Id {
+					_ = att.Delete()
+					if att.FilePath != "" && strings.HasPrefix(att.FilePath, "/uploads/") {
+						_ = os.Remove(strings.TrimPrefix(att.FilePath, "/"))
+					}
+				}
+
+				attachments, _ := model.GetChannelAttachments(channel.Id)
+				canWriteDisabled := model.GetUserPermissionLevel(group.Id, user.Id, channel.Id, model.PermNameWrite) == model.PermLevelDisable
+
+				bind := fiber.Map{
+					"Group":            group,
+					"ActiveChannel":    channel,
+					"WallAttachments":  attachments,
+					"CanWriteDisabled": canWriteDisabled,
+				}
+
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/wall-view", bind)
+				}
+				return ctx.Render("partials/wall-view", bind)
+			},
+		).
 		Get("/ws/:group_id/",
 			perms.RequirePerm("group_id", model.PermNameRead),
 			func(ctx fiber.Ctx) error {
@@ -2461,4 +2597,54 @@ func hasFormAttachments(ctx fiber.Ctx) bool {
 		}
 	}
 	return false
+}
+
+func saveWallAttachments(ctx fiber.Ctx, channelId uint64) error {
+	form, errForm := ctx.MultipartForm()
+	if errForm != nil || form == nil || form.File == nil {
+		return nil
+	}
+
+	var files []*multipart.FileHeader
+	for _, key := range []string{"attachments", "attachment", "files", "file"} {
+		if headers, ok := form.File[key]; ok && len(headers) > 0 {
+			files = append(files, headers...)
+		}
+	}
+
+	if len(files) == 0 {
+		return nil
+	}
+
+	if err := os.MkdirAll("uploads", 0755); err != nil {
+		return htmx.AlertDatabase.Join(err)
+	}
+
+	maxFileSize := model.GetServerConfig().MaxFileSizeBytes()
+	for _, file := range files {
+		if maxFileSize > 0 && file.Size > maxFileSize {
+			return htmx.AlertFileTooLarge
+		}
+	}
+
+	for i, file := range files {
+		ext := filepath.Ext(file.Filename)
+		sanitizedName := filepath.Base(file.Filename)
+		filename := fmt.Sprintf("wall-%d-%d-%d%s", channelId, time.Now().UnixNano(), i, ext)
+		dst := filepath.Join("uploads", filename)
+		if err := ctx.SaveFile(file, dst); err != nil {
+			return htmx.AlertDatabase.Join(err)
+		}
+
+		attachment := model.NewChannelAttachment(
+			channelId,
+			"/uploads/"+filename,
+			sanitizedName,
+			file.Header.Get("Content-Type"),
+			file.Size,
+		)
+		_ = attachment.Insert()
+	}
+
+	return nil
 }
