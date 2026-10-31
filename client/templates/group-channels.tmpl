@@ -75,6 +75,10 @@
                             <span class="icon icon-[lucide--external-link] size-3"></span>
                             View
                         </a>
+                        <a class="btn btn-ghost btn-xs gap-1" href="/groups/{{$.Group.Id}}/settings/channels/{{.Channel.Id}}">
+                            <span class="icon icon-[lucide--pencil] size-3"></span>
+                            Edit
+                        </a>
                         <details class="dropdown dropdown-end">
                             <summary class="btn btn-error btn-xs gap-1 cursor-pointer">
                                 <span class="icon icon-[lucide--trash-2] size-3"></span> Delete
@@ -104,6 +108,7 @@
                         </div>
                         <div class="flex items-center gap-1.5">
                             <a class="btn btn-ghost btn-xs text-xs" href="/chat/groups/{{$.Group.Id}}/channels/{{.Id}}">View</a>
+                            <a class="btn btn-ghost btn-xs text-xs" href="/groups/{{$.Group.Id}}/settings/channels/{{.Id}}">Edit</a>
                             <details class="dropdown dropdown-end">
                                 <summary class="btn btn-ghost btn-xs text-error text-xs cursor-pointer">
                                     Delete

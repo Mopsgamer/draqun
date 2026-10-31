@@ -126,7 +126,7 @@ type ChannelChange struct {
 	Name        model.Name        `form:"name"`
 	Moniker     model.Moniker     `form:"moniker"`
 	Description model.Description `form:"description"`
-	Type        model.ChannelType `form:"type"`
+	ParentId    *uint64           `form:"parent_id"`
 }
 
 type GroupChange struct {
@@ -694,9 +694,6 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				if request.Description != "" {
 					channel.Description = request.Description
 				}
-				if request.Type != "" {
-					channel.Type = request.Type
-				}
 
 				if err := channel.Validate(); err != nil {
 					return err
@@ -704,6 +701,12 @@ func RouteGroups(app *fiber.App) fiber.Router {
 
 				if err := channel.Update(); err != nil {
 					return htmx.AlertDatabase.Join(err)
+				}
+
+				if request.ParentId != nil {
+					if *request.ParentId != channel.Id {
+						_ = channel.ChangeParentRelation(*request.ParentId)
+					}
 				}
 
 				if htmx.IsHtmx(ctx) {

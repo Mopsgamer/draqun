@@ -1,0 +1,92 @@
+<div class="page-container-lg">
+    <div class="section-header pb-4">
+        <div class="flex-row-start">
+            <span class="icon icon-[lucide--settings-2] size-6 text-primary" aria-hidden="true"></span>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Edit Channel</h1>
+                <p class="text-xs text-base-content/60 mt-0.5">Modify channel settings for <span class="font-semibold text-base-content/90">{{.TargetChannel.Moniker}}</span></p>
+            </div>
+        </div>
+        <button class="btn btn-ghost btn-sm text-base-content/70 hover:text-base-content" type="button" onclick="history.back()">
+            <span class="icon icon-[lucide--arrow-left] size-4" aria-hidden="true"></span>
+            Back
+        </button>
+    </div>
+
+    {{template "partials/group-settings-nav" .}}
+
+    <form
+        class="flex flex-col gap-6"
+        id="channel-edit-form"
+        hx-put="/groups/{{.Group.Id}}/channels/{{.TargetChannel.Id}}"
+        hx-swap="innerHTML"
+        hx-target="#channel-edit-error"
+    >
+        <div class="pb-2 border-b border-base-content/10 flex-row-between">
+            <div>
+                <h2 class="text-base font-bold flex-row-center">
+                    <span class="icon icon-[lucide--sliders] size-4 text-primary" aria-hidden="true"></span>
+                    Channel Details
+                </h2>
+                <p class="text-xs text-base-content/60">Moniker, handle, topic, and parent channel association.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="form-group">
+                <label class="form-label" for="channel-nick">Display Moniker</label>
+                <input class="input input-bordered w-full" type="text" id="channel-nick" name="moniker" value="{{.TargetChannel.Moniker}}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="channel-name">Channel Handle</label>
+                <input class="input input-bordered w-full font-mono text-sm" type="text" id="channel-name" name="name" value="{{.TargetChannel.Name}}" required>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="form-group">
+                <label class="form-label" for="channel-description">Description</label>
+                <input class="input input-bordered w-full" type="text" id="channel-description" name="description" value="{{.TargetChannel.Description}}" placeholder="Channel topic or purpose...">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="channel-type">Channel Type</label>
+                <input class="input input-bordered w-full text-sm opacity-80" type="text" id="channel-type" value="{{if eq .TargetChannel.Type "ticket"}}Ticket System{{else if eq .TargetChannel.Type "otel"}}OpenTelemetry{{else if eq .TargetChannel.Type "config"}}Server Configuration{{else}}Text Chat{{end}}" disabled readonly>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="channel-parent">Parent Channel (Optional Subchannel)</label>
+                <select class="select select-bordered w-full" id="channel-parent" name="parent_id">
+                    <option value="0" {{if eq .CurrentParentId 0}}selected{{end}}>None (Top-level channel)</option>
+                    {{range .Channels}}
+                    <option value="{{.Id}}" {{if eq $.CurrentParentId .Id}}selected{{end}}># {{.Moniker}}</option>
+                    {{end}}
+                </select>
+            </div>
+        </div>
+        <div id="channel-edit-error"></div>
+
+        <div class="flex justify-between items-center pt-2 border-t border-base-content/10">
+            <details class="dropdown dropdown-start">
+                <summary class="btn btn-error btn-xs gap-1 cursor-pointer">
+                    <span class="icon icon-[lucide--trash-2] size-3"></span>
+                    Delete Channel
+                </summary>
+                <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-overlay rounded-lg border border-base-content/10 w-56 mt-1 flex flex-col gap-2">
+                    <span class="font-semibold text-xs text-error">Delete {{.TargetChannel.Moniker}}?</span>
+                    <button
+                        type="button"
+                        class="btn btn-error btn-xs w-full"
+                        hx-delete="/groups/{{.Group.Id}}/channels/{{.TargetChannel.Id}}"
+                    >Confirm Delete</button>
+                </div>
+            </details>
+
+            <div class="flex gap-2">
+                <a class="btn btn-ghost btn-sm" href="/groups/{{.Group.Id}}/settings/channels">Cancel</a>
+                <button class="btn btn-primary btn-sm" type="submit">
+                    <span class="icon icon-[lucide--check] size-3.5"></span>
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </form>
+</div>

@@ -483,5 +483,52 @@ func RoutePages(app *fiber.App) {
 			}), "partials/main")
 		},
 	)
+	app.Get(
+		"/groups/:group_id/settings/channels/:channel_id",
+		perms.RequirePermLevel("group_id", model.PermNameSettings, model.PermLevelAll),
+		func(ctx fiber.Ctx) error {
+			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
+				return ctx.Redirect().To("/chat")
+			}
+			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
+			role := fiber.Locals[model.Role](ctx, perms.LocalRights)
+			channelId := fiber.Params[uint64](ctx, "channel_id")
+			targetChannel, err := model.NewChannelFromId(channelId)
+			if err != nil || !targetChannel.IsAvailable() {
+				return ctx.Redirect().To(fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+			}
+
+			// Verify channel belongs to this group
+			chGroup, errG := model.GetChannelGroup(channelId)
+			if errG != nil || chGroup == nil || chGroup.Id != group.Id {
+				return ctx.Redirect().To(fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+			}
+
+			channels, _ := model.GetGroupChannels(group.Id)
+			var candidateParents []model.Channel
+			for _, ch := range channels {
+				if ch.Id != targetChannel.Id {
+					candidateParents = append(candidateParents, ch)
+				}
+			}
+
+			var currentParentId uint64
+			if parent := targetChannel.ParentChannel(); parent != nil {
+				currentParentId = parent.Id
+			}
+
+			return htmx.TryRenderPage(ctx, "group-channel-edit", MapPage(ctx, fiber.Map{
+				"Title":           "Edit Channel - " + targetChannel.Moniker,
+				"Group":           group,
+				"Member":          member,
+				"Role":            role,
+				"TargetChannel":   targetChannel,
+				"Channels":        candidateParents,
+				"CurrentParentId": currentParentId,
+				"Tab":             "channels",
+			}), "partials/main")
+		},
+	)
 	routePagesChat(app)
 }

@@ -412,7 +412,23 @@ func TestChannelStarringAndEditing(t *testing.T) {
 		t.Errorf("expected response button to contain 'Star channel', got: %s", respUnstar.String())
 	}
 
-	// 3. Edit Channel
+	// 3. Edit Channel Page GET /groups/:group_id/settings/channels/:channel_id
+	respEditPage, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		Get(fmt.Sprintf("/groups/%d/settings/channels/%d", group.Id, ch.Id))
+	if err != nil {
+		t.Fatalf("GET channel edit page failed: %v", err)
+	}
+	defer respEditPage.Close()
+
+	if respEditPage.StatusCode() != http.StatusOK {
+		t.Errorf("expected 200 OK for channel edit page, got %d", respEditPage.StatusCode())
+	}
+	if !strings.Contains(respEditPage.String(), "Edit Channel") || !strings.Contains(respEditPage.String(), "Star Channel") {
+		t.Errorf("expected channel edit page content with 'Edit Channel' and moniker, got: %s", respEditPage.String())
+	}
+
+	// 4. Edit Channel PUT /groups/:group_id/channels/:channel_id (ensure channel type cannot be changed)
 	respEdit, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
 		SetHeader("HX-Request", "true").
@@ -420,6 +436,7 @@ func TestChannelStarringAndEditing(t *testing.T) {
 			"name":        "star_ch_mod",
 			"moniker":     "Star Channel Modified",
 			"description": "Updated description",
+			"type":        "ticket",
 		}).
 		Put(fmt.Sprintf("/groups/%d/channels/%d", group.Id, ch.Id))
 	if err != nil || (respEdit.StatusCode() != http.StatusOK && respEdit.StatusCode() != http.StatusSeeOther) {
@@ -430,5 +447,23 @@ func TestChannelStarringAndEditing(t *testing.T) {
 	updatedCh, err := model.NewChannelFromId(ch.Id)
 	if err != nil || updatedCh.Moniker != "Star Channel Modified" || updatedCh.Description != "Updated description" {
 		t.Errorf("expected updated channel moniker 'Star Channel Modified', got: %v", updatedCh)
+	}
+	if updatedCh.Type != model.ChannelTypeText {
+		t.Errorf("expected channel type to remain '%s', got '%s'", model.ChannelTypeText, updatedCh.Type)
+	}
+
+	// Non-member or unauthorized user cannot access edit page
+	_, randomUser := createTestUserCookie(t, ts, "Random Star User", "rand_star_u", "rand_star_u@example.com")
+	cookieRand, _ := createTestUserCookie(t, ts, "Random Star User 2", "rand_star_u2", "rand_star_u2@example.com")
+	_ = randomUser
+	respUnauthorized, err := ts.Client.R().
+		SetHeader("Cookie", cookieRand).
+		Get(fmt.Sprintf("/groups/%d/settings/channels/%d", group.Id, ch.Id))
+	if err != nil {
+		t.Fatalf("unauthorized channel edit page request failed: %v", err)
+	}
+	defer respUnauthorized.Close()
+	if respUnauthorized.StatusCode() == http.StatusOK && strings.Contains(respUnauthorized.String(), "Edit Channel") {
+		t.Errorf("expected unauthorized user to be redirected or forbidden, but got 200 OK with edit page")
 	}
 }
