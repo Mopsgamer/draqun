@@ -102,6 +102,10 @@ type TicketAssignForm struct {
 	UserId uint64 `form:"user_id"`
 }
 
+type TicketMoveForm struct {
+	TargetChannelId uint64 `form:"target_channel_id"`
+}
+
 type MemberSearchForm struct {
 	Q         string `form:"q" query:"q"`
 	RoleId    uint64 `form:"role_id" query:"role_id"`
@@ -938,6 +942,57 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					return err
 				}
 
+				if err := channel.Update(); err != nil {
+					return htmx.AlertDatabase.Join(err)
+				}
+
+				if htmx.IsHtmx(ctx) {
+					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, channel.Id))
+					return nil
+				}
+
+				return ctx.SendStatus(fiber.StatusOK)
+			},
+		).
+		Post("/:group_id/channels/:channel_id/tickets/move",
+			perms.RequirePerm("group_id", model.PermNameWrite),
+			perms.UseBind[TicketMoveForm](),
+			func(ctx fiber.Ctx) error {
+				request := fiber.Locals[TicketMoveForm](ctx, perms.LocalForm)
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() {
+					return htmx.AlertGroupNotFound
+				}
+
+				if request.TargetChannelId == 0 || request.TargetChannelId == channel.Id {
+					return htmx.AlertFormatMoniker
+				}
+
+				targetChannel, err := model.NewChannelFromId(request.TargetChannelId)
+				if err != nil || !targetChannel.IsAvailable() {
+					return htmx.AlertGroupNotFound
+				}
+
+				if !targetChannel.IsTicket() {
+					return htmx.AlertFormatMoniker
+				}
+
+				// Prevent moving into any of its own descendants (would create cycle)
+				descendants, _ := model.GetAllDescendantTickets(channel.Id)
+				for _, desc := range descendants {
+					if desc.Id == targetChannel.Id {
+						return htmx.AlertFormatMoniker
+					}
+				}
+
+				if err := model.SetParentChannels(channel.Id, []uint64{targetChannel.Id}); err != nil {
+					return err
+				}
+
+				channel.UpdatedAt = model.TimePast(time.Now())
 				if err := channel.Update(); err != nil {
 					return htmx.AlertDatabase.Join(err)
 				}
@@ -2520,10 +2575,38 @@ func handleTicketSearch(ctx fiber.Ctx) error {
 		results = filtered
 	}
 
+	if mode == "move" {
+		// Filter out descendants of excludeId to prevent circular parent relations
+		// Also filter out the current direct parent(s) since moving to the current parent is a no-op
+		excludedIds := make(map[uint64]bool)
+		if excludeId != 0 {
+			excludedIds[excludeId] = true
+			if descList, errD := model.GetAllDescendantTickets(excludeId); errD == nil {
+				for _, d := range descList {
+					excludedIds[d.Id] = true
+				}
+			}
+			if parents, errP := model.GetParentChannels(excludeId); errP == nil {
+				for _, p := range parents {
+					excludedIds[p.Id] = true
+				}
+			}
+		}
+		var filtered []model.Channel
+		for _, ch := range results {
+			if !excludedIds[ch.Id] {
+				filtered = append(filtered, ch)
+			}
+		}
+		results = filtered
+	}
+
 	if htmx.IsHtmx(ctx) {
 		return ctx.Render("partials/ticket-search-results", fiber.Map{
-			"Results": results,
-			"Mode":    mode,
+			"Results":   results,
+			"Mode":      mode,
+			"ChannelId": excludeId,
+			"Group":     group,
 		})
 	}
 

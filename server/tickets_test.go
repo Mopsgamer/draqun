@@ -1141,6 +1141,185 @@ func TestPrivateSupportTicketAccessControl(t *testing.T) {
 	_ = userB
 }
 
+func TestMoveTicketToOtherTicketChannel(t *testing.T) {
+	app := testSetupApp(t)
+	ts := startTestServer(t, app)
+
+	cookieOwner, owner := createTestUserCookie(t, ts, "Move Owner", "move_owner", "move_owner@example.com")
+	group := createTestGroupDirectly(t, int64(owner.Id), "Move Test Group", "move_test_group")
+
+	cookieOther, otherUser := createTestUserCookie(t, ts, "Other User", "other_user", "other_user@example.com")
+	memberOther := model.NewMember(group.Id, otherUser.Id, otherUser.Moniker)
+	_ = memberOther.Insert()
+
+	// Create Ticket Container A
+	respCreateA, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"name":        "tickets_a",
+			"moniker":     "Tickets A",
+			"description": "Container A",
+			"type":        "ticket",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/create", group.Id))
+	if err != nil {
+		t.Fatalf("create container A failed: %v", err)
+	}
+	respCreateA.Close()
+
+	// Create Ticket Container B
+	respCreateB, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"name":        "tickets_b",
+			"moniker":     "Tickets B",
+			"description": "Container B",
+			"type":        "ticket",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/create", group.Id))
+	if err != nil {
+		t.Fatalf("create container B failed: %v", err)
+	}
+	respCreateB.Close()
+
+	channels, _ := model.GetGroupChannels(group.Id)
+	var containerA, containerB model.Channel
+	for _, ch := range channels {
+		if ch.Name == "tickets_a" {
+			containerA = ch
+		}
+		if ch.Name == "tickets_b" {
+			containerB = ch
+		}
+	}
+	if containerA.IsEmpty() || containerB.IsEmpty() {
+		t.Fatalf("expected containers A and B to be created")
+	}
+
+	// Create a ticket under container A
+	respCreateTicket, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"title":   "Issue To Move",
+			"content": "This ticket will be moved",
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/create", group.Id, containerA.Id))
+	if err != nil {
+		t.Fatalf("create ticket under A failed: %v", err)
+	}
+	respCreateTicket.Close()
+
+	subsA, _ := model.GetSubchannels(containerA.Id)
+	if len(subsA) != 1 {
+		t.Fatalf("expected 1 ticket under container A, got %d", len(subsA))
+	}
+	ticket := subsA[0]
+
+	// 1. Test search with mode=move: should show container B, but NOT container A (current parent) or the ticket itself
+	respSearchMove, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"mode":       "move",
+			"exclude_id": fmt.Sprintf("%d", ticket.Id),
+			"q":          "Tickets",
+		}).
+		Post(fmt.Sprintf("/groups/%d/tickets/search", group.Id))
+	if err != nil {
+		t.Fatalf("ticket move search failed: %v", err)
+	}
+	defer respSearchMove.Close()
+
+	bodySearch := respSearchMove.String()
+	if !strings.Contains(bodySearch, "Tickets B") {
+		t.Errorf("expected search in mode=move to find Tickets B, got: %s", bodySearch)
+	}
+	if strings.Contains(bodySearch, "Tickets A") {
+		t.Errorf("expected search in mode=move to filter out Tickets A (current parent), got: %s", bodySearch)
+	}
+	if strings.Contains(bodySearch, "Issue To Move") {
+		t.Errorf("expected search in mode=move to filter out ticket itself, got: %s", bodySearch)
+	}
+
+	// 2. Disable write perm for everyone, verify member without write perm gets 403 Forbidden
+	noWritePerm := model.Permission{
+		GroupId:  group.Id,
+		Name:     model.PermNameWrite,
+		Level:    model.PermLevelDisable,
+		Priority: 10,
+	}
+	_ = noWritePerm.Insert()
+	_ = noWritePerm.AddRole(group.Everyone().Id)
+
+	respUnauthorizedMove, err := ts.Client.R().
+		SetHeader("Cookie", cookieOther).
+		SetFormDataWithMap(map[string]string{
+			"target_channel_id": fmt.Sprintf("%d", containerB.Id),
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/move", group.Id, ticket.Id))
+	if err != nil {
+		t.Fatalf("unauthorized move request failed: %v", err)
+	}
+	if respUnauthorizedMove.StatusCode() != http.StatusForbidden {
+		t.Errorf("expected 403 Forbidden for unauthorized move, got %d", respUnauthorizedMove.StatusCode())
+	}
+	respUnauthorizedMove.Close()
+
+	// 3. Move ticket into itself or invalid channel -> expect error
+	respInvalidMove, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetFormDataWithMap(map[string]string{
+			"target_channel_id": fmt.Sprintf("%d", ticket.Id),
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/move", group.Id, ticket.Id))
+	if err != nil {
+		t.Fatalf("invalid move request failed: %v", err)
+	}
+	if respInvalidMove.StatusCode() == http.StatusOK {
+		t.Errorf("expected failure when moving ticket to itself, got %d", respInvalidMove.StatusCode())
+	}
+	respInvalidMove.Close()
+
+	// 4. Authorized owner moves ticket to container B
+	respMove, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("HX-Request", "true").
+		SetFormDataWithMap(map[string]string{
+			"target_channel_id": fmt.Sprintf("%d", containerB.Id),
+		}).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/tickets/move", group.Id, ticket.Id))
+	if err != nil {
+		t.Fatalf("authorized move ticket failed: %v", err)
+	}
+	defer respMove.Close()
+
+	if respMove.StatusCode() != http.StatusOK {
+		t.Errorf("expected 200 OK with HX-Redirect for move ticket, got %d", respMove.StatusCode())
+	}
+	if hxRedirect := respMove.Header("HX-Redirect"); !strings.Contains(hxRedirect, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, ticket.Id)) {
+		t.Errorf("expected HX-Redirect to ticket detail page, got '%s'", hxRedirect)
+	}
+
+	// 5. Verify parent relations in DB
+	parentsAfterMove, err := model.GetParentChannels(ticket.Id)
+	if err != nil {
+		t.Fatalf("GetParentChannels failed: %v", err)
+	}
+	if len(parentsAfterMove) != 1 || parentsAfterMove[0].Id != containerB.Id {
+		t.Errorf("expected ticket's parent to be container B (%d), got: %v", containerB.Id, parentsAfterMove)
+	}
+
+	subsB, _ := model.GetSubchannels(containerB.Id)
+	if len(subsB) != 1 || subsB[0].Id != ticket.Id {
+		t.Errorf("expected container B to have 1 subchannel (ticket %d), got: %v", ticket.Id, subsB)
+	}
+
+	subsAAfter, _ := model.GetSubchannels(containerA.Id)
+	if len(subsAAfter) != 0 {
+		t.Errorf("expected container A to have 0 subchannels after move, got: %v", subsAAfter)
+	}
+}
+
 func TestInternalChannelAccessAndSidebarVisibility(t *testing.T) {
 	app := testSetupApp(t)
 	ts := startTestServer(t, app)

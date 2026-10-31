@@ -16,6 +16,25 @@
     </div>
     <span class="font-mono text-base-content/40 text-[11px] shrink-0 ml-2">#{{.Id}}</span>
 </button>
+{{else if eq $mode "move"}}
+{{$groupId := $.Group.Id}}
+{{$channelId := $.ChannelId}}
+<form
+    hx-post="/groups/{{$groupId}}/channels/{{$channelId}}/tickets/move"
+    class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer"
+>
+    <input type="hidden" name="target_channel_id" value="{{.Id}}" />
+    <div class="flex items-center gap-2 truncate min-w-0">
+        {{if $isClosed}}
+        <span class="icon icon-[lucide--check-circle-2] text-purple-500 size-3.5 shrink-0"></span>
+        {{else}}
+        <span class="icon icon-[lucide--circle-dot] text-emerald-500 size-3.5 shrink-0"></span>
+        {{end}}
+        <span class="truncate font-medium">{{.Moniker}}</span>
+        <span class="font-mono text-base-content/40 text-[11px] shrink-0">#{{.Id}}</span>
+    </div>
+    <button type="submit" class="btn btn-primary btn-xs shrink-0 cursor-pointer ml-2">Move</button>
+</form>
 {{else}}
 <button type="button" class="w-full text-left flex items-center justify-between py-1.5 hover:bg-surface-card-hover text-xs transition-colors cursor-pointer" onclick="addParentBadge(this, '{{.Id}}', '{{.Moniker}}')">
     <div class="flex items-center gap-2 truncate min-w-0">

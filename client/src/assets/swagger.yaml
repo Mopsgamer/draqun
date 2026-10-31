@@ -810,6 +810,30 @@ paths:
       responses:
         "200":
           description: Ticket updated.
+  /groups/{group_id}/channels/{channel_id}/tickets/move:
+    post:
+      tags:
+        - Group
+      summary: Move Ticket to Another Ticket Channel
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: channel_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/TicketMoveForm"
+      responses:
+        "200":
+          description: Ticket moved.
   /groups/{group_id}/channels/{channel_id}/status:
     post:
       tags:
@@ -1307,6 +1331,13 @@ components:
           type: array
           items:
             type: integer
+    TicketMoveForm:
+      type: object
+      required:
+        - target_channel_id
+      properties:
+        target_channel_id:
+          type: integer
     TicketStatusForm:
       type: object
       required:

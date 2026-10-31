@@ -95,6 +95,29 @@
                                 </div>
                             </details>
 
+                            <details class="group/move">
+                                <summary class="w-full text-left flex items-center gap-2 py-1.5 px-2 hover:bg-surface-card-hover rounded text-xs cursor-pointer list-none">
+                                    <span class="icon icon-[lucide--folder-input] size-4"></span>
+                                    <span>Move Ticket...</span>
+                                </summary>
+                                <div class="p-2.5 bg-surface-card rounded-lg border border-base-content/10 flex flex-col gap-2 mt-1">
+                                    <span class="font-semibold text-xs text-primary">Move to Ticket Channel</span>
+                                    <input
+                                        type="text"
+                                        name="q"
+                                        class="input input-bordered w-full text-xs h-7"
+                                        placeholder="Search ticket channel..."
+                                        hx-post="/groups/{{$.Group.Id}}/tickets/search"
+                                        hx-trigger="input changed delay:200ms, keyup changed delay:200ms"
+                                        hx-target="#ticket-move-search-results"
+                                        hx-vals='{"mode": "move", "exclude_id": "{{$.ActiveChannel.Id}}"}'
+                                    />
+                                    <div id="ticket-move-search-results" class="max-h-36 overflow-y-auto border border-base-content/10 rounded-lg p-1 bg-surface-overlay flex flex-col gap-0.5 mt-1">
+                                        <div class="p-2 text-xs text-base-content/50 italic text-center">Type above to search tickets</div>
+                                    </div>
+                                </div>
+                            </details>
+
                             {{if ne .ActiveChannel.Status "closed"}}
                             <div class="divider my-0.5"></div>
 
