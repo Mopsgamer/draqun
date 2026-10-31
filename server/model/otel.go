@@ -25,7 +25,7 @@ type OtelSpan struct {
 type OtelStats struct {
 	UptimeSeconds    uint64     `json:"uptime_seconds"`
 	TotalRequests    uint64     `json:"total_requests"`
-	ErrorCount       uint64     `json:"error_count"`
+	UniqueErrors     []OtelSpan `json:"unique_errors"`
 	AvgLatencyMs     float64    `json:"avg_latency_ms"`
 	ActiveGoroutines int        `json:"active_goroutines"`
 	MemAllocMB       float64    `json:"mem_alloc_mb"`
@@ -34,19 +34,22 @@ type OtelStats struct {
 }
 
 type otelCollector struct {
-	mu            sync.RWMutex
-	startTime     time.Time
-	spans         []OtelSpan
-	maxSpans      int
-	totalRequests uint64
-	totalLatency  uint64 // in microseconds
-	errorCount    uint64
+	mu               sync.RWMutex
+	startTime        time.Time
+	spans            []OtelSpan
+	maxSpans         int
+	totalRequests    uint64
+	totalLatency     uint64 // in microseconds
+	uniqueErrorSpans []OtelSpan
+	uniqueErrorMap   map[string]struct{}
 }
 
 var GlobalOtelCollector = &otelCollector{
-	startTime: time.Now(),
-	spans:     make([]OtelSpan, 0, 100),
-	maxSpans:  100,
+	startTime:        time.Now(),
+	spans:            make([]OtelSpan, 0, 100),
+	maxSpans:         100,
+	uniqueErrorSpans: make([]OtelSpan, 0),
+	uniqueErrorMap:   make(map[string]struct{}),
 }
 
 func generateRandomHex(bytesLen int) string {
@@ -63,9 +66,9 @@ func (c *otelCollector) RecordSpan(name, kind string, statusCode int, duration t
 	atomic.AddUint64(&c.totalLatency, uint64(duration.Microseconds()))
 
 	status := "OK"
-	if statusCode >= 400 {
+	isError := statusCode >= 400
+	if isError {
 		status = "ERROR"
-		atomic.AddUint64(&c.errorCount, 1)
 	}
 
 	span := OtelSpan{
@@ -82,6 +85,19 @@ func (c *otelCollector) RecordSpan(name, kind string, statusCode int, duration t
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
+	if isError {
+		if c.uniqueErrorMap == nil {
+			c.uniqueErrorMap = make(map[string]struct{})
+		}
+		// Request deduplication key: name represents request method + endpoint or span name
+		reqKey := fmt.Sprintf("%s|%d", name, statusCode)
+		if _, exists := c.uniqueErrorMap[reqKey]; !exists {
+			c.uniqueErrorMap[reqKey] = struct{}{}
+			c.uniqueErrorSpans = append(c.uniqueErrorSpans, span)
+		}
+	}
+
 	if len(c.spans) >= c.maxSpans {
 		c.spans = c.spans[1:]
 	}
@@ -94,7 +110,6 @@ func (c *otelCollector) GetStats() OtelStats {
 
 	reqs := atomic.LoadUint64(&c.totalRequests)
 	totLat := atomic.LoadUint64(&c.totalLatency)
-	errs := atomic.LoadUint64(&c.errorCount)
 
 	var avgLat float64
 	if reqs > 0 {
@@ -113,10 +128,19 @@ func (c *otelCollector) GetStats() OtelStats {
 		}
 	}
 
+	errSpansCopy := make([]OtelSpan, 0, len(c.uniqueErrorSpans))
+	if len(c.uniqueErrorSpans) > 0 {
+		errSpansCopy = make([]OtelSpan, len(c.uniqueErrorSpans))
+		// Latest unique error requests first
+		for i, s := range c.uniqueErrorSpans {
+			errSpansCopy[len(c.uniqueErrorSpans)-1-i] = s
+		}
+	}
+
 	return OtelStats{
 		UptimeSeconds:    uint64(time.Since(c.startTime).Seconds()),
 		TotalRequests:    reqs,
-		ErrorCount:       errs,
+		UniqueErrors:     errSpansCopy,
 		AvgLatencyMs:     avgLat,
 		ActiveGoroutines: runtime.NumGoroutine(),
 		MemAllocMB:       float64(m.Alloc) / (1024 * 1024),
@@ -125,10 +149,21 @@ func (c *otelCollector) GetStats() OtelStats {
 	}
 }
 
+func (c *otelCollector) ClearErrors() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.uniqueErrorSpans = make([]OtelSpan, 0)
+	c.uniqueErrorMap = make(map[string]struct{})
+}
+
 func RecordOtelSpan(name, kind string, statusCode int, duration time.Duration, attributes map[string]string) {
 	GlobalOtelCollector.RecordSpan(name, kind, statusCode, duration, attributes)
 }
 
 func GetOtelStats() OtelStats {
 	return GlobalOtelCollector.GetStats()
+}
+
+func ClearOtelErrors() {
+	GlobalOtelCollector.ClearErrors()
 }

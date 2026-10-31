@@ -1173,6 +1173,18 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return ctx.Status(fiber.StatusOK).SendString("")
 			},
 		).
+		Delete("/:group_id/channels/:channel_id/otel/errors",
+			perms.UserByAuth(),
+			func(ctx fiber.Ctx) error {
+				user, _ := perms.UserByAuthFromCtx(ctx)
+				if !model.IsDraqunStaff(user) {
+					return ctx.Status(fiber.StatusForbidden).SendString("Unauthorized")
+				}
+
+				model.ClearOtelErrors()
+				return ctx.Status(fiber.StatusOK).SendString("")
+			},
+		).
 		Post("/:group_id/messages/create",
 			perms.RequirePerm("group_id", model.PermNameWrite),
 			perms.UseBind[MessageCreate](),

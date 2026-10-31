@@ -1,7 +1,7 @@
 <div class="flex flex-col flex-1 h-full overflow-y-auto bg-surface-canvas p-6 gap-6">
     {{if .OtelStats}}
     <!-- Header with Refresh Controls -->
-    <div class="flex items-center justify-end pb-2">
+    <div class="flex items-center justify-end pb-2 shrink-0">
         <button
             class="btn btn-outline btn-sm gap-1.5"
             type="button"
@@ -13,9 +13,9 @@
     </div>
 
     <!-- Stats Summary Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
         <!-- Uptime -->
-        <div class="card bg-surface-card border border-base-content/10 p-4 flex flex-col gap-1.5">
+        <div class="card bg-surface-card border border-base-content/10 p-4 flex flex-col gap-1.5 shrink-0">
             <div class="flex items-center justify-between text-base-content/60">
                 <span class="text-xs font-medium uppercase tracking-wider">Uptime</span>
                 <span class="icon icon-[lucide--clock] size-4 text-primary"></span>
@@ -27,22 +27,19 @@
         </div>
 
         <!-- Total Requests -->
-        <div class="card bg-surface-card border border-base-content/10 p-4 flex flex-col gap-1.5">
+        <div class="card bg-surface-card border border-base-content/10 p-4 flex flex-col gap-1.5 shrink-0">
             <div class="flex items-center justify-between text-base-content/60">
                 <span class="text-xs font-medium uppercase tracking-wider">Total Requests</span>
                 <span class="icon icon-[lucide--arrow-up-right] size-4 text-secondary"></span>
             </div>
             <div class="flex items-baseline gap-2">
                 <span class="text-2xl font-bold tracking-tight">{{.OtelStats.TotalRequests}}</span>
-                {{if gt .OtelStats.ErrorCount 0}}
-                <span class="badge badge-error badge-xs font-mono">{{.OtelStats.ErrorCount}} errs</span>
-                {{end}}
             </div>
             <span class="text-[11px] text-base-content/50">HTTP spans recorded</span>
         </div>
 
         <!-- Avg Latency -->
-        <div class="card bg-surface-card border border-base-content/10 p-4 flex flex-col gap-1.5">
+        <div class="card bg-surface-card border border-base-content/10 p-4 flex flex-col gap-1.5 shrink-0">
             <div class="flex items-center justify-between text-base-content/60">
                 <span class="text-xs font-medium uppercase tracking-wider">Avg Latency</span>
                 <span class="icon icon-[lucide--zap] size-4 text-warning"></span>
@@ -54,7 +51,7 @@
         </div>
 
         <!-- System Memory & Goroutines -->
-        <div class="card bg-surface-card border border-base-content/10 p-4 flex flex-col gap-1.5">
+        <div class="card bg-surface-card border border-base-content/10 p-4 flex flex-col gap-1.5 shrink-0">
             <div class="flex items-center justify-between text-base-content/60">
                 <span class="text-xs font-medium uppercase tracking-wider">Memory / Goroutines</span>
                 <span class="icon icon-[lucide--cpu] size-4 text-accent"></span>
@@ -67,8 +64,71 @@
         </div>
     </div>
 
+    <!-- Unique Errors Section -->
+    {{if gt (len .OtelStats.UniqueErrors) 0}}
+    <div id="otel-unique-errors-card" class="card bg-surface-card border border-base-content/10 flex flex-col overflow-hidden shrink-0">
+        <div class="p-4 border-b border-base-content/10 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="icon icon-[lucide--triangle-alert] size-4 text-error"></span>
+                <h2 class="font-bold text-sm">Unique Error Requests</h2>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-base-content/50 font-mono">{{len .OtelStats.UniqueErrors}} unique</span>
+                <button
+                    class="btn btn-ghost btn-xs btn-square text-base-content/50 hover:text-error"
+                    type="button"
+                    hx-delete="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/otel/errors"
+                    hx-target="#otel-unique-errors-card"
+                    hx-swap="outerHTML"
+                    title="Forget errors"
+                    aria-label="Forget errors"
+                >
+                    <span class="icon icon-[lucide--trash-2] size-3.5"></span>
+                </button>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="table table-sm w-full font-mono text-xs">
+                <thead>
+                    <tr class="bg-base-200/50 text-base-content/70">
+                        <th>Timestamp</th>
+                        <th>Request / Endpoint</th>
+                        <th>Kind</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .OtelStats.UniqueErrors}}
+                    <tr class="hover:bg-base-200/30 transition-colors">
+                        <td class="text-base-content/60 whitespace-nowrap">{{.Timestamp}}</td>
+                        <td class="font-semibold text-base-content">{{.Name}}</td>
+                        <td><span class="badge badge-outline badge-xs whitespace-nowrap">{{.Kind}}</span></td>
+                        <td class="whitespace-nowrap">
+                            <span class="badge badge-error badge-xs gap-1 whitespace-nowrap">
+                                <span class="size-1.5 rounded-full bg-white"></span>
+                                {{.StatusCode}} ERR
+                            </span>
+                        </td>
+                        <td class="text-error break-all">
+                            {{if index .Attributes "error"}}
+                            {{index .Attributes "error"}}
+                            {{else if index .Attributes "template.error"}}
+                            {{index .Attributes "template.error"}}
+                            {{else}}
+                            HTTP {{.StatusCode}} Error
+                            {{end}}
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {{end}}
+
     <!-- Trace Spans Table -->
-    <div class="card bg-surface-card border border-base-content/10 flex flex-col overflow-hidden">
+    <div class="card bg-surface-card border border-base-content/10 flex flex-col overflow-hidden shrink-0">
         <div class="p-4 border-b border-base-content/10 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <span class="icon icon-[lucide--list-tree] size-4 text-primary"></span>
@@ -98,22 +158,22 @@
                     {{range .OtelStats.RecentSpans}}
                     <tr class="hover:bg-base-200/30 transition-colors">
                         <td class="text-base-content/60 whitespace-nowrap">{{.Timestamp}}</td>
-                        <td class="font-semibold text-base-content">{{.Name}}</td>
-                        <td><span class="badge badge-outline badge-xs">{{.Kind}}</span></td>
-                        <td>
+                        <td class="font-semibold text-base-content break-all">{{.Name}}</td>
+                        <td><span class="badge badge-outline badge-xs whitespace-nowrap">{{.Kind}}</span></td>
+                        <td class="whitespace-nowrap">
                             {{if eq .Status "OK"}}
-                            <span class="badge badge-success badge-xs gap-1">
+                            <span class="badge badge-success badge-xs gap-1 whitespace-nowrap">
                                 <span class="size-1.5 rounded-full bg-white"></span>
                                 {{.StatusCode}} OK
                             </span>
                             {{else}}
-                            <span class="badge badge-error badge-xs gap-1">
+                            <span class="badge badge-error badge-xs gap-1 whitespace-nowrap">
                                 <span class="size-1.5 rounded-full bg-white"></span>
                                 {{.StatusCode}} ERR
                             </span>
                             {{end}}
                         </td>
-                        <td class="font-bold {{if gt .DurationMs 100.0}}text-warning{{else}}text-base-content/80{{end}}">
+                        <td class="font-bold whitespace-nowrap {{if gt .DurationMs 100.0}}text-warning{{else}}text-base-content/80{{end}}">
                             {{printf "%.2f" .DurationMs}} ms
                         </td>
                     </tr>

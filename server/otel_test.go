@@ -64,6 +64,69 @@ func TestOtelChannelAccessAndMetrics(t *testing.T) {
 	_ = regUser
 }
 
+func TestOtelUniqueErrorCollection(t *testing.T) {
+	// Record spans with various errors
+	model.RecordOtelSpan("GET /endpoint-1", "HTTP SERVER", 500, 10*time.Millisecond, map[string]string{
+		"error": "database connection refused",
+	})
+	// Duplicate request with error
+	model.RecordOtelSpan("GET /endpoint-1", "HTTP SERVER", 500, 12*time.Millisecond, map[string]string{
+		"error": "database connection refused",
+	})
+	// Second unique request with error
+	model.RecordOtelSpan("GET /endpoint-2", "HTTP SERVER", 404, 5*time.Millisecond, map[string]string{
+		"error": "resource not found",
+	})
+	// Duplicate of second request
+	model.RecordOtelSpan("GET /endpoint-2", "HTTP SERVER", 404, 8*time.Millisecond, map[string]string{
+		"error": "resource not found",
+	})
+	// Error from template render
+	model.RecordOtelSpan("TEMPLATE RENDER: partials/home", "TEMPLATE RENDER", 500, 2*time.Millisecond, map[string]string{
+		"template.error": "template syntax error",
+	})
+	// OK span should not add error request
+	model.RecordOtelSpan("GET /endpoint-ok", "HTTP SERVER", 200, 5*time.Millisecond, nil)
+
+	stats := model.GetOtelStats()
+
+	// Verify unique error requests list contains the unique requests without duplicates
+	foundEndpoint1 := false
+	foundEndpoint2 := false
+	foundTemplate := false
+	endpoint1Count := 0
+
+	for _, span := range stats.UniqueErrors {
+		if span.Name == "GET /endpoint-1" {
+			foundEndpoint1 = true
+			endpoint1Count++
+		}
+		if span.Name == "GET /endpoint-2" {
+			foundEndpoint2 = true
+		}
+		if span.Name == "TEMPLATE RENDER: partials/home" {
+			foundTemplate = true
+		}
+	}
+
+	if !foundEndpoint1 || endpoint1Count != 1 {
+		t.Errorf("expected 'GET /endpoint-1' error request to be recorded exactly once, count=%d", endpoint1Count)
+	}
+	if !foundEndpoint2 {
+		t.Errorf("expected 'GET /endpoint-2' in unique error requests")
+	}
+	if !foundTemplate {
+		t.Errorf("expected 'TEMPLATE RENDER: partials/home' in unique error requests")
+	}
+
+	// Test forgetting/clearing errors
+	model.ClearOtelErrors()
+	clearedStats := model.GetOtelStats()
+	if len(clearedStats.UniqueErrors) != 0 {
+		t.Errorf("expected 0 unique errors after clear, got %d", len(clearedStats.UniqueErrors))
+	}
+}
+
 func containsString(s, substr string) bool {
 	return len(s) > 0 && len(substr) > 0 && (s == substr || (len(s) >= len(substr) && func() bool {
 		for i := 0; i <= len(s)-len(substr); i++ {
