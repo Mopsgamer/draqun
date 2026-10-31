@@ -150,4 +150,35 @@ func TestWallChannelSavingAndMultiAttachments(t *testing.T) {
 	if len(remAttachments) != 1 {
 		t.Errorf("expected 1 remaining attachment, got %d", len(remAttachments))
 	}
+
+	// 5. Subsequent edit with a third attachment should retain existing attachments
+	bodyBuf2 := &bytes.Buffer{}
+	writer2 := multipart.NewWriter(bodyBuf2)
+	_ = writer2.WriteField("content", "# Wall Edit 2\n\nPreserve previous attachments.")
+	f3, _ := writer2.CreateFormFile("attachments", "doc3.pdf")
+	_, _ = f3.Write([]byte("%PDF-1.4 fake pdf data"))
+	_ = writer2.Close()
+
+	respSave2, err := ts.Client.R().
+		SetHeader("Cookie", cookieOwner).
+		SetHeader("Content-Type", writer2.FormDataContentType()).
+		SetHeader("HX-Request", "true").
+		SetRawBody(bodyBuf2.Bytes()).
+		Post(fmt.Sprintf("/groups/%d/channels/%d/wall", group.Id, wallCh.Id))
+	if err != nil {
+		t.Fatalf("POST wall save 2 failed: %v", err)
+	}
+	defer respSave2.Close()
+	if respSave2.StatusCode() != http.StatusOK {
+		t.Fatalf("expected 200 OK for wall save 2, got %d", respSave2.StatusCode())
+	}
+
+	finalAttachments, err := model.GetChannelAttachments(wallCh.Id)
+	if err != nil {
+		t.Fatalf("failed to fetch channel attachments after save 2: %v", err)
+	}
+	// Should have 1 remaining from before + 1 newly added = 2 attachments
+	if len(finalAttachments) != 2 {
+		t.Fatalf("expected 2 attachments after save 2, got %d", len(finalAttachments))
+	}
 }

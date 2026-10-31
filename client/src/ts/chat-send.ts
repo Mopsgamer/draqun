@@ -6,15 +6,21 @@ export function setupMultiAttachment(
 	previewContainer: HTMLElement,
 	pasteTarget?: HTMLElement | null,
 ) {
-	const updatePreview = () => {
+	let selectedFiles: File[] = [];
+
+	const syncInputAndRender = () => {
+		const dt = new DataTransfer();
+		selectedFiles.forEach((f) => dt.items.add(f));
+		fileInput.files = dt.files;
+
 		if (!previewContainer) return;
 		previewContainer.innerHTML = "";
 
-		if (fileInput.files && fileInput.files.length > 0) {
+		if (selectedFiles.length > 0) {
 			previewContainer.classList.remove("hidden");
 			previewContainer.classList.add("flex");
 
-			Array.from(fileInput.files).forEach((file, idx) => {
+			selectedFiles.forEach((file, idx) => {
 				const chip = document.createElement("span");
 				chip.className =
 					"inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-base-content/15 text-xs font-medium text-base-content/90 bg-surface-card";
@@ -34,14 +40,8 @@ export function setupMultiAttachment(
 				removeBtn.textContent = "✕";
 
 				removeBtn.addEventListener("click", () => {
-					const dt = new DataTransfer();
-					if (fileInput.files) {
-						Array.from(fileInput.files).forEach((f, i) => {
-							if (i !== idx) dt.items.add(f);
-						});
-					}
-					fileInput.files = dt.files;
-					updatePreview();
+					selectedFiles.splice(idx, 1);
+					syncInputAndRender();
 				});
 
 				chip.appendChild(icon);
@@ -56,7 +56,23 @@ export function setupMultiAttachment(
 		}
 	};
 
-	fileInput.addEventListener("change", updatePreview);
+	fileInput.addEventListener("change", () => {
+		if (fileInput.files && fileInput.files.length > 0) {
+			const newFiles = Array.from(fileInput.files);
+			for (const file of newFiles) {
+				const isDuplicate = selectedFiles.some(
+					(f) =>
+						f.name === file.name &&
+						f.size === file.size &&
+						f.lastModified === file.lastModified,
+				);
+				if (!isDuplicate) {
+					selectedFiles.push(file);
+				}
+			}
+		}
+		syncInputAndRender();
+	});
 
 	const handlePaste = (e: ClipboardEvent) => {
 		if (!e.clipboardData) return;
@@ -82,17 +98,8 @@ export function setupMultiAttachment(
 		}
 
 		if (pastedFiles.length > 0) {
-			const dt = new DataTransfer();
-			if (fileInput.files) {
-				Array.from(fileInput.files).forEach((f) => {
-					dt.items.add(f);
-				});
-			}
-			pastedFiles.forEach((f) => {
-				dt.items.add(f);
-			});
-			fileInput.files = dt.files;
-			updatePreview();
+			pastedFiles.forEach((f) => selectedFiles.push(f));
+			syncInputAndRender();
 		}
 	};
 
@@ -100,8 +107,23 @@ export function setupMultiAttachment(
 		pasteTarget.addEventListener("paste", handlePaste);
 	}
 
+	const reset = () => {
+		selectedFiles = [];
+		syncInputAndRender();
+	};
+
+	if (container && container.tagName === "FORM") {
+		container.addEventListener("reset", () => {
+			setTimeout(() => {
+				selectedFiles = [];
+				syncInputAndRender();
+			}, 0);
+		});
+	}
+
 	return {
-		updatePreview,
+		updatePreview: syncInputAndRender,
+		reset,
 		handlePaste,
 	};
 }
@@ -358,7 +380,7 @@ function initChatSend() {
 
 	form.addEventListener("htmx:afterRequest", () => {
 		form.reset();
-		attachmentHandler?.updatePreview();
+		attachmentHandler?.reset();
 		hidePopover();
 		requestAnimationFrame(resizeInput);
 	});
@@ -377,12 +399,19 @@ function initWallEdit() {
 	const fileInput = document.getElementById(
 		"wall-attachments-input",
 	) as HTMLInputElement | null;
-	const previewContainer = document.getElementById(
-		"wall-attachment-preview",
-	);
+	const previewContainer = document.getElementById("wall-attachment-preview");
 	const textarea = document.getElementById(
 		"wall-content-input",
 	) as HTMLTextAreaElement | null;
+
+	if (textarea) {
+		const resizeTextarea = () => {
+			textarea.style.height = "auto";
+			textarea.style.height = `${Math.max(textarea.scrollHeight, 128)}px`;
+		};
+		textarea.addEventListener("input", resizeTextarea);
+		requestAnimationFrame(resizeTextarea);
+	}
 
 	if (fileInput && previewContainer) {
 		setupMultiAttachment(form, fileInput, previewContainer, textarea);

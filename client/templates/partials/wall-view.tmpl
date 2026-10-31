@@ -1,52 +1,184 @@
 <div id="wall-container" class="flex-1 flex flex-col h-full bg-surface-canvas overflow-y-auto p-4 md:p-6 gap-4">
-    {{if ne .ActiveChannel.Description ""}}
-    <div class="flex-1 pt-0 [&_.markdown-body>*:first-child]:mt-0">
-        {{markdown .ActiveChannel.Description "message"}}
-    </div>
-    {{else}}
-    <div class="flex-1 flex flex-col items-center justify-center p-8 text-center text-base-content/50 gap-2">
-        <span class="icon icon-[lucide--file-text] size-12 opacity-40"></span>
-        <p class="text-sm">This wall is empty.</p>
-    </div>
-    {{end}}
+    <div class="flex-1 flex flex-col pt-0 gap-3">
+        {{if ne .ActiveChannel.Description ""}}
+        <div class="[&_.markdown-body>*:first-child]:mt-0">
+            {{markdown .ActiveChannel.Description "message"}}
+        </div>
+        {{else}}
+        <div class="flex flex-col items-center justify-center p-8 text-center text-base-content/50 gap-2 my-auto">
+            <span class="icon icon-[lucide--file-text] size-12 opacity-40"></span>
+            <p class="text-sm">This wall is empty.</p>
+        </div>
+        {{end}}
 
-    {{if .WallAttachments}}
-    <div class="pt-4 flex flex-col gap-2 shrink-0">
-        <h4 class="text-xs font-semibold text-base-content/60 uppercase tracking-wider">Attachments</h4>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {{range .WallAttachments}}
-            <div class="flex items-center justify-between p-2 rounded-lg border border-base-content/10 bg-base-100 gap-2">
-                <a href="{{.FilePath}}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 min-w-0 flex-1 hover:underline">
-                    {{if .IsImage}}
-                    <span class="icon icon-[lucide--image] size-4 text-primary shrink-0"></span>
-                    {{else}}
-                    <span class="icon icon-[lucide--file] size-4 text-primary shrink-0"></span>
+        {{if .WallAttachments}}
+        <div class="attachments-container">
+            {{range $att := .WallAttachments}}
+                {{if $att.IsImage}}
+                <div class="relative group/img inline-block w-fit max-w-sm rounded-lg overflow-hidden border border-base-content/10 bg-surface-card">
+                    <a href="{{$att.FilePath}}" target="_blank" rel="noopener noreferrer" class="block hover:opacity-90 transition-opacity" title="View image {{$att.Filename}}">
+                        <img src="{{$att.FilePath}}" alt="{{$att.Filename}}" class="block max-h-72 w-auto max-w-full object-cover rounded-lg" />
+                    </a>
+                    <div class="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover/img:opacity-100 transition-opacity">
+                        <a
+                            href="{{$att.FilePath}}"
+                            download="{{$att.Filename}}"
+                            class="btn btn-xs btn-circle btn-neutral shadow-md cursor-pointer"
+                            title="Download {{$att.Filename}}"
+                            aria-label="Download {{$att.Filename}}"
+                        >
+                            <span class="icon icon-[lucide--download] size-3.5" aria-hidden="true"></span>
+                        </a>
+                        {{if not $.CanWriteDisabled}}
+                        <button
+                            type="button"
+                            class="btn btn-xs btn-circle btn-error shadow-md cursor-pointer"
+                            hx-delete="/groups/{{$.Group.Id}}/channels/{{$.ActiveChannel.Id}}/wall/attachments/{{$att.Id}}"
+                            hx-target="#wall-container"
+                            hx-swap="outerHTML"
+                            title="Delete attachment"
+                            aria-label="Delete attachment"
+                        >
+                            <span class="icon icon-[lucide--trash-2] size-3.5" aria-hidden="true"></span>
+                        </button>
+                        {{end}}
+                    </div>
+                </div>
+                {{else if $att.IsVideo}}
+                <div class="relative group/vid inline-block max-w-md rounded-lg overflow-hidden border border-base-content/15 bg-black/90 p-1">
+                    <video controls preload="metadata" class="max-h-80 w-full rounded-md">
+                        <source src="{{$att.FilePath}}" type="{{$att.FileType}}">
+                        Your browser does not support video playback.
+                    </video>
+                    <div class="flex items-center justify-between px-2 py-1 text-xs text-white/80">
+                        <span class="truncate max-w-xs font-medium">{{$att.Filename}}</span>
+                        <div class="flex items-center gap-1">
+                            <a href="{{$att.FilePath}}" download="{{$att.Filename}}" class="hover:text-white" title="Download video"><span class="icon icon-[lucide--download] size-4"></span></a>
+                            {{if not $.CanWriteDisabled}}
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-square btn-xs text-error cursor-pointer"
+                                hx-delete="/groups/{{$.Group.Id}}/channels/{{$.ActiveChannel.Id}}/wall/attachments/{{$att.Id}}"
+                                hx-target="#wall-container"
+                                hx-swap="outerHTML"
+                                title="Delete attachment"
+                            >
+                                <span class="icon icon-[lucide--trash-2] size-3.5"></span>
+                            </button>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+                {{else if $att.IsAudio}}
+                <div class="inline-flex flex-col gap-1 p-2.5 rounded-lg border border-base-content/15 bg-surface-card max-w-md w-full">
+                    <div class="flex items-center gap-2 text-xs font-semibold text-base-content/80">
+                        <span class="icon icon-[lucide--music] size-4 text-primary shrink-0"></span>
+                        <span class="truncate flex-1">{{$att.Filename}}</span>
+                        <span class="text-[11px] text-base-content/50 font-mono">{{$att.FormattedSize}}</span>
+                        {{if not $.CanWriteDisabled}}
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-square btn-xs text-error cursor-pointer"
+                            hx-delete="/groups/{{$.Group.Id}}/channels/{{$.ActiveChannel.Id}}/wall/attachments/{{$att.Id}}"
+                            hx-target="#wall-container"
+                            hx-swap="outerHTML"
+                            title="Delete attachment"
+                        >
+                            <span class="icon icon-[lucide--trash-2] size-3.5"></span>
+                        </button>
+                        {{end}}
+                    </div>
+                    <audio controls class="w-full mt-1 h-8">
+                        <source src="{{$att.FilePath}}" type="{{$att.FileType}}">
+                        Your browser does not support audio playback.
+                    </audio>
+                </div>
+                {{else if $att.IsPDF}}
+                <div class="inline-flex items-center gap-2.5 p-2.5 rounded-lg border border-base-content/15 bg-surface-card hover:bg-surface-card-hover transition-colors text-xs font-medium max-w-sm w-full">
+                    <span class="icon icon-[lucide--file-text] size-6 text-error shrink-0" aria-hidden="true"></span>
+                    <div class="flex flex-col min-w-0 flex-1">
+                        <span class="truncate font-semibold text-base-content">{{$att.Filename}}</span>
+                        <span class="text-[11px] text-base-content/50 font-mono">{{$att.FormattedSize}}</span>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <a href="{{$att.FilePath}}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-xs btn-square" title="View PDF">
+                            <span class="icon icon-[lucide--external-link] size-3.5"></span>
+                        </a>
+                        <a href="{{$att.FilePath}}" download="{{$att.Filename}}" class="btn btn-ghost btn-xs btn-square" title="Download {{$att.Filename}}">
+                            <span class="icon icon-[lucide--download] size-3.5"></span>
+                        </a>
+                        {{if not $.CanWriteDisabled}}
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-square btn-xs text-error cursor-pointer"
+                            hx-delete="/groups/{{$.Group.Id}}/channels/{{$.ActiveChannel.Id}}/wall/attachments/{{$att.Id}}"
+                            hx-target="#wall-container"
+                            hx-swap="outerHTML"
+                            title="Delete attachment"
+                        >
+                            <span class="icon icon-[lucide--trash-2] size-3.5"></span>
+                        </button>
+                        {{end}}
+                    </div>
+                </div>
+                {{else if $att.IsCode}}
+                <div class="inline-flex items-center gap-2.5 p-2.5 rounded-lg border border-base-content/15 bg-surface-card hover:bg-surface-card-hover transition-colors text-xs font-medium max-w-sm w-full">
+                    <span class="icon icon-[lucide--code] size-6 text-info shrink-0" aria-hidden="true"></span>
+                    <div class="flex flex-col min-w-0 flex-1">
+                        <span class="truncate font-semibold text-base-content">{{$att.Filename}}</span>
+                        <span class="text-[11px] text-base-content/50 font-mono">{{$att.FormattedSize}}</span>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <a href="{{$att.FilePath}}" download="{{$att.Filename}}" class="btn btn-ghost btn-xs btn-square shrink-0" title="Download {{$att.Filename}}">
+                            <span class="icon icon-[lucide--download] size-3.5"></span>
+                        </a>
+                        {{if not $.CanWriteDisabled}}
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-square btn-xs text-error cursor-pointer"
+                            hx-delete="/groups/{{$.Group.Id}}/channels/{{$.ActiveChannel.Id}}/wall/attachments/{{$att.Id}}"
+                            hx-target="#wall-container"
+                            hx-swap="outerHTML"
+                            title="Delete attachment"
+                        >
+                            <span class="icon icon-[lucide--trash-2] size-3.5"></span>
+                        </button>
+                        {{end}}
+                    </div>
+                </div>
+                {{else}}
+                <div class="inline-flex items-center gap-2.5 p-2.5 rounded-lg border border-base-content/15 bg-surface-card hover:bg-surface-card-hover transition-colors text-xs font-medium max-w-sm">
+                    <a href="{{$att.FilePath}}" download="{{$att.Filename}}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2.5 min-w-0 flex-1" title="Download {{$att.Filename}}">
+                        <span class="icon icon-[lucide--file] size-6 text-primary shrink-0" aria-hidden="true"></span>
+                        <div class="flex flex-col min-w-0 flex-1">
+                            <span class="truncate font-semibold text-base-content">{{$att.Filename}}</span>
+                            <span class="text-[11px] text-base-content/50 font-mono">{{$att.FormattedSize}}</span>
+                        </div>
+                        <span class="icon icon-[lucide--download] size-4 text-base-content/60 shrink-0 ml-1" aria-hidden="true"></span>
+                    </a>
+                    {{if not $.CanWriteDisabled}}
+                    <button
+                        type="button"
+                        class="btn btn-ghost btn-square btn-xs text-error cursor-pointer shrink-0"
+                        hx-delete="/groups/{{$.Group.Id}}/channels/{{$.ActiveChannel.Id}}/wall/attachments/{{$att.Id}}"
+                        hx-target="#wall-container"
+                        hx-swap="outerHTML"
+                        title="Delete attachment"
+                    >
+                        <span class="icon icon-[lucide--trash-2] size-3.5"></span>
+                    </button>
                     {{end}}
-                    <span class="text-xs font-medium truncate">{{.Filename}}</span>
-                    <span class="text-[10px] text-base-content/50 shrink-0">({{.FormattedSize}})</span>
-                </a>
-                {{if not $.CanWriteDisabled}}
-                <button
-                    type="button"
-                    class="btn btn-ghost btn-square btn-xs text-error"
-                    hx-delete="/groups/{{$.Group.Id}}/channels/{{$.ActiveChannel.Id}}/wall/attachments/{{.Id}}"
-                    hx-target="#wall-container"
-                    hx-swap="outerHTML"
-                    title="Delete attachment"
-                >
-                    <span class="icon icon-[lucide--trash-2] size-3.5"></span>
-                </button>
+                </div>
                 {{end}}
-            </div>
             {{end}}
         </div>
+        {{end}}
     </div>
-    {{end}}
 
     {{if not .CanWriteDisabled}}
     <div class="pt-4 flex items-center justify-end shrink-0">
         <button
-            class="btn btn-primary gap-1"
+            class="btn btn-primary gap-1 cursor-pointer"
             hx-get="/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}/wall/edit"
             hx-target="#wall-container"
             hx-swap="outerHTML"

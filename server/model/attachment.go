@@ -201,6 +201,50 @@ func (a ChannelAttachment) IsImage() bool {
 	return false
 }
 
+func (a ChannelAttachment) IsVideo() bool {
+	if a.FilePath == "" {
+		return false
+	}
+	ext := strings.ToLower(filepath.Ext(a.Filename))
+	switch ext {
+	case ".mp4", ".webm", ".mov", ".m4v", ".mkv", ".avi", ".ogv":
+		return true
+	}
+	if strings.HasPrefix(a.FileType, "video/") {
+		return true
+	}
+	return false
+}
+
+func (a ChannelAttachment) IsAudio() bool {
+	if a.FilePath == "" {
+		return false
+	}
+	ext := strings.ToLower(filepath.Ext(a.Filename))
+	switch ext {
+	case ".mp3", ".wav", ".ogg", ".m4a", ".aac", ".flac", ".opus":
+		return true
+	}
+	if strings.HasPrefix(a.FileType, "audio/") {
+		return true
+	}
+	return false
+}
+
+func (a ChannelAttachment) IsPDF() bool {
+	ext := strings.ToLower(filepath.Ext(a.Filename))
+	return ext == ".pdf" || strings.Contains(a.FileType, "pdf")
+}
+
+func (a ChannelAttachment) IsCode() bool {
+	ext := strings.ToLower(filepath.Ext(a.Filename))
+	switch ext {
+	case ".go", ".js", ".ts", ".jsx", ".tsx", ".py", ".rs", ".c", ".cpp", ".h", ".java", ".json", ".html", ".css", ".sql", ".sh", ".yaml", ".yml", ".md", ".xml", ".toml":
+		return true
+	}
+	return false
+}
+
 func (a ChannelAttachment) FormattedSize() string {
 	bytes := a.FileSize
 	if bytes < 1024 {
