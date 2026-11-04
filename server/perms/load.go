@@ -158,11 +158,6 @@ func checkUser(token *jwt.Token) (user model.User, err error) {
 
 func UserByAuthFromCtx(ctx fiber.Ctx) (user model.User, err error) {
 	ip := ctx.IP()
-	if model.IsIPBlocked(ip) {
-		err = htmx.AlertIPBlocked
-		return
-	}
-
 	user, err = model.User{}, nil
 	tokenString := ctx.Cookies(fiber.HeaderAuthorization)
 

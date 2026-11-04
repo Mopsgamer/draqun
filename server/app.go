@@ -113,6 +113,13 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 	})
 
 	app.Use(func(ctx fiber.Ctx) error {
+		if model.IsIPBlocked(ctx.IP()) {
+			return htmx.AlertIPBlocked
+		}
+		return ctx.Next()
+	})
+
+	app.Use(func(ctx fiber.Ctx) error {
 		method := ctx.Method()
 		if method == fiber.MethodPost || method == fiber.MethodPut || method == fiber.MethodDelete || method == fiber.MethodPatch {
 			path := ctx.Path()
