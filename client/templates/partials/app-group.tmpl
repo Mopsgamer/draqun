@@ -39,7 +39,6 @@
             {{- template "partials/channels-list" .}}
         </div>
     </div>
-
     <div id="chat-view">
         {{if .ActiveChannel.IsEmpty}}
         <div class="flex-1 flex flex-col items-center justify-center p-8 text-center gap-4 bg-surface-canvas">
@@ -82,7 +81,6 @@
         {{- template "partials/chat-input" .}}
         {{end}}
     </div>
-
     <div id="members-view" class="secondary-view">
         <div class="flex items-center justify-between pb-3 border-b border-base-content/10 gap-2">
             <div class="flex items-center gap-2.5 min-w-0 flex-1">
@@ -134,7 +132,6 @@
             </div>
         </div>
     </div>
-
     <div
         id="ws-chat"
         class="collapse"
@@ -144,4 +141,5 @@
         ws-send=""
     >
     </div>
+    {{- template "partials/collab-video-dock" .}}
 </div>
