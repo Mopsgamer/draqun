@@ -9,6 +9,7 @@ import (
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/perms"
+	"github.com/Mopsgamer/draqun/server/session"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -72,9 +73,26 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			if isGlobalAdmin && group.Name == "draqun" {
 				channels = append(channels, model.GetOtelVirtualChannel(), model.GetConfigVirtualChannel())
 			}
+			collabMembersMap := make(map[string][]session.CollabParticipant)
 			subchannelsMap := make(map[uint64][]model.Channel)
 			for _, ch := range channels {
-				if !ch.IsTicket() && !ch.IsOtel() && !ch.IsConfig() {
+				if ch.IsCollab() {
+					rooms := session.CollabHub.GetActiveSubchannels(ch.Id)
+					if len(rooms) == 0 {
+						rooms = []string{"1"}
+					}
+					for _, r := range rooms {
+						subchannelsMap[ch.Id] = append(subchannelsMap[ch.Id], model.Channel{
+							Id:      ch.Id,
+							Name:    model.Name(r),
+							Moniker: model.Moniker("Room " + r),
+							Type:    model.ChannelTypeCollab,
+						})
+						parts := session.CollabHub.GetRoomParticipants(ch.Id, r)
+						key := fmt.Sprintf("%d_%s", ch.Id, r)
+						collabMembersMap[key] = parts
+					}
+				} else if !ch.IsTicket() && !ch.IsOtel() && !ch.IsConfig() {
 					subchs, _ := model.GetSubchannels(ch.Id)
 					subchannelsMap[ch.Id] = subchs
 				}
@@ -103,8 +121,10 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				"Channels":       channels,
 				"SubchannelsMap": subchannelsMap,
 				"ActiveChannel":  activeChannel,
-				"StarredIdsMap":  starredIdsMap,
-				"IsStarred":      isStarred,
+				"StarredIdsMap":    starredIdsMap,
+				"IsStarred":        isStarred,
+				"CollabMembersMap": collabMembersMap,
+				"VoiceSession":     session.CollabHub.GetUserSession(user.Id),
 			}
 			if activeChannel.IsWall() {
 				bind["IsWall"] = true
@@ -164,9 +184,26 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				channels = append(channels, model.GetOtelVirtualChannel(), model.GetConfigVirtualChannel())
 			}
 
+			collabMembersMap := make(map[string][]session.CollabParticipant)
 			subchannelsMap := make(map[uint64][]model.Channel)
 			for _, ch := range channels {
-				if !ch.IsTicket() && !ch.IsOtel() && !ch.IsConfig() {
+				if ch.IsCollab() {
+					rooms := session.CollabHub.GetActiveSubchannels(ch.Id)
+					if len(rooms) == 0 {
+						rooms = []string{"1"}
+					}
+					for _, r := range rooms {
+						subchannelsMap[ch.Id] = append(subchannelsMap[ch.Id], model.Channel{
+							Id:      ch.Id,
+							Name:    model.Name(r),
+							Moniker: model.Moniker("Room " + r),
+							Type:    model.ChannelTypeCollab,
+						})
+						parts := session.CollabHub.GetRoomParticipants(ch.Id, r)
+						key := fmt.Sprintf("%d_%s", ch.Id, r)
+						collabMembersMap[key] = parts
+					}
+				} else if !ch.IsTicket() && !ch.IsOtel() && !ch.IsConfig() {
 					subchs, _ := model.GetSubchannels(ch.Id)
 					subchannelsMap[ch.Id] = subchs
 				}
@@ -190,8 +227,10 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				"Channels":       channels,
 				"SubchannelsMap": subchannelsMap,
 				"ActiveChannel":  activeChannel,
-				"StarredIdsMap":  starredIdsMap,
-				"IsStarred":      isStarred,
+				"StarredIdsMap":    starredIdsMap,
+				"IsStarred":        isStarred,
+				"CollabMembersMap": collabMembersMap,
+				"VoiceSession":     session.CollabHub.GetUserSession(user.Id),
 			}
 			if activeChannel.IsOtel() {
 				bind["IsOtel"] = true

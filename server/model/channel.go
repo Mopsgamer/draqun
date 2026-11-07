@@ -17,6 +17,7 @@ const (
 	ChannelTypeOtel   ChannelType = "otel"
 	ChannelTypeConfig ChannelType = "config"
 	ChannelTypeWall   ChannelType = "wall"
+	ChannelTypeCollab ChannelType = "collab"
 
 	OtelVirtualChannelID   uint64 = ^uint64(0)
 	ConfigVirtualChannelID uint64 = ^uint64(1)
@@ -45,7 +46,7 @@ func GetConfigVirtualChannel() Channel {
 }
 
 func (ct ChannelType) IsValid() bool {
-	return ct == ChannelTypeText || ct == ChannelTypeTicket || ct == ChannelTypeOtel || ct == ChannelTypeConfig || ct == ChannelTypeWall
+	return ct == ChannelTypeText || ct == ChannelTypeTicket || ct == ChannelTypeOtel || ct == ChannelTypeConfig || ct == ChannelTypeWall || ct == ChannelTypeCollab
 }
 
 type Channel struct {
@@ -117,6 +118,10 @@ func (channel Channel) Validate() htmx.Alert {
 
 func (channel Channel) IsWall() bool {
 	return channel.Type == ChannelTypeWall
+}
+
+func (channel Channel) IsCollab() bool {
+	return channel.Type == ChannelTypeCollab
 }
 
 func (channel Channel) IsEmpty() bool {

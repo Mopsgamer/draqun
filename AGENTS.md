@@ -32,7 +32,7 @@ Keep this file updated.
 
 - **Header (`#header` / `header.navbar`)**:
   - `navbar-start`: Logo (`/chat`), sidebar toggle (`.group-channels-toggle`), active channel moniker trigger (`.group-members-toggle`).
-  - `navbar-end`: Notifications (`partials/notification-bell`), user menu (`partials/avatar-context-menu`).
+  - `navbar-end`: Voice connection & input/output controls (`partials/voice-connection-status`), notifications (`partials/notification-bell`), user menu (`partials/avatar-context-menu`).
 - **Left Column (`#channels-view` / `.secondary-view`)**:
   - Group info (avatar, moniker, `@name`), settings link (`/groups/:id/settings`).
   - Channel list (`#channels`): Top-level channels + subchannels/threads. Active channel highlighted (`bg-primary/15 text-primary`).
@@ -44,6 +44,7 @@ Keep this file updated.
     - Otel dashboard: `partials/otel-dashboard`
     - Server config: `partials/config-dashboard`
     - Wall: `partials/wall-view`
+    - Voice: Triggers header connection session without swapping main workspace view.
     - Text/default: `<main id="chat">` with `#chat-messages-:id` + `partials/chat-input`
 - **Right Column (`#members-view` / `.secondary-view`)**:
   - Active channel moniker/name, star button (`hx-post="/groups/:id/channels/:id/star"`), close toggle.
@@ -144,5 +145,6 @@ Keep this file updated.
 | WebSockets           | `server/session/controller_ws.go`, `server/session/connections.go`                 |
 | Group Chat & Routes  | `server/routes/pages-chat.go`, `server/routes/groups.go`                           |
 | App Shell & Partials | `client/templates/partials/app-group.tmpl`, `partials/app-group-header.tmpl`       |
+| Voice Connections    | `server/session/voice.go`, `client/templates/partials/voice-connection-status.tmpl` |
 | Rendering & HTMX     | `server/render/render.go`, `server/htmx/`                                          |
 | Styles               | `client/src/tailwindcss/components.css`                                            |

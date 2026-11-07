@@ -16,6 +16,7 @@ import (
 	"github.com/Mopsgamer/draqun/server/session"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/contrib/v3/websocket"
+	"github.com/pion/webrtc/v4"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -2106,6 +2107,197 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					ctxWs.Closed = true
 					_ = ctxWs.Conn.Close()
 				})(ctx)
+			},
+		).
+		Post("/:group_id/voice/channels/:channel_id/join",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				channel, err := model.NewChannelFromId(channelId)
+				if err != nil || !channel.IsAvailable() {
+					return ctx.SendStatus(fiber.StatusNotFound)
+				}
+				subchannel := ctx.Query("subchannel", "main")
+				sess := session.CollabHub.JoinSubchannel(
+					user.Id,
+					string(user.Moniker),
+					user.AvatarUrl(),
+					group.Id,
+					channel.Id,
+					string(channel.Moniker),
+					subchannel,
+				)
+				_ = model.UpsertCollabSession(&model.CollabSessionRecord{
+					UserId:         user.Id,
+					GroupId:        group.Id,
+					ChannelId:      channel.Id,
+					SubchannelName: subchannel,
+					InputMuted:     sess.GlobalInputMuted,
+					OutputMuted:    sess.GlobalOutputMuted,
+					VideoEnabled:   sess.VideoEnabled,
+					BitrateKbps:    sess.BitrateKbps,
+				})
+				return ctx.Render("partials/voice-connection-status", fiber.Map{
+					"Group":        group,
+					"VoiceSession": sess,
+				})
+			},
+		).
+		Post("/:group_id/voice/channels/:channel_id/leave",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				sess := session.CollabHub.LeaveChannel(user.Id, channelId)
+				_ = model.DeleteCollabSession(user.Id, channelId)
+				return ctx.Render("partials/voice-connection-status", fiber.Map{
+					"Group":        group,
+					"VoiceSession": sess,
+				})
+			},
+		).
+		Post("/:group_id/voice/disconnect",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				session.CollabHub.DisconnectAll(user.Id)
+				session.WebRTCHub.Close(user.Id)
+				_ = model.DeleteAllUserCollabSessions(user.Id)
+				return ctx.Render("partials/voice-connection-status", fiber.Map{
+					"Group":        group,
+					"VoiceSession": nil,
+				})
+			},
+		).
+		Post("/:group_id/voice/signal",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+
+				type SignalPayload struct {
+					ChannelId      uint64 `json:"channel_id"`
+					SubchannelName string `json:"subchannel_name"`
+					SDP            string `json:"sdp"`
+					Type           string `json:"type"`
+				}
+
+				var req SignalPayload
+				if err := ctx.Bind().JSON(&req); err != nil {
+					return ctx.SendStatus(fiber.StatusBadRequest)
+				}
+
+				offer := webrtc.SessionDescription{
+					SDP:  req.SDP,
+					Type: webrtc.SDPTypeOffer,
+				}
+
+				sub := req.SubchannelName
+				if sub == "" {
+					sub = "main"
+				}
+
+				answer, err := session.WebRTCHub.HandleOffer(user.Id, group.Id, req.ChannelId, sub, offer)
+				if err != nil {
+					return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+				}
+
+				return ctx.JSON(fiber.Map{
+					"sdp":  answer.SDP,
+					"type": answer.Type.String(),
+				})
+			},
+		).
+		Post("/:group_id/voice/toggle-input",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				sess := session.CollabHub.ToggleGlobalInput(user.Id)
+				return ctx.Render("partials/voice-connection-status", fiber.Map{
+					"Group":        group,
+					"VoiceSession": sess,
+				})
+			},
+		).
+		Post("/:group_id/voice/toggle-output",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				sess := session.CollabHub.ToggleGlobalOutput(user.Id)
+				return ctx.Render("partials/voice-connection-status", fiber.Map{
+					"Group":        group,
+					"VoiceSession": sess,
+				})
+			},
+		).
+		Post("/:group_id/voice/toggle-video",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				sess := session.CollabHub.ToggleVideo(user.Id)
+				return ctx.Render("partials/voice-connection-status", fiber.Map{
+					"Group":        group,
+					"VoiceSession": sess,
+				})
+			},
+		).
+		Post("/:group_id/voice/bitrate",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				kbps := fiber.Query[int](ctx, "kbps", 64)
+				sess := session.CollabHub.SetBitrate(user.Id, kbps)
+				return ctx.Render("partials/voice-connection-status", fiber.Map{
+					"Group":        group,
+					"VoiceSession": sess,
+				})
+			},
+		).
+		Post("/:group_id/voice/channels/:channel_id/toggle-input",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				sess := session.CollabHub.ToggleChannelInput(user.Id, channelId)
+				return ctx.Render("partials/voice-connection-status", fiber.Map{
+					"Group":        group,
+					"VoiceSession": sess,
+				})
+			},
+		).
+		Post("/:group_id/voice/channels/:channel_id/toggle-output",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				channelId := fiber.Params[uint64](ctx, "channel_id")
+				sess := session.CollabHub.ToggleChannelOutput(user.Id, channelId)
+				return ctx.Render("partials/voice-connection-status", fiber.Map{
+					"Group":        group,
+					"VoiceSession": sess,
+				})
+			},
+		).
+		Post("/:group_id/voice/users/:target_user_id/toggle-mute",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				targetUserId := fiber.Params[uint64](ctx, "target_user_id")
+				sess := session.CollabHub.ToggleUserMute(user.Id, targetUserId)
+				return ctx.Render("partials/voice-connection-status", fiber.Map{
+					"Group":        group,
+					"VoiceSession": sess,
+				})
 			},
 		)
 }

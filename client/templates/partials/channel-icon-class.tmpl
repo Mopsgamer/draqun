@@ -6,6 +6,8 @@ icon-[lucide--activity]
 icon-[lucide--sliders]
 {{- else if eq . "wall" -}}
 icon-[lucide--info]
+{{- else if or (eq . "collab") (eq . "voice") -}}
+icon-[lucide--users]
 {{- else -}}
 icon-[lucide--hash]
 {{- end -}}

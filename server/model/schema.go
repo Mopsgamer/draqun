@@ -36,6 +36,7 @@ var createTableFiles = []string{
 	"queries/create_group_message_attachments.sql",
 	"queries/create_server_config.sql",
 	"queries/create_channel_attachments.sql",
+	"queries/create_collab_sessions.sql",
 }
 
 type migrationEntry struct {

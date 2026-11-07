@@ -50,8 +50,23 @@
             {{$activeId := .ActiveChannel.Id}}
             {{$groupId := .Group.Id}}
             {{$subMap := .SubchannelsMap}}
+            {{$collabMap := .CollabMembersMap}}
             {{range .Channels}}
             <div class="flex flex-col gap-0.5">
+                {{if or (eq .Type "collab") (eq .Type "voice")}}
+                <button
+                    type="button"
+                    class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors hover:bg-surface-card-hover text-base-content/80 text-left w-full cursor-pointer"
+                    hx-post="/groups/{{$groupId}}/voice/channels/{{.Id}}/join"
+                    hx-target="#voice-header-container"
+                    hx-swap="outerHTML"
+                >
+                    <div class="flex items-center gap-2 truncate min-w-0">
+                        <span class="icon {{template "partials/channel-icon-class" .Type}} size-4 shrink-0" aria-hidden="true"></span>
+                        <span class="truncate">{{.Moniker}}</span>
+                    </div>
+                </button>
+                {{else}}
                 <a
                     class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors {{if eq .Id $activeId}}bg-primary/15 text-primary font-semibold{{else}}hover:bg-surface-card-hover text-base-content/80{{end}}"
                     href="/chat/groups/{{$groupId}}/channels/{{.Id}}"
@@ -61,10 +76,54 @@
                         <span class="truncate">{{.Moniker}}</span>
                     </div>
                 </a>
+                {{end}}
                 {{$subchs := index $subMap .Id}}
                 {{if $subchs}}
                 <div class="pl-4 flex flex-col gap-0.5 border-l border-base-content/10 ml-2 my-0.5">
                     {{range $subchs}}
+                    {{if or (eq .Type "collab") (eq .Type "voice")}}
+                    {{$roomKey := printf "%d_%s" .Id .Name}}
+                    {{$roomMembers := index $collabMap $roomKey}}
+                    <button
+                        type="button"
+                        class="flex items-center justify-between gap-1 px-2 py-1 rounded-md text-xs font-medium transition-colors hover:bg-surface-card-hover text-base-content/70 text-left w-full cursor-pointer"
+                        hx-post="/groups/{{$groupId}}/voice/channels/{{.Id}}/join?subchannel={{.Name}}"
+                        hx-target="#voice-header-container"
+                        hx-swap="outerHTML"
+                    >
+                        <div class="flex items-center gap-1.5 truncate min-w-0">
+                            <span class="icon icon-[lucide--corner-down-right] size-3 shrink-0 text-base-content/40" aria-hidden="true"></span>
+                            <span class="truncate">{{.Moniker}}</span>
+                        </div>
+                        {{if $roomMembers}}
+                        {{$memLen := len $roomMembers}}
+                        <div class="avatar-group -space-x-2 shrink-0">
+                            {{range $i, $m := $roomMembers}}
+                            {{if lt $i 5}}
+                            <div class="avatar border border-base-100 rounded-full">
+                                <div class="w-4 rounded-full">
+                                    <img src="{{$m.AvatarUrl}}" alt="{{$m.Moniker}}" />
+                                </div>
+                            </div>
+                            {{else if and (eq $i 5) (eq $memLen 6)}}
+                            <div class="avatar border border-base-100 rounded-full">
+                                <div class="w-4 rounded-full">
+                                    <img src="{{$m.AvatarUrl}}" alt="{{$m.Moniker}}" />
+                                </div>
+                            </div>
+                            {{end}}
+                            {{end}}
+                            {{if gt $memLen 6}}
+                            <div class="avatar avatar-placeholder border border-base-100 rounded-full">
+                                <div class="w-4 rounded-full bg-neutral text-neutral-content text-[8px] font-bold">
+                                    +{{add $memLen -5}}
+                                </div>
+                            </div>
+                            {{end}}
+                        </div>
+                        {{end}}
+                    </button>
+                    {{else}}
                     <a
                         class="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors {{if eq .Id $activeId}}bg-primary/15 text-primary font-semibold{{else}}hover:bg-surface-card-hover text-base-content/70{{end}}"
                         href="/chat/groups/{{$groupId}}/channels/{{.Id}}"
@@ -72,6 +131,7 @@
                         <span class="icon icon-[lucide--corner-down-right] size-3 shrink-0 text-base-content/40" aria-hidden="true"></span>
                         <span class="truncate">{{.Moniker}}</span>
                     </a>
+                    {{end}}
                     {{end}}
                 </div>
                 {{end}}
