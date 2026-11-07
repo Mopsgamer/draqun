@@ -16,8 +16,8 @@ import (
 	"github.com/Mopsgamer/draqun/server/session"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/contrib/v3/websocket"
-	"github.com/pion/webrtc/v4"
 	"github.com/gofiber/fiber/v3"
+	"github.com/pion/webrtc/v4"
 )
 
 type GroupCreate struct {
@@ -2224,6 +2224,20 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				sess := session.CollabHub.ToggleGlobalInput(user.Id)
+				if sess != nil {
+					for _, ch := range sess.Channels {
+						_ = model.UpsertCollabSession(&model.CollabSessionRecord{
+							UserId:         user.Id,
+							GroupId:        group.Id,
+							ChannelId:      ch.ChannelId,
+							SubchannelName: ch.SubchannelName,
+							InputMuted:     sess.GlobalInputMuted,
+							OutputMuted:    sess.GlobalOutputMuted,
+							VideoEnabled:   sess.VideoEnabled,
+							BitrateKbps:    sess.BitrateKbps,
+						})
+					}
+				}
 				return ctx.Render("partials/collab-connection-status", fiber.Map{
 					"Group":         group,
 					"CollabSession": sess,
@@ -2236,6 +2250,20 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				sess := session.CollabHub.ToggleGlobalOutput(user.Id)
+				if sess != nil {
+					for _, ch := range sess.Channels {
+						_ = model.UpsertCollabSession(&model.CollabSessionRecord{
+							UserId:         user.Id,
+							GroupId:        group.Id,
+							ChannelId:      ch.ChannelId,
+							SubchannelName: ch.SubchannelName,
+							InputMuted:     sess.GlobalInputMuted,
+							OutputMuted:    sess.GlobalOutputMuted,
+							VideoEnabled:   sess.VideoEnabled,
+							BitrateKbps:    sess.BitrateKbps,
+						})
+					}
+				}
 				return ctx.Render("partials/collab-connection-status", fiber.Map{
 					"Group":         group,
 					"CollabSession": sess,
@@ -2248,6 +2276,20 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				sess := session.CollabHub.ToggleVideo(user.Id)
+				if sess != nil {
+					for _, ch := range sess.Channels {
+						_ = model.UpsertCollabSession(&model.CollabSessionRecord{
+							UserId:         user.Id,
+							GroupId:        group.Id,
+							ChannelId:      ch.ChannelId,
+							SubchannelName: ch.SubchannelName,
+							InputMuted:     sess.GlobalInputMuted,
+							OutputMuted:    sess.GlobalOutputMuted,
+							VideoEnabled:   sess.VideoEnabled,
+							BitrateKbps:    sess.BitrateKbps,
+						})
+					}
+				}
 				return ctx.Render("partials/collab-connection-status", fiber.Map{
 					"Group":         group,
 					"CollabSession": sess,

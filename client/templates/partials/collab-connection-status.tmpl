@@ -41,46 +41,48 @@
                 </button>
             </div>
 
-            <!-- Quick Controls moved inside Context Menu (Mic, Headphones, Video) -->
-            <div class="flex items-center justify-center gap-2 py-1 bg-base-200/40 rounded-lg border border-base-content/5">
-                <button
-                    type="button"
-                    class="btn btn-ghost btn-circle btn-sm {{if .CollabSession.GlobalInputMuted}}text-error bg-error/10{{else}}text-base-content/80 hover:text-base-content{{end}}"
-                    id="collab-btn-mic"
-                    hx-post="/groups/{{.Group.Id}}/collab/toggle-input"
-                    hx-target="#collab-header-container"
-                    hx-swap="outerHTML"
-                    aria-label="Toggle microphone"
-                    title="{{if .CollabSession.GlobalInputMuted}}Microphone muted{{else}}Microphone active{{end}}"
-                >
-                    <span class="icon {{if .CollabSession.GlobalInputMuted}}icon-[lucide--mic-off]{{else}}icon-[lucide--mic]{{end}} size-4"></span>
-                </button>
+            <!-- Quick Controls moved inside Context Menu (Mic, Headphones, Video) in standard Join -->
+            <div class="flex items-center justify-center py-1">
+                <div class="join">
+                    <button
+                        type="button"
+                        class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.GlobalInputMuted}}text-error{{else}}text-base-content/80 hover:text-base-content{{end}}"
+                        id="collab-btn-mic"
+                        hx-post="/groups/{{.Group.Id}}/collab/toggle-input"
+                        hx-target="#collab-header-container"
+                        hx-swap="outerHTML"
+                        aria-label="Toggle microphone"
+                        title="{{if .CollabSession.GlobalInputMuted}}Microphone muted{{else}}Microphone active{{end}}"
+                    >
+                        <span class="icon {{if .CollabSession.GlobalInputMuted}}icon-[lucide--mic-off]{{else}}icon-[lucide--mic]{{end}} size-4"></span>
+                    </button>
 
-                <button
-                    type="button"
-                    class="btn btn-circle btn-ghost btn-sm {{if .CollabSession.GlobalOutputMuted}}text-error bg-error/10{{else}}text-base-content/80 hover:text-base-content{{end}}"
-                    id="collab-btn-audio"
-                    hx-post="/groups/{{.Group.Id}}/collab/toggle-output"
-                    hx-target="#collab-header-container"
-                    hx-swap="outerHTML"
-                    aria-label="Toggle headphones"
-                    title="{{if .CollabSession.GlobalOutputMuted}}Headphones deafened{{else}}Headphones active{{end}}"
-                >
-                    <span class="icon {{if .CollabSession.GlobalOutputMuted}}icon-[lucide--headphones]{{else}}icon-[lucide--headphones]{{end}} size-4 {{if .CollabSession.GlobalOutputMuted}}line-through opacity-60{{end}}"></span>
-                </button>
+                    <button
+                        type="button"
+                        class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.GlobalOutputMuted}}text-error{{else}}text-base-content/80 hover:text-base-content{{end}}"
+                        id="collab-btn-audio"
+                        hx-post="/groups/{{.Group.Id}}/collab/toggle-output"
+                        hx-target="#collab-header-container"
+                        hx-swap="outerHTML"
+                        aria-label="Toggle headphones"
+                        title="{{if .CollabSession.GlobalOutputMuted}}Headphones deafened{{else}}Headphones active{{end}}"
+                    >
+                        <span class="icon {{if .CollabSession.GlobalOutputMuted}}icon-[lucide--volume-x]{{else}}icon-[lucide--headphones]{{end}} size-4"></span>
+                    </button>
 
-                <button
-                    type="button"
-                    class="btn btn-circle btn-ghost btn-sm {{if .CollabSession.VideoEnabled}}text-primary bg-primary/10{{else}}text-base-content/60 hover:text-base-content{{end}}"
-                    id="collab-btn-video"
-                    hx-post="/groups/{{.Group.Id}}/collab/toggle-video"
-                    hx-target="#collab-header-container"
-                    hx-swap="outerHTML"
-                    aria-label="Toggle video"
-                    title="{{if .CollabSession.VideoEnabled}}Camera enabled{{else}}Camera disabled{{end}}"
-                >
-                    <span class="icon {{if .CollabSession.VideoEnabled}}icon-[lucide--video]{{else}}icon-[lucide--video-off]{{end}} size-4"></span>
-                </button>
+                    <button
+                        type="button"
+                        class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.VideoEnabled}}text-primary{{else}}text-base-content/60 hover:text-base-content{{end}}"
+                        id="collab-btn-video"
+                        hx-post="/groups/{{.Group.Id}}/collab/toggle-video"
+                        hx-target="#collab-header-container"
+                        hx-swap="outerHTML"
+                        aria-label="Toggle video"
+                        title="{{if .CollabSession.VideoEnabled}}Camera enabled{{else}}Camera disabled{{end}}"
+                    >
+                        <span class="icon {{if .CollabSession.VideoEnabled}}icon-[lucide--video]{{else}}icon-[lucide--video-off]{{end}} size-4"></span>
+                    </button>
+                </div>
             </div>
 
             <!-- Connection stats: signal strength & clickable bitrate -->
