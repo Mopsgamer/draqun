@@ -1,6 +1,8 @@
 package session
 
 import (
+	"sort"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -69,7 +71,32 @@ func (h *collabHub) GetActiveSubchannels(channelId uint64) []string {
 	for r := range roomSet {
 		rooms = append(rooms, r)
 	}
+	sort.Slice(rooms, func(i, j int) bool {
+		numI, errI := strconv.Atoi(rooms[i])
+		numJ, errJ := strconv.Atoi(rooms[j])
+		if errI == nil && errJ == nil {
+			return numI < numJ
+		}
+		return rooms[i] < rooms[j]
+	})
 	return rooms
+}
+
+func (h *collabHub) GetNextSubchannel(channelId uint64) string {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	maxRoom := 0
+	for _, sess := range h.sessions {
+		if ch, ok := sess.Channels[channelId]; ok && len(ch.Participants) > 0 {
+			if n, err := strconv.Atoi(ch.SubchannelName); err == nil {
+				if n > maxRoom {
+					maxRoom = n
+				}
+			}
+		}
+	}
+	return strconv.Itoa(maxRoom + 1)
 }
 
 func (h *collabHub) GetRoomParticipants(channelId uint64, subchannel string) []CollabParticipant {
@@ -104,8 +131,8 @@ func (h *collabHub) JoinSubchannel(
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	if subchannelName == "" {
-		subchannelName = "main"
+	if subchannelName == "" || subchannelName == "new" || subchannelName == "main" {
+		subchannelName = "1"
 	}
 
 	sess, exists := h.sessions[userId]

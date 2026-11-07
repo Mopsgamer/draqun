@@ -8,7 +8,11 @@ const rtcConfig: RTCConfiguration = {
 	iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
 
-export async function startWebRTCSession(groupId: string, channelId: string, subchannelName: string) {
+export async function startWebRTCSession(
+	groupId: string,
+	channelId: string,
+	subchannelName: string,
+) {
 	try {
 		stopWebRTCSession();
 
@@ -19,14 +23,19 @@ export async function startWebRTCSession(groupId: string, channelId: string, sub
 
 		pc.ontrack = (event) => {
 			if (event.track.kind === "audio" && remoteAudio) {
-				remoteAudio.srcObject = event.streams[0] || new MediaStream([event.track]);
+				remoteAudio.srcObject =
+					event.streams[0] || new MediaStream([event.track]);
 			} else if (event.track.kind === "video") {
-				renderRemoteVideoTrack(event.streams[0] || new MediaStream([event.track]));
+				renderRemoteVideoTrack(
+					event.streams[0] || new MediaStream([event.track]),
+				);
 			}
 		};
 
 		// Check camera toggle in DOM
-		const videoBtn = document.getElementById("voice-btn-video");
+		const videoBtn =
+			document.getElementById("collab-btn-video") ||
+			document.getElementById("voice-btn-video");
 		const wantVideo = videoBtn?.classList.contains("text-primary") ?? false;
 
 		localStream = await navigator.mediaDevices.getUserMedia({
@@ -63,12 +72,12 @@ export async function startWebRTCSession(groupId: string, channelId: string, sub
 			}
 		});
 
-		const res = await fetch(`/groups/${groupId}/voice/signal`, {
+		const res = await fetch(`/groups/${groupId}/collab/signal`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
 				channel_id: parseInt(channelId, 10),
-				subchannel_name: subchannelName || "main",
+				subchannel_name: subchannelName || "1",
 				sdp: pc.localDescription?.sdp,
 				type: pc.localDescription?.type,
 			}),
@@ -99,7 +108,12 @@ export function stopWebRTCSession() {
 	removeVideoDock();
 }
 
-function renderVideoTile(id: string, label: string, stream: MediaStream, isMuted: boolean) {
+function renderVideoTile(
+	id: string,
+	label: string,
+	stream: MediaStream,
+	isMuted: boolean,
+) {
 	let dock = document.getElementById("collab-video-dock");
 	if (!dock) {
 		dock = document.createElement("div");
@@ -113,7 +127,8 @@ function renderVideoTile(id: string, label: string, stream: MediaStream, isMuted
 	if (!tile) {
 		tile = document.createElement("div");
 		tile.id = `video-tile-${id}`;
-		tile.className = "relative rounded-lg overflow-hidden bg-black aspect-video w-44 sm:w-52 border border-base-content/10";
+		tile.className =
+			"relative rounded-lg overflow-hidden bg-black aspect-video w-44 sm:w-52 border border-base-content/10";
 
 		const video = document.createElement("video");
 		video.autoplay = true;
@@ -123,12 +138,14 @@ function renderVideoTile(id: string, label: string, stream: MediaStream, isMuted
 		tile.appendChild(video);
 
 		const tag = document.createElement("span");
-		tag.className = "absolute bottom-1 left-1 badge badge-neutral badge-xs text-[10px] opacity-80";
+		tag.className =
+			"absolute bottom-1 left-1 badge badge-neutral badge-xs text-[10px] opacity-80";
 		tag.textContent = label;
 		tile.appendChild(tag);
 
 		const closeBtn = document.createElement("button");
-		closeBtn.className = "btn btn-ghost btn-circle btn-xs absolute top-1 right-1 text-white hover:bg-black/50";
+		closeBtn.className =
+			"btn btn-ghost btn-circle btn-xs absolute top-1 right-1 text-white hover:bg-black/50";
 		closeBtn.innerHTML = '<span class="icon icon-[lucide--x] size-3"></span>';
 		closeBtn.onclick = () => tile?.remove();
 		tile.appendChild(closeBtn);
@@ -156,23 +173,33 @@ function removeVideoDock() {
 }
 
 function checkAndSyncVoice() {
-	const container = document.getElementById("voice-header-container");
-	if (!container || container.classList.contains("hidden") || !container.hasAttribute("data-voice-active")) {
+	const container =
+		document.getElementById("collab-header-container") ||
+		document.getElementById("voice-header-container");
+	if (
+		!container ||
+		container.classList.contains("hidden") ||
+		!container.hasAttribute("data-voice-active")
+	) {
 		stopWebRTCSession();
 		return;
 	}
 
 	const groupId = container.getAttribute("data-group-id");
-	const firstCh = container.querySelector(".channel-voice-entry");
+	const firstCh =
+		container.querySelector(".channel-collab-entry") ||
+		container.querySelector(".channel-voice-entry");
 	const channelId = firstCh?.getAttribute("data-channel-id");
-	const subchannelName = firstCh?.getAttribute("data-subchannel-name") || "main";
+	const subchannelName = firstCh?.getAttribute("data-subchannel-name") || "1";
 
 	if (groupId && channelId && !pc) {
 		startWebRTCSession(groupId, channelId, subchannelName);
 	}
 
 	// Sync local mic mute
-	const micBtn = document.getElementById("voice-btn-mic");
+	const micBtn =
+		document.getElementById("collab-btn-mic") ||
+		document.getElementById("voice-btn-mic");
 	const isMicMuted = micBtn?.querySelector(".icon-[lucide--mic-off]") !== null;
 	if (localStream) {
 		localStream.getAudioTracks().forEach((track) => {
@@ -181,7 +208,9 @@ function checkAndSyncVoice() {
 	}
 
 	// Sync local deafen/headphones
-	const audioBtn = document.getElementById("voice-btn-audio");
+	const audioBtn =
+		document.getElementById("collab-btn-audio") ||
+		document.getElementById("voice-btn-audio");
 	const isDeafened = audioBtn?.classList.contains("text-error") ?? false;
 	if (remoteAudio) {
 		remoteAudio.muted = isDeafened;
@@ -191,11 +220,17 @@ function checkAndSyncVoice() {
 domLoaded.then(() => {
 	checkAndSyncVoice();
 
-	// Reconnect or hook onto HTMX voice events
+	// Reconnect or hook onto HTMX voice/collab events
 	document.body.addEventListener("htmx:afterOnLoad", (evt: Event) => {
 		const customEvt = evt as CustomEvent;
 		const target = customEvt.detail?.target as HTMLElement | null;
-		if (target && (target.id === "voice-header-container" || target.closest("#voice-header-container"))) {
+		if (
+			target &&
+			(target.id === "collab-header-container" ||
+				target.closest("#collab-header-container") ||
+				target.id === "voice-header-container" ||
+				target.closest("#voice-header-container"))
+		) {
 			checkAndSyncVoice();
 		}
 	});

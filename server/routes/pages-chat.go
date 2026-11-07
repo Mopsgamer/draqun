@@ -78,14 +78,11 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			for _, ch := range channels {
 				if ch.IsCollab() {
 					rooms := session.CollabHub.GetActiveSubchannels(ch.Id)
-					if len(rooms) == 0 {
-						rooms = []string{"1"}
-					}
 					for _, r := range rooms {
 						subchannelsMap[ch.Id] = append(subchannelsMap[ch.Id], model.Channel{
 							Id:      ch.Id,
 							Name:    model.Name(r),
-							Moniker: model.Moniker("Room " + r),
+							Moniker: model.Moniker(r),
 							Type:    model.ChannelTypeCollab,
 						})
 						parts := session.CollabHub.GetRoomParticipants(ch.Id, r)
@@ -124,7 +121,7 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				"StarredIdsMap":    starredIdsMap,
 				"IsStarred":        isStarred,
 				"CollabMembersMap": collabMembersMap,
-				"VoiceSession":     session.CollabHub.GetUserSession(user.Id),
+				"CollabSession":    session.CollabHub.GetUserSession(user.Id),
 			}
 			if activeChannel.IsWall() {
 				bind["IsWall"] = true
@@ -189,14 +186,11 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			for _, ch := range channels {
 				if ch.IsCollab() {
 					rooms := session.CollabHub.GetActiveSubchannels(ch.Id)
-					if len(rooms) == 0 {
-						rooms = []string{"1"}
-					}
 					for _, r := range rooms {
 						subchannelsMap[ch.Id] = append(subchannelsMap[ch.Id], model.Channel{
 							Id:      ch.Id,
 							Name:    model.Name(r),
-							Moniker: model.Moniker("Room " + r),
+							Moniker: model.Moniker(r),
 							Type:    model.ChannelTypeCollab,
 						})
 						parts := session.CollabHub.GetRoomParticipants(ch.Id, r)
@@ -230,7 +224,7 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				"StarredIdsMap":    starredIdsMap,
 				"IsStarred":        isStarred,
 				"CollabMembersMap": collabMembersMap,
-				"VoiceSession":     session.CollabHub.GetUserSession(user.Id),
+				"CollabSession":    session.CollabHub.GetUserSession(user.Id),
 			}
 			if activeChannel.IsOtel() {
 				bind["IsOtel"] = true

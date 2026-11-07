@@ -1,63 +1,22 @@
-{{if and .VoiceSession (gt (len .VoiceSession.Channels) 0)}}
+{{if and .CollabSession (gt (len .CollabSession.Channels) 0)}}
 <div
-    id="voice-header-container"
+    id="collab-header-container"
     class="flex items-center gap-1"
+    data-collab-active="true"
     data-voice-active="true"
     data-group-id="{{.Group.Id}}"
 >
-    <!-- Header Quick Controls (Mic, Headphones, Video joined) -->
-    <div class="join">
-        <button
-            type="button"
-            class="join-item btn btn-ghost btn-square btn-sm {{if .VoiceSession.GlobalInputMuted}}text-error{{else}}text-base-content/80 hover:text-base-content{{end}}"
-            id="voice-btn-mic"
-            hx-post="/groups/{{.Group.Id}}/voice/toggle-input"
-            hx-target="#voice-header-container"
-            hx-swap="outerHTML"
-            aria-label="Toggle microphone"
-            title="{{if .VoiceSession.GlobalInputMuted}}Microphone muted{{else}}Microphone active{{end}}"
-        >
-            <span class="icon {{if .VoiceSession.GlobalInputMuted}}icon-[lucide--mic-off]{{else}}icon-[lucide--mic]{{end}} size-4"></span>
-        </button>
-
-        <button
-            type="button"
-            class="join-item btn btn-ghost btn-square btn-sm {{if .VoiceSession.GlobalOutputMuted}}text-error{{else}}text-base-content/80 hover:text-base-content{{end}}"
-            id="voice-btn-audio"
-            hx-post="/groups/{{.Group.Id}}/voice/toggle-output"
-            hx-target="#voice-header-container"
-            hx-swap="outerHTML"
-            aria-label="Toggle headphones"
-            title="{{if .VoiceSession.GlobalOutputMuted}}Headphones deafened{{else}}Headphones active{{end}}"
-        >
-            <span class="icon {{if .VoiceSession.GlobalOutputMuted}}icon-[lucide--headphones]{{else}}icon-[lucide--headphones]{{end}} size-4 {{if .VoiceSession.GlobalOutputMuted}}line-through opacity-60{{end}}"></span>
-        </button>
-
-        <button
-            type="button"
-            class="join-item btn btn-ghost btn-square btn-sm {{if .VoiceSession.VideoEnabled}}text-primary{{else}}text-base-content/60 hover:text-base-content{{end}}"
-            id="voice-btn-video"
-            hx-post="/groups/{{.Group.Id}}/voice/toggle-video"
-            hx-target="#voice-header-container"
-            hx-swap="outerHTML"
-            aria-label="Toggle video"
-            title="{{if .VoiceSession.VideoEnabled}}Camera enabled{{else}}Camera disabled{{end}}"
-        >
-            <span class="icon {{if .VoiceSession.VideoEnabled}}icon-[lucide--video]{{else}}icon-[lucide--video-off]{{end}} size-4"></span>
-        </button>
-    </div>
-
-    <!-- Voice Connection Main Status Dropdown -->
+    <!-- Collaboration Connection Main Status Dropdown -->
     <details class="dropdown dropdown-end">
         <summary
             class="btn btn-ghost btn-square btn-sm cursor-pointer list-none flex items-center justify-center relative"
-            aria-label="Voice connection settings"
+            aria-label="Collaboration connection settings"
             title="In call - click for details"
         >
             <div class="indicator">
                 <span class="icon icon-[lucide--phone-call] size-5" aria-hidden="true"></span>
-                <span id="voice-indicator" class="badge badge-error badge-xs indicator-item">
-                    {{len .VoiceSession.Channels}}
+                <span id="collab-indicator" class="badge badge-error badge-xs indicator-item">
+                    {{len .CollabSession.Channels}}
                 </span>
             </div>
         </summary>
@@ -67,18 +26,60 @@
             <div class="flex items-center justify-between pb-2 border-b border-base-content/10">
                 <div class="flex items-center gap-1.5">
                     <span class="icon icon-[lucide--radio] size-4 text-success"></span>
-                    <span class="text-xs font-bold uppercase tracking-wider text-base-content/70">Voice Session</span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-base-content/70">Collaboration Space</span>
                 </div>
                 <button
                     type="button"
                     class="btn btn-ghost btn-xs text-error hover:bg-error/10 gap-1"
-                    hx-post="/groups/{{.Group.Id}}/voice/disconnect"
-                    hx-target="#voice-header-container"
+                    hx-post="/groups/{{.Group.Id}}/collab/disconnect"
+                    hx-target="#collab-header-container"
                     hx-swap="outerHTML"
-                    title="Disconnect from voice"
+                    title="Disconnect from collaboration"
                 >
                     <span class="icon icon-[lucide--phone-off] size-3"></span>
                     Disconnect
+                </button>
+            </div>
+
+            <!-- Quick Controls moved inside Context Menu (Mic, Headphones, Video) -->
+            <div class="flex items-center justify-center gap-2 py-1 bg-base-200/40 rounded-lg border border-base-content/5">
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-circle btn-sm {{if .CollabSession.GlobalInputMuted}}text-error bg-error/10{{else}}text-base-content/80 hover:text-base-content{{end}}"
+                    id="collab-btn-mic"
+                    hx-post="/groups/{{.Group.Id}}/collab/toggle-input"
+                    hx-target="#collab-header-container"
+                    hx-swap="outerHTML"
+                    aria-label="Toggle microphone"
+                    title="{{if .CollabSession.GlobalInputMuted}}Microphone muted{{else}}Microphone active{{end}}"
+                >
+                    <span class="icon {{if .CollabSession.GlobalInputMuted}}icon-[lucide--mic-off]{{else}}icon-[lucide--mic]{{end}} size-4"></span>
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-circle btn-ghost btn-sm {{if .CollabSession.GlobalOutputMuted}}text-error bg-error/10{{else}}text-base-content/80 hover:text-base-content{{end}}"
+                    id="collab-btn-audio"
+                    hx-post="/groups/{{.Group.Id}}/collab/toggle-output"
+                    hx-target="#collab-header-container"
+                    hx-swap="outerHTML"
+                    aria-label="Toggle headphones"
+                    title="{{if .CollabSession.GlobalOutputMuted}}Headphones deafened{{else}}Headphones active{{end}}"
+                >
+                    <span class="icon {{if .CollabSession.GlobalOutputMuted}}icon-[lucide--headphones]{{else}}icon-[lucide--headphones]{{end}} size-4 {{if .CollabSession.GlobalOutputMuted}}line-through opacity-60{{end}}"></span>
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-circle btn-ghost btn-sm {{if .CollabSession.VideoEnabled}}text-primary bg-primary/10{{else}}text-base-content/60 hover:text-base-content{{end}}"
+                    id="collab-btn-video"
+                    hx-post="/groups/{{.Group.Id}}/collab/toggle-video"
+                    hx-target="#collab-header-container"
+                    hx-swap="outerHTML"
+                    aria-label="Toggle video"
+                    title="{{if .CollabSession.VideoEnabled}}Camera enabled{{else}}Camera disabled{{end}}"
+                >
+                    <span class="icon {{if .CollabSession.VideoEnabled}}icon-[lucide--video]{{else}}icon-[lucide--video-off]{{end}} size-4"></span>
                 </button>
             </div>
 
@@ -92,14 +93,14 @@
                 <!-- Bitrate context menu -->
                 <details class="dropdown dropdown-end">
                     <summary class="badge badge-outline badge-sm gap-1 cursor-pointer font-mono text-[11px] hover:badge-primary">
-                        <span>{{.VoiceSession.BitrateKbps}} kbps</span>
+                        <span>{{.CollabSession.BitrateKbps}} kbps</span>
                         <span class="icon icon-[lucide--chevron-down] size-2.5"></span>
                     </summary>
                     <ul class="dropdown-content menu z-50 p-1 shadow-lg bg-surface-overlay rounded-box w-28 text-base-content border border-base-content/10 mt-1">
-                        <li><button type="button" class="text-xs py-1" hx-post="/groups/{{$.Group.Id}}/voice/bitrate?kbps=32" hx-target="#voice-header-container" hx-swap="outerHTML">32 kbps</button></li>
-                        <li><button type="button" class="text-xs py-1" hx-post="/groups/{{$.Group.Id}}/voice/bitrate?kbps=64" hx-target="#voice-header-container" hx-swap="outerHTML">64 kbps</button></li>
-                        <li><button type="button" class="text-xs py-1" hx-post="/groups/{{$.Group.Id}}/voice/bitrate?kbps=96" hx-target="#voice-header-container" hx-swap="outerHTML">96 kbps</button></li>
-                        <li><button type="button" class="text-xs py-1" hx-post="/groups/{{$.Group.Id}}/voice/bitrate?kbps=128" hx-target="#voice-header-container" hx-swap="outerHTML">128 kbps</button></li>
+                        <li><button type="button" class="text-xs py-1" hx-post="/groups/{{$.Group.Id}}/collab/bitrate?kbps=32" hx-target="#collab-header-container" hx-swap="outerHTML">32 kbps</button></li>
+                        <li><button type="button" class="text-xs py-1" hx-post="/groups/{{$.Group.Id}}/collab/bitrate?kbps=64" hx-target="#collab-header-container" hx-swap="outerHTML">64 kbps</button></li>
+                        <li><button type="button" class="text-xs py-1" hx-post="/groups/{{$.Group.Id}}/collab/bitrate?kbps=96" hx-target="#collab-header-container" hx-swap="outerHTML">96 kbps</button></li>
+                        <li><button type="button" class="text-xs py-1" hx-post="/groups/{{$.Group.Id}}/collab/bitrate?kbps=128" hx-target="#collab-header-container" hx-swap="outerHTML">128 kbps</button></li>
                     </ul>
                 </details>
             </div>
@@ -107,24 +108,24 @@
             <!-- Active Channels List -->
             <div class="flex flex-col gap-1.5">
                 <div class="text-[11px] font-bold text-base-content/60 uppercase tracking-wider">Connected Channels</div>
-                <div id="voice-channels-list" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
-                    {{range .VoiceSession.Channels}}
+                <div id="collab-channels-list" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+                    {{range .CollabSession.Channels}}
                     <div
-                        class="flex flex-col gap-2 p-2 rounded-lg bg-base-200/50 border border-base-content/5 text-xs channel-voice-entry"
+                        class="flex flex-col gap-2 p-2 rounded-lg bg-base-200/50 border border-base-content/5 text-xs channel-collab-entry"
                         data-channel-id="{{.ChannelId}}"
                         data-subchannel-name="{{.SubchannelName}}"
                     >
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-1.5 font-medium truncate max-w-[150px]">
                                 <span class="icon icon-[lucide--users] size-3.5 text-success shrink-0"></span>
-                                <span class="truncate">{{.ChannelName}}</span>
+                                <span class="truncate">{{.ChannelName}} #{{.SubchannelName}}</span>
                             </div>
                             <div class="flex items-center gap-1">
                                 <button
                                     type="button"
                                     class="btn btn-ghost btn-square btn-xs {{if .InputMuted}}text-error{{else}}text-base-content/70 hover:text-base-content{{end}}"
-                                    hx-post="/groups/{{$.Group.Id}}/voice/channels/{{.ChannelId}}/toggle-input"
-                                    hx-target="#voice-header-container"
+                                    hx-post="/groups/{{$.Group.Id}}/collab/channels/{{.ChannelId}}/toggle-input"
+                                    hx-target="#collab-header-container"
                                     hx-swap="outerHTML"
                                     title="{{if .InputMuted}}Channel mic disabled{{else}}Channel mic active{{end}}"
                                 >
@@ -133,8 +134,8 @@
                                 <button
                                     type="button"
                                     class="btn btn-ghost btn-square btn-xs {{if .OutputMuted}}text-error{{else}}text-base-content/70 hover:text-base-content{{end}}"
-                                    hx-post="/groups/{{$.Group.Id}}/voice/channels/{{.ChannelId}}/toggle-output"
-                                    hx-target="#voice-header-container"
+                                    hx-post="/groups/{{$.Group.Id}}/collab/channels/{{.ChannelId}}/toggle-output"
+                                    hx-target="#collab-header-container"
                                     hx-swap="outerHTML"
                                     title="{{if .OutputMuted}}Channel output disabled{{else}}Channel output active{{end}}"
                                 >
@@ -143,8 +144,8 @@
                                 <button
                                     type="button"
                                     class="btn btn-ghost btn-square btn-xs text-error/70 hover:text-error hover:bg-error/10"
-                                    hx-post="/groups/{{$.Group.Id}}/voice/channels/{{.ChannelId}}/leave"
-                                    hx-target="#voice-header-container"
+                                    hx-post="/groups/{{$.Group.Id}}/collab/channels/{{.ChannelId}}/leave"
+                                    hx-target="#collab-header-container"
                                     hx-swap="outerHTML"
                                     title="Leave channel"
                                 >
@@ -152,28 +153,6 @@
                                 </button>
                             </div>
                         </div>
-
-                        <!-- Virtual Room Selector: Infinite Numeric Input -->
-                        <form
-                            class="flex items-center gap-1.5 pt-1 border-t border-base-content/5"
-                            hx-post="/groups/{{$.Group.Id}}/voice/channels/{{.ChannelId}}/join"
-                            hx-target="#voice-header-container"
-                            hx-swap="outerHTML"
-                        >
-                            <span class="text-[10px] text-base-content/50 uppercase font-mono">Room:</span>
-                            <div class="join">
-                                <input
-                                    type="number"
-                                    name="subchannel"
-                                    min="1"
-                                    value="{{if and .SubchannelName (ne .SubchannelName "main")}}{{.SubchannelName}}{{else}}1{{end}}"
-                                    class="join-item input input-xs input-bordered w-14 font-mono text-center"
-                                />
-                                <button type="submit" class="join-item btn btn-xs btn-primary px-2" title="Go to room">
-                                    <span class="icon icon-[lucide--arrow-right] size-3"></span>
-                                </button>
-                            </div>
-                        </form>
 
                         <div class="flex items-center justify-between pt-1 border-t border-base-content/5">
                             <span class="text-[10px] text-base-content/60">Members:</span>
@@ -194,8 +173,8 @@
                                         <button
                                             type="button"
                                             class="flex items-center justify-between text-xs py-1"
-                                            hx-post="/groups/{{$.Group.Id}}/voice/users/{{.UserId}}/toggle-mute"
-                                            hx-target="#voice-header-container"
+                                            hx-post="/groups/{{$.Group.Id}}/collab/users/{{.UserId}}/toggle-mute"
+                                            hx-target="#collab-header-container"
                                             hx-swap="outerHTML"
                                         >
                                             <div class="flex items-center gap-1.5 truncate">
@@ -219,5 +198,5 @@
     </details>
 </div>
 {{else}}
-<div id="voice-header-container" class="hidden"></div>
+<div id="collab-header-container" class="hidden"></div>
 {{end}}
