@@ -352,6 +352,9 @@ export function checkAndSyncVoice() {
 		document.getElementById("collab-btn-video") ||
 		document.getElementById("voice-btn-video");
 	const wantVideo = videoBtn?.classList.contains("text-primary") ?? false;
+	if (wantVideo && localStream && localStream.getVideoTracks().length > 0) {
+		renderLocalVideo(localStream);
+	}
 	syncVideoTrack(wantVideo);
 }
 
