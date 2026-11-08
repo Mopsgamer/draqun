@@ -56,7 +56,7 @@ Keep this file updated.
 - Use DaisyUI components (`btn`, `btn-primary`, `btn-ghost`, `avatar`, `dropdown`, `menu`, etc.).
 - Extract repetitive utility patterns into CSS classes (`client/src/tailwindcss/components.css`).
 - **Popups & Menus**:
-  - Use `<details class="dropdown dropdown-end">` with `<summary class="btn ...">` and `<ul class="dropdown-content menu ...">`.
+  - Use popover API.
   - **Forbidden**: Native browser dialogs (`alert`, `confirm`, `prompt`) and `hx-confirm`. Use DaisyUI `<details class="dropdown">`, modals, or inline buttons.
 
 ## 3. Adding New Channel Types

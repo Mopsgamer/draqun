@@ -65,20 +65,28 @@
         <div id="channel-edit-error"></div>
 
         <div class="flex justify-between items-center pt-2 border-t border-base-content/10">
-            <details class="dropdown dropdown-start">
-                <summary class="btn btn-error btn-xs gap-1 cursor-pointer">
-                    <span class="icon icon-[lucide--trash-2] size-3"></span>
-                    Delete Channel
-                </summary>
-                <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-overlay rounded-lg border border-base-content/10 w-56 mt-1 flex flex-col gap-2">
-                    <span class="font-semibold text-xs text-error">Delete {{.TargetChannel.Moniker}}?</span>
-                    <button
-                        type="button"
-                        class="btn btn-error btn-xs w-full"
-                        hx-delete="/groups/{{.Group.Id}}/channels/{{.TargetChannel.Id}}"
-                    >Confirm Delete</button>
-                </div>
-            </details>
+            <button
+                type="button"
+                class="btn btn-error btn-xs gap-1 cursor-pointer"
+                popovertarget="popover-delete-channel"
+                style="anchor-name:--anchor-delete-channel"
+            >
+                <span class="icon icon-[lucide--trash-2] size-3"></span>
+                Delete Channel
+            </button>
+            <div
+                popover
+                id="popover-delete-channel"
+                class="dropdown dropdown-start p-3 shadow-lg bg-surface-overlay rounded-lg border border-base-content/10 w-56 mt-1 flex flex-col gap-2"
+                style="position-anchor:--anchor-delete-channel"
+            >
+                <span class="font-semibold text-xs text-error">Delete {{.TargetChannel.Moniker}}?</span>
+                <button
+                    type="button"
+                    class="btn btn-error btn-xs w-full"
+                    hx-delete="/groups/{{.Group.Id}}/channels/{{.TargetChannel.Id}}"
+                >Confirm Delete</button>
+            </div>
 
             <div class="flex gap-2">
                 <a class="btn btn-ghost btn-sm" href="/groups/{{.Group.Id}}/settings/channels">Cancel</a>

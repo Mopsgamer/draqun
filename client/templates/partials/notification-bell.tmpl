@@ -1,20 +1,25 @@
-<details class="dropdown dropdown-end" hx-ext="ws" ws-connect="/notifications/ws">
-    <summary
-        class="btn btn-ghost btn-square btn-sm cursor-pointer list-none flex items-center justify-center relative"
+<div class="inline-flex" hx-ext="ws" ws-connect="/notifications/ws">
+    <button
+        type="button"
+        class="btn btn-ghost btn-square btn-sm cursor-pointer flex items-center justify-center relative"
         aria-label="Notifications"
         title="Notifications"
-        hx-get="/notifications"
-        hx-target="#dropdown-notification-list"
-        hx-swap="innerHTML"
+        popovertarget="popover-notifications"
+        style="anchor-name:--anchor-notifications"
     >
-        <div class="indicator">
+        <div class="indicator pointer-events-none">
             <span class="icon icon-[lucide--bell] size-5" aria-hidden="true"></span>
             <span id="notification-indicator" class="badge badge-error badge-xs indicator-item {{if eq .UnreadCount 0}}hidden{{end}}">
                 {{- if gt .UnreadCount 99}}99+{{else if gt .UnreadCount 0}}{{.UnreadCount}}{{end -}}
             </span>
         </div>
-    </summary>
-    <div class="dropdown-content menu z-50 p-2 shadow-lg bg-surface-overlay rounded-box w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] text-base-content border border-base-content/10 mt-2">
+    </button>
+    <div
+        popover
+        id="popover-notifications"
+        class="dropdown dropdown-end menu p-2 shadow-lg bg-surface-overlay rounded-box w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] text-base-content border border-base-content/10 mt-2"
+        style="position-anchor:--anchor-notifications"
+    >
         <div class="flex items-center w-full justify-between px-2 py-1.5 border-b border-base-content/10 mb-1">
             <span class="font-bold text-xs uppercase tracking-wider text-base-content/70">Notifications</span>
             <div class="flex items-center gap-1">
@@ -40,7 +45,7 @@
                 {{end}}
             </div>
         </div>
-        <div id="dropdown-notification-list" class="w-full" hx-get="/notifications" hx-trigger="intersect once" hx-swap="innerHTML">
+        <div id="dropdown-notification-list" class="w-full" hx-get="/notifications" hx-trigger="intersect, toggle from:#popover-notifications" hx-swap="innerHTML">
             {{template "partials/notifications" .}}
         </div>
         <div class="flex items-center w-full justify-between pt-1.5 px-2 border-t border-base-content/10 mt-1">
@@ -60,4 +65,4 @@
             </button>
         </div>
     </div>
-</details>
+</div>

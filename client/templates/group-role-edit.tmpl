@@ -52,20 +52,28 @@
 
         <div class="flex justify-between items-center pt-2 border-t border-base-content/10">
             {{if ne .TargetRole.Name "@everyone"}}
-            <details class="dropdown dropdown-start">
-                <summary class="btn btn-error btn-xs gap-1">
-                    <span class="icon icon-[lucide--trash-2] size-3"></span>
-                    Delete Role
-                </summary>
-                <div class="dropdown-card">
-                    <span class="font-semibold text-xs text-error">Delete role?</span>
-                    <button
-                        type="button"
-                        class="btn btn-error btn-xs w-full"
-                        hx-delete="/groups/{{.Group.Id}}/roles/{{.TargetRole.Id}}"
-                    >Confirm Delete</button>
-                </div>
-            </details>
+            <button
+                type="button"
+                class="btn btn-error btn-xs gap-1 cursor-pointer"
+                popovertarget="popover-delete-role"
+                style="anchor-name:--anchor-delete-role"
+            >
+                <span class="icon icon-[lucide--trash-2] size-3"></span>
+                Delete Role
+            </button>
+            <div
+                popover
+                id="popover-delete-role"
+                class="dropdown dropdown-start dropdown-card"
+                style="position-anchor:--anchor-delete-role"
+            >
+                <span class="font-semibold text-xs text-error">Delete role?</span>
+                <button
+                    type="button"
+                    class="btn btn-error btn-xs w-full"
+                    hx-delete="/groups/{{.Group.Id}}/roles/{{.TargetRole.Id}}"
+                >Confirm Delete</button>
+            </div>
             {{else}}
             <div></div>
             {{end}}

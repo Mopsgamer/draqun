@@ -131,19 +131,27 @@
                 </button>
                 {{end}}
 
-                <details class="dropdown dropdown-end">
-                    <summary class="btn btn-ghost btn-xs text-error gap-1 cursor-pointer">
-                        <span class="icon icon-[lucide--flag] size-3.5"></span>
-                        Report User
-                    </summary>
-                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                        <span class="font-semibold text-xs text-error">Report User</span>
-                        <form hx-post="/reports/user/{{$target.Id}}" hx-target="#alert-container" class="flex flex-col gap-2">
-                            <input type="text" name="reason" placeholder="Reason for report..." required class="input input-bordered input-xs w-full">
-                            <button type="submit" class="btn btn-error btn-xs w-full cursor-pointer">Submit Report</button>
-                        </form>
-                    </div>
-                </details>
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-xs text-error gap-1 cursor-pointer"
+                    popovertarget="popover-report-user-{{$target.Id}}"
+                    style="anchor-name:--anchor-report-user-{{$target.Id}}"
+                >
+                    <span class="icon icon-[lucide--flag] size-3.5"></span>
+                    Report User
+                </button>
+                <div
+                    popover
+                    id="popover-report-user-{{$target.Id}}"
+                    class="dropdown dropdown-end p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2"
+                    style="position-anchor:--anchor-report-user-{{$target.Id}}"
+                >
+                    <span class="font-semibold text-xs text-error">Report User</span>
+                    <form hx-post="/reports/user/{{$target.Id}}" hx-target="#alert-container" class="flex flex-col gap-2">
+                        <input type="text" name="reason" placeholder="Reason for report..." required class="input input-bordered input-xs w-full">
+                        <button type="submit" class="btn btn-error btn-xs w-full cursor-pointer">Submit Report</button>
+                    </form>
+                </div>
             </div>
             {{end}}
         </div>
@@ -222,34 +230,50 @@
             <!-- Group Actions (Kick / Ban) -->
             {{if and $this.Group $this.CanKickBanGroup (ne $target.Id $this.Group.OwnerId)}}
             <div class="flex flex-wrap items-center gap-2">
-                <details class="dropdown">
-                    <summary class="btn btn-warning btn-xs gap-1 cursor-pointer">
-                        <span class="icon icon-[lucide--user-minus] size-3.5"></span>
-                        Kick from Group
-                    </summary>
-                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                        <span class="font-semibold text-xs">Kick {{$target.Moniker}}</span>
-                        <form hx-post="/groups/{{$this.Group.Id}}/members/{{$target.Id}}/kick" class="flex flex-col gap-2">
-                            <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
-                            <button type="submit" class="btn btn-warning btn-xs w-full">Confirm Kick</button>
-                        </form>
-                    </div>
-                </details>
+                <button
+                    type="button"
+                    class="btn btn-warning btn-xs gap-1 cursor-pointer"
+                    popovertarget="popover-profile-kick-{{$target.Id}}"
+                    style="anchor-name:--anchor-profile-kick-{{$target.Id}}"
+                >
+                    <span class="icon icon-[lucide--user-minus] size-3.5"></span>
+                    Kick from Group
+                </button>
+                <div
+                    popover
+                    id="popover-profile-kick-{{$target.Id}}"
+                    class="dropdown p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2"
+                    style="position-anchor:--anchor-profile-kick-{{$target.Id}}"
+                >
+                    <span class="font-semibold text-xs">Kick {{$target.Moniker}}</span>
+                    <form hx-post="/groups/{{$this.Group.Id}}/members/{{$target.Id}}/kick" class="flex flex-col gap-2">
+                        <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
+                        <button type="submit" class="btn btn-warning btn-xs w-full cursor-pointer">Confirm Kick</button>
+                    </form>
+                </div>
 
-                <details class="dropdown">
-                    <summary class="btn btn-error btn-xs gap-1 cursor-pointer">
-                        <span class="icon icon-[lucide--user-x] size-3.5"></span>
-                        Ban from Group
-                    </summary>
-                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                        <span class="font-semibold text-xs">Ban {{$target.Moniker}}</span>
-                        <form hx-post="/groups/{{$this.Group.Id}}/members/{{$target.Id}}/ban" class="flex flex-col gap-2">
-                            <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
-                            <input type="number" name="duration_days" placeholder="Days (default 365)" class="input input-bordered input-xs w-full" min="1" max="3650">
-                            <button type="submit" class="btn btn-error btn-xs w-full">Confirm Ban</button>
-                        </form>
-                    </div>
-                </details>
+                <button
+                    type="button"
+                    class="btn btn-error btn-xs gap-1 cursor-pointer"
+                    popovertarget="popover-profile-ban-{{$target.Id}}"
+                    style="anchor-name:--anchor-profile-ban-{{$target.Id}}"
+                >
+                    <span class="icon icon-[lucide--user-x] size-3.5"></span>
+                    Ban from Group
+                </button>
+                <div
+                    popover
+                    id="popover-profile-ban-{{$target.Id}}"
+                    class="dropdown p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2"
+                    style="position-anchor:--anchor-profile-ban-{{$target.Id}}"
+                >
+                    <span class="font-semibold text-xs">Ban {{$target.Moniker}}</span>
+                    <form hx-post="/groups/{{$this.Group.Id}}/members/{{$target.Id}}/ban" class="flex flex-col gap-2">
+                        <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
+                        <input type="number" name="duration_days" placeholder="Days (default 365)" class="input input-bordered input-xs w-full" min="1" max="3650">
+                        <button type="submit" class="btn btn-error btn-xs w-full cursor-pointer">Confirm Ban</button>
+                    </form>
+                </div>
             </div>
             {{end}}
 
@@ -257,58 +281,82 @@
             {{if or $this.IsDraqunAdmin $this.IsDraqunMod}}
             <div class="flex flex-wrap items-center gap-2 pt-1">
                 <!-- Reset Avatar -->
-                <details class="dropdown">
-                    <summary class="btn btn-outline btn-xs gap-1 cursor-pointer">
-                        <span class="icon icon-[lucide--image] size-3.5"></span>
-                        Reset Avatar
-                    </summary>
-                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                        <span class="font-semibold text-xs">Reset Avatar?</span>
-                        <p class="text-[11px] text-base-content/60">Reset avatar to default image?</p>
-                        <button
-                            type="button"
-                            class="btn btn-warning btn-xs w-full cursor-pointer"
-                            hx-post="/admin/users/{{$target.Id}}/reset-avatar{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
-                            hx-target="#user-profile-modal-content"
-                        >Confirm Reset</button>
-                    </div>
-                </details>
+                <button
+                    type="button"
+                    class="btn btn-outline btn-xs gap-1 cursor-pointer"
+                    popovertarget="popover-profile-reset-avatar-{{$target.Id}}"
+                    style="anchor-name:--anchor-profile-reset-avatar-{{$target.Id}}"
+                >
+                    <span class="icon icon-[lucide--image] size-3.5"></span>
+                    Reset Avatar
+                </button>
+                <div
+                    popover
+                    id="popover-profile-reset-avatar-{{$target.Id}}"
+                    class="dropdown p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2"
+                    style="position-anchor:--anchor-profile-reset-avatar-{{$target.Id}}"
+                >
+                    <span class="font-semibold text-xs">Reset Avatar?</span>
+                    <p class="text-[11px] text-base-content/60">Reset avatar to default image?</p>
+                    <button
+                        type="button"
+                        class="btn btn-warning btn-xs w-full cursor-pointer"
+                        hx-post="/admin/users/{{$target.Id}}/reset-avatar{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
+                        hx-target="#user-profile-modal-content"
+                    >Confirm Reset</button>
+                </div>
 
                 <!-- Reset Moniker -->
-                <details class="dropdown">
-                    <summary class="btn btn-outline btn-xs gap-1 cursor-pointer">
-                        <span class="icon icon-[lucide--user-check] size-3.5"></span>
-                        Reset Moniker
-                    </summary>
-                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                        <span class="font-semibold text-xs">Reset Moniker?</span>
-                        <p class="text-[11px] text-base-content/60">Reset moniker to User_{{$target.Id}}?</p>
-                        <button
-                            type="button"
-                            class="btn btn-warning btn-xs w-full cursor-pointer"
-                            hx-post="/admin/users/{{$target.Id}}/reset-moniker{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
-                            hx-target="#user-profile-modal-content"
-                        >Confirm Reset</button>
-                    </div>
-                </details>
+                <button
+                    type="button"
+                    class="btn btn-outline btn-xs gap-1 cursor-pointer"
+                    popovertarget="popover-profile-reset-moniker-{{$target.Id}}"
+                    style="anchor-name:--anchor-profile-reset-moniker-{{$target.Id}}"
+                >
+                    <span class="icon icon-[lucide--user-check] size-3.5"></span>
+                    Reset Moniker
+                </button>
+                <div
+                    popover
+                    id="popover-profile-reset-moniker-{{$target.Id}}"
+                    class="dropdown p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2"
+                    style="position-anchor:--anchor-profile-reset-moniker-{{$target.Id}}"
+                >
+                    <span class="font-semibold text-xs">Reset Moniker?</span>
+                    <p class="text-[11px] text-base-content/60">Reset moniker to User_{{$target.Id}}?</p>
+                    <button
+                        type="button"
+                        class="btn btn-warning btn-xs w-full cursor-pointer"
+                        hx-post="/admin/users/{{$target.Id}}/reset-moniker{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
+                        hx-target="#user-profile-modal-content"
+                    >Confirm Reset</button>
+                </div>
 
                 <!-- Reset Username (@name) -->
-                <details class="dropdown">
-                    <summary class="btn btn-outline btn-xs gap-1 cursor-pointer">
-                        <span class="icon icon-[lucide--at-sign] size-3.5"></span>
-                        Reset Username
-                    </summary>
-                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                        <span class="font-semibold text-xs">Reset Username (@name)?</span>
-                        <p class="text-[11px] text-base-content/60">Reset username handle to user_{{$target.Id}}?</p>
-                        <button
-                            type="button"
-                            class="btn btn-warning btn-xs w-full cursor-pointer"
-                            hx-post="/admin/users/{{$target.Id}}/reset-name{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
-                            hx-target="#user-profile-modal-content"
-                        >Confirm Reset</button>
-                    </div>
-                </details>
+                <button
+                    type="button"
+                    class="btn btn-outline btn-xs gap-1 cursor-pointer"
+                    popovertarget="popover-profile-reset-name-{{$target.Id}}"
+                    style="anchor-name:--anchor-profile-reset-name-{{$target.Id}}"
+                >
+                    <span class="icon icon-[lucide--at-sign] size-3.5"></span>
+                    Reset Username
+                </button>
+                <div
+                    popover
+                    id="popover-profile-reset-name-{{$target.Id}}"
+                    class="dropdown p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2"
+                    style="position-anchor:--anchor-profile-reset-name-{{$target.Id}}"
+                >
+                    <span class="font-semibold text-xs">Reset Username (@name)?</span>
+                    <p class="text-[11px] text-base-content/60">Reset username handle to user_{{$target.Id}}?</p>
+                    <button
+                        type="button"
+                        class="btn btn-warning btn-xs w-full cursor-pointer"
+                        hx-post="/admin/users/{{$target.Id}}/reset-name{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
+                        hx-target="#user-profile-modal-content"
+                    >Confirm Reset</button>
+                </div>
 
                 <!-- Lockdown Account (before Suspend because lockdown is safer) -->
                 {{if $target.IsLocked}}
@@ -322,22 +370,30 @@
                     Unlock Account
                 </button>
                 {{else}}
-                <details class="dropdown">
-                    <summary class="btn btn-error btn-outline btn-xs gap-1 cursor-pointer">
-                        <span class="icon icon-[lucide--lock] size-3.5"></span>
-                        Lockdown Account
-                    </summary>
-                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                        <span class="font-semibold text-xs text-error">Lockdown Account?</span>
-                        <p class="text-[11px] text-base-content/60">This will freeze the account and reset password for security.</p>
-                        <button
-                            type="button"
-                            class="btn btn-error btn-xs w-full cursor-pointer"
-                            hx-post="/admin/users/{{$target.Id}}/lockdown{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
-                            hx-target="#user-profile-modal-content"
-                        >Confirm Lockdown</button>
-                    </div>
-                </details>
+                <button
+                    type="button"
+                    class="btn btn-error btn-outline btn-xs gap-1 cursor-pointer"
+                    popovertarget="popover-profile-lockdown-{{$target.Id}}"
+                    style="anchor-name:--anchor-profile-lockdown-{{$target.Id}}"
+                >
+                    <span class="icon icon-[lucide--lock] size-3.5"></span>
+                    Lockdown Account
+                </button>
+                <div
+                    popover
+                    id="popover-profile-lockdown-{{$target.Id}}"
+                    class="dropdown p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2"
+                    style="position-anchor:--anchor-profile-lockdown-{{$target.Id}}"
+                >
+                    <span class="font-semibold text-xs text-error">Lockdown Account?</span>
+                    <p class="text-[11px] text-base-content/60">This will freeze the account and reset password for security.</p>
+                    <button
+                        type="button"
+                        class="btn btn-error btn-xs w-full cursor-pointer"
+                        hx-post="/admin/users/{{$target.Id}}/lockdown{{if $this.Group}}?group_id={{$this.Group.Id}}{{end}}"
+                        hx-target="#user-profile-modal-content"
+                    >Confirm Lockdown</button>
+                </div>
                 {{end}}
 
                 <!-- Account Suspension / Global Block -->
@@ -352,20 +408,28 @@
                     Unsuspend Account
                 </button>
                 {{else}}
-                <details class="dropdown">
-                    <summary class="btn btn-error btn-xs gap-1 cursor-pointer">
-                        <span class="icon icon-[lucide--slash] size-3.5"></span>
-                        Suspend Account
-                    </summary>
-                    <div class="dropdown-content z-30 p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-72 mt-1 flex flex-col gap-2">
-                        <span class="font-semibold text-xs text-error">Suspend Account / Global Block</span>
-                        <form hx-post="/admin/users/{{$target.Id}}/suspend" hx-target="#user-profile-modal-content" class="flex flex-col gap-2">
-                            {{if $this.Group}}<input type="hidden" name="group_id" value="{{$this.Group.Id}}">{{end}}
-                            <input type="text" name="reason" placeholder="Reason visible on profile..." required class="input input-bordered input-xs w-full">
-                            <button type="submit" class="btn btn-error btn-xs w-full">Confirm Suspension</button>
-                        </form>
-                    </div>
-                </details>
+                <button
+                    type="button"
+                    class="btn btn-error btn-xs gap-1 cursor-pointer"
+                    popovertarget="popover-profile-suspend-{{$target.Id}}"
+                    style="anchor-name:--anchor-profile-suspend-{{$target.Id}}"
+                >
+                    <span class="icon icon-[lucide--slash] size-3.5"></span>
+                    Suspend Account
+                </button>
+                <div
+                    popover
+                    id="popover-profile-suspend-{{$target.Id}}"
+                    class="dropdown p-3 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-72 mt-1 flex flex-col gap-2"
+                    style="position-anchor:--anchor-profile-suspend-{{$target.Id}}"
+                >
+                    <span class="font-semibold text-xs text-error">Suspend Account / Global Block</span>
+                    <form hx-post="/admin/users/{{$target.Id}}/suspend" hx-target="#user-profile-modal-content" class="flex flex-col gap-2">
+                        {{if $this.Group}}<input type="hidden" name="group_id" value="{{$this.Group.Id}}">{{end}}
+                        <input type="text" name="reason" placeholder="Reason visible on profile..." required class="input input-bordered input-xs w-full">
+                        <button type="submit" class="btn btn-error btn-xs w-full cursor-pointer">Confirm Suspension</button>
+                    </form>
+                </div>
                 {{end}}
             </div>
 
@@ -397,19 +461,29 @@
                             Unblock
                         </button>
                         {{else}}
-                        <details class="dropdown dropdown-end">
-                            <summary class="btn btn-ghost btn-xs text-error px-2 h-6 min-h-0 cursor-pointer">Block IP</summary>
-                            <div class="dropdown-content z-30 p-2.5 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-56 mt-1 flex flex-col gap-2">
-                                <span class="font-semibold text-xs text-error">Block IP {{$ip}}?</span>
-                                <form hx-post="/admin/ips/block" hx-target="#user-profile-modal-content" class="flex flex-col gap-1.5">
-                                    <input type="hidden" name="ip" value="{{$ip}}">
-                                    <input type="hidden" name="user_id" value="{{$target.Id}}">
-                                    {{if $this.Group}}<input type="hidden" name="group_id" value="{{$this.Group.Id}}">{{end}}
-                                    <input type="text" name="reason" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
-                                    <button type="submit" class="btn btn-error btn-xs w-full cursor-pointer">Confirm Block</button>
-                                </form>
-                            </div>
-                        </details>
+                        {{$ipSlug := replaceAll $ip "." "-"}}
+                        {{$ipSlug := replaceAll $ipSlug ":" "-"}}
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-xs text-error px-2 h-6 min-h-0 cursor-pointer"
+                            popovertarget="popover-block-ip-{{$ipSlug}}"
+                            style="anchor-name:--anchor-block-ip-{{$ipSlug}}"
+                        >Block IP</button>
+                        <div
+                            popover
+                            id="popover-block-ip-{{$ipSlug}}"
+                            class="dropdown dropdown-end p-2.5 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-56 mt-1 flex flex-col gap-2"
+                            style="position-anchor:--anchor-block-ip-{{$ipSlug}}"
+                        >
+                            <span class="font-semibold text-xs text-error">Block IP {{$ip}}?</span>
+                            <form hx-post="/admin/ips/block" hx-target="#user-profile-modal-content" class="flex flex-col gap-1.5">
+                                <input type="hidden" name="ip" value="{{$ip}}">
+                                <input type="hidden" name="user_id" value="{{$target.Id}}">
+                                {{if $this.Group}}<input type="hidden" name="group_id" value="{{$this.Group.Id}}">{{end}}
+                                <input type="text" name="reason" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
+                                <button type="submit" class="btn btn-error btn-xs w-full cursor-pointer">Confirm Block</button>
+                            </form>
+                        </div>
                         {{end}}
                         {{else}}
                         <span class="text-[10px] text-base-content/40 italic">Localhost</span>

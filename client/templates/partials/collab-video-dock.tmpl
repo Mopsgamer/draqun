@@ -17,8 +17,9 @@
         <button
             type="button"
             class="btn btn-ghost btn-circle btn-xs absolute top-1.5 right-1.5 text-white/90 hover:text-white hover:bg-black/40"
+            onclick="document.getElementById('video-tile-local')?.classList.add('hidden')"
             hx-post="/groups/{{.Group.Id}}/collab/toggle-video"
-            hx-target="#collab-header-container"
+            hx-target="#collab-dropdown-menu-content"
             hx-swap="outerHTML"
             title="Disable camera"
         >

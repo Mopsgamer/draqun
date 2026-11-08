@@ -76,28 +76,48 @@
                             <span class="icon icon-[lucide--user] size-3.5"></span> Profile
                         </button>
                         {{if and $.CanKickBanGroup (ne .User.Id $.Group.OwnerId)}}
-                        <details class="dropdown dropdown-end">
-                            <summary class="btn btn-warning btn-xs gap-1">Kick</summary>
-                            <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                                <span class="font-semibold text-xs">Kick {{.User.Moniker}}</span>
-                                <form hx-post="/groups/{{$.Group.Id}}/members/{{.User.Id}}/kick" class="flex flex-col gap-2">
-                                    <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
-                                    <button type="submit" class="btn btn-warning btn-xs w-full">Confirm Kick</button>
-                                </form>
-                            </div>
-                        </details>
+                        <button
+                            type="button"
+                            class="btn btn-warning btn-xs gap-1 cursor-pointer"
+                            popovertarget="popover-kick-member-{{.User.Id}}"
+                            style="anchor-name:--anchor-kick-member-{{.User.Id}}"
+                        >
+                            Kick
+                        </button>
+                        <div
+                            popover
+                            id="popover-kick-member-{{.User.Id}}"
+                            class="dropdown dropdown-end p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2"
+                            style="position-anchor:--anchor-kick-member-{{.User.Id}}"
+                        >
+                            <span class="font-semibold text-xs">Kick {{.User.Moniker}}</span>
+                            <form hx-post="/groups/{{$.Group.Id}}/members/{{.User.Id}}/kick" class="flex flex-col gap-2">
+                                <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
+                                <button type="submit" class="btn btn-warning btn-xs w-full cursor-pointer">Confirm Kick</button>
+                            </form>
+                        </div>
 
-                        <details class="dropdown dropdown-end">
-                            <summary class="btn btn-error btn-xs gap-1">Ban</summary>
-                            <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                                <span class="font-semibold text-xs">Ban {{.User.Moniker}}</span>
-                                <form hx-post="/groups/{{$.Group.Id}}/members/{{.User.Id}}/ban" class="flex flex-col gap-2">
-                                    <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
-                                    <input type="number" name="duration_days" placeholder="Days (default 365)" class="input input-bordered input-xs w-full" min="1" max="3650">
-                                    <button type="submit" class="btn btn-error btn-xs w-full">Confirm Ban</button>
-                                </form>
-                            </div>
-                        </details>
+                        <button
+                            type="button"
+                            class="btn btn-error btn-xs gap-1 cursor-pointer"
+                            popovertarget="popover-ban-member-{{.User.Id}}"
+                            style="anchor-name:--anchor-ban-member-{{.User.Id}}"
+                        >
+                            Ban
+                        </button>
+                        <div
+                            popover
+                            id="popover-ban-member-{{.User.Id}}"
+                            class="dropdown dropdown-end p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2"
+                            style="position-anchor:--anchor-ban-member-{{.User.Id}}"
+                        >
+                            <span class="font-semibold text-xs">Ban {{.User.Moniker}}</span>
+                            <form hx-post="/groups/{{$.Group.Id}}/members/{{.User.Id}}/ban" class="flex flex-col gap-2">
+                                <input type="text" name="description" placeholder="Reason (optional)" class="input input-bordered input-xs w-full">
+                                <input type="number" name="duration_days" placeholder="Days (default 365)" class="input input-bordered input-xs w-full" min="1" max="3650">
+                                <button type="submit" class="btn btn-error btn-xs w-full cursor-pointer">Confirm Ban</button>
+                            </form>
+                        </div>
                         {{end}}
                     </div>
                 </div>

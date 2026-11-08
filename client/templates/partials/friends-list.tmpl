@@ -92,23 +92,32 @@
             >
                 <span class="icon icon-[lucide--message-square] size-3.5"></span>
             </button>
-            <details class="dropdown dropdown-end">
-                <summary class="btn btn-ghost btn-xs btn-circle p-0 size-6 text-base-content/50 hover:text-error cursor-pointer" title="Remove Friend">
-                    <span class="icon icon-[lucide--user-minus] size-3.5"></span>
-                </summary>
-                <div class="dropdown-content z-30 p-2.5 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-48 mt-1 flex flex-col gap-2">
-                    <span class="font-semibold text-xs text-error">Remove {{$f.Moniker}}?</span>
-                    <button
-                        type="button"
-                        hx-delete="/friends/{{$f.Id}}"
-                        hx-target="#friends-list"
-                        hx-swap="innerHTML"
-                        class="btn btn-error btn-xs w-full cursor-pointer"
-                    >
-                        Confirm Remove
-                    </button>
-                </div>
-            </details>
+            <button
+                type="button"
+                class="btn btn-ghost btn-xs btn-circle p-0 size-6 text-base-content/50 hover:text-error cursor-pointer"
+                title="Remove Friend"
+                popovertarget="popover-remove-friend-{{$f.Id}}"
+                style="anchor-name:--anchor-remove-friend-{{$f.Id}}"
+            >
+                <span class="icon icon-[lucide--user-minus] size-3.5"></span>
+            </button>
+            <div
+                popover
+                id="popover-remove-friend-{{$f.Id}}"
+                class="dropdown dropdown-end p-2.5 shadow-xl bg-surface-card rounded-xl border border-base-content/10 w-48 mt-1 flex flex-col gap-2"
+                style="position-anchor:--anchor-remove-friend-{{$f.Id}}"
+            >
+                <span class="font-semibold text-xs text-error">Remove {{$f.Moniker}}?</span>
+                <button
+                    type="button"
+                    hx-delete="/friends/{{$f.Id}}"
+                    hx-target="#friends-list"
+                    hx-swap="innerHTML"
+                    class="btn btn-error btn-xs w-full cursor-pointer"
+                >
+                    Confirm Remove
+                </button>
+            </div>
         </div>
     </div>
     {{- end -}}

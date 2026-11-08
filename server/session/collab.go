@@ -86,17 +86,19 @@ func (h *collabHub) GetNextSubchannel(channelId uint64) string {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
-	maxRoom := 0
+	usedRooms := make(map[int]bool)
 	for _, sess := range h.sessions {
 		if ch, ok := sess.Channels[channelId]; ok && len(ch.Participants) > 0 {
-			if n, err := strconv.Atoi(ch.SubchannelName); err == nil {
-				if n > maxRoom {
-					maxRoom = n
-				}
+			if n, err := strconv.Atoi(ch.SubchannelName); err == nil && n > 0 {
+				usedRooms[n] = true
 			}
 		}
 	}
-	return strconv.Itoa(maxRoom + 1)
+	for i := 1; ; i++ {
+		if !usedRooms[i] {
+			return strconv.Itoa(i)
+		}
+	}
 }
 
 func (h *collabHub) GetRoomParticipants(channelId uint64, subchannel string) []CollabParticipant {
