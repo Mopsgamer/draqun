@@ -2158,10 +2158,17 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				sess := session.CollabHub.LeaveChannel(user.Id, channelId)
 				_ = model.DeleteCollabSession(user.Id, channelId)
 				broadcastGroupChannelsUpdate(app, group)
-				return ctx.Render("partials/collab-connection-status", fiber.Map{
+				bind := fiber.Map{
 					"Group":         group,
 					"CollabSession": sess,
-				})
+				}
+				if htmx.IsHtmx(ctx) {
+					if sess == nil || len(sess.Channels) == 0 {
+						return ctx.Render("partials/collab-connection-status", bind)
+					}
+					return ctx.Render("partials/collab-dropdown-content", bind)
+				}
+				return ctx.Render("partials/collab-connection-status", bind)
 			},
 		).
 		Post("/:group_id/collab/disconnect",
@@ -2238,10 +2245,14 @@ func RouteGroups(app *fiber.App) fiber.Router {
 						})
 					}
 				}
-				return ctx.Render("partials/collab-connection-status", fiber.Map{
+				bind := fiber.Map{
 					"Group":         group,
 					"CollabSession": sess,
-				})
+				}
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/collab-dropdown-content", bind)
+				}
+				return ctx.Render("partials/collab-connection-status", bind)
 			},
 		).
 		Post("/:group_id/collab/toggle-output",
@@ -2264,10 +2275,14 @@ func RouteGroups(app *fiber.App) fiber.Router {
 						})
 					}
 				}
-				return ctx.Render("partials/collab-connection-status", fiber.Map{
+				bind := fiber.Map{
 					"Group":         group,
 					"CollabSession": sess,
-				})
+				}
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/collab-dropdown-content", bind)
+				}
+				return ctx.Render("partials/collab-connection-status", bind)
 			},
 		).
 		Post("/:group_id/collab/toggle-video",
@@ -2290,10 +2305,14 @@ func RouteGroups(app *fiber.App) fiber.Router {
 						})
 					}
 				}
-				return ctx.Render("partials/collab-connection-status", fiber.Map{
+				bind := fiber.Map{
 					"Group":         group,
 					"CollabSession": sess,
-				})
+				}
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/collab-dropdown-content", bind)
+				}
+				return ctx.Render("partials/collab-connection-status", bind)
 			},
 		).
 		Post("/:group_id/collab/bitrate",
@@ -2303,10 +2322,14 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				kbps := fiber.Query[int](ctx, "kbps", 64)
 				sess := session.CollabHub.SetBitrate(user.Id, kbps)
-				return ctx.Render("partials/collab-connection-status", fiber.Map{
+				bind := fiber.Map{
 					"Group":         group,
 					"CollabSession": sess,
-				})
+				}
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/collab-dropdown-content", bind)
+				}
+				return ctx.Render("partials/collab-connection-status", bind)
 			},
 		).
 		Post("/:group_id/collab/channels/:channel_id/toggle-input",
@@ -2316,10 +2339,14 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				channelId := fiber.Params[uint64](ctx, "channel_id")
 				sess := session.CollabHub.ToggleChannelInput(user.Id, channelId)
-				return ctx.Render("partials/collab-connection-status", fiber.Map{
+				bind := fiber.Map{
 					"Group":         group,
 					"CollabSession": sess,
-				})
+				}
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/collab-dropdown-content", bind)
+				}
+				return ctx.Render("partials/collab-connection-status", bind)
 			},
 		).
 		Post("/:group_id/collab/channels/:channel_id/toggle-output",
@@ -2329,10 +2356,14 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				channelId := fiber.Params[uint64](ctx, "channel_id")
 				sess := session.CollabHub.ToggleChannelOutput(user.Id, channelId)
-				return ctx.Render("partials/collab-connection-status", fiber.Map{
+				bind := fiber.Map{
 					"Group":         group,
 					"CollabSession": sess,
-				})
+				}
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/collab-dropdown-content", bind)
+				}
+				return ctx.Render("partials/collab-connection-status", bind)
 			},
 		).
 		Post("/:group_id/collab/users/:target_user_id/toggle-mute",
@@ -2342,10 +2373,14 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 				targetUserId := fiber.Params[uint64](ctx, "target_user_id")
 				sess := session.CollabHub.ToggleUserMute(user.Id, targetUserId)
-				return ctx.Render("partials/collab-connection-status", fiber.Map{
+				bind := fiber.Map{
 					"Group":         group,
 					"CollabSession": sess,
-				})
+				}
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/collab-dropdown-content", bind)
+				}
+				return ctx.Render("partials/collab-connection-status", bind)
 			},
 		)
 }
