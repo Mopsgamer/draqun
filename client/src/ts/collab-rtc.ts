@@ -371,6 +371,10 @@ domLoaded.then(() => {
 			target.closest("#collab-header-container") ||
 			target.id === "collab-dropdown-menu" ||
 			target.closest("#collab-dropdown-menu") ||
+			target.id === "collab-dropdown-menu-content" ||
+			target.closest("#collab-dropdown-menu-content") ||
+			target.id === "collab-quick-controls" ||
+			target.closest("#collab-quick-controls") ||
 			target.id === "channels" ||
 			target.closest("#channels") ||
 			target.id === "channels-view" ||
