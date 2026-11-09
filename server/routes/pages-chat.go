@@ -113,11 +113,11 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			}
 
 			bind := fiber.Map{
-				"Title":          group.Moniker,
-				"Group":          group,
-				"Channels":       channels,
-				"SubchannelsMap": subchannelsMap,
-				"ActiveChannel":  activeChannel,
+				"Title":            group.Moniker,
+				"Group":            group,
+				"Channels":         channels,
+				"SubchannelsMap":   subchannelsMap,
+				"ActiveChannel":    activeChannel,
 				"StarredIdsMap":    starredIdsMap,
 				"IsStarred":        isStarred,
 				"CollabMembersMap": collabMembersMap,
@@ -166,8 +166,14 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				if !isGlobalAdmin {
 					return ctx.Redirect().To(group.Url(ctx))
 				}
-			} else if !isStaff && model.GetUserPermissionLevel(group.Id, user.Id, activeChannel.Id, model.PermNameRead) == model.PermLevelDisable {
-				return ctx.Redirect().To(group.Url(ctx))
+			} else {
+				chGroup, errG := model.GetChannelGroup(activeChannel.Id)
+				if errG != nil || chGroup == nil || chGroup.Id != group.Id {
+					return ctx.Redirect().To(group.Url(ctx))
+				}
+				if !isStaff && model.GetUserPermissionLevel(group.Id, user.Id, activeChannel.Id, model.PermNameRead) == model.PermLevelDisable {
+					return ctx.Redirect().To(group.Url(ctx))
+				}
 			}
 
 			allChannels, _ := model.GetGroupChannels(group.Id)
@@ -216,11 +222,11 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			}
 
 			bind := fiber.Map{
-				"Title":          activeChannel.Moniker + " - " + group.Moniker,
-				"Group":          group,
-				"Channels":       channels,
-				"SubchannelsMap": subchannelsMap,
-				"ActiveChannel":  activeChannel,
+				"Title":            activeChannel.Moniker + " - " + group.Moniker,
+				"Group":            group,
+				"Channels":         channels,
+				"SubchannelsMap":   subchannelsMap,
+				"ActiveChannel":    activeChannel,
 				"StarredIdsMap":    starredIdsMap,
 				"IsStarred":        isStarred,
 				"CollabMembersMap": collabMembersMap,
