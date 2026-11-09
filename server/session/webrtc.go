@@ -4,7 +4,9 @@ import (
 	"errors"
 	"io"
 	"sync"
+	"time"
 
+	"github.com/pion/rtcp"
 	"github.com/pion/webrtc/v4"
 )
 
@@ -101,6 +103,37 @@ func (h *webRTCHub) HandleOffer(
 		isAudio := remoteTrack.Kind() == webrtc.RTPCodecTypeAudio
 		isVideo := remoteTrack.Kind() == webrtc.RTPCodecTypeVideo
 
+		trackDone := make(chan struct{})
+
+		if isVideo {
+			// Immediately request a keyframe via RTCP PLI so receiving participants don't get a black screen
+			_ = peerConnection.WriteRTCP([]rtcp.Packet{
+				&rtcp.PictureLossIndication{MediaSSRC: uint32(remoteTrack.SSRC())},
+			})
+
+			// Periodically send PLI every 2 seconds to keep video streams fresh and recover new joiners
+			go func() {
+				ticker := time.NewTicker(2 * time.Second)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-trackDone:
+						return
+					case <-ticker.C:
+						if peerConnection.ConnectionState() == webrtc.PeerConnectionStateClosed ||
+							peerConnection.ConnectionState() == webrtc.PeerConnectionStateFailed {
+							return
+						}
+						_ = peerConnection.WriteRTCP([]rtcp.Packet{
+							&rtcp.PictureLossIndication{MediaSSRC: uint32(remoteTrack.SSRC())},
+						})
+					}
+				}
+			}()
+		}
+
+		defer close(trackDone)
+
 		for {
 			packet, _, readErr := remoteTrack.ReadRTP()
 			if readErr != nil {
@@ -108,6 +141,19 @@ func (h *webRTCHub) HandleOffer(
 					return
 				}
 				return
+			}
+
+			// Check input mute on sender: if global input is muted OR channel input is muted, drop audio
+			if isAudio {
+				senderSess := CollabHub.GetUserSession(userId)
+				if senderSess != nil {
+					if senderSess.GlobalInputMuted {
+						continue
+					}
+					if chSess, ok := senderSess.Channels[channelId]; ok && chSess.InputMuted {
+						continue
+					}
+				}
 			}
 
 			h.mu.RLock()

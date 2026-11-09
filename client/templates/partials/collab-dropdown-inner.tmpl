@@ -78,7 +78,7 @@
 
                     <button
                         type="button"
-                        class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.VideoEnabled}}text-primary{{else}}text-base-content/80 hover:text-base-content{{end}}"
+                        class="join-item btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-base-content"
                         id="collab-btn-video"
                         hx-post="/groups/{{.Group.Id}}/collab/toggle-video"
                         hx-target="#collab-dropdown-menu-content"

@@ -109,31 +109,33 @@
             </div>
         </div>
 
-        <!-- 4. Remote Participant Video Tile -->
-        <div id="video-tile-remote" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200 hidden">
-            <video id="collab-remote-video" autoplay playsinline muted class="w-full h-full object-contain"></video>
-            <span id="collab-remote-badge" class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow">Participant</span>
-            
-            <!-- Action buttons: Fullscreen & Close -->
-            <div class="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
-                <button
-                    type="button"
-                    class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
-                    id="collab-btn-fullscreen-remote"
-                    title="Toggle fullscreen"
-                    aria-label="Toggle fullscreen"
-                >
-                    <span class="icon icon-[lucide--maximize-2] size-3.5"></span>
-                </button>
-                <button
-                    type="button"
-                    class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
-                    id="collab-btn-close-remote"
-                    title="Hide video"
-                    aria-label="Hide video"
-                >
-                    <span class="icon icon-[lucide--x] size-3.5"></span>
-                </button>
+        <!-- 4. Remote Video Tiles (dynamically managed container for participant camera, screenshare, presentation) -->
+        <div id="collab-remote-tiles" class="contents">
+            <div id="video-tile-remote" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200 hidden" data-stream-type="camera">
+                <video id="collab-remote-video" autoplay playsinline muted class="w-full h-full object-contain"></video>
+                <span id="collab-remote-badge" class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow truncate max-w-[140px]">Remote stream</span>
+                
+                <!-- Action buttons: Fullscreen & Close -->
+                <div class="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
+                    <button
+                        type="button"
+                        class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
+                        id="collab-btn-fullscreen-remote"
+                        title="Toggle fullscreen"
+                        aria-label="Toggle fullscreen"
+                    >
+                        <span class="icon icon-[lucide--maximize-2] size-3.5"></span>
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
+                        id="collab-btn-close-remote"
+                        title="Hide video"
+                        aria-label="Hide video"
+                    >
+                        <span class="icon icon-[lucide--x] size-3.5"></span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

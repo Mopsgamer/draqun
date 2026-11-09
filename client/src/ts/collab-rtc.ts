@@ -9,6 +9,14 @@ let currentSubchannelName: string | null = null;
 let isStarting = false;
 let isSyncingVideo = false;
 
+// Web Audio mixer for combining local microphone, screen audio, and presentation/file audio
+let audioContext: AudioContext | null = null;
+let mixedAudioDestination: MediaStreamAudioDestinationNode | null = null;
+let micAudioSource: MediaStreamAudioSourceNode | null = null;
+let screenAudioSource: MediaStreamAudioSourceNode | null = null;
+let fileAudioSource: MediaStreamAudioSourceNode | null = null;
+let activeAudioSender: RTCRtpSender | null = null;
+
 // Independent active streams for simultaneous sharing
 let cameraStream: MediaStream | null = null;
 let screenStream: MediaStream | null = null;
@@ -18,6 +26,17 @@ let activeMediaElement: HTMLVideoElement | HTMLAudioElement | null = null;
 
 // Track sender mapping
 let activeVideoSender: RTCRtpSender | null = null;
+
+// Remote active streams mapped by track/stream ID
+interface RemoteTileInfo {
+	element: HTMLElement;
+	video: HTMLVideoElement;
+	badge: HTMLElement;
+	stream: MediaStream;
+	track: MediaStreamTrack;
+	streamType: "camera" | "screen" | "presentation";
+}
+const remoteTiles = new Map<string, RemoteTileInfo>();
 
 const rtcConfig: RTCConfiguration = {
 	iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -43,17 +62,23 @@ export async function startWebRTCSession(
 
 		pc.ontrack = (event) => {
 			if (event.track.kind === "audio" && remoteAudio) {
+				const audioBtn =
+					document.getElementById("collab-btn-audio") ||
+					document.getElementById("voice-btn-audio");
+				const isDeafened = audioBtn?.classList.contains("text-error") ?? false;
+				remoteAudio.muted = isDeafened;
 				remoteAudio.srcObject =
 					event.streams[0] || new MediaStream([event.track]);
+				remoteAudio.play().catch(() => {});
 			} else if (event.track.kind === "video") {
 				const remoteStream = event.streams[0] || new MediaStream([event.track]);
 				const track = event.track;
 
 				const onTrackActive = () => {
-					renderRemoteVideoTrack(remoteStream);
+					renderRemoteVideoTrack(remoteStream, track);
 				};
 				const onTrackInactive = () => {
-					removeRemoteVideo();
+					removeRemoteVideo(track.id);
 				};
 
 				track.addEventListener("unmute", onTrackActive);
@@ -61,7 +86,7 @@ export async function startWebRTCSession(
 				track.addEventListener("ended", onTrackInactive);
 
 				if (!track.muted) {
-					renderRemoteVideoTrack(remoteStream);
+					renderRemoteVideoTrack(remoteStream, track);
 				}
 			}
 		};
@@ -75,7 +100,11 @@ export async function startWebRTCSession(
 		localAudioStream = null;
 		try {
 			const micStream = await navigator.mediaDevices.getUserMedia({
-				audio: true,
+				audio: {
+					echoCancellation: true,
+					noiseSuppression: true,
+					autoGainControl: true,
+				},
 				video: false,
 			});
 			localAudioStream = micStream;
@@ -83,12 +112,22 @@ export async function startWebRTCSession(
 			console.warn("Could not obtain audio stream:", err);
 		}
 
-		if (localAudioStream) {
-			localAudioStream.getAudioTracks().forEach((track) => {
-				if (pc && localAudioStream) {
-					pc.addTrack(track, localAudioStream);
-				}
-			});
+		setupAudioMixer();
+
+		const outboundAudioTrack = getMixedOutboundAudioTrack();
+		if (outboundAudioTrack && mixedAudioDestination) {
+			activeAudioSender = pc.addTrack(
+				outboundAudioTrack,
+				mixedAudioDestination.stream,
+			);
+		} else if (
+			localAudioStream &&
+			localAudioStream.getAudioTracks().length > 0
+		) {
+			activeAudioSender = pc.addTrack(
+				localAudioStream.getAudioTracks()[0],
+				localAudioStream,
+			);
 		} else {
 			if (pc.addTransceiver) {
 				pc.addTransceiver("audio", { direction: "recvonly" });
@@ -158,6 +197,8 @@ export function stopWebRTCSession() {
 	stopScreenShare();
 	stopFileShare();
 
+	teardownAudioMixer();
+
 	if (localAudioStream) {
 		localAudioStream.getTracks().forEach((t) => t.stop());
 		localAudioStream = null;
@@ -166,6 +207,7 @@ export function stopWebRTCSession() {
 		pc.close();
 		pc = null;
 		activeVideoSender = null;
+		activeAudioSender = null;
 	}
 	if (remoteAudio) {
 		remoteAudio.srcObject = null;
@@ -303,11 +345,8 @@ export async function startScreenShare() {
 			stopScreenShare();
 		});
 
-		// Include screen audio if present
-		const aTrack = displayStream.getAudioTracks()[0];
-		if (aTrack && pc) {
-			pc.addTrack(aTrack, displayStream);
-		}
+		// Include screen audio in mixer
+		updateScreenAudioMixer();
 
 		await updatePeerVideoTrack();
 	} catch (e: any) {
@@ -323,6 +362,7 @@ export async function stopScreenShare() {
 	}
 	updateScreenShareIcon(false);
 	removeScreenShare();
+	updateScreenAudioMixer();
 	await updatePeerVideoTrack();
 }
 
@@ -406,10 +446,7 @@ export async function shareFile(file: File) {
 			const stream: MediaStream = captureFn.call(mediaEl);
 			fileStream = stream;
 
-			const aTrack = stream.getAudioTracks()[0];
-			if (aTrack && pc) {
-				pc.addTrack(aTrack, stream);
-			}
+			updateFileAudioMixer();
 
 			renderFileShare(stream, file.name);
 			await updatePeerVideoTrack();
@@ -494,6 +531,7 @@ export async function stopFileShare() {
 	}
 	currentSharedFileName = null;
 	removeFileShare();
+	updateFileAudioMixer();
 	await updatePeerVideoTrack();
 }
 
@@ -532,35 +570,170 @@ function removeFileShare() {
 	checkDockVisibility();
 }
 
-// 4. Remote Video Handling
-export function renderRemoteVideoTrack(stream: MediaStream) {
-	const dock = document.getElementById("collab-video-dock");
-	const remoteTile = document.getElementById("video-tile-remote");
-	const remoteBadge = document.getElementById("collab-remote-badge");
-	const remoteVideo = document.getElementById(
-		"collab-remote-video",
-	) as HTMLVideoElement | null;
-	if (dock) dock.classList.remove("hidden");
-	if (remoteTile) remoteTile.classList.remove("hidden");
-	if (remoteBadge) {
-		remoteBadge.textContent = "Participant";
+// Helper to look up active participant moniker from connected channels UI
+function getParticipantMoniker(): string {
+	const memberEl =
+		document.querySelector("#collab-channels-list [popover] span.truncate") ||
+		document.querySelector("#collab-channels-list .avatar img[alt]") ||
+		document.querySelector("#members .font-medium") ||
+		document.querySelector(
+			".channel-collab-entry [popover] button span.truncate",
+		);
+
+	if (memberEl) {
+		const alt = memberEl.getAttribute("alt");
+		if (alt && alt.trim() !== "") return alt.trim();
+		const text = memberEl.textContent?.trim();
+		if (text && text !== "") return text;
 	}
-	if (remoteVideo) {
-		if (remoteVideo.srcObject !== stream) {
-			remoteVideo.srcObject = stream;
+	return "Partner";
+}
+
+// 4. Remote Video Handling with Dynamic Multi-Tile Support
+export function renderRemoteVideoTrack(
+	stream: MediaStream,
+	track?: MediaStreamTrack,
+) {
+	const dock = document.getElementById("collab-video-dock");
+	const remoteContainer = document.getElementById("collab-remote-tiles");
+	if (dock) dock.classList.remove("hidden");
+
+	const activeTrack = track || stream.getVideoTracks()[0];
+	if (!activeTrack) return;
+
+	const trackId = activeTrack.id;
+	const trackLabel = (activeTrack.label || "").toLowerCase();
+	const streamId = (stream.id || "").toLowerCase();
+
+	// Determine stream type: Screen, Presentation, or Camera
+	let streamType: "camera" | "screen" | "presentation" = "camera";
+	let streamTypeName = "Camera";
+	if (
+		trackLabel.includes("screen") ||
+		streamId.includes("screen") ||
+		trackId.includes("screen")
+	) {
+		streamType = "screen";
+		streamTypeName = "Screen";
+	} else if (
+		trackLabel.includes("presentation") ||
+		trackLabel.includes("file") ||
+		streamId.includes("presentation") ||
+		trackId.includes("presentation")
+	) {
+		streamType = "presentation";
+		streamTypeName = "Presentation";
+	}
+
+	const participantName = getParticipantMoniker();
+	const badgeLabel = `${participantName}'s ${streamTypeName}`;
+
+	let tileInfo = remoteTiles.get(trackId);
+
+	if (!tileInfo) {
+		// Use template video-tile-remote if it's the first and currently hidden
+		const templateTile = document.getElementById("video-tile-remote");
+		let tileEl: HTMLElement;
+		let videoEl: HTMLVideoElement;
+		let badgeEl: HTMLElement;
+
+		if (
+			templateTile &&
+			templateTile.classList.contains("hidden") &&
+			remoteTiles.size === 0
+		) {
+			tileEl = templateTile;
+			videoEl = tileEl.querySelector("video") as HTMLVideoElement;
+			badgeEl = tileEl.querySelector("#collab-remote-badge") as HTMLElement;
+		} else {
+			// Clone template for additional remote video stream
+			tileEl = (
+				templateTile
+					? templateTile.cloneNode(true)
+					: document.createElement("div")
+			) as HTMLElement;
+			tileEl.id = `video-tile-remote-${trackId}`;
+			videoEl = tileEl.querySelector("video") as HTMLVideoElement;
+			badgeEl = tileEl.querySelector("span") as HTMLElement;
+
+			// Update buttons IDs/attributes
+			const fsBtn = tileEl.querySelector(
+				"button[title*='fullscreen']",
+			) as HTMLButtonElement | null;
+			const closeBtn = tileEl.querySelector(
+				"button[title*='video']",
+			) as HTMLButtonElement | null;
+
+			if (fsBtn) {
+				fsBtn.id = `collab-btn-fullscreen-remote-${trackId}`;
+				fsBtn.addEventListener("click", () => {
+					toggleTileFullscreen(tileEl.id);
+				});
+			}
+			if (closeBtn) {
+				closeBtn.id = `collab-btn-close-remote-${trackId}`;
+				closeBtn.addEventListener("click", () => {
+					removeRemoteVideo(trackId);
+				});
+			}
+
+			if (remoteContainer) {
+				remoteContainer.appendChild(tileEl);
+			}
 		}
-		remoteVideo.muted = false;
-		remoteVideo.play().catch(() => {});
+
+		tileEl.classList.remove("hidden");
+		tileEl.setAttribute("data-track-id", trackId);
+		tileEl.setAttribute("data-stream-type", streamType);
+
+		tileInfo = {
+			element: tileEl,
+			video: videoEl,
+			badge: badgeEl,
+			stream,
+			track: activeTrack,
+			streamType,
+		};
+		remoteTiles.set(trackId, tileInfo);
+	}
+
+	if (tileInfo.badge) {
+		tileInfo.badge.textContent = badgeLabel;
+		tileInfo.badge.setAttribute("title", badgeLabel);
+	}
+
+	if (tileInfo.video) {
+		if (tileInfo.video.srcObject !== stream) {
+			tileInfo.video.srcObject = stream;
+		}
+		tileInfo.video.muted = false;
+		tileInfo.video.play().catch(() => {});
 	}
 }
 
-function removeRemoteVideo() {
-	const remoteTile = document.getElementById("video-tile-remote");
-	const remoteVideo = document.getElementById(
-		"collab-remote-video",
-	) as HTMLVideoElement | null;
-	if (remoteTile) remoteTile.classList.add("hidden");
-	if (remoteVideo) remoteVideo.srcObject = null;
+export function removeRemoteVideo(trackId?: string) {
+	if (trackId && remoteTiles.has(trackId)) {
+		const tile = remoteTiles.get(trackId);
+		if (tile) {
+			if (tile.element.id === "video-tile-remote") {
+				tile.element.classList.add("hidden");
+				if (tile.video) tile.video.srcObject = null;
+			} else {
+				tile.element.remove();
+			}
+			remoteTiles.delete(trackId);
+		}
+	} else if (!trackId) {
+		for (const [id, tile] of remoteTiles.entries()) {
+			if (tile.element.id === "video-tile-remote") {
+				tile.element.classList.add("hidden");
+				if (tile.video) tile.video.srcObject = null;
+			} else {
+				tile.element.remove();
+			}
+		}
+		remoteTiles.clear();
+	}
 	checkDockVisibility();
 }
 
@@ -569,13 +742,20 @@ function checkDockVisibility() {
 	const localTile = document.getElementById("video-tile-local");
 	const screenTile = document.getElementById("video-tile-screen");
 	const fileTile = document.getElementById("video-tile-file");
-	const remoteTile = document.getElementById("video-tile-remote");
+
+	let hasVisibleRemote = false;
+	for (const tile of remoteTiles.values()) {
+		if (!tile.element.classList.contains("hidden")) {
+			hasVisibleRemote = true;
+			break;
+		}
+	}
 
 	const hasVisibleTile =
 		(localTile && !localTile.classList.contains("hidden")) ||
 		(screenTile && !screenTile.classList.contains("hidden")) ||
 		(fileTile && !fileTile.classList.contains("hidden")) ||
-		(remoteTile && !remoteTile.classList.contains("hidden"));
+		hasVisibleRemote;
 
 	if (dock && !hasVisibleTile) {
 		dock.classList.add("hidden");
@@ -703,6 +883,9 @@ export function checkAndSyncVoice() {
 	const isDeafened = audioBtn?.classList.contains("text-error") ?? false;
 	if (remoteAudio) {
 		remoteAudio.muted = isDeafened;
+		if (!isDeafened && remoteAudio.paused) {
+			remoteAudio.play().catch(() => {});
+		}
 	}
 
 	// Sync video toggle
@@ -714,6 +897,148 @@ export function checkAndSyncVoice() {
 		renderLocalCamera(cameraStream);
 	}
 	syncVideoTrack(wantVideo);
+}
+
+// Audio mixer helpers
+function setupAudioMixer() {
+	try {
+		const AudioContextClass =
+			window.AudioContext || (window as any).webkitAudioContext;
+		if (!AudioContextClass) return;
+
+		if (!audioContext || audioContext.state === "closed") {
+			audioContext = new AudioContextClass();
+		}
+		if (audioContext.state === "suspended") {
+			audioContext.resume().catch(() => {});
+		}
+
+		if (!mixedAudioDestination) {
+			mixedAudioDestination = audioContext.createMediaStreamDestination();
+		}
+
+		// Connect mic stream
+		if (localAudioStream && localAudioStream.getAudioTracks().length > 0) {
+			if (micAudioSource) {
+				micAudioSource.disconnect();
+				micAudioSource = null;
+			}
+			micAudioSource = audioContext.createMediaStreamSource(localAudioStream);
+			micAudioSource.connect(mixedAudioDestination);
+		}
+
+		updateScreenAudioMixer();
+		updateFileAudioMixer();
+	} catch (e) {
+		console.warn("Failed to set up audio mixer:", e);
+	}
+}
+
+function syncOutboundAudioSender() {
+	if (!pc) return;
+	const track = getMixedOutboundAudioTrack();
+	if (!track) return;
+
+	if (activeAudioSender) {
+		activeAudioSender.replaceTrack(track).catch(() => {});
+	} else {
+		const senders = pc.getSenders();
+		const audioSender = senders.find(
+			(s) =>
+				(s.track && s.track.kind === "audio") || (s as any).kind === "audio",
+		);
+		if (audioSender) {
+			activeAudioSender = audioSender;
+			audioSender.replaceTrack(track).catch(() => {});
+		} else if (mixedAudioDestination) {
+			activeAudioSender = pc.addTrack(track, mixedAudioDestination.stream);
+		}
+	}
+}
+
+function updateScreenAudioMixer() {
+	try {
+		if (screenAudioSource) {
+			screenAudioSource.disconnect();
+			screenAudioSource = null;
+		}
+		if (
+			audioContext &&
+			mixedAudioDestination &&
+			screenStream &&
+			screenStream.getAudioTracks().length > 0
+		) {
+			screenAudioSource = audioContext.createMediaStreamSource(screenStream);
+			screenAudioSource.connect(mixedAudioDestination);
+		}
+		syncOutboundAudioSender();
+	} catch (e) {
+		console.warn("Error updating screen audio mixer:", e);
+	}
+}
+
+function updateFileAudioMixer() {
+	try {
+		if (fileAudioSource) {
+			fileAudioSource.disconnect();
+			fileAudioSource = null;
+		}
+		if (
+			audioContext &&
+			mixedAudioDestination &&
+			fileStream &&
+			fileStream.getAudioTracks().length > 0
+		) {
+			fileAudioSource = audioContext.createMediaStreamSource(fileStream);
+			fileAudioSource.connect(mixedAudioDestination);
+		}
+		syncOutboundAudioSender();
+	} catch (e) {
+		console.warn("Error updating file audio mixer:", e);
+	}
+}
+
+function getMixedOutboundAudioTrack(): MediaStreamTrack | null {
+	if (
+		mixedAudioDestination &&
+		mixedAudioDestination.stream.getAudioTracks().length > 0
+	) {
+		return mixedAudioDestination.stream.getAudioTracks()[0];
+	}
+	if (localAudioStream && localAudioStream.getAudioTracks().length > 0) {
+		return localAudioStream.getAudioTracks()[0];
+	}
+	return null;
+}
+
+function teardownAudioMixer() {
+	if (micAudioSource) {
+		try {
+			micAudioSource.disconnect();
+		} catch (_) {}
+		micAudioSource = null;
+	}
+	if (screenAudioSource) {
+		try {
+			screenAudioSource.disconnect();
+		} catch (_) {}
+		screenAudioSource = null;
+	}
+	if (fileAudioSource) {
+		try {
+			fileAudioSource.disconnect();
+		} catch (_) {}
+		fileAudioSource = null;
+	}
+	if (mixedAudioDestination) {
+		mixedAudioDestination = null;
+	}
+	if (audioContext && audioContext.state !== "closed") {
+		try {
+			audioContext.close();
+		} catch (_) {}
+		audioContext = null;
+	}
 }
 
 function bindCollabEventHandlers() {

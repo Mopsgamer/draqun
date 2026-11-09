@@ -17,7 +17,6 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/contrib/v3/websocket"
 	"github.com/gofiber/fiber/v3"
-	"slices"
 
 	"github.com/pion/webrtc/v4"
 )
@@ -2087,6 +2086,12 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					broadcastGroupMembersUpdate(app, group)
 					defer func() {
 						session.UserSessionMap.Close(user.Id, ctxWs)
+						if !session.UserSessionMap.IsOnline(user.Id) {
+							session.CollabHub.DisconnectAll(user.Id)
+							session.WebRTCHub.Close(user.Id)
+							_ = model.DeleteAllUserCollabSessions(user.Id)
+							broadcastGroupChannelsUpdate(app, group)
+						}
 						broadcastGroupMembersUpdate(app, group)
 					}()
 					for !ctxWs.Closed {
@@ -2441,53 +2446,34 @@ func broadcastGroupChannelsUpdate(app *fiber.App, group model.Group) {
 		}
 	}
 
-	if group.Name == "draqun" {
-		adminChannels := append(slices.Clone(channels), model.GetOtelVirtualChannel(), model.GetConfigVirtualChannel())
+	// Filter channels per user based on read permissions
+	for _, userId := range session.UserSessionMap.GroupUserIDs(group.Id) {
+		user, _ := model.NewUserFromId(userId)
+		isStaff := model.IsDraqunStaff(user)
+		isAdmin, isMod := model.IsDraqunAdminOrMod(user)
 
-		bufAdmin, errA := render.RenderBuffer(app, "partials/channels-list", fiber.Map{
-			"Group":            group,
-			"Channels":         adminChannels,
-			"SubchannelsMap":   subchannelsMap,
-			"CollabMembersMap": collabMembersMap,
-		})
-		bufReg, errR := render.RenderBuffer(app, "partials/channels-list", fiber.Map{
-			"Group":            group,
-			"Channels":         channels,
-			"SubchannelsMap":   subchannelsMap,
-			"CollabMembersMap": collabMembersMap,
-		})
-
-		if errA == nil && errR == nil {
-			strAdmin := bufAdmin.String()
-			adminOob := render.WrapOob("innerHTML:#channels", &strAdmin)
-			strReg := bufReg.String()
-			regOob := render.WrapOob("innerHTML:#channels", &strReg)
-
-			for _, userId := range session.UserSessionMap.GroupUserIDs(group.Id) {
-				user, _ := model.NewUserFromId(userId)
-				isAdmin, isMod := model.IsDraqunAdminOrMod(user)
-				if isAdmin || isMod {
-					session.UserSessionMap.PushUser(userId, adminOob)
-				} else {
-					session.UserSessionMap.PushUser(userId, regOob)
-				}
+		var userChannels []model.Channel
+		for _, ch := range channels {
+			if isStaff || model.GetUserPermissionLevel(group.Id, userId, ch.Id, model.PermNameRead) != model.PermLevelDisable {
+				userChannels = append(userChannels, ch)
 			}
-			return
+		}
+		if (isAdmin || isMod) && group.Name == "draqun" {
+			userChannels = append(userChannels, model.GetOtelVirtualChannel(), model.GetConfigVirtualChannel())
+		}
+
+		buf, errB := render.RenderBuffer(app, "partials/channels-list", fiber.Map{
+			"Group":            group,
+			"Channels":         userChannels,
+			"SubchannelsMap":   subchannelsMap,
+			"CollabMembersMap": collabMembersMap,
+		})
+		if errB == nil {
+			str := buf.String()
+			userOob := render.WrapOob("innerHTML:#channels", &str)
+			session.UserSessionMap.PushUser(userId, userOob)
 		}
 	}
-
-	buf, err := render.RenderBuffer(app, "partials/channels-list", fiber.Map{
-		"Group":            group,
-		"Channels":         channels,
-		"SubchannelsMap":   subchannelsMap,
-		"CollabMembersMap": collabMembersMap,
-	})
-	if err != nil {
-		return
-	}
-	str := buf.String()
-	channelsOob := render.WrapOob("innerHTML:#channels", &str)
-	session.UserSessionMap.PushGroup(group.Id, channelsOob)
 }
 
 func broadcastGroupMembersUpdate(app *fiber.App, group model.Group) {

@@ -222,7 +222,7 @@ func (user User) GroupList() []Group {
 	groupList := []Group{}
 
 	sql, args, err := Goqu.Select(TableGroups+".*").From(TableGroups).
-		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".user_id")))).
+		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
 		Where(goqu.Ex{
 			TableMembers + ".user_id":    user.Id,
 			TableGroups + ".is_deleted":  false,
@@ -247,8 +247,8 @@ func (user User) GroupList() []Group {
 func (user User) MemberList() []Member {
 	memberList := []Member{}
 
-	sql, args, err := Goqu.Select(TableMembers+".*").From(TableGroups).
-		LeftJoin(goqu.I(TableMembers), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".user_id")))).
+	sql, args, err := Goqu.Select(TableMembers+".*").From(TableMembers).
+		LeftJoin(goqu.I(TableGroups), goqu.On(goqu.I(TableGroups+".id").Eq(goqu.I(TableMembers+".group_id")))).
 		Where(goqu.Ex{
 			TableMembers + ".user_id":    user.Id,
 			TableGroups + ".is_deleted":  false,
