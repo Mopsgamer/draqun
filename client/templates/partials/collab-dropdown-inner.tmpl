@@ -35,18 +35,67 @@
                 <span class="icon {{if .CollabSession.GlobalOutputMuted}}icon-[lucide--volume-x]{{else}}icon-[lucide--volume-2]{{end}} size-4"></span>
             </button>
 
+            <!-- Share options dropdown trigger (lucide--monitor-up) -->
             <button
                 type="button"
-                class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.VideoEnabled}}text-primary{{else}}text-base-content/60 hover:text-base-content{{end}}"
-                id="collab-btn-video"
-                hx-post="/groups/{{.Group.Id}}/collab/toggle-video"
-                hx-target="#collab-dropdown-menu-content"
-                hx-swap="outerHTML"
-                aria-label="Toggle video"
-                title="{{if .CollabSession.VideoEnabled}}Camera enabled{{else}}Camera disabled{{end}}"
+                class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.VideoEnabled}}text-primary{{else}}text-base-content/80 hover:text-base-content{{end}}"
+                id="collab-btn-share-menu"
+                popovertarget="popover-collab-share-options"
+                style="anchor-name:--anchor-collab-share"
+                aria-label="Share screen, files, or camera"
+                title="Share screen, files, or camera"
             >
-                <span class="icon {{if .CollabSession.VideoEnabled}}icon-[lucide--video]{{else}}icon-[lucide--video-off]{{end}} size-4"></span>
+                <span class="icon icon-[lucide--monitor-up] size-4"></span>
             </button>
+            <div
+                popover
+                id="popover-collab-share-options"
+                class="dropdown dropdown-center p-2 shadow-xl bg-surface-overlay rounded-box border border-base-content/10 mt-1 z-50"
+                style="position-anchor:--anchor-collab-share"
+            >
+                <!-- Share button group (join) -->
+                <div class="join join-horizontal">
+                    <button
+                        type="button"
+                        class="join-item btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-base-content"
+                        id="collab-btn-screenshare"
+                        aria-label="Share screen"
+                        title="Share screen"
+                    >
+                        <span class="icon icon-[lucide--screen-share] size-4" id="collab-screenshare-icon"></span>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="join-item btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-base-content"
+                        id="collab-btn-presentation"
+                        aria-label="Share music, video, or presentation"
+                        title="Share file (music, video, presentation)"
+                        onclick="document.getElementById('collab-file-input')?.click()"
+                    >
+                        <span class="icon icon-[lucide--presentation] size-4"></span>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.VideoEnabled}}text-primary{{else}}text-base-content/80 hover:text-base-content{{end}}"
+                        id="collab-btn-video"
+                        hx-post="/groups/{{.Group.Id}}/collab/toggle-video"
+                        hx-target="#collab-dropdown-menu-content"
+                        hx-swap="outerHTML"
+                        aria-label="Toggle camera"
+                        title="{{if .CollabSession.VideoEnabled}}Camera enabled{{else}}Camera disabled{{end}}"
+                    >
+                        <span class="icon {{if .CollabSession.VideoEnabled}}icon-[lucide--camera]{{else}}icon-[lucide--camera-off]{{end}} size-4"></span>
+                    </button>
+                </div>
+                <input
+                    type="file"
+                    id="collab-file-input"
+                    class="hidden"
+                    accept="audio/*,video/*,image/*,.pptx,.ppt,.pdf"
+                />
+            </div>
 
             <button
                 type="button"

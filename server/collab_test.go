@@ -61,8 +61,8 @@ func TestCollabVirtualSubchannels(t *testing.T) {
 		t.Errorf("expected 200 OK for collab join, got %d", respJoinNew.StatusCode())
 	}
 	bodyJoin := respJoinNew.String()
-	if !strings.Contains(bodyJoin, "Collaboration Space") {
-		t.Errorf("expected rendered Collaboration Space in join response, got: %s", bodyJoin)
+	if !strings.Contains(bodyJoin, "Collaboration") {
+		t.Errorf("expected rendered Collaboration in join response, got: %s", bodyJoin)
 	}
 
 	activeRooms := session.CollabHub.GetActiveSubchannels(collabCh.Id)

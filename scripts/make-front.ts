@@ -3,7 +3,7 @@ import fsSync from "node:fs";
 import path from "node:path";
 import postcss from "postcss";
 import tailwindcss from "@tailwindcss/postcss";
-import {ms} from "@jsr/m234__ns";
+import { ms } from "@jsr/m234__ns";
 import { transform } from "lightningcss";
 import { format, type TaskRunnerReturn } from "@jsr/m234__logger";
 import { distFolder, logClientComp } from "./tool/constants.ts";

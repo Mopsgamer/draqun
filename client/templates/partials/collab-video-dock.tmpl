@@ -9,35 +9,132 @@
     </div>
 </div>
 
-<div id="collab-video-dock" class="fixed bottom-6 right-6 z-50 flex flex-wrap gap-3 pointer-events-none {{if not (and .CollabSession .CollabSession.VideoEnabled)}}hidden{{end}}">
-    <!-- Local User Video Tile -->
-    <div id="video-tile-local" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200 {{if not (and .CollabSession .CollabSession.VideoEnabled)}}hidden{{end}}">
-        <video id="collab-local-video" autoplay playsinline muted class="w-full h-full object-contain"></video>
-        <span class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow">You</span>
+<!-- Video Dock UI with z-30 (below collab context menu and notifications popover z-50) -->
+<div id="collab-video-dock" class="fixed bottom-6 right-6 z-30 flex flex-col items-end gap-2 pointer-events-none {{if not (and .CollabSession .CollabSession.VideoEnabled)}}hidden{{end}}">
+    <!-- Dock UI Toggle Bar (Hide/Unhide Dock) -->
+    <div class="pointer-events-auto flex items-center gap-1 bg-base-300/80 backdrop-blur-md px-2 py-1 rounded-full shadow border border-base-content/10">
         <button
             type="button"
-            class="btn btn-ghost btn-circle btn-xs absolute top-1.5 right-1.5 text-white/90 hover:text-white hover:bg-black/40"
-            onclick="document.getElementById('video-tile-local')?.classList.add('hidden')"
-            hx-post="/groups/{{.Group.Id}}/collab/toggle-video"
-            hx-target="#collab-dropdown-menu-content"
-            hx-swap="outerHTML"
-            title="Disable camera"
+            id="collab-dock-toggle-btn"
+            class="btn btn-ghost btn-circle btn-xs text-base-content/70 hover:text-base-content"
+            title="Toggle dock UI"
+            aria-label="Toggle dock UI"
         >
-            <span class="icon icon-[lucide--x] size-3.5"></span>
+            <span class="icon icon-[lucide--eye-off] size-3.5" id="collab-dock-toggle-icon"></span>
         </button>
     </div>
 
-    <!-- Remote Participant Video Tile -->
-    <div id="video-tile-remote" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200 hidden">
-        <video id="collab-remote-video" autoplay playsinline muted class="w-full h-full object-contain"></video>
-        <span class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow">Participant</span>
-        <button
-            type="button"
-            class="btn btn-ghost btn-circle btn-xs absolute top-1.5 right-1.5 text-white/90 hover:text-white hover:bg-black/40"
-            onclick="document.getElementById('video-tile-remote')?.classList.add('hidden')"
-            title="Hide video"
-        >
-            <span class="icon icon-[lucide--x] size-3.5"></span>
-        </button>
+    <div id="collab-dock-tiles-container" class="flex flex-wrap justify-end gap-3 pointer-events-none max-w-[90vw]">
+        <!-- 1. Local Camera Video Tile -->
+        <div id="video-tile-local" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200 {{if not (and .CollabSession .CollabSession.VideoEnabled)}}hidden{{end}}">
+            <video id="collab-local-video" autoplay playsinline muted class="w-full h-full object-contain"></video>
+            <span id="collab-local-badge" class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow">You</span>
+            
+            <!-- Action buttons: Fullscreen & Close -->
+            <div class="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
+                    id="collab-btn-fullscreen-local"
+                    title="Toggle fullscreen"
+                    aria-label="Toggle fullscreen"
+                >
+                    <span class="icon icon-[lucide--maximize-2] size-3.5"></span>
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
+                    id="collab-btn-close-local"
+                    title="Disable camera"
+                    aria-label="Disable camera"
+                >
+                    <span class="icon icon-[lucide--x] size-3.5"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. Local Screen Share Video Tile -->
+        <div id="video-tile-screen" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200 hidden">
+            <video id="collab-screen-video" autoplay playsinline muted class="w-full h-full object-contain"></video>
+            <span id="collab-screen-badge" class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow">Your screen</span>
+            
+            <!-- Action buttons: Fullscreen & Close -->
+            <div class="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
+                    id="collab-btn-fullscreen-screen"
+                    title="Toggle fullscreen"
+                    aria-label="Toggle fullscreen"
+                >
+                    <span class="icon icon-[lucide--maximize-2] size-3.5"></span>
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
+                    id="collab-btn-close-screen"
+                    title="Stop sharing screen"
+                    aria-label="Stop sharing screen"
+                >
+                    <span class="icon icon-[lucide--x] size-3.5"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. Local File/Presentation Video Tile -->
+        <div id="video-tile-file" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200 hidden">
+            <video id="collab-file-video" autoplay playsinline muted class="w-full h-full object-contain"></video>
+            <span id="collab-file-badge" class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow truncate max-w-[140px]">Your presentation</span>
+            
+            <!-- Action buttons: Fullscreen & Close -->
+            <div class="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
+                    id="collab-btn-fullscreen-file"
+                    title="Toggle fullscreen"
+                    aria-label="Toggle fullscreen"
+                >
+                    <span class="icon icon-[lucide--maximize-2] size-3.5"></span>
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
+                    id="collab-btn-close-file"
+                    title="Stop sharing presentation"
+                    aria-label="Stop sharing presentation"
+                >
+                    <span class="icon icon-[lucide--x] size-3.5"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. Remote Participant Video Tile -->
+        <div id="video-tile-remote" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200 hidden">
+            <video id="collab-remote-video" autoplay playsinline muted class="w-full h-full object-contain"></video>
+            <span id="collab-remote-badge" class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow">Participant</span>
+            
+            <!-- Action buttons: Fullscreen & Close -->
+            <div class="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
+                    id="collab-btn-fullscreen-remote"
+                    title="Toggle fullscreen"
+                    aria-label="Toggle fullscreen"
+                >
+                    <span class="icon icon-[lucide--maximize-2] size-3.5"></span>
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
+                    id="collab-btn-close-remote"
+                    title="Hide video"
+                    aria-label="Hide video"
+                >
+                    <span class="icon icon-[lucide--x] size-3.5"></span>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
