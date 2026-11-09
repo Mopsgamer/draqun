@@ -17,6 +17,8 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/contrib/v3/websocket"
 	"github.com/gofiber/fiber/v3"
+	"slices"
+
 	"github.com/pion/webrtc/v4"
 )
 
@@ -2436,6 +2438,41 @@ func broadcastGroupChannelsUpdate(app *fiber.App, group model.Group) {
 		} else if !ch.IsTicket() && !ch.IsOtel() && !ch.IsConfig() {
 			subchs, _ := model.GetSubchannels(ch.Id)
 			subchannelsMap[ch.Id] = subchs
+		}
+	}
+
+	if group.Name == "draqun" {
+		adminChannels := append(slices.Clone(channels), model.GetOtelVirtualChannel(), model.GetConfigVirtualChannel())
+
+		bufAdmin, errA := render.RenderBuffer(app, "partials/channels-list", fiber.Map{
+			"Group":            group,
+			"Channels":         adminChannels,
+			"SubchannelsMap":   subchannelsMap,
+			"CollabMembersMap": collabMembersMap,
+		})
+		bufReg, errR := render.RenderBuffer(app, "partials/channels-list", fiber.Map{
+			"Group":            group,
+			"Channels":         channels,
+			"SubchannelsMap":   subchannelsMap,
+			"CollabMembersMap": collabMembersMap,
+		})
+
+		if errA == nil && errR == nil {
+			strAdmin := bufAdmin.String()
+			adminOob := render.WrapOob("innerHTML:#channels", &strAdmin)
+			strReg := bufReg.String()
+			regOob := render.WrapOob("innerHTML:#channels", &strReg)
+
+			for _, userId := range session.UserSessionMap.GroupUserIDs(group.Id) {
+				user, _ := model.NewUserFromId(userId)
+				isAdmin, isMod := model.IsDraqunAdminOrMod(user)
+				if isAdmin || isMod {
+					session.UserSessionMap.PushUser(userId, adminOob)
+				} else {
+					session.UserSessionMap.PushUser(userId, regOob)
+				}
+			}
+			return
 		}
 	}
 

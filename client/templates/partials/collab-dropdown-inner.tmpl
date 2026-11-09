@@ -2,23 +2,11 @@
     <!-- Header title + disconnect -->
     <div class="flex items-center justify-between pb-2 border-b border-base-content/10">
         <div class="flex items-center gap-1.5">
-            <span class="icon icon-[lucide--radio] size-4 text-success"></span>
-            <span class="text-xs font-bold uppercase tracking-wider text-base-content/70">Collaboration Space</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-base-content/70">Collaboration</span>
         </div>
-        <button
-            type="button"
-            class="btn btn-ghost btn-xs text-error hover:bg-error/10 gap-1"
-            hx-post="/groups/{{.Group.Id}}/collab/disconnect"
-            hx-target="#collab-header-container"
-            hx-swap="outerHTML"
-            title="Disconnect from collaboration"
-        >
-            <span class="icon icon-[lucide--phone-off] size-3"></span>
-            Disconnect
-        </button>
     </div>
 
-    <!-- Quick Controls inside Context Menu (Mic, Headphones, Video) -->
+    <!-- Quick Controls inside Context Menu (Mic, Volume, Video) -->
     <div id="collab-quick-controls" class="flex items-center justify-center py-1">
         <div class="join">
             <button
@@ -41,10 +29,10 @@
                 hx-post="/groups/{{.Group.Id}}/collab/toggle-output"
                 hx-target="#collab-dropdown-menu-content"
                 hx-swap="outerHTML"
-                aria-label="Toggle headphones"
-                title="{{if .CollabSession.GlobalOutputMuted}}Headphones deafened{{else}}Headphones active{{end}}"
+                aria-label="Toggle volume"
+                title="Toggle volume"
             >
-                <span class="icon {{if .CollabSession.GlobalOutputMuted}}icon-[lucide--volume-x]{{else}}icon-[lucide--headphones]{{end}} size-4"></span>
+                <span class="icon {{if .CollabSession.GlobalOutputMuted}}icon-[lucide--volume-x]{{else}}icon-[lucide--volume-2]{{end}} size-4"></span>
             </button>
 
             <button
@@ -58,6 +46,17 @@
                 title="{{if .CollabSession.VideoEnabled}}Camera enabled{{else}}Camera disabled{{end}}"
             >
                 <span class="icon {{if .CollabSession.VideoEnabled}}icon-[lucide--video]{{else}}icon-[lucide--video-off]{{end}} size-4"></span>
+            </button>
+
+            <button
+                type="button"
+                class="join-item btn btn-ghost btn-square btn-sm text-error hover:bg-error/10"
+                hx-post="/groups/{{.Group.Id}}/collab/disconnect"
+                hx-target="#collab-header-container"
+                hx-swap="outerHTML"
+                title="Disconnect from every call"
+            >
+                <span class="icon icon-[lucide--phone-off] size-4"></span>
             </button>
         </div>
     </div>

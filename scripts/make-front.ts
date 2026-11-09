@@ -3,7 +3,7 @@ import fsSync from "node:fs";
 import path from "node:path";
 import postcss from "postcss";
 import tailwindcss from "@tailwindcss/postcss";
-import ms from "ms";
+import {ms} from "@jsr/m234__ns";
 import { transform } from "lightningcss";
 import { format, type TaskRunnerReturn } from "@jsr/m234__logger";
 import { distFolder, logClientComp } from "./tool/constants.ts";
@@ -95,7 +95,7 @@ async function buildJs(
 					return;
 				}
 
-				const duration = performance.now() - start;
+				const duration = (performance.now() - start) | 0;
 				logClientComp.info(
 					`Frontend rebuilt in ${ms(duration)} at ${new Date().toLocaleTimeString()}${fileDesc}`,
 				);
@@ -195,7 +195,7 @@ async function buildCss(
 					for (const entry of cssEntries) {
 						await compileCssFile(entry.in, entry.out, minify);
 					}
-					const duration = performance.now() - start;
+					const duration = (performance.now() - start) | 0;
 					logClientComp.info(
 						`Frontend rebuilt in ${ms(duration)} at ${new Date().toLocaleTimeString()}${fileDesc}`,
 					);
@@ -320,7 +320,7 @@ export async function runMakeFront(
 		}),
 	);
 
-	const totalMs = performance.now() - startTime;
+	const totalMs = (performance.now() - startTime) | 0;
 	if (!isQuiet) {
 		logClientComp.info(`Frontend build completed in ${ms(totalMs)}.`);
 	}

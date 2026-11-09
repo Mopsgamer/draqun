@@ -52,6 +52,22 @@ func (conns userSessionMap) Connections(userId uint64) []*ControllerWs {
 	return conns[userId]
 }
 
+// GroupUserIDs returns all unique user IDs that currently have an active connection in the given group.
+func (conns *userSessionMap) GroupUserIDs(groupId uint64) []uint64 {
+	sessionMu.RLock()
+	defer sessionMu.RUnlock()
+	var userIds []uint64
+	for userId := range *conns {
+		for _, ws := range (*conns)[userId] {
+			if ws.GroupId == groupId {
+				userIds = append(userIds, userId)
+				break
+			}
+		}
+	}
+	return userIds
+}
+
 func (conns userSessionMap) IsOnline(userId uint64) bool {
 	sessionMu.RLock()
 	defer sessionMu.RUnlock()
