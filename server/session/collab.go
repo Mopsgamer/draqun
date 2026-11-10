@@ -8,11 +8,24 @@ import (
 )
 
 type CollabParticipant struct {
-	UserId      uint64 `json:"user_id"`
-	Moniker     string `json:"moniker"`
-	AvatarUrl   string `json:"avatar_url"`
-	OutputMuted bool   `json:"output_muted"`
-	InputMuted  bool   `json:"input_muted"`
+	UserId          uint64 `json:"user_id"`
+	Moniker         string `json:"moniker"`
+	AvatarUrl       string `json:"avatar_url"`
+	OutputMuted     bool   `json:"output_muted"`
+	InputMuted      bool   `json:"input_muted"`
+	IsCameraEnabled bool   `json:"is_camera_enabled"`
+	IsScreenShared  bool   `json:"is_screen_shared"`
+	IsFileShared    bool   `json:"is_file_shared"`
+	SharedFileName  string `json:"shared_file_name"`
+}
+
+type RemoteStreamTile struct {
+	TileId          string
+	VideoElementId  string
+	ParticipantName string
+	Type            string // "camera", "screen", "file"
+	FileName        string
+	UserId          uint64
 }
 
 type CollabChannelSession struct {
@@ -29,12 +42,90 @@ type UserCollabSession struct {
 	GroupId           uint64                           `json:"group_id"`
 	GlobalInputMuted  bool                             `json:"global_input_muted"`
 	GlobalOutputMuted bool                             `json:"global_output_muted"`
-	VideoEnabled      bool                             `json:"video_enabled"`
+	IsCameraEnabled   bool                             `json:"is_camera_enabled"`
+	IsScreenShared    bool                             `json:"is_screen_shared"`
+	IsFileShared      bool                             `json:"is_file_shared"`
+	SharedFileName    string                           `json:"shared_file_name"`
 	BitrateKbps       int                              `json:"bitrate_kbps"`
 	SignalStrength    string                           `json:"signal_strength"`
 	Channels          map[uint64]*CollabChannelSession `json:"channels"`
 	UserMutes         map[uint64]bool                  `json:"user_mutes"`
 	LastSeen          time.Time                        `json:"last_seen"`
+}
+
+// RemoteStreams returns the list of active remote streams across the user's active channels
+func (s *UserCollabSession) RemoteStreams() []RemoteStreamTile {
+	if s == nil {
+		return nil
+	}
+	CollabHub.mu.RLock()
+	defer CollabHub.mu.RUnlock()
+
+	var tiles []RemoteStreamTile
+	seen := make(map[string]bool)
+
+	for _, ch := range s.Channels {
+		for uid, p := range ch.Participants {
+			if uid == s.UserId || p == nil {
+				continue
+			}
+			otherSess := CollabHub.sessions[uid]
+			if otherSess == nil {
+				continue
+			}
+
+			// Remote Camera
+			if otherSess.IsCameraEnabled {
+				key := strconv.FormatUint(uid, 10) + "_camera"
+				if !seen[key] {
+					seen[key] = true
+					tiles = append(tiles, RemoteStreamTile{
+						TileId:          "video-tile-remote-" + strconv.FormatUint(uid, 10) + "-camera",
+						VideoElementId:  "collab-remote-video-" + strconv.FormatUint(uid, 10) + "-camera",
+						ParticipantName: p.Moniker,
+						Type:            "camera",
+						UserId:          uid,
+					})
+				}
+			}
+
+			// Remote Screen
+			if otherSess.IsScreenShared {
+				key := strconv.FormatUint(uid, 10) + "_screen"
+				if !seen[key] {
+					seen[key] = true
+					tiles = append(tiles, RemoteStreamTile{
+						TileId:          "video-tile-remote-" + strconv.FormatUint(uid, 10) + "-screen",
+						VideoElementId:  "collab-remote-video-" + strconv.FormatUint(uid, 10) + "-screen",
+						ParticipantName: p.Moniker + "'s screen",
+						Type:            "screen",
+						UserId:          uid,
+					})
+				}
+			}
+
+			// Remote Presentation
+			if otherSess.IsFileShared {
+				key := strconv.FormatUint(uid, 10) + "_file"
+				if !seen[key] {
+					seen[key] = true
+					name := p.Moniker + "'s presentation"
+					if otherSess.SharedFileName != "" {
+						name += " (" + otherSess.SharedFileName + ")"
+					}
+					tiles = append(tiles, RemoteStreamTile{
+						TileId:          "video-tile-remote-" + strconv.FormatUint(uid, 10) + "-file",
+						VideoElementId:  "collab-remote-video-" + strconv.FormatUint(uid, 10) + "-file",
+						ParticipantName: name,
+						Type:            "file",
+						FileName:        otherSess.SharedFileName,
+						UserId:          uid,
+					})
+				}
+			}
+		}
+	}
+	return tiles
 }
 
 type collabHub struct {
@@ -144,7 +235,9 @@ func (h *collabHub) JoinSubchannel(
 			GroupId:           groupId,
 			GlobalInputMuted:  false,
 			GlobalOutputMuted: false,
-			VideoEnabled:      false,
+			IsCameraEnabled:   false,
+			IsScreenShared:    false,
+			IsFileShared:      false,
 			BitrateKbps:       64,
 			SignalStrength:    "good",
 			Channels:          make(map[uint64]*CollabChannelSession),
@@ -172,11 +265,15 @@ func (h *collabHub) JoinSubchannel(
 	}
 
 	selfPart := &CollabParticipant{
-		UserId:      userId,
-		Moniker:     moniker,
-		AvatarUrl:   avatarUrl,
-		OutputMuted: false,
-		InputMuted:  sess.GlobalInputMuted || chSess.InputMuted,
+		UserId:          userId,
+		Moniker:         moniker,
+		AvatarUrl:       avatarUrl,
+		OutputMuted:     false,
+		InputMuted:      sess.GlobalInputMuted || chSess.InputMuted,
+		IsCameraEnabled: sess.IsCameraEnabled,
+		IsScreenShared:  sess.IsScreenShared,
+		IsFileShared:    sess.IsFileShared,
+		SharedFileName:  sess.SharedFileName,
 	}
 
 	// Update participants matching same channel and virtual subchannel
@@ -184,20 +281,28 @@ func (h *collabHub) JoinSubchannel(
 		if otherCh, ok := otherSess.Channels[channelId]; ok {
 			if otherCh.SubchannelName == subchannelName {
 				otherCh.Participants[userId] = &CollabParticipant{
-					UserId:      userId,
-					Moniker:     moniker,
-					AvatarUrl:   avatarUrl,
-					OutputMuted: otherSess.UserMutes[userId],
-					InputMuted:  sess.GlobalInputMuted || chSess.InputMuted,
+					UserId:          userId,
+					Moniker:         moniker,
+					AvatarUrl:       avatarUrl,
+					OutputMuted:     otherSess.UserMutes[userId],
+					InputMuted:      sess.GlobalInputMuted || chSess.InputMuted,
+					IsCameraEnabled: sess.IsCameraEnabled,
+					IsScreenShared:  sess.IsScreenShared,
+					IsFileShared:    sess.IsFileShared,
+					SharedFileName:  sess.SharedFileName,
 				}
 				if otherSess.UserId != userId {
 					if otherPart, hasPart := otherCh.Participants[otherSess.UserId]; hasPart {
 						chSess.Participants[otherSess.UserId] = &CollabParticipant{
-							UserId:      otherPart.UserId,
-							Moniker:     otherPart.Moniker,
-							AvatarUrl:   otherPart.AvatarUrl,
-							OutputMuted: sess.UserMutes[otherSess.UserId],
-							InputMuted:  otherPart.InputMuted,
+							UserId:          otherPart.UserId,
+							Moniker:         otherPart.Moniker,
+							AvatarUrl:       otherPart.AvatarUrl,
+							OutputMuted:     sess.UserMutes[otherSess.UserId],
+							InputMuted:      otherPart.InputMuted,
+							IsCameraEnabled: otherSess.IsCameraEnabled,
+							IsScreenShared:  otherSess.IsScreenShared,
+							IsFileShared:    otherSess.IsFileShared,
+							SharedFileName:  otherSess.SharedFileName,
 						}
 					}
 				}
@@ -285,7 +390,78 @@ func (h *collabHub) ToggleVideo(userId uint64) *UserCollabSession {
 	if !exists {
 		return nil
 	}
-	sess.VideoEnabled = !sess.VideoEnabled
+	sess.IsCameraEnabled = !sess.IsCameraEnabled
+	return sess
+}
+
+func (h *collabHub) SetCameraEnabled(userId uint64, enabled bool) *UserCollabSession {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	sess, exists := h.sessions[userId]
+	if !exists {
+		return nil
+	}
+	sess.IsCameraEnabled = enabled
+	return sess
+}
+
+func (h *collabHub) ToggleScreenShare(userId uint64) *UserCollabSession {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	sess, exists := h.sessions[userId]
+	if !exists {
+		return nil
+	}
+	sess.IsScreenShared = !sess.IsScreenShared
+	return sess
+}
+
+func (h *collabHub) SetScreenShared(userId uint64, enabled bool) *UserCollabSession {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	sess, exists := h.sessions[userId]
+	if !exists {
+		return nil
+	}
+	sess.IsScreenShared = enabled
+	return sess
+}
+
+func (h *collabHub) ToggleFileShare(userId uint64, fileName string) *UserCollabSession {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	sess, exists := h.sessions[userId]
+	if !exists {
+		return nil
+	}
+	if sess.IsFileShared {
+		sess.IsFileShared = false
+		sess.SharedFileName = ""
+	} else {
+		sess.IsFileShared = true
+		sess.SharedFileName = fileName
+	}
+	return sess
+}
+
+func (h *collabHub) SetFileShared(userId uint64, enabled bool, fileName string) *UserCollabSession {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	sess, exists := h.sessions[userId]
+	if !exists {
+		return nil
+	}
+	sess.IsFileShared = enabled
+	if enabled {
+		sess.SharedFileName = fileName
+	} else {
+		sess.SharedFileName = ""
+	}
 	return sess
 }
 
@@ -298,6 +474,20 @@ func (h *collabHub) SetBitrate(userId uint64, bitrate int) *UserCollabSession {
 		return nil
 	}
 	sess.BitrateKbps = bitrate
+	return sess
+}
+
+func (h *collabHub) SetSignalStrength(userId uint64, strength string) *UserCollabSession {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	sess, exists := h.sessions[userId]
+	if !exists {
+		return nil
+	}
+	if strength == "poor" || strength == "fair" || strength == "good" {
+		sess.SignalStrength = strength
+	}
 	return sess
 }
 

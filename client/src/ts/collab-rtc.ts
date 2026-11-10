@@ -1,5 +1,6 @@
 import { domLoaded } from "./lib.ts";
 
+// Low-level WebRTC, Audio, and Video Stream state only
 let pc: RTCPeerConnection | null = null;
 let localAudioStream: MediaStream | null = null;
 let remoteAudio: HTMLAudioElement | null = null;
@@ -7,9 +8,10 @@ let currentGroupId: string | null = null;
 let currentChannelId: string | null = null;
 let currentSubchannelName: string | null = null;
 let isStarting = false;
-let isSyncingVideo = false;
+let statsMonitorTimer: any = null;
+let lastReportedQuality: string | null = null;
 
-// Web Audio mixer for combining local microphone, screen audio, and presentation/file audio
+// Web Audio mixer
 let audioContext: AudioContext | null = null;
 let mixedAudioDestination: MediaStreamAudioDestinationNode | null = null;
 let micAudioSource: MediaStreamAudioSourceNode | null = null;
@@ -17,31 +19,110 @@ let screenAudioSource: MediaStreamAudioSourceNode | null = null;
 let fileAudioSource: MediaStreamAudioSourceNode | null = null;
 let activeAudioSender: RTCRtpSender | null = null;
 
-// Independent active streams for simultaneous sharing
+// Media Streams
 let cameraStream: MediaStream | null = null;
 let screenStream: MediaStream | null = null;
 let fileStream: MediaStream | null = null;
-let currentSharedFileName: string | null = null;
 let activeMediaElement: HTMLVideoElement | HTMLAudioElement | null = null;
-
-// Track sender mapping
 let activeVideoSender: RTCRtpSender | null = null;
-
-// Remote active streams mapped by track/stream ID
-interface RemoteTileInfo {
-	element: HTMLElement;
-	video: HTMLVideoElement;
-	badge: HTMLElement;
-	stream: MediaStream;
-	track: MediaStreamTrack;
-	streamType: "camera" | "screen" | "presentation";
-}
-const remoteTiles = new Map<string, RemoteTileInfo>();
+let remoteVideoStream: MediaStream | null = null;
 
 const rtcConfig: RTCConfiguration = {
 	iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
 
+function getGroupId(): string | null {
+	const container = document.getElementById("collab-header-container");
+	return container?.getAttribute("data-group-id") || currentGroupId;
+}
+
+// Global Collab Controller exposed to window for HTML onclick/onchange handlers
+export const collabClient = {
+	async triggerCameraToggle() {
+		const groupId = getGroupId();
+		if (!groupId) return;
+		const htmx = (globalThis as any).htmx;
+		if (cameraStream) {
+			await stopCameraStream();
+			if (htmx) {
+				htmx.ajax("POST", `/groups/${groupId}/collab/toggle-video?enabled=false`, {
+					target: "#collab-dropdown-menu-content",
+					swap: "outerHTML",
+				});
+			}
+		} else {
+			const success = await startCameraStream();
+			if (success && htmx) {
+				htmx.ajax("POST", `/groups/${groupId}/collab/toggle-video?enabled=true`, {
+					target: "#collab-dropdown-menu-content",
+					swap: "outerHTML",
+				});
+			}
+		}
+	},
+
+	async triggerScreenShare() {
+		const groupId = getGroupId();
+		if (!groupId) return;
+		const htmx = (globalThis as any).htmx;
+		if (screenStream) {
+			await stopScreenShare();
+			if (htmx) {
+				htmx.ajax("POST", `/groups/${groupId}/collab/toggle-screenshare?enabled=false`, {
+					target: "#collab-dropdown-menu-content",
+					swap: "outerHTML",
+				});
+			}
+		} else {
+			const success = await startScreenShare();
+			if (success && htmx) {
+				htmx.ajax("POST", `/groups/${groupId}/collab/toggle-screenshare?enabled=true`, {
+					target: "#collab-dropdown-menu-content",
+					swap: "outerHTML",
+				});
+			}
+		}
+	},
+
+	async handleFileInput(input: HTMLInputElement) {
+		const file = input.files?.[0];
+		if (!file) return;
+		const groupId = getGroupId();
+		const success = await shareFile(file);
+		if (success && groupId) {
+			const htmx = (globalThis as any).htmx;
+			if (htmx) {
+				htmx.ajax("POST", `/groups/${groupId}/collab/toggle-presentation?enabled=true&filename=${encodeURIComponent(file.name)}`, {
+					target: "#collab-dropdown-menu-content",
+					swap: "outerHTML",
+				});
+			}
+		}
+	},
+
+	toggleTileFullscreen(tileId: string) {
+		const tile = document.getElementById(tileId);
+		if (!tile) return;
+		if (document.fullscreenElement) {
+			document.exitFullscreen?.().catch(() => {});
+		} else {
+			tile.requestFullscreen?.().catch(() => {});
+		}
+	},
+
+	toggleDockUI() {
+		const tilesContainer = document.getElementById(
+			"collab-dock-tiles-container",
+		);
+		if (!tilesContainer) return;
+		tilesContainer.classList.toggle("hidden");
+	},
+};
+
+(globalThis as any).collabClient = collabClient;
+
+
+// WebRTC Session
 export async function startWebRTCSession(
 	groupId: string,
 	channelId: string,
@@ -61,45 +142,25 @@ export async function startWebRTCSession(
 		remoteAudio.autoplay = true;
 
 		pc.ontrack = (event) => {
-			if (event.track.kind === "audio" && remoteAudio) {
-				const audioBtn =
-					document.getElementById("collab-btn-audio") ||
-					document.getElementById("voice-btn-audio");
+			if (event.track.kind === "audio") {
+				const audioStream = event.streams[0] || new MediaStream([event.track]);
+				const audioBtn = document.getElementById("collab-btn-audio");
 				const isDeafened = audioBtn?.classList.contains("text-error") ?? false;
-				remoteAudio.muted = isDeafened;
-				remoteAudio.srcObject =
-					event.streams[0] || new MediaStream([event.track]);
-				remoteAudio.play().catch(() => {});
-			} else if (event.track.kind === "video") {
-				const remoteStream = event.streams[0] || new MediaStream([event.track]);
-				const track = event.track;
-
-				const onTrackActive = () => {
-					renderRemoteVideoTrack(remoteStream, track);
-				};
-				const onTrackInactive = () => {
-					removeRemoteVideo(track.id);
-				};
-
-				track.addEventListener("unmute", onTrackActive);
-				track.addEventListener("mute", onTrackInactive);
-				track.addEventListener("ended", onTrackInactive);
-
-				if (!track.muted) {
-					renderRemoteVideoTrack(remoteStream, track);
+				if (remoteAudio) {
+					remoteAudio.muted = isDeafened;
+					remoteAudio.srcObject = audioStream;
+					remoteAudio.play().catch(() => {});
 				}
+			} else if (event.track.kind === "video") {
+				const stream = event.streams[0] || new MediaStream([event.track]);
+				remoteVideoStream = stream;
+				attachRemoteVideo(stream);
 			}
 		};
 
-		// Check camera toggle in DOM
-		const videoBtn =
-			document.getElementById("collab-btn-video") ||
-			document.getElementById("voice-btn-video");
-		const wantVideo = videoBtn?.classList.contains("text-primary") ?? false;
-
 		localAudioStream = null;
 		try {
-			const micStream = await navigator.mediaDevices.getUserMedia({
+			localAudioStream = await navigator.mediaDevices.getUserMedia({
 				audio: {
 					echoCancellation: true,
 					noiseSuppression: true,
@@ -107,42 +168,58 @@ export async function startWebRTCSession(
 				},
 				video: false,
 			});
-			localAudioStream = micStream;
-		} catch (err: any) {
-			console.warn("Could not obtain audio stream:", err);
+		} catch (err) {
+			console.warn("Could not capture local mic audio:", err);
 		}
 
 		setupAudioMixer();
 
 		const outboundAudioTrack = getMixedOutboundAudioTrack();
 		if (outboundAudioTrack && mixedAudioDestination) {
-			activeAudioSender = pc.addTrack(
-				outboundAudioTrack,
-				mixedAudioDestination.stream,
-			);
+			const existingSenders = pc.getSenders();
+			const audioSender = existingSenders.find(s => s.track && s.track.kind === "audio");
+			if (audioSender) {
+				await audioSender.replaceTrack(outboundAudioTrack);
+				activeAudioSender = audioSender;
+			} else {
+				activeAudioSender = pc.addTrack(
+					outboundAudioTrack,
+					mixedAudioDestination.stream,
+				);
+			}
 		} else if (
 			localAudioStream &&
 			localAudioStream.getAudioTracks().length > 0
 		) {
-			activeAudioSender = pc.addTrack(
-				localAudioStream.getAudioTracks()[0],
-				localAudioStream,
-			);
-		} else {
-			if (pc.addTransceiver) {
-				pc.addTransceiver("audio", { direction: "recvonly" });
+			const existingSenders = pc.getSenders();
+			const audioSender = existingSenders.find(s => s.track && s.track.kind === "audio");
+			if (audioSender) {
+				await audioSender.replaceTrack(localAudioStream.getAudioTracks()[0]);
+				activeAudioSender = audioSender;
+			} else {
+				activeAudioSender = pc.addTrack(
+					localAudioStream.getAudioTracks()[0],
+					localAudioStream,
+				);
 			}
+		} else if (pc.addTransceiver) {
+			pc.addTransceiver("audio", { direction: "recvonly" });
 		}
 
-		if (pc.addTransceiver) {
+		// Configure video transceiver
+		const existingVideoSender = pc.getSenders().find(s => (s.track && s.track.kind === "video") || (!s.track && (s as any).kind === "video"));
+		if (!existingVideoSender && pc.addTransceiver) {
 			pc.addTransceiver("video", { direction: "sendrecv" });
 		}
 
+		await negotiateWebRTC(groupId, channelId, subchannelName);
+
+		const videoBtn = document.getElementById("collab-btn-video");
+		const wantVideo = videoBtn?.classList.contains("text-primary") ?? false;
 		if (wantVideo) {
 			await startCameraStream();
 		}
-
-		await negotiateWebRTC(groupId, channelId, subchannelName);
+		attachAllActiveStreams();
 	} catch (e) {
 		console.warn("WebRTC startup notice:", e);
 	} finally {
@@ -159,7 +236,6 @@ async function negotiateWebRTC(
 	const offer = await pc.createOffer();
 	await pc.setLocalDescription(offer);
 
-	// Wait for ICE gathering
 	await new Promise<void>((resolve) => {
 		if (!pc || pc.iceGatheringState === "complete") {
 			resolve();
@@ -171,7 +247,7 @@ async function negotiateWebRTC(
 				}
 			};
 			pc.addEventListener("icegatheringstatechange", checkState);
-			setTimeout(resolve, 1500); // safety fallback
+			setTimeout(resolve, 1200);
 		}
 	});
 
@@ -189,14 +265,58 @@ async function negotiateWebRTC(
 	if (res.ok) {
 		const answer = await res.json();
 		await pc.setRemoteDescription(new RTCSessionDescription(answer));
+		startStatsMonitor(groupId);
 	}
 }
 
+function startStatsMonitor(groupId: string) {
+	if (statsMonitorTimer) clearInterval(statsMonitorTimer);
+	statsMonitorTimer = setInterval(async () => {
+		if (!pc || pc.connectionState === "closed" || pc.connectionState === "failed") {
+			clearInterval(statsMonitorTimer);
+			statsMonitorTimer = null;
+			return;
+		}
+		try {
+			const stats = await pc.getStats();
+			let quality = "good";
+			let maxRtt = 0;
+			stats.forEach((report) => {
+				if (report.type === "candidate-pair" && report.state === "succeeded") {
+					const rtt = report.currentRoundTripTime || 0;
+					if (rtt > maxRtt) maxRtt = rtt;
+				}
+			});
+			if (maxRtt > 0.4) {
+				quality = "poor";
+			} else if (maxRtt > 0.15) {
+				quality = "fair";
+			} else {
+				quality = "good";
+			}
+			if (quality !== lastReportedQuality) {
+				lastReportedQuality = quality;
+				const htmx = (globalThis as any).htmx;
+				if (htmx) {
+					htmx.ajax("POST", `/groups/${groupId}/collab/signal-strength?quality=${quality}`, {
+						target: "#collab-dropdown-menu-content",
+						swap: "outerHTML",
+					});
+				}
+			}
+		} catch (_) {}
+	}, 3000);
+}
+
 export function stopWebRTCSession() {
+	if (statsMonitorTimer) {
+		clearInterval(statsMonitorTimer);
+		statsMonitorTimer = null;
+	}
+	lastReportedQuality = null;
 	stopCameraStream();
 	stopScreenShare();
 	stopFileShare();
-
 	teardownAudioMixer();
 
 	if (localAudioStream) {
@@ -216,13 +336,12 @@ export function stopWebRTCSession() {
 	currentGroupId = null;
 	currentChannelId = null;
 	currentSubchannelName = null;
-	removeRemoteVideo();
+	remoteVideoStream = null;
 }
 
 async function updatePeerVideoTrack() {
 	if (!pc) return;
 
-	// Determine primary outbound video track (priority: Screen > File > Camera)
 	let outboundTrack: MediaStreamTrack | null = null;
 	let outboundStream: MediaStream | null = null;
 
@@ -251,34 +370,38 @@ async function updatePeerVideoTrack() {
 			if (outboundStream) {
 				activeVideoSender = pc.addTrack(outboundTrack, outboundStream);
 			}
-			if (currentGroupId && currentChannelId && currentSubchannelName) {
-				await negotiateWebRTC(
-					currentGroupId,
-					currentChannelId,
-					currentSubchannelName,
-				);
-			}
 		}
-	} else {
-		if (videoSender) {
-			await videoSender.replaceTrack(null);
+		if (currentGroupId && currentChannelId && currentSubchannelName) {
+			await negotiateWebRTC(
+				currentGroupId,
+				currentChannelId,
+				currentSubchannelName,
+			);
+		}
+	} else if (videoSender) {
+		await videoSender.replaceTrack(null);
+		if (currentGroupId && currentChannelId && currentSubchannelName) {
+			await negotiateWebRTC(
+				currentGroupId,
+				currentChannelId,
+				currentSubchannelName,
+			);
 		}
 	}
 }
 
-// 1. Camera Handling
-export async function startCameraStream() {
+// Media Capture Helpers
+export async function startCameraStream(): Promise<boolean> {
 	try {
-		if (cameraStream) {
-			renderLocalCamera(cameraStream);
-			return;
+		if (!cameraStream) {
+			cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
 		}
-		const vStream = await navigator.mediaDevices.getUserMedia({ video: true });
-		cameraStream = vStream;
-		renderLocalCamera(vStream);
+		attachCameraVideo();
 		await updatePeerVideoTrack();
-	} catch (e: any) {
+		return true;
+	} catch (e) {
 		console.warn("Could not capture camera stream:", e);
+		return false;
 	}
 }
 
@@ -287,71 +410,43 @@ export async function stopCameraStream() {
 		cameraStream.getTracks().forEach((t) => t.stop());
 		cameraStream = null;
 	}
-	removeLocalCamera();
+	const v = document.getElementById(
+		"collab-local-video",
+	) as HTMLVideoElement | null;
+	if (v) v.srcObject = null;
 	await updatePeerVideoTrack();
 }
 
-export function renderLocalCamera(stream: MediaStream) {
-	const dock = document.getElementById("collab-video-dock");
-	const localTile = document.getElementById("video-tile-local");
-	const localVideo = document.getElementById(
-		"collab-local-video",
-	) as HTMLVideoElement | null;
-	if (dock) dock.classList.remove("hidden");
-	if (localTile) localTile.classList.remove("hidden");
-	if (localVideo) {
-		if (localVideo.srcObject !== stream) {
-			localVideo.srcObject = stream;
-		}
-		localVideo.muted = true;
-		localVideo.play().catch(() => {});
-	}
-}
-
-function removeLocalCamera() {
-	const localTile = document.getElementById("video-tile-local");
-	const localVideo = document.getElementById(
-		"collab-local-video",
-	) as HTMLVideoElement | null;
-	if (localTile) localTile.classList.add("hidden");
-	if (localVideo) localVideo.srcObject = null;
-	checkDockVisibility();
-}
-
-// 2. Screen Share Handling
-export async function toggleScreenShare() {
-	if (screenStream) {
-		await stopScreenShare();
-	} else {
-		await startScreenShare();
-	}
-}
-
-export async function startScreenShare() {
+export async function startScreenShare(): Promise<boolean> {
 	try {
 		const displayStream = await navigator.mediaDevices.getDisplayMedia({
 			video: true,
 			audio: true,
 		});
-
 		const vTrack = displayStream.getVideoTracks()[0];
-		if (!vTrack) return;
+		if (!vTrack) return false;
 
 		screenStream = displayStream;
-		updateScreenShareIcon(true);
-		renderScreenShare(displayStream);
+		attachScreenVideo();
 
 		vTrack.addEventListener("ended", () => {
 			stopScreenShare();
+			const groupId = getGroupId();
+			const htmx = (globalThis as any).htmx;
+			if (groupId && htmx) {
+				htmx.ajax("POST", `/groups/${groupId}/collab/toggle-screenshare?enabled=false`, {
+					target: "#collab-dropdown-menu-content",
+					swap: "outerHTML",
+				});
+			}
 		});
 
-		// Include screen audio in mixer
 		updateScreenAudioMixer();
-
 		await updatePeerVideoTrack();
-	} catch (e: any) {
-		console.warn("Screen share canceled or failed:", e);
-		updateScreenShareIcon(false);
+		return true;
+	} catch (e) {
+		console.warn("Screen share cancelled or failed:", e);
+		return false;
 	}
 }
 
@@ -360,61 +455,17 @@ export async function stopScreenShare() {
 		screenStream.getTracks().forEach((t) => t.stop());
 		screenStream = null;
 	}
-	updateScreenShareIcon(false);
-	removeScreenShare();
+	const v = document.getElementById(
+		"collab-screen-video",
+	) as HTMLVideoElement | null;
+	if (v) v.srcObject = null;
 	updateScreenAudioMixer();
 	await updatePeerVideoTrack();
 }
 
-export function renderScreenShare(stream: MediaStream) {
-	const dock = document.getElementById("collab-video-dock");
-	const screenTile = document.getElementById("video-tile-screen");
-	const screenVideo = document.getElementById(
-		"collab-screen-video",
-	) as HTMLVideoElement | null;
-	if (dock) dock.classList.remove("hidden");
-	if (screenTile) screenTile.classList.remove("hidden");
-	if (screenVideo) {
-		if (screenVideo.srcObject !== stream) {
-			screenVideo.srcObject = stream;
-		}
-		screenVideo.muted = true;
-		screenVideo.play().catch(() => {});
-	}
-}
-
-function removeScreenShare() {
-	const screenTile = document.getElementById("video-tile-screen");
-	const screenVideo = document.getElementById(
-		"collab-screen-video",
-	) as HTMLVideoElement | null;
-	if (screenTile) screenTile.classList.add("hidden");
-	if (screenVideo) screenVideo.srcObject = null;
-	checkDockVisibility();
-}
-
-function updateScreenShareIcon(sharing: boolean) {
-	const icon = document.getElementById("collab-screenshare-icon");
-	const btn = document.getElementById("collab-btn-screenshare");
-	if (!icon || !btn) return;
-	if (sharing) {
-		icon.classList.remove("icon-[lucide--screen-share]");
-		icon.classList.add("icon-[lucide--screen-share-off]");
-		btn.classList.add("text-primary");
-		btn.setAttribute("title", "Stop sharing screen");
-	} else {
-		icon.classList.remove("icon-[lucide--screen-share-off]");
-		icon.classList.add("icon-[lucide--screen-share]");
-		btn.classList.remove("text-primary");
-		btn.setAttribute("title", "Share screen");
-	}
-}
-
-// 3. File / Presentation Handling
-export async function shareFile(file: File) {
+export async function shareFile(file: File): Promise<boolean> {
 	stopFileShare();
 
-	currentSharedFileName = file.name;
 	const fileType = file.type;
 	const isAudio = fileType.startsWith("audio/");
 	const isVideo = fileType.startsWith("video/");
@@ -429,27 +480,52 @@ export async function shareFile(file: File) {
 	const fileUrl = URL.createObjectURL(file);
 
 	if (isVideo || isAudio) {
-		const mediaEl = isVideo
-			? document.createElement("video")
-			: (document.createElement("audio") as unknown as HTMLVideoElement);
+		const mediaEl = document.createElement("video");
 		mediaEl.src = fileUrl;
 		mediaEl.crossOrigin = "anonymous";
 		mediaEl.loop = true;
+		mediaEl.playsInline = true;
+		// Keep local element unmuted so the sender can hear what they are playing
 		mediaEl.muted = false;
 		activeMediaElement = mediaEl;
 
 		await mediaEl.play().catch(() => {});
-
 		const captureFn =
 			(mediaEl as any).captureStream || (mediaEl as any).mozCaptureStream;
+
 		if (captureFn) {
-			const stream: MediaStream = captureFn.call(mediaEl);
+			let stream: MediaStream = captureFn.call(mediaEl);
+
+			// For audio-only files (MP3/WAV/OGG), generate a placeholder visualization canvas stream
+			// with the audio track so peers receive both the audio and a visual tile.
+			if (isAudio || stream.getVideoTracks().length === 0) {
+				const canvas = document.createElement("canvas");
+				canvas.width = 1280;
+				canvas.height = 720;
+				const ctx = canvas.getContext("2d");
+				if (ctx) {
+					ctx.fillStyle = "#1e1e24";
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
+					ctx.fillStyle = "#38bdf8";
+					ctx.font = "bold 36px sans-serif";
+					ctx.textAlign = "center";
+					ctx.fillText(`🎵 Now Playing: ${file.name}`, canvas.width / 2, 340);
+					ctx.fillStyle = "#94a3b8";
+					ctx.font = "20px sans-serif";
+					ctx.fillText(`Audio Stream (${Math.round(file.size / 1024)} KB)`, canvas.width / 2, 400);
+				}
+				const canvasStream = canvas.captureStream(15);
+				const vTrack = canvasStream.getVideoTracks()[0];
+				if (vTrack) {
+					stream.addTrack(vTrack);
+				}
+			}
+
 			fileStream = stream;
-
 			updateFileAudioMixer();
-
-			renderFileShare(stream, file.name);
+			attachFileVideo();
 			await updatePeerVideoTrack();
+			return true;
 		}
 	} else if (isPresentationOrDoc) {
 		const canvas = document.createElement("canvas");
@@ -461,8 +537,8 @@ export async function shareFile(file: File) {
 		if (fileType.startsWith("image/")) {
 			const img = new Image();
 			img.src = fileUrl;
-			img.onload = async () => {
-				const drawImageFrame = () => {
+			img.onload = () => {
+				const drawImage = () => {
 					if (!animActive) return;
 					if (ctx) {
 						ctx.fillStyle = "#1e1e24";
@@ -475,47 +551,33 @@ export async function shareFile(file: File) {
 						const y = canvas.height / 2 - (img.height / 2) * scale;
 						ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
 					}
-					requestAnimationFrame(drawImageFrame);
+					requestAnimationFrame(drawImage);
 				};
-				requestAnimationFrame(drawImageFrame);
+				requestAnimationFrame(drawImage);
 			};
-		} else {
-			if (ctx) {
-				ctx.fillStyle = "#1e1e24";
-				ctx.fillRect(0, 0, canvas.width, canvas.height);
-				ctx.fillStyle = "#e2e8f0";
-				ctx.font = "bold 32px sans-serif";
-				ctx.textAlign = "center";
-				ctx.fillText(`Presentation: ${file.name}`, canvas.width / 2, 320);
-				ctx.font = "20px sans-serif";
-				ctx.fillStyle = "#94a3b8";
-				ctx.fillText(
-					`Sharing file presentation (${Math.round(file.size / 1024)} KB)`,
-					canvas.width / 2,
-					380,
-				);
-			}
+		} else if (ctx) {
+			ctx.fillStyle = "#1e1e24";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.fillStyle = "#e2e8f0";
+			ctx.font = "bold 32px sans-serif";
+			ctx.textAlign = "center";
+			ctx.fillText(`Presentation: ${file.name}`, canvas.width / 2, 320);
+			ctx.font = "20px sans-serif";
+			ctx.fillStyle = "#94a3b8";
+			ctx.fillText(
+				`Sharing file (${Math.round(file.size / 1024)} KB)`,
+				canvas.width / 2,
+				380,
+			);
 		}
-
-		const renderLoop = () => {
-			if (!animActive) return;
-			requestAnimationFrame(renderLoop);
-		};
-		requestAnimationFrame(renderLoop);
 
 		const stream = canvas.captureStream(30);
 		fileStream = stream;
-
-		const vTrack = stream.getVideoTracks()[0];
-		if (vTrack) {
-			vTrack.addEventListener("ended", () => {
-				animActive = false;
-			});
-		}
-
-		renderFileShare(stream, file.name);
+		attachFileVideo();
 		await updatePeerVideoTrack();
+		return true;
 	}
+	return false;
 }
 
 export async function stopFileShare() {
@@ -529,315 +591,89 @@ export async function stopFileShare() {
 		activeMediaElement.remove();
 		activeMediaElement = null;
 	}
-	currentSharedFileName = null;
-	removeFileShare();
+	const v = document.getElementById(
+		"collab-file-video",
+	) as HTMLVideoElement | null;
+	if (v) v.srcObject = null;
 	updateFileAudioMixer();
 	await updatePeerVideoTrack();
 }
 
-export function renderFileShare(stream: MediaStream, fileName?: string) {
-	const dock = document.getElementById("collab-video-dock");
-	const fileTile = document.getElementById("video-tile-file");
-	const fileVideo = document.getElementById(
+// Media Attachment to Server-Rendered Elements
+function attachCameraVideo() {
+	const video = document.getElementById(
+		"collab-local-video",
+	) as HTMLVideoElement | null;
+	if (video && cameraStream) {
+		if (video.srcObject !== cameraStream) {
+			video.srcObject = cameraStream;
+		}
+		video.muted = true;
+		video.play().catch(() => {});
+	}
+}
+
+function attachScreenVideo() {
+	const video = document.getElementById(
+		"collab-screen-video",
+	) as HTMLVideoElement | null;
+	if (video && screenStream) {
+		if (video.srcObject !== screenStream) {
+			video.srcObject = screenStream;
+		}
+		video.muted = true;
+		video.play().catch(() => {});
+	}
+}
+
+function attachFileVideo() {
+	const video = document.getElementById(
 		"collab-file-video",
 	) as HTMLVideoElement | null;
-	const fileBadge = document.getElementById("collab-file-badge");
-
-	if (fileBadge) {
-		const name = fileName || currentSharedFileName;
-		fileBadge.textContent = name
-			? `Your presentation (${name})`
-			: "Your presentation";
-	}
-	if (dock) dock.classList.remove("hidden");
-	if (fileTile) fileTile.classList.remove("hidden");
-	if (fileVideo) {
-		if (fileVideo.srcObject !== stream) {
-			fileVideo.srcObject = stream;
+	if (video && fileStream) {
+		if (video.srcObject !== fileStream) {
+			video.srcObject = fileStream;
 		}
-		fileVideo.muted = true;
-		fileVideo.play().catch(() => {});
+		video.muted = true;
+		video.play().catch(() => {});
 	}
 }
 
-function removeFileShare() {
-	const fileTile = document.getElementById("video-tile-file");
-	const fileVideo = document.getElementById(
-		"collab-file-video",
-	) as HTMLVideoElement | null;
-	if (fileTile) fileTile.classList.add("hidden");
-	if (fileVideo) fileVideo.srcObject = null;
-	checkDockVisibility();
-}
-
-// Helper to look up active participant moniker from connected channels UI
-function getParticipantMoniker(): string {
-	const memberEl =
-		document.querySelector("#collab-channels-list [popover] span.truncate") ||
-		document.querySelector("#collab-channels-list .avatar img[alt]") ||
-		document.querySelector("#members .font-medium") ||
-		document.querySelector(
-			".channel-collab-entry [popover] button span.truncate",
-		);
-
-	if (memberEl) {
-		const alt = memberEl.getAttribute("alt");
-		if (alt && alt.trim() !== "") return alt.trim();
-		const text = memberEl.textContent?.trim();
-		if (text && text !== "") return text;
-	}
-	return "Partner";
-}
-
-// 4. Remote Video Handling with Dynamic Multi-Tile Support
-export function renderRemoteVideoTrack(
-	stream: MediaStream,
-	track?: MediaStreamTrack,
-) {
-	const dock = document.getElementById("collab-video-dock");
-	const remoteContainer = document.getElementById("collab-remote-tiles");
-	if (dock) dock.classList.remove("hidden");
-
-	const activeTrack = track || stream.getVideoTracks()[0];
-	if (!activeTrack) return;
-
-	const trackId = activeTrack.id;
-	const trackLabel = (activeTrack.label || "").toLowerCase();
-	const streamId = (stream.id || "").toLowerCase();
-
-	// Determine stream type: Screen, Presentation, or Camera
-	let streamType: "camera" | "screen" | "presentation" = "camera";
-	let streamTypeName = "Camera";
-	if (
-		trackLabel.includes("screen") ||
-		streamId.includes("screen") ||
-		trackId.includes("screen")
-	) {
-		streamType = "screen";
-		streamTypeName = "Screen";
-	} else if (
-		trackLabel.includes("presentation") ||
-		trackLabel.includes("file") ||
-		streamId.includes("presentation") ||
-		trackId.includes("presentation")
-	) {
-		streamType = "presentation";
-		streamTypeName = "Presentation";
-	}
-
-	const participantName = getParticipantMoniker();
-	const badgeLabel = `${participantName}'s ${streamTypeName}`;
-
-	let tileInfo = remoteTiles.get(trackId);
-
-	if (!tileInfo) {
-		// Use template video-tile-remote if it's the first and currently hidden
-		const templateTile = document.getElementById("video-tile-remote");
-		let tileEl: HTMLElement;
-		let videoEl: HTMLVideoElement;
-		let badgeEl: HTMLElement;
-
-		if (
-			templateTile &&
-			templateTile.classList.contains("hidden") &&
-			remoteTiles.size === 0
-		) {
-			tileEl = templateTile;
-			videoEl = tileEl.querySelector("video") as HTMLVideoElement;
-			badgeEl = tileEl.querySelector("#collab-remote-badge") as HTMLElement;
-		} else {
-			// Clone template for additional remote video stream
-			tileEl = (
-				templateTile
-					? templateTile.cloneNode(true)
-					: document.createElement("div")
-			) as HTMLElement;
-			tileEl.id = `video-tile-remote-${trackId}`;
-			videoEl = tileEl.querySelector("video") as HTMLVideoElement;
-			badgeEl = tileEl.querySelector("span") as HTMLElement;
-
-			// Update buttons IDs/attributes
-			const fsBtn = tileEl.querySelector(
-				"button[title*='fullscreen']",
-			) as HTMLButtonElement | null;
-			const closeBtn = tileEl.querySelector(
-				"button[title*='video']",
-			) as HTMLButtonElement | null;
-
-			if (fsBtn) {
-				fsBtn.id = `collab-btn-fullscreen-remote-${trackId}`;
-				fsBtn.addEventListener("click", () => {
-					toggleTileFullscreen(tileEl.id);
-				});
-			}
-			if (closeBtn) {
-				closeBtn.id = `collab-btn-close-remote-${trackId}`;
-				closeBtn.addEventListener("click", () => {
-					removeRemoteVideo(trackId);
-				});
-			}
-
-			if (remoteContainer) {
-				remoteContainer.appendChild(tileEl);
-			}
+function attachRemoteVideo(stream: MediaStream) {
+	// Find any server-rendered remote video element that hasn't been attached or needs current stream
+	const remoteVideos = document.querySelectorAll<HTMLVideoElement>(
+		"video[id^='collab-remote-video-'], #collab-remote-video, #collab-video-dock video:not(#collab-local-video):not(#collab-screen-video):not(#collab-file-video)",
+	);
+	remoteVideos.forEach((video) => {
+		if (video.srcObject !== stream) {
+			video.srcObject = stream;
 		}
-
-		tileEl.classList.remove("hidden");
-		tileEl.setAttribute("data-track-id", trackId);
-		tileEl.setAttribute("data-stream-type", streamType);
-
-		tileInfo = {
-			element: tileEl,
-			video: videoEl,
-			badge: badgeEl,
-			stream,
-			track: activeTrack,
-			streamType,
-		};
-		remoteTiles.set(trackId, tileInfo);
-	}
-
-	if (tileInfo.badge) {
-		tileInfo.badge.textContent = badgeLabel;
-		tileInfo.badge.setAttribute("title", badgeLabel);
-	}
-
-	if (tileInfo.video) {
-		if (tileInfo.video.srcObject !== stream) {
-			tileInfo.video.srcObject = stream;
+		video.playsInline = true;
+		video.autoplay = true;
+		const playPromise = video.play();
+		if (playPromise !== undefined) {
+			playPromise.catch(() => {
+				// Fallback to muted playback if autoplay policy prevents unmuted play
+				video.muted = true;
+				video.play().catch(() => {});
+			});
 		}
-		tileInfo.video.muted = false;
-		tileInfo.video.play().catch(() => {});
-	}
+	});
 }
 
-export function removeRemoteVideo(trackId?: string) {
-	if (trackId && remoteTiles.has(trackId)) {
-		const tile = remoteTiles.get(trackId);
-		if (tile) {
-			if (tile.element.id === "video-tile-remote") {
-				tile.element.classList.add("hidden");
-				if (tile.video) tile.video.srcObject = null;
-			} else {
-				tile.element.remove();
-			}
-			remoteTiles.delete(trackId);
+function attachAllActiveStreams() {
+	setTimeout(() => {
+		attachCameraVideo();
+		attachScreenVideo();
+		attachFileVideo();
+		if (remoteVideoStream) {
+			attachRemoteVideo(remoteVideoStream);
 		}
-	} else if (!trackId) {
-		for (const [id, tile] of remoteTiles.entries()) {
-			if (tile.element.id === "video-tile-remote") {
-				tile.element.classList.add("hidden");
-				if (tile.video) tile.video.srcObject = null;
-			} else {
-				tile.element.remove();
-			}
-		}
-		remoteTiles.clear();
-	}
-	checkDockVisibility();
-}
-
-function checkDockVisibility() {
-	const dock = document.getElementById("collab-video-dock");
-	const localTile = document.getElementById("video-tile-local");
-	const screenTile = document.getElementById("video-tile-screen");
-	const fileTile = document.getElementById("video-tile-file");
-
-	let hasVisibleRemote = false;
-	for (const tile of remoteTiles.values()) {
-		if (!tile.element.classList.contains("hidden")) {
-			hasVisibleRemote = true;
-			break;
-		}
-	}
-
-	const hasVisibleTile =
-		(localTile && !localTile.classList.contains("hidden")) ||
-		(screenTile && !screenTile.classList.contains("hidden")) ||
-		(fileTile && !fileTile.classList.contains("hidden")) ||
-		hasVisibleRemote;
-
-	if (dock && !hasVisibleTile) {
-		dock.classList.add("hidden");
-	}
-}
-
-export function toggleTileFullscreen(tileId: string) {
-	const tile = document.getElementById(tileId);
-	if (!tile) return;
-
-	if (document.fullscreenElement) {
-		document.exitFullscreen?.().catch(() => {});
-	} else {
-		tile.requestFullscreen?.().catch(() => {});
-	}
-}
-
-function updateFullscreenIcons() {
-	const fsEl = document.fullscreenElement;
-	const tiles = [
-		{ tileId: "video-tile-local", btnId: "collab-btn-fullscreen-local" },
-		{ tileId: "video-tile-screen", btnId: "collab-btn-fullscreen-screen" },
-		{ tileId: "video-tile-file", btnId: "collab-btn-fullscreen-file" },
-		{ tileId: "video-tile-remote", btnId: "collab-btn-fullscreen-remote" },
-	];
-
-	for (const { tileId, btnId } of tiles) {
-		const tile = document.getElementById(tileId);
-		const btn = document.getElementById(btnId);
-		if (!btn || !tile) continue;
-
-		const icon = btn.querySelector(".icon");
-		const isTileFs = fsEl !== null && (fsEl === tile || tile.contains(fsEl));
-		if (icon) {
-			if (isTileFs || (fsEl !== null && fsEl === tile)) {
-				icon.classList.remove("icon-[lucide--maximize-2]");
-				icon.classList.add("icon-[lucide--minimize-2]");
-				btn.setAttribute("title", "Exit fullscreen");
-			} else {
-				icon.classList.remove("icon-[lucide--minimize-2]");
-				icon.classList.add("icon-[lucide--maximize-2]");
-				btn.setAttribute("title", "Toggle fullscreen");
-			}
-		}
-	}
-}
-
-export function toggleDockUI() {
-	const tilesContainer = document.getElementById("collab-dock-tiles-container");
-	const toggleIcon = document.getElementById("collab-dock-toggle-icon");
-	if (!tilesContainer || !toggleIcon) return;
-
-	const isHidden = tilesContainer.classList.contains("hidden");
-	if (isHidden) {
-		tilesContainer.classList.remove("hidden");
-		toggleIcon.classList.remove("icon-[lucide--eye]");
-		toggleIcon.classList.add("icon-[lucide--eye-off]");
-	} else {
-		tilesContainer.classList.add("hidden");
-		toggleIcon.classList.remove("icon-[lucide--eye-off]");
-		toggleIcon.classList.add("icon-[lucide--eye]");
-	}
-}
-
-async function syncVideoTrack(wantVideo: boolean) {
-	if (!pc || isStarting || isSyncingVideo) return;
-	isSyncingVideo = true;
-	try {
-		if (wantVideo) {
-			await startCameraStream();
-		} else {
-			await stopCameraStream();
-		}
-	} finally {
-		isSyncingVideo = false;
-	}
+	}, 50);
 }
 
 export function checkAndSyncVoice() {
-	const container =
-		document.getElementById("collab-header-container") ||
-		document.getElementById("voice-header-container");
+	const container = document.getElementById("collab-header-container");
 	if (
 		!container ||
 		container.classList.contains("hidden") ||
@@ -848,9 +684,7 @@ export function checkAndSyncVoice() {
 	}
 
 	const groupId = container.getAttribute("data-group-id");
-	const firstCh =
-		container.querySelector(".channel-collab-entry") ||
-		container.querySelector(".channel-voice-entry");
+	const firstCh = container.querySelector(".channel-collab-entry");
 	const channelId = firstCh?.getAttribute("data-channel-id");
 	const subchannelName = firstCh?.getAttribute("data-subchannel-name") || "1";
 
@@ -866,9 +700,7 @@ export function checkAndSyncVoice() {
 	}
 
 	// Sync local mic mute
-	const micBtn =
-		document.getElementById("collab-btn-mic") ||
-		document.getElementById("voice-btn-mic");
+	const micBtn = document.getElementById("collab-btn-mic");
 	const isMicMuted = micBtn?.querySelector(".icon-[lucide--mic-off]") !== null;
 	if (localAudioStream) {
 		localAudioStream.getAudioTracks().forEach((track) => {
@@ -877,9 +709,7 @@ export function checkAndSyncVoice() {
 	}
 
 	// Sync local deafen/headphones
-	const audioBtn =
-		document.getElementById("collab-btn-audio") ||
-		document.getElementById("voice-btn-audio");
+	const audioBtn = document.getElementById("collab-btn-audio");
 	const isDeafened = audioBtn?.classList.contains("text-error") ?? false;
 	if (remoteAudio) {
 		remoteAudio.muted = isDeafened;
@@ -888,15 +718,25 @@ export function checkAndSyncVoice() {
 		}
 	}
 
-	// Sync video toggle
-	const videoBtn =
-		document.getElementById("collab-btn-video") ||
-		document.getElementById("voice-btn-video");
-	const wantVideo = videoBtn?.classList.contains("text-primary") ?? false;
-	if (wantVideo && cameraStream && cameraStream.getVideoTracks().length > 0) {
-		renderLocalCamera(cameraStream);
+	// Sync camera state with server DOM: do not auto-prompt getUserMedia without user action!
+	const videoTile = document.getElementById("video-tile-local");
+	if (!videoTile && cameraStream) {
+		stopCameraStream();
 	}
-	syncVideoTrack(wantVideo);
+
+	// Sync screen share state with server DOM: do not auto-prompt getDisplayMedia without user action!
+	const screenTile = document.getElementById("video-tile-screen");
+	if (!screenTile && screenStream) {
+		stopScreenShare();
+	}
+
+	// Sync file share state with server DOM
+	const fileTile = document.getElementById("video-tile-file");
+	if (!fileTile && fileStream) {
+		stopFileShare();
+	}
+
+	attachAllActiveStreams();
 }
 
 // Audio mixer helpers
@@ -912,12 +752,10 @@ function setupAudioMixer() {
 		if (audioContext.state === "suspended") {
 			audioContext.resume().catch(() => {});
 		}
-
 		if (!mixedAudioDestination) {
 			mixedAudioDestination = audioContext.createMediaStreamDestination();
 		}
 
-		// Connect mic stream
 		if (localAudioStream && localAudioStream.getAudioTracks().length > 0) {
 			if (micAudioSource) {
 				micAudioSource.disconnect();
@@ -1041,135 +879,11 @@ function teardownAudioMixer() {
 	}
 }
 
-function bindCollabEventHandlers() {
-	// Fullscreen buttons
-	const fsBindings = [
-		{ id: "collab-btn-fullscreen-local", tile: "video-tile-local" },
-		{ id: "collab-btn-fullscreen-screen", tile: "video-tile-screen" },
-		{ id: "collab-btn-fullscreen-file", tile: "video-tile-file" },
-		{ id: "collab-btn-fullscreen-remote", tile: "video-tile-remote" },
-	];
-
-	for (const { id, tile } of fsBindings) {
-		const btn = document.getElementById(id);
-		if (btn && !btn.hasAttribute("data-bound")) {
-			btn.setAttribute("data-bound", "true");
-			btn.addEventListener("click", () => {
-				toggleTileFullscreen(tile);
-			});
-		}
-	}
-
-	// Dock hide/unhide toggle button
-	const dockToggle = document.getElementById("collab-dock-toggle-btn");
-	if (dockToggle && !dockToggle.hasAttribute("data-bound")) {
-		dockToggle.setAttribute("data-bound", "true");
-		dockToggle.addEventListener("click", () => {
-			toggleDockUI();
-		});
-	}
-
-	// Close buttons
-	const closeLocal = document.getElementById("collab-btn-close-local");
-	if (closeLocal && !closeLocal.hasAttribute("data-bound")) {
-		closeLocal.setAttribute("data-bound", "true");
-		closeLocal.addEventListener("click", () => {
-			if (document.fullscreenElement) {
-				document.exitFullscreen?.().catch(() => {});
-			}
-			const videoBtn = document.getElementById("collab-btn-video");
-			if (videoBtn && videoBtn.classList.contains("text-primary")) {
-				videoBtn.click();
-			} else {
-				stopCameraStream();
-			}
-		});
-	}
-
-	const closeScreen = document.getElementById("collab-btn-close-screen");
-	if (closeScreen && !closeScreen.hasAttribute("data-bound")) {
-		closeScreen.setAttribute("data-bound", "true");
-		closeScreen.addEventListener("click", () => {
-			if (document.fullscreenElement) {
-				document.exitFullscreen?.().catch(() => {});
-			}
-			stopScreenShare();
-		});
-	}
-
-	const closeFile = document.getElementById("collab-btn-close-file");
-	if (closeFile && !closeFile.hasAttribute("data-bound")) {
-		closeFile.setAttribute("data-bound", "true");
-		closeFile.addEventListener("click", () => {
-			if (document.fullscreenElement) {
-				document.exitFullscreen?.().catch(() => {});
-			}
-			stopFileShare();
-		});
-	}
-
-	const closeRemote = document.getElementById("collab-btn-close-remote");
-	if (closeRemote && !closeRemote.hasAttribute("data-bound")) {
-		closeRemote.setAttribute("data-bound", "true");
-		closeRemote.addEventListener("click", () => {
-			if (document.fullscreenElement) {
-				document.exitFullscreen?.().catch(() => {});
-			}
-			removeRemoteVideo();
-		});
-	}
-
-	// Screen share button
-	const screenShareBtn = document.getElementById("collab-btn-screenshare");
-	if (screenShareBtn && !screenShareBtn.hasAttribute("data-bound")) {
-		screenShareBtn.setAttribute("data-bound", "true");
-		screenShareBtn.addEventListener("click", () => {
-			toggleScreenShare();
-		});
-	}
-
-	// File presentation input
-	const fileInput = document.getElementById(
-		"collab-file-input",
-	) as HTMLInputElement | null;
-	if (fileInput && !fileInput.hasAttribute("data-bound")) {
-		fileInput.setAttribute("data-bound", "true");
-		fileInput.addEventListener("change", () => {
-			if (fileInput.files && fileInput.files[0]) {
-				shareFile(fileInput.files[0]);
-			}
-		});
-	}
-}
-
 domLoaded.then(() => {
 	checkAndSyncVoice();
-	bindCollabEventHandlers();
 
-	document.addEventListener("fullscreenchange", updateFullscreenIcons);
-
-	// HTMX lifecycle handlers: afterSwap and afterSettle fire after DOM elements are replaced in the page
-	const onHtmxUpdate = (evt: Event) => {
-		const customEvt = evt as CustomEvent;
-		const target = customEvt.detail?.target as HTMLElement | null;
-		if (
-			!target ||
-			target.id === "collab-header-container" ||
-			target.closest("#collab-header-container") ||
-			target.id === "collab-dropdown-menu" ||
-			target.closest("#collab-dropdown-menu") ||
-			target.id === "collab-dropdown-menu-content" ||
-			target.closest("#collab-dropdown-menu-content") ||
-			target.id === "collab-quick-controls" ||
-			target.closest("#collab-quick-controls") ||
-			target.id === "channels" ||
-			target.closest("#channels") ||
-			target.id === "channels-view" ||
-			target.id === "app-content"
-		) {
-			checkAndSyncVoice();
-			bindCollabEventHandlers();
-		}
+	const onHtmxUpdate = () => {
+		checkAndSyncVoice();
 	};
 
 	document.body.addEventListener("htmx:afterSwap", onHtmxUpdate);

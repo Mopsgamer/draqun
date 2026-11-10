@@ -1,16 +1,7 @@
-<div id="collab-alerts-container" class="toast toast-top toast-end z-50">
-    <div id="collab-alert-mic" class="alert alert-warning text-xs shadow-lg hidden">
-        <span class="icon icon-[lucide--alert-triangle] size-4"></span>
-        <span>Microphone access denied or unavailable. Joined in listen-only mode.</span>
-    </div>
-    <div id="collab-alert-cam" class="alert alert-warning text-xs shadow-lg hidden">
-        <span class="icon icon-[lucide--alert-triangle] size-4"></span>
-        <span>Camera access denied or unavailable.</span>
-    </div>
-</div>
-
 <!-- Video Dock UI with z-30 (below collab context menu and notifications popover z-50) -->
-<div id="collab-video-dock" class="fixed bottom-6 right-6 z-30 flex flex-col items-end gap-2 pointer-events-none {{if not (and .CollabSession .CollabSession.VideoEnabled)}}hidden{{end}}">
+<div id="collab-video-dock" class="fixed bottom-6 right-6 z-30 flex flex-col items-end gap-2 pointer-events-none {{if not (and .CollabSession (gt (len .CollabSession.Channels) 0))}}hidden{{end}}">
+    <!-- Remote audio element for WebRTC voice communication -->
+    <audio id="collab-remote-audio" autoplay playsinline class="hidden"></audio>
     <!-- Dock UI Toggle Bar (Hide/Unhide Dock) -->
     <div class="pointer-events-auto flex items-center gap-1 bg-base-300/80 backdrop-blur-md px-2 py-1 rounded-full shadow border border-base-content/10">
         <button
@@ -19,6 +10,7 @@
             class="btn btn-ghost btn-circle btn-xs text-base-content/70 hover:text-base-content"
             title="Toggle dock UI"
             aria-label="Toggle dock UI"
+            onclick="window.collabClient?.toggleDockUI()"
         >
             <span class="icon icon-[lucide--eye-off] size-3.5" id="collab-dock-toggle-icon"></span>
         </button>
@@ -26,7 +18,8 @@
 
     <div id="collab-dock-tiles-container" class="flex flex-wrap justify-end gap-3 pointer-events-none max-w-[90vw]">
         <!-- 1. Local Camera Video Tile -->
-        <div id="video-tile-local" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200 {{if not (and .CollabSession .CollabSession.VideoEnabled)}}hidden{{end}}">
+        {{if and .CollabSession .CollabSession.IsCameraEnabled}}
+        <div id="video-tile-local" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200">
             <video id="collab-local-video" autoplay playsinline muted class="w-full h-full object-contain"></video>
             <span id="collab-local-badge" class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow">You</span>
             
@@ -38,6 +31,7 @@
                     id="collab-btn-fullscreen-local"
                     title="Toggle fullscreen"
                     aria-label="Toggle fullscreen"
+                    onclick="window.collabClient?.toggleTileFullscreen('video-tile-local')"
                 >
                     <span class="icon icon-[lucide--maximize-2] size-3.5"></span>
                 </button>
@@ -45,6 +39,7 @@
                     type="button"
                     class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
                     id="collab-btn-close-local"
+                    onclick="window.collabClient?.triggerCameraToggle()"
                     title="Disable camera"
                     aria-label="Disable camera"
                 >
@@ -52,9 +47,11 @@
                 </button>
             </div>
         </div>
+        {{end}}
 
         <!-- 2. Local Screen Share Video Tile -->
-        <div id="video-tile-screen" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200 hidden">
+        {{if and .CollabSession .CollabSession.IsScreenShared}}
+        <div id="video-tile-screen" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200">
             <video id="collab-screen-video" autoplay playsinline muted class="w-full h-full object-contain"></video>
             <span id="collab-screen-badge" class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow">Your screen</span>
             
@@ -66,6 +63,7 @@
                     id="collab-btn-fullscreen-screen"
                     title="Toggle fullscreen"
                     aria-label="Toggle fullscreen"
+                    onclick="window.collabClient?.toggleTileFullscreen('video-tile-screen')"
                 >
                     <span class="icon icon-[lucide--maximize-2] size-3.5"></span>
                 </button>
@@ -73,6 +71,9 @@
                     type="button"
                     class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
                     id="collab-btn-close-screen"
+                    hx-post="/groups/{{.Group.Id}}/collab/toggle-screenshare"
+                    hx-target="#collab-dropdown-menu-content"
+                    hx-swap="outerHTML"
                     title="Stop sharing screen"
                     aria-label="Stop sharing screen"
                 >
@@ -80,11 +81,13 @@
                 </button>
             </div>
         </div>
+        {{end}}
 
         <!-- 3. Local File/Presentation Video Tile -->
-        <div id="video-tile-file" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200 hidden">
+        {{if and .CollabSession .CollabSession.IsFileShared}}
+        <div id="video-tile-file" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200">
             <video id="collab-file-video" autoplay playsinline muted class="w-full h-full object-contain"></video>
-            <span id="collab-file-badge" class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow truncate max-w-[140px]">Your presentation</span>
+            <span id="collab-file-badge" class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow truncate max-w-[140px]">{{if .CollabSession.SharedFileName}}Your presentation ({{.CollabSession.SharedFileName}}){{else}}Your presentation{{end}}</span>
             
             <!-- Action buttons: Fullscreen & Close -->
             <div class="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
@@ -94,6 +97,7 @@
                     id="collab-btn-fullscreen-file"
                     title="Toggle fullscreen"
                     aria-label="Toggle fullscreen"
+                    onclick="window.collabClient?.toggleTileFullscreen('video-tile-file')"
                 >
                     <span class="icon icon-[lucide--maximize-2] size-3.5"></span>
                 </button>
@@ -101,6 +105,9 @@
                     type="button"
                     class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
                     id="collab-btn-close-file"
+                    hx-post="/groups/{{.Group.Id}}/collab/toggle-presentation"
+                    hx-target="#collab-dropdown-menu-content"
+                    hx-swap="outerHTML"
                     title="Stop sharing presentation"
                     aria-label="Stop sharing presentation"
                 >
@@ -108,35 +115,29 @@
                 </button>
             </div>
         </div>
+        {{end}}
 
-        <!-- 4. Remote Video Tiles (dynamically managed container for participant camera, screenshare, presentation) -->
-        <div id="collab-remote-tiles" class="contents">
-            <div id="video-tile-remote" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200 hidden" data-stream-type="camera">
-                <video id="collab-remote-video" autoplay playsinline muted class="w-full h-full object-contain"></video>
-                <span id="collab-remote-badge" class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow truncate max-w-[140px]">Remote stream</span>
-                
-                <!-- Action buttons: Fullscreen & Close -->
-                <div class="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
-                    <button
-                        type="button"
-                        class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
-                        id="collab-btn-fullscreen-remote"
-                        title="Toggle fullscreen"
-                        aria-label="Toggle fullscreen"
-                    >
-                        <span class="icon icon-[lucide--maximize-2] size-3.5"></span>
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
-                        id="collab-btn-close-remote"
-                        title="Hide video"
-                        aria-label="Hide video"
-                    >
-                        <span class="icon icon-[lucide--x] size-3.5"></span>
-                    </button>
-                </div>
+        <!-- 4. Remote Video Tiles (Rendered by server when remote streams are active) -->
+        {{if .CollabSession}}
+        {{range .CollabSession.RemoteStreams}}
+        <div id="{{.TileId}}" class="pointer-events-auto relative rounded-xl overflow-hidden bg-neutral shadow-2xl border border-base-content/15 aspect-video w-48 sm:w-60 transition-transform duration-200" data-remote-user-id="{{.UserId}}">
+            <video id="{{.VideoElementId}}" data-remote-user-id="{{.UserId}}" data-remote-stream-type="{{.Type}}" autoplay playsinline muted class="w-full h-full object-contain"></video>
+            <span class="absolute bottom-1.5 left-1.5 badge badge-neutral badge-xs text-[10px] font-medium opacity-90 shadow truncate max-w-[140px]">{{.ParticipantName}}</span>
+            
+            <!-- Action buttons: Fullscreen -->
+            <div class="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-circle btn-xs text-white/90 hover:text-white hover:bg-black/40"
+                    title="Toggle fullscreen"
+                    aria-label="Toggle fullscreen"
+                    onclick="window.collabClient?.toggleTileFullscreen('{{.TileId}}')"
+                >
+                    <span class="icon icon-[lucide--maximize-2] size-3.5"></span>
+                </button>
             </div>
         </div>
+        {{end}}
+        {{end}}
     </div>
 </div>

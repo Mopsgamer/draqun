@@ -150,8 +150,8 @@ func TestCollabVirtualSubchannels(t *testing.T) {
 	}
 	respToggleVideo.Close()
 
-	if userSess == nil || !userSess.VideoEnabled {
-		t.Errorf("expected owner video to be enabled")
+	if userSess == nil || !userSess.IsCameraEnabled {
+		t.Errorf("expected owner camera to be enabled")
 	}
 
 	respDisconnect, err := ts.Client.R().

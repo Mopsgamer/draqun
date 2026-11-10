@@ -7,17 +7,19 @@ import (
 )
 
 type CollabSessionRecord struct {
-	Id             uint64    `db:"id" goqu:"skipinsert"`
-	UserId         uint64    `db:"user_id"`
-	GroupId        uint64    `db:"group_id"`
-	ChannelId      uint64    `db:"channel_id"`
-	SubchannelName string    `db:"subchannel_name"`
-	InputMuted     bool      `db:"input_muted"`
-	OutputMuted    bool      `db:"output_muted"`
-	VideoEnabled   bool      `db:"video_enabled"`
-	BitrateKbps    int       `db:"bitrate_kbps"`
-	CreatedAt      time.Time `db:"created_at"`
-	UpdatedAt      time.Time `db:"updated_at"`
+	Id              uint64    `db:"id" goqu:"skipinsert"`
+	UserId          uint64    `db:"user_id"`
+	GroupId         uint64    `db:"group_id"`
+	ChannelId       uint64    `db:"channel_id"`
+	SubchannelName  string    `db:"subchannel_name"`
+	InputMuted      bool      `db:"input_muted"`
+	OutputMuted     bool      `db:"output_muted"`
+	IsCameraEnabled bool      `db:"is_camera_enabled"`
+	IsScreenShared  bool      `db:"is_screen_shared"`
+	IsFileShared    bool      `db:"is_file_shared"`
+	BitrateKbps     int       `db:"bitrate_kbps"`
+	CreatedAt       time.Time `db:"created_at"`
+	UpdatedAt       time.Time `db:"updated_at"`
 }
 
 func GetAllCollabSessions() ([]CollabSessionRecord, error) {

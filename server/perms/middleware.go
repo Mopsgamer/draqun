@@ -50,6 +50,10 @@ func RequirePermLevel(groupIdUri string, permName model.PermName, minLevel model
 		}
 
 		if channelId != 0 && channelId != model.OtelVirtualChannelID && channelId != model.ConfigVirtualChannelID {
+			targetChannel, errCh := model.NewChannelFromId(channelId)
+			if errCh != nil || !targetChannel.IsAvailable() {
+				return htmx.AlertChannelNotFound
+			}
 			chGroup, errG := model.GetChannelGroup(channelId)
 			if errG != nil || chGroup == nil || chGroup.Id != group.Id {
 				return htmx.AlertGroupMemberNotAllowed

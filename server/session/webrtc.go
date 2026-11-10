@@ -18,6 +18,7 @@ type WebRTCClient struct {
 	PeerConnection *webrtc.PeerConnection
 	AudioTrack     *webrtc.TrackLocalStaticRTP
 	VideoTrack     *webrtc.TrackLocalStaticRTP
+	VideoSSRC      uint32
 }
 
 type webRTCHub struct {
@@ -106,14 +107,14 @@ func (h *webRTCHub) HandleOffer(
 		trackDone := make(chan struct{})
 
 		if isVideo {
-			// Immediately request a keyframe via RTCP PLI so receiving participants don't get a black screen
+			client.VideoSSRC = uint32(remoteTrack.SSRC())
 			_ = peerConnection.WriteRTCP([]rtcp.Packet{
 				&rtcp.PictureLossIndication{MediaSSRC: uint32(remoteTrack.SSRC())},
 			})
 
-			// Periodically send PLI every 2 seconds to keep video streams fresh and recover new joiners
+			// Periodically request keyframes every 1 second to ensure new joiners and track changes decode smoothly
 			go func() {
-				ticker := time.NewTicker(2 * time.Second)
+				ticker := time.NewTicker(1 * time.Second)
 				defer ticker.Stop()
 				for {
 					select {
@@ -217,6 +218,17 @@ func (h *webRTCHub) HandleOffer(
 	<-gatherComplete
 
 	h.clients[userId] = client
+
+	// Notify existing video senders in room to send a keyframe for this new peer
+	for _, peer := range h.clients {
+		if peer.UserId != userId && peer.ChannelId == channelId && peer.SubchannelName == subchannel {
+			if peer.VideoSSRC != 0 && peer.PeerConnection != nil {
+				_ = peer.PeerConnection.WriteRTCP([]rtcp.Packet{
+					&rtcp.PictureLossIndication{MediaSSRC: peer.VideoSSRC},
+				})
+			}
+		}
+	}
 	return peerConnection.LocalDescription(), nil
 }
 

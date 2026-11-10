@@ -38,7 +38,7 @@
             <!-- Share options dropdown trigger (lucide--monitor-up) -->
             <button
                 type="button"
-                class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.VideoEnabled}}text-primary{{else}}text-base-content/80 hover:text-base-content{{end}}"
+                class="join-item btn btn-ghost btn-square btn-sm {{if or .CollabSession.IsCameraEnabled .CollabSession.IsScreenShared .CollabSession.IsFileShared}}text-primary{{else}}text-base-content/80 hover:text-base-content{{end}}"
                 id="collab-btn-share-menu"
                 popovertarget="popover-collab-share-options"
                 style="anchor-name:--anchor-collab-share"
@@ -57,14 +57,29 @@
                 <div class="join join-horizontal">
                     <button
                         type="button"
-                        class="join-item btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-base-content"
+                        class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.IsScreenShared}}text-primary{{else}}text-base-content/80 hover:text-base-content{{end}}"
                         id="collab-btn-screenshare"
+                        onclick="window.collabClient?.triggerScreenShare()"
                         aria-label="Share screen"
-                        title="Share screen"
+                        title="{{if .CollabSession.IsScreenShared}}Stop sharing screen{{else}}Share screen{{end}}"
                     >
-                        <span class="icon icon-[lucide--screen-share] size-4" id="collab-screenshare-icon"></span>
+                        <span class="icon {{if .CollabSession.IsScreenShared}}icon-[lucide--screen-share-off]{{else}}icon-[lucide--screen-share]{{end}} size-4" id="collab-screenshare-icon"></span>
                     </button>
 
+                    {{if .CollabSession.IsFileShared}}
+                    <button
+                        type="button"
+                        class="join-item btn btn-ghost btn-square btn-sm text-primary"
+                        id="collab-btn-presentation"
+                        hx-post="/groups/{{.Group.Id}}/collab/toggle-presentation"
+                        hx-target="#collab-dropdown-menu-content"
+                        hx-swap="outerHTML"
+                        aria-label="Stop presentation"
+                        title="Stop file presentation"
+                    >
+                        <span class="icon icon-[lucide--presentation] size-4"></span>
+                    </button>
+                    {{else}}
                     <button
                         type="button"
                         class="join-item btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-base-content"
@@ -75,18 +90,17 @@
                     >
                         <span class="icon icon-[lucide--presentation] size-4"></span>
                     </button>
+                    {{end}}
 
                     <button
                         type="button"
-                        class="join-item btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-base-content"
+                        class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.IsCameraEnabled}}text-primary{{else}}text-base-content/80 hover:text-base-content{{end}}"
                         id="collab-btn-video"
-                        hx-post="/groups/{{.Group.Id}}/collab/toggle-video"
-                        hx-target="#collab-dropdown-menu-content"
-                        hx-swap="outerHTML"
+                        onclick="window.collabClient?.triggerCameraToggle()"
                         aria-label="Toggle camera"
-                        title="{{if .CollabSession.VideoEnabled}}Camera enabled{{else}}Camera disabled{{end}}"
+                        title="{{if .CollabSession.IsCameraEnabled}}Camera enabled{{else}}Camera disabled{{end}}"
                     >
-                        <span class="icon {{if .CollabSession.VideoEnabled}}icon-[lucide--camera]{{else}}icon-[lucide--camera-off]{{end}} size-4"></span>
+                        <span class="icon {{if .CollabSession.IsCameraEnabled}}icon-[lucide--camera]{{else}}icon-[lucide--camera-off]{{end}} size-4"></span>
                     </button>
                 </div>
                 <input
@@ -94,6 +108,7 @@
                     id="collab-file-input"
                     class="hidden"
                     accept="audio/*,video/*,image/*,.pptx,.ppt,.pdf"
+                    onchange="window.collabClient?.handleFileInput(this)"
                 />
             </div>
 
@@ -113,8 +128,16 @@
     <!-- Connection stats: signal strength & clickable bitrate -->
     <div class="flex items-center justify-between bg-base-200/50 p-2 rounded-lg text-xs border border-base-content/5">
         <div class="flex items-center gap-1 text-base-content/70">
+            {{if eq .CollabSession.SignalStrength "poor"}}
+            <span class="icon icon-[lucide--signal-low] size-3.5 text-error"></span>
+            <span>Signal: <strong class="text-error font-medium">Poor</strong></span>
+            {{else if eq .CollabSession.SignalStrength "fair"}}
+            <span class="icon icon-[lucide--signal-medium] size-3.5 text-warning"></span>
+            <span>Signal: <strong class="text-warning font-medium">Fair</strong></span>
+            {{else}}
             <span class="icon icon-[lucide--signal-high] size-3.5 text-success"></span>
             <span>Signal: <strong class="text-success font-medium">Good</strong></span>
+            {{end}}
         </div>
 
         <!-- Bitrate context menu -->

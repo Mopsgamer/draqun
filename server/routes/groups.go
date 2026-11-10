@@ -2154,14 +2154,16 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					subchannel,
 				)
 				_ = model.UpsertCollabSession(&model.CollabSessionRecord{
-					UserId:         user.Id,
-					GroupId:        group.Id,
-					ChannelId:      channel.Id,
-					SubchannelName: subchannel,
-					InputMuted:     sess.GlobalInputMuted,
-					OutputMuted:    sess.GlobalOutputMuted,
-					VideoEnabled:   sess.VideoEnabled,
-					BitrateKbps:    sess.BitrateKbps,
+					UserId:          user.Id,
+					GroupId:         group.Id,
+					ChannelId:       channel.Id,
+					SubchannelName:  subchannel,
+					InputMuted:      sess.GlobalInputMuted,
+					OutputMuted:     sess.GlobalOutputMuted,
+					IsCameraEnabled: sess.IsCameraEnabled,
+					IsScreenShared:  sess.IsScreenShared,
+					IsFileShared:    sess.IsFileShared,
+					BitrateKbps:     sess.BitrateKbps,
 				})
 				broadcastGroupChannelsUpdate(app, group)
 				return ctx.Render("partials/collab-connection-status", fiber.Map{
@@ -2189,6 +2191,24 @@ func RouteGroups(app *fiber.App) fiber.Router {
 						return ctx.Render("partials/collab-connection-status", bind)
 					}
 					return ctx.Render("partials/collab-dropdown-content", bind)
+				}
+				return ctx.Render("partials/collab-connection-status", bind)
+			},
+		).
+		Post("/:group_id/collab/signal-strength",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				strength := ctx.Query("quality", ctx.FormValue("quality"))
+				sess := session.CollabHub.SetSignalStrength(user.Id, strength)
+				bind := fiber.Map{
+					"Group":         group,
+					"CollabSession": sess,
+					"User":          user,
+				}
+				if htmx.IsHtmx(ctx) {
+					return ctx.Render("partials/collab-dropdown-inner", bind)
 				}
 				return ctx.Render("partials/collab-connection-status", bind)
 			},
@@ -2256,14 +2276,16 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				if sess != nil {
 					for _, ch := range sess.Channels {
 						_ = model.UpsertCollabSession(&model.CollabSessionRecord{
-							UserId:         user.Id,
-							GroupId:        group.Id,
-							ChannelId:      ch.ChannelId,
-							SubchannelName: ch.SubchannelName,
-							InputMuted:     sess.GlobalInputMuted,
-							OutputMuted:    sess.GlobalOutputMuted,
-							VideoEnabled:   sess.VideoEnabled,
-							BitrateKbps:    sess.BitrateKbps,
+							UserId:          user.Id,
+							GroupId:         group.Id,
+							ChannelId:       ch.ChannelId,
+							SubchannelName:  ch.SubchannelName,
+							InputMuted:      sess.GlobalInputMuted,
+							OutputMuted:     sess.GlobalOutputMuted,
+							IsCameraEnabled: sess.IsCameraEnabled,
+							IsScreenShared:  sess.IsScreenShared,
+							IsFileShared:    sess.IsFileShared,
+							BitrateKbps:     sess.BitrateKbps,
 						})
 					}
 				}
@@ -2273,7 +2295,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					"User":          user,
 				}
 				if htmx.IsHtmx(ctx) {
-					return ctx.Render("partials/collab-dropdown-inner", bind)
+					return renderCollabResponse(ctx, app, bind)
 				}
 				return ctx.Render("partials/collab-connection-status", bind)
 			},
@@ -2287,14 +2309,16 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				if sess != nil {
 					for _, ch := range sess.Channels {
 						_ = model.UpsertCollabSession(&model.CollabSessionRecord{
-							UserId:         user.Id,
-							GroupId:        group.Id,
-							ChannelId:      ch.ChannelId,
-							SubchannelName: ch.SubchannelName,
-							InputMuted:     sess.GlobalInputMuted,
-							OutputMuted:    sess.GlobalOutputMuted,
-							VideoEnabled:   sess.VideoEnabled,
-							BitrateKbps:    sess.BitrateKbps,
+							UserId:          user.Id,
+							GroupId:         group.Id,
+							ChannelId:       ch.ChannelId,
+							SubchannelName:  ch.SubchannelName,
+							InputMuted:      sess.GlobalInputMuted,
+							OutputMuted:     sess.GlobalOutputMuted,
+							IsCameraEnabled: sess.IsCameraEnabled,
+							IsScreenShared:  sess.IsScreenShared,
+							IsFileShared:    sess.IsFileShared,
+							BitrateKbps:     sess.BitrateKbps,
 						})
 					}
 				}
@@ -2304,7 +2328,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					"User":          user,
 				}
 				if htmx.IsHtmx(ctx) {
-					return ctx.Render("partials/collab-dropdown-inner", bind)
+					return renderCollabResponse(ctx, app, bind)
 				}
 				return ctx.Render("partials/collab-connection-status", bind)
 			},
@@ -2314,18 +2338,28 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
-				sess := session.CollabHub.ToggleVideo(user.Id)
+				enabledQuery := ctx.Query("enabled", "")
+				var sess *session.UserCollabSession
+				if enabledQuery == "true" {
+					sess = session.CollabHub.SetCameraEnabled(user.Id, true)
+				} else if enabledQuery == "false" {
+					sess = session.CollabHub.SetCameraEnabled(user.Id, false)
+				} else {
+					sess = session.CollabHub.ToggleVideo(user.Id)
+				}
 				if sess != nil {
 					for _, ch := range sess.Channels {
 						_ = model.UpsertCollabSession(&model.CollabSessionRecord{
-							UserId:         user.Id,
-							GroupId:        group.Id,
-							ChannelId:      ch.ChannelId,
-							SubchannelName: ch.SubchannelName,
-							InputMuted:     sess.GlobalInputMuted,
-							OutputMuted:    sess.GlobalOutputMuted,
-							VideoEnabled:   sess.VideoEnabled,
-							BitrateKbps:    sess.BitrateKbps,
+							UserId:          user.Id,
+							GroupId:         group.Id,
+							ChannelId:       ch.ChannelId,
+							SubchannelName:  ch.SubchannelName,
+							InputMuted:      sess.GlobalInputMuted,
+							OutputMuted:     sess.GlobalOutputMuted,
+							IsCameraEnabled: sess.IsCameraEnabled,
+							IsScreenShared:  sess.IsScreenShared,
+							IsFileShared:    sess.IsFileShared,
+							BitrateKbps:     sess.BitrateKbps,
 						})
 					}
 				}
@@ -2335,7 +2369,90 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					"User":          user,
 				}
 				if htmx.IsHtmx(ctx) {
-					return ctx.Render("partials/collab-dropdown-inner", bind)
+					return renderCollabResponse(ctx, app, bind)
+				}
+				return ctx.Render("partials/collab-connection-status", bind)
+			},
+		).
+		Post("/:group_id/collab/toggle-screenshare",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				enabledQuery := ctx.Query("enabled", "")
+				var sess *session.UserCollabSession
+				if enabledQuery == "true" {
+					sess = session.CollabHub.SetScreenShared(user.Id, true)
+				} else if enabledQuery == "false" {
+					sess = session.CollabHub.SetScreenShared(user.Id, false)
+				} else {
+					sess = session.CollabHub.ToggleScreenShare(user.Id)
+				}
+				if sess != nil {
+					for _, ch := range sess.Channels {
+						_ = model.UpsertCollabSession(&model.CollabSessionRecord{
+							UserId:          user.Id,
+							GroupId:         group.Id,
+							ChannelId:       ch.ChannelId,
+							SubchannelName:  ch.SubchannelName,
+							InputMuted:      sess.GlobalInputMuted,
+							OutputMuted:     sess.GlobalOutputMuted,
+							IsCameraEnabled: sess.IsCameraEnabled,
+							IsScreenShared:  sess.IsScreenShared,
+							IsFileShared:    sess.IsFileShared,
+							BitrateKbps:     sess.BitrateKbps,
+						})
+					}
+				}
+				bind := fiber.Map{
+					"Group":         group,
+					"CollabSession": sess,
+					"User":          user,
+				}
+				if htmx.IsHtmx(ctx) {
+					return renderCollabResponse(ctx, app, bind)
+				}
+				return ctx.Render("partials/collab-connection-status", bind)
+			},
+		).
+		Post("/:group_id/collab/toggle-presentation",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				fileName := ctx.Query("filename", ctx.FormValue("filename"))
+				enabledQuery := ctx.Query("enabled", "")
+				var sess *session.UserCollabSession
+				if enabledQuery == "false" {
+					sess = session.CollabHub.SetFileShared(user.Id, false, "")
+				} else if enabledQuery == "true" {
+					sess = session.CollabHub.SetFileShared(user.Id, true, fileName)
+				} else {
+					sess = session.CollabHub.ToggleFileShare(user.Id, fileName)
+				}
+				if sess != nil {
+					for _, ch := range sess.Channels {
+						_ = model.UpsertCollabSession(&model.CollabSessionRecord{
+							UserId:          user.Id,
+							GroupId:         group.Id,
+							ChannelId:       ch.ChannelId,
+							SubchannelName:  ch.SubchannelName,
+							InputMuted:      sess.GlobalInputMuted,
+							OutputMuted:     sess.GlobalOutputMuted,
+							IsCameraEnabled: sess.IsCameraEnabled,
+							IsScreenShared:  sess.IsScreenShared,
+							IsFileShared:    sess.IsFileShared,
+							BitrateKbps:     sess.BitrateKbps,
+						})
+					}
+				}
+				bind := fiber.Map{
+					"Group":         group,
+					"CollabSession": sess,
+					"User":          user,
+				}
+				if htmx.IsHtmx(ctx) {
+					return renderCollabResponse(ctx, app, bind)
 				}
 				return ctx.Render("partials/collab-connection-status", bind)
 			},
@@ -2417,6 +2534,55 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return ctx.Render("partials/collab-connection-status", bind)
 			},
 		)
+}
+
+func renderCollabResponse(ctx fiber.Ctx, app *fiber.App, bind fiber.Map) error {
+	bufInner, errInner := render.RenderBuffer(app, "partials/collab-dropdown-inner", bind)
+	if errInner != nil {
+		return errInner
+	}
+	bufDock, errDock := render.RenderBuffer(app, "partials/collab-video-dock", bind)
+	if errDock != nil {
+		return ctx.Type("html").Send(bufInner.Bytes())
+	}
+	dockStr := bufDock.String()
+	dockOob := render.WrapOob("outerHTML:#collab-video-dock", &dockStr)
+
+	// Broadcast dock update to all other users in this user's active subchannels
+	if sess, ok := bind["CollabSession"].(*session.UserCollabSession); ok && sess != nil {
+		broadcastCollabDockUpdate(app, sess)
+	}
+
+	return ctx.Type("html").SendString(bufInner.String() + dockOob)
+}
+
+func broadcastCollabDockUpdate(app *fiber.App, triggerSess *session.UserCollabSession) {
+	if triggerSess == nil {
+		return
+	}
+	notifiedUsers := make(map[uint64]bool)
+	for _, ch := range triggerSess.Channels {
+		for uid := range ch.Participants {
+			if uid != triggerSess.UserId && !notifiedUsers[uid] {
+				notifiedUsers[uid] = true
+				otherSess := session.CollabHub.GetUserSession(uid)
+				otherUser, errU := model.NewUserFromId(uid)
+				if errU == nil {
+					otherGroup, _ := model.NewGroupFromId(triggerSess.GroupId)
+					bufDock, errDock := render.RenderBuffer(app, "partials/collab-video-dock", fiber.Map{
+						"CollabSession": otherSess,
+						"Group":         otherGroup,
+						"User":          otherUser,
+					})
+					if errDock == nil {
+						str := bufDock.String()
+						oobDock := render.WrapOob("outerHTML:#collab-video-dock", &str)
+						session.UserSessionMap.PushUser(uid, oobDock)
+					}
+				}
+			}
+		}
+	}
 }
 
 func broadcastGroupChannelsUpdate(app *fiber.App, group model.Group) {
