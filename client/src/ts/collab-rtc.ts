@@ -8,6 +8,8 @@ let currentGroupId: string | null = null;
 let currentChannelId: string | null = null;
 let currentSubchannelName: string | null = null;
 let isStarting = false;
+let voiceDisconnectTimer: ReturnType<typeof setTimeout> | null = null;
+let staleMediaStateChecked = false;
 let statsMonitorTimer: any = null;
 let lastReportedQuality: string | null = null;
 
@@ -48,7 +50,10 @@ export const collabClient = {
 		const groupId = getGroupId();
 		if (!groupId) return;
 		const htmx = (globalThis as any).htmx;
-		if (cameraStream) {
+		const cameraButton = document.getElementById("collab-btn-video");
+		const cameraIsEnabled =
+			cameraStream !== null || cameraButton?.classList.contains("text-primary");
+		if (cameraIsEnabled) {
 			await stopCameraStream();
 			if (htmx) {
 				htmx.ajax(
@@ -64,7 +69,9 @@ export const collabClient = {
 			const success = await startCameraStream();
 			if (success && !htmx) {
 				await stopCameraStream();
-				throw new Error("HTMX is unavailable; camera state could not be updated.");
+				throw new Error(
+					"HTMX is unavailable; camera state could not be updated.",
+				);
 			}
 			if (success) {
 				htmx.ajax(
@@ -99,7 +106,9 @@ export const collabClient = {
 			const success = await startScreenShare();
 			if (success && !htmx) {
 				await stopScreenShare();
-				throw new Error("HTMX is unavailable; screen-share state could not be updated.");
+				throw new Error(
+					"HTMX is unavailable; screen-share state could not be updated.",
+				);
 			}
 			if (success) {
 				htmx.ajax(
@@ -126,7 +135,9 @@ export const collabClient = {
 				}
 				const htmx = (globalThis as any).htmx;
 				if (!htmx) {
-					throw new Error("HTMX is unavailable; presentation state could not be updated.");
+					throw new Error(
+						"HTMX is unavailable; presentation state could not be updated.",
+					);
 				}
 				htmx.ajax(
 					"POST",
@@ -174,13 +185,50 @@ export async function startWebRTCSession(
 ) {
 	if (isStarting) return;
 	isStarting = true;
+	const preserveLocalMedia =
+		currentGroupId === groupId &&
+		currentChannelId === channelId &&
+		currentSubchannelName === subchannelName;
 	try {
-		stopWebRTCSession();
+		stopWebRTCSession(preserveLocalMedia);
 		currentGroupId = groupId;
 		currentChannelId = channelId;
 		currentSubchannelName = subchannelName;
 
+		if (!staleMediaStateChecked) {
+			staleMediaStateChecked = true;
+			const hasStaleMediaState = [
+				"collab-btn-video",
+				"collab-btn-screenshare",
+				"collab-btn-presentation",
+			].some((id) =>
+				document.getElementById(id)?.classList.contains("text-primary"),
+			);
+			if (hasStaleMediaState) {
+				const htmx = (globalThis as any).htmx;
+				if (!htmx) {
+					throw new Error(
+						"HTMX is unavailable; stale collaboration media cannot be cleared.",
+					);
+				}
+				await htmx.ajax("POST", `/groups/${groupId}/collab/reset-media`, {
+					target: "#collab-dropdown-menu-content",
+					swap: "outerHTML",
+				});
+			}
+		}
+
 		pc = new RTCPeerConnection(rtcConfig);
+		pc.oniceconnectionstatechange = () => {
+			if (pc) {
+				console.info("Collaboration ICE state:", pc.iceConnectionState);
+			}
+		};
+		pc.onconnectionstatechange = () => {
+			if (pc) {
+				console.info("Collaboration peer state:", pc.connectionState);
+			}
+		};
 		videoTransceivers = {
 			camera: pc.addTransceiver("video", { direction: "sendrecv" }),
 			screen: pc.addTransceiver("video", { direction: "sendrecv" }),
@@ -202,13 +250,29 @@ export async function startWebRTCSession(
 				}
 			} else if (event.track.kind === "video") {
 				const stream = event.streams[0] || new MediaStream([event.track]);
-				const source = videoSources.find(
-					(candidate) => event.track.id === `collab-video-${candidate}`,
-				);
+				const source =
+					videoSources.find(
+						(candidate) =>
+							videoTransceivers[candidate]?.mid === event.transceiver.mid,
+					) ??
+					videoSources.find(
+						(candidate) => videoTransceivers[candidate] === event.transceiver,
+					) ??
+					videoSources.find(
+						(candidate) => stream.id === `draqun-collab-${candidate}`,
+					);
 				if (!source) {
-					console.warn(`Received an unknown collaboration video track: ${event.track.id}`);
+					console.warn(
+						`Received collaboration video on an unknown transceiver: ${event.transceiver.mid ?? event.track.id}`,
+					);
 					return;
 				}
+				console.info("Received collaboration video track:", {
+					source,
+					mid: event.transceiver.mid,
+					trackId: event.track.id,
+					readyState: event.track.readyState,
+				});
 				remoteVideoStreams[source] = stream;
 				attachRemoteVideo(stream, source);
 			}
@@ -269,15 +333,10 @@ export async function startWebRTCSession(
 		await negotiateWebRTC(groupId, channelId, subchannelName);
 		await updatePeerVideoTrack();
 
-		const videoBtn = document.getElementById("collab-btn-video");
-		const wantVideo = videoBtn?.classList.contains("text-primary") ?? false;
-		if (wantVideo) {
-			await startCameraStream();
-		}
 		attachAllActiveStreams();
 	} catch (e) {
 		console.warn("WebRTC startup notice:", e);
-		stopWebRTCSession();
+		stopWebRTCSession(preserveLocalMedia);
 	} finally {
 		isStarting = false;
 	}
@@ -293,19 +352,31 @@ async function negotiateWebRTC(
 	const offer = await peerConnection.createOffer();
 	await peerConnection.setLocalDescription(offer);
 
-	await new Promise<void>((resolve) => {
+	await new Promise<void>((resolve, reject) => {
 		if (peerConnection.iceGatheringState === "complete") {
 			resolve();
-		} else {
-			const checkState = () => {
-				if (peerConnection.iceGatheringState === "complete") {
-					peerConnection.removeEventListener("icegatheringstatechange", checkState);
-					resolve();
-				}
-			};
-			peerConnection.addEventListener("icegatheringstatechange", checkState);
-			setTimeout(resolve, 1200);
+			return;
 		}
+
+		let timeout: ReturnType<typeof setTimeout>;
+		const checkState = () => {
+			if (peerConnection.iceGatheringState === "complete") {
+				clearTimeout(timeout);
+				peerConnection.removeEventListener(
+					"icegatheringstatechange",
+					checkState,
+				);
+				resolve();
+			}
+		};
+		timeout = setTimeout(() => {
+			peerConnection.removeEventListener("icegatheringstatechange", checkState);
+			reject(
+				new Error("Timed out waiting for ICE candidates before signaling."),
+			);
+		}, 10000);
+		peerConnection.addEventListener("icegatheringstatechange", checkState);
+		checkState();
 	});
 
 	const videoMids: Partial<Record<VideoSource, string>> = {};
@@ -330,7 +401,9 @@ async function negotiateWebRTC(
 	});
 
 	if (!res.ok) {
-		throw new Error(`WebRTC signaling failed (${res.status}): ${await res.text()}`);
+		throw new Error(
+			`WebRTC signaling failed (${res.status}): ${await res.text()}`,
+		);
 	}
 	const answer = await res.json();
 	await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
@@ -353,11 +426,56 @@ function startStatsMonitor(groupId: string) {
 			const stats = await pc.getStats();
 			let quality = "good";
 			let maxRtt = 0;
+			const videoStats: Array<Record<string, string | number | null>> = [];
+			const videoSenders = videoSources.map((source) => {
+				const transceiver = videoTransceivers[source];
+				const track = transceiver?.sender.track;
+				return {
+					source,
+					mid: transceiver?.mid ?? null,
+					trackId: track?.id ?? null,
+					trackState: track?.readyState ?? null,
+					trackEnabled: track?.enabled ?? null,
+				};
+			});
 			stats.forEach((report) => {
 				if (report.type === "candidate-pair" && report.state === "succeeded") {
 					const rtt = report.currentRoundTripTime || 0;
 					if (rtt > maxRtt) maxRtt = rtt;
 				}
+				if (report.type === "outbound-rtp" && report.kind === "video") {
+					const outbound = report as RTCOutboundRtpStreamStats;
+					videoStats.push({
+						direction: "outbound",
+						source:
+							videoSources.find(
+								(source) => videoTransceivers[source]?.mid === outbound.mid,
+							) ?? null,
+						mid: outbound.mid ?? null,
+						bytes: outbound.bytesSent ?? 0,
+						packets: outbound.packetsSent ?? 0,
+						frames: outbound.framesEncoded ?? 0,
+					});
+				} else if (report.type === "inbound-rtp" && report.kind === "video") {
+					const inbound = report as RTCInboundRtpStreamStats;
+					videoStats.push({
+						direction: "inbound",
+						source:
+							videoSources.find(
+								(source) => videoTransceivers[source]?.mid === inbound.mid,
+							) ?? null,
+						mid: inbound.mid ?? null,
+						bytes: inbound.bytesReceived ?? 0,
+						packets: inbound.packetsReceived ?? 0,
+						frames: inbound.framesDecoded ?? 0,
+					});
+				}
+			});
+			console.info("Collaboration video stats:", {
+				connectionState: pc.connectionState,
+				iceConnectionState: pc.iceConnectionState,
+				senders: videoSenders,
+				video: videoStats,
 			});
 			if (maxRtt > 0.4) {
 				quality = "poor";
@@ -380,11 +498,17 @@ function startStatsMonitor(groupId: string) {
 					);
 				}
 			}
-		} catch (_) {}
+		} catch (error) {
+			console.warn("Could not read collaboration WebRTC stats:", error);
+		}
 	}, 3000);
 }
 
-export function stopWebRTCSession() {
+export function stopWebRTCSession(preserveLocalMedia = false) {
+	if (voiceDisconnectTimer) {
+		clearTimeout(voiceDisconnectTimer);
+		voiceDisconnectTimer = null;
+	}
 	const peerConnection = pc;
 	pc = null;
 	peerConnection?.close();
@@ -393,9 +517,11 @@ export function stopWebRTCSession() {
 		statsMonitorTimer = null;
 	}
 	lastReportedQuality = null;
-	stopCameraStream();
-	stopScreenShare();
-	stopFileShare();
+	if (!preserveLocalMedia) {
+		stopCameraStream();
+		stopScreenShare();
+		stopFileShare();
+	}
 	teardownAudioMixer();
 
 	if (localAudioStream) {
@@ -580,9 +706,11 @@ export async function shareFile(file: File): Promise<boolean> {
 	const fileType = file.type.toLowerCase();
 	const fileName = file.name.toLowerCase();
 	const isAudio =
-		fileType.startsWith("audio/") || /\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(fileName);
+		fileType.startsWith("audio/") ||
+		/\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(fileName);
 	const isVideo =
-		fileType.startsWith("video/") || /\.(mp4|webm|mov|m4v|ogv)$/i.test(fileName);
+		fileType.startsWith("video/") ||
+		/\.(mp4|webm|mov|m4v|ogv)$/i.test(fileName);
 	const isImage =
 		fileType.startsWith("image/") ||
 		/\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(fileName);
@@ -594,7 +722,9 @@ export async function shareFile(file: File): Promise<boolean> {
 		/\.(pptx?|pdf)$/i.test(fileName);
 
 	if (!isAudio && !isVideo && !isPresentationOrDoc) {
-		console.error(`Unsupported presentation file type: ${file.type || file.name}`);
+		console.error(
+			`Unsupported presentation file type: ${file.type || file.name}`,
+		);
 		return false;
 	}
 
@@ -614,12 +744,17 @@ export async function shareFile(file: File): Promise<boolean> {
 			} catch (playError) {
 				mediaEl.muted = true;
 				await mediaEl.play();
-				console.warn("File playback started muted due to browser autoplay policy.", playError);
+				console.warn(
+					"File playback started muted due to browser autoplay policy.",
+					playError,
+				);
 			}
 
 			const capture = getMediaCaptureFunction(mediaEl);
 			if (!capture) {
-				throw new Error("This browser does not support capturing media file playback.");
+				throw new Error(
+					"This browser does not support capturing media file playback.",
+				);
 			}
 			const stream = capture();
 			if (isVideo && stream.getVideoTracks().length === 0) {
@@ -721,16 +856,36 @@ export async function stopFileShare() {
 }
 
 // Media Attachment to Server-Rendered Elements
+function attachVideoStream(
+	video: HTMLVideoElement,
+	stream: MediaStream,
+	label: string,
+) {
+	if (video.srcObject !== stream) {
+		video.srcObject = stream;
+	}
+	video.muted = true;
+	video.playsInline = true;
+	video.autoplay = true;
+
+	const play = () => {
+		video.play().catch((error) => {
+			console.warn(`Could not play ${label} video:`, error);
+		});
+	};
+	if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+		play();
+	} else {
+		video.addEventListener("loadedmetadata", play, { once: true });
+	}
+}
+
 function attachCameraVideo() {
 	const video = document.getElementById(
 		"collab-local-video",
 	) as HTMLVideoElement | null;
 	if (video && cameraStream) {
-		if (video.srcObject !== cameraStream) {
-			video.srcObject = cameraStream;
-		}
-		video.muted = true;
-		video.play().catch(() => {});
+		attachVideoStream(video, cameraStream, "local camera");
 	}
 }
 
@@ -739,11 +894,7 @@ function attachScreenVideo() {
 		"collab-screen-video",
 	) as HTMLVideoElement | null;
 	if (video && screenStream) {
-		if (video.srcObject !== screenStream) {
-			video.srcObject = screenStream;
-		}
-		video.muted = true;
-		video.play().catch(() => {});
+		attachVideoStream(video, screenStream, "local screen share");
 	}
 }
 
@@ -752,11 +903,7 @@ function attachFileVideo() {
 		"collab-file-video",
 	) as HTMLVideoElement | null;
 	if (video && fileStream) {
-		if (video.srcObject !== fileStream) {
-			video.srcObject = fileStream;
-		}
-		video.muted = true;
-		video.play().catch(() => {});
+		attachVideoStream(video, fileStream, "local presentation");
 	}
 }
 
@@ -765,19 +912,7 @@ function attachRemoteVideo(stream: MediaStream, source: VideoSource) {
 		`video[data-remote-stream-type="${source}"]`,
 	);
 	remoteVideos.forEach((video) => {
-		if (video.srcObject !== stream) {
-			video.srcObject = stream;
-		}
-		video.playsInline = true;
-		video.autoplay = true;
-		const playPromise = video.play();
-		if (playPromise !== undefined) {
-			playPromise.catch(() => {
-				// Fallback to muted playback if autoplay policy prevents unmuted play
-				video.muted = true;
-				video.play().catch(() => {});
-			});
-		}
+		attachVideoStream(video, stream, `remote ${source}`);
 	});
 }
 
@@ -802,8 +937,26 @@ export function checkAndSyncVoice() {
 		container.classList.contains("hidden") ||
 		!container.hasAttribute("data-voice-active")
 	) {
-		stopWebRTCSession();
+		if (!voiceDisconnectTimer) {
+			voiceDisconnectTimer = setTimeout(() => {
+				voiceDisconnectTimer = null;
+				const currentContainer = document.getElementById(
+					"collab-header-container",
+				);
+				if (
+					!currentContainer ||
+					currentContainer.classList.contains("hidden") ||
+					!currentContainer.hasAttribute("data-voice-active")
+				) {
+					stopWebRTCSession();
+				}
+			}, 500);
+		}
 		return;
+	}
+	if (voiceDisconnectTimer) {
+		clearTimeout(voiceDisconnectTimer);
+		voiceDisconnectTimer = null;
 	}
 
 	const groupId = container.getAttribute("data-group-id");
@@ -814,6 +967,7 @@ export function checkAndSyncVoice() {
 	if (groupId && channelId) {
 		if (
 			!pc ||
+			currentGroupId !== groupId ||
 			currentChannelId !== channelId ||
 			currentSubchannelName !== subchannelName
 		) {
@@ -843,22 +997,44 @@ export function checkAndSyncVoice() {
 		}
 	}
 
-	// Sync camera state with server DOM: do not auto-prompt getUserMedia without user action!
+	// Allow OOB dock markup to arrive before treating a missing tile as a stopped share.
 	const videoTile = document.getElementById("video-tile-local");
-	if (!videoTile && cameraStream) {
-		stopCameraStream();
+	const activeCameraStream = cameraStream;
+	if (!videoTile && activeCameraStream) {
+		setTimeout(() => {
+			if (
+				!document.getElementById("video-tile-local") &&
+				cameraStream === activeCameraStream
+			) {
+				void stopCameraStream();
+			}
+		}, 250);
 	}
 
-	// Sync screen share state with server DOM: do not auto-prompt getDisplayMedia without user action!
 	const screenTile = document.getElementById("video-tile-screen");
-	if (!screenTile && screenStream) {
-		stopScreenShare();
+	const activeScreenStream = screenStream;
+	if (!screenTile && activeScreenStream) {
+		setTimeout(() => {
+			if (
+				!document.getElementById("video-tile-screen") &&
+				screenStream === activeScreenStream
+			) {
+				void stopScreenShare();
+			}
+		}, 250);
 	}
 
-	// Sync file share state with server DOM
 	const fileTile = document.getElementById("video-tile-file");
-	if (!fileTile && fileStream) {
-		stopFileShare();
+	const activeFileStream = fileStream;
+	if (!fileTile && activeFileStream) {
+		setTimeout(() => {
+			if (
+				!document.getElementById("video-tile-file") &&
+				fileStream === activeFileStream
+			) {
+				void stopFileShare();
+			}
+		}, 250);
 	}
 
 	attachAllActiveStreams();

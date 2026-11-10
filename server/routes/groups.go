@@ -2148,6 +2148,12 @@ func RouteGroups(app *fiber.App) fiber.Router {
 						}
 					}
 					subchannel = session.CollabHub.GetNextSubchannel(channel.Id)
+				} else {
+					roomNumber, parseErr := strconv.ParseUint(subchannel, 10, 64)
+					if parseErr != nil || roomNumber == 0 {
+						return ctx.Status(fiber.StatusBadRequest).SendString("Subchannel must be a positive number.")
+					}
+					subchannel = strconv.FormatUint(roomNumber, 10)
 				}
 				sess := session.CollabHub.JoinSubchannel(
 					user.Id,
@@ -2171,9 +2177,10 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					BitrateKbps:     sess.BitrateKbps,
 				})
 				broadcastGroupChannelsUpdate(app, group)
-				return ctx.Render("partials/collab-connection-status", fiber.Map{
+				return renderCollabConnectionResponse(ctx, app, fiber.Map{
 					"Group":         group,
 					"CollabSession": sess,
+					"User":          user,
 				})
 			},
 		).
@@ -2223,13 +2230,16 @@ func RouteGroups(app *fiber.App) fiber.Router {
 			func(ctx fiber.Ctx) error {
 				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				disconnectedSession := session.CollabHub.GetUserSession(user.Id)
 				session.CollabHub.DisconnectAll(user.Id)
 				session.WebRTCHub.Close(user.Id)
 				_ = model.DeleteAllUserCollabSessions(user.Id)
 				broadcastGroupChannelsUpdate(app, group)
-				return ctx.Render("partials/collab-connection-status", fiber.Map{
+				broadcastCollabDockUpdate(app, disconnectedSession)
+				return renderCollabConnectionResponse(ctx, app, fiber.Map{
 					"Group":         group,
 					"CollabSession": nil,
+					"User":          user,
 				})
 			},
 		).
@@ -2258,9 +2268,20 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				sub := req.SubchannelName
-				if sub == "" {
-					sub = "1"
+				joinedSubchannel, joined := session.CollabHub.GetUserSubchannel(user.Id, req.ChannelId)
+				if !joined {
+					return ctx.Status(fiber.StatusConflict).SendString("Join the collaboration channel before signaling.")
 				}
+				if sub != "" && sub != joinedSubchannel {
+					slog.Warn(
+						"collaboration signal subchannel mismatch; using joined subchannel",
+						"user_id", user.Id,
+						"channel_id", req.ChannelId,
+						"requested_subchannel", sub,
+						"joined_subchannel", joinedSubchannel,
+					)
+				}
+				sub = joinedSubchannel
 
 				answer, err := session.WebRTCHub.HandleOffer(
 					user.Id,
@@ -2333,6 +2354,43 @@ func RouteGroups(app *fiber.App) fiber.Router {
 							IsFileShared:    sess.IsFileShared,
 							BitrateKbps:     sess.BitrateKbps,
 						})
+					}
+				}
+				bind := fiber.Map{
+					"Group":         group,
+					"CollabSession": sess,
+					"User":          user,
+				}
+				if htmx.IsHtmx(ctx) {
+					return renderCollabResponse(ctx, app, bind)
+				}
+				return ctx.Render("partials/collab-connection-status", bind)
+			},
+		).
+		Post("/:group_id/collab/reset-media",
+			perms.RequirePerm("group_id", model.PermNameRead),
+			func(ctx fiber.Ctx) error {
+				group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
+				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
+				sess := session.CollabHub.SetCameraEnabled(user.Id, false)
+				if sess != nil {
+					session.CollabHub.SetScreenShared(user.Id, false)
+					session.CollabHub.SetFileShared(user.Id, false, "")
+					for _, ch := range sess.Channels {
+						if err := model.UpsertCollabSession(&model.CollabSessionRecord{
+							UserId:          user.Id,
+							GroupId:         group.Id,
+							ChannelId:       ch.ChannelId,
+							SubchannelName:  ch.SubchannelName,
+							InputMuted:      sess.GlobalInputMuted,
+							OutputMuted:     sess.GlobalOutputMuted,
+							IsCameraEnabled: false,
+							IsScreenShared:  false,
+							IsFileShared:    false,
+							BitrateKbps:     sess.BitrateKbps,
+						}); err != nil {
+							return err
+						}
 					}
 				}
 				bind := fiber.Map{
@@ -2547,6 +2605,25 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				return ctx.Render("partials/collab-connection-status", bind)
 			},
 		)
+}
+
+func renderCollabConnectionResponse(ctx fiber.Ctx, app *fiber.App, bind fiber.Map) error {
+	bufHeader, err := render.RenderBuffer(app, "partials/collab-connection-status", bind)
+	if err != nil {
+		return err
+	}
+	bufDock, err := render.RenderBuffer(app, "partials/collab-video-dock", bind)
+	if err != nil {
+		return err
+	}
+
+	if sess, ok := bind["CollabSession"].(*session.UserCollabSession); ok && sess != nil {
+		broadcastCollabDockUpdate(app, sess)
+	}
+
+	dockHTML := bufDock.String()
+	dockOob := render.WrapOob("outerHTML:#collab-video-dock", &dockHTML)
+	return ctx.Type("html").SendString(bufHeader.String() + dockOob)
 }
 
 func renderCollabResponse(ctx fiber.Ctx, app *fiber.App, bind fiber.Map) error {

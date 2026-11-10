@@ -106,6 +106,11 @@ Keep this file updated.
 ## 5. WebSockets & Realtime (`server/session/`)
 
 - **Route**: `GET /ws/:group_id/` in `server/routes/groups.go` (requires `PermNameRead`).
+- **Collaboration rooms** (`server/session/collab.go`, `server/routes/groups.go`):
+  - Collaboration subchannels are virtual room numbers, not channel names. Accept only positive numeric room IDs; do not treat arbitrary strings (for example, `"g"`) as room IDs.
+  - The join route allocates the next available room number for `subchannel=new` and validates explicitly requested room numbers. Keep the active-room list limited to valid numeric rooms.
+  - Signaling must use the user's actual joined room from `CollabHub`, not trust a client-supplied subchannel. RTP relay matching must use that authoritative room (as well as group and channel IDs).
+  - Room membership is in memory; restarting the server clears stale room state.
 - **Client**: `hx-ext="ws"` on `#ws-chat` in `client/templates/partials/app-group.tmpl`:
   ```html
   <div

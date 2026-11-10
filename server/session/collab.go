@@ -143,6 +143,28 @@ func (h *collabHub) GetUserSession(userId uint64) *UserCollabSession {
 	return h.sessions[userId]
 }
 
+func (h *collabHub) GetUserSubchannel(userId, channelId uint64) (string, bool) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	sess, ok := h.sessions[userId]
+	if !ok {
+		return "", false
+	}
+	ch, ok := sess.Channels[channelId]
+	if !ok {
+		return "", false
+	}
+	if ch.SubchannelName == "" || ch.SubchannelName == "main" {
+		return "1", true
+	}
+	roomNumber, err := strconv.ParseUint(ch.SubchannelName, 10, 64)
+	if err != nil || roomNumber == 0 {
+		return "", false
+	}
+	return strconv.FormatUint(roomNumber, 10), true
+}
+
 func (h *collabHub) GetActiveSubchannels(channelId uint64) []string {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -150,10 +172,11 @@ func (h *collabHub) GetActiveSubchannels(channelId uint64) []string {
 	roomSet := make(map[string]bool)
 	for _, sess := range h.sessions {
 		if ch, ok := sess.Channels[channelId]; ok && len(ch.Participants) > 0 {
-			room := ch.SubchannelName
-			if room == "" {
-				room = "1"
+			roomNumber, err := strconv.ParseUint(ch.SubchannelName, 10, 64)
+			if err != nil || roomNumber == 0 {
+				continue
 			}
+			room := strconv.FormatUint(roomNumber, 10)
 			roomSet[room] = true
 		}
 	}
