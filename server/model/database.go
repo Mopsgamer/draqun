@@ -43,6 +43,7 @@ const (
 	TableMessageAttachments = "app_group_message_attachments"
 	TableServerConfig       = "app_server_config"
 	TableChannelAttachments = "app_channel_attachments"
+	TableCollabSessions     = "app_collab_sessions"
 )
 
 func LoadDB() error {

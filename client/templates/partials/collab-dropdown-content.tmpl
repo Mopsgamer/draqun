@@ -1,0 +1,12 @@
+{{if and .CollabSession (gt (len .CollabSession.Channels) 0)}}
+<div
+    popover
+    id="collab-dropdown-menu"
+    class="dropdown dropdown-end p-0 shadow-xl bg-surface-overlay rounded-box w-80 text-base-content border border-base-content/10 mt-1"
+    style="position-anchor:--anchor-collab-status"
+>
+    {{template "partials/collab-dropdown-inner" .}}
+</div>
+{{else}}
+<div id="collab-header-container" class="hidden" hx-swap-oob="outerHTML:#collab-header-container"></div>
+{{end}}

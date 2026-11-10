@@ -79,19 +79,27 @@
                             <span class="icon icon-[lucide--pencil] size-3"></span>
                             Edit
                         </a>
-                        <details class="dropdown dropdown-end">
-                            <summary class="btn btn-error btn-xs gap-1 cursor-pointer">
-                                <span class="icon icon-[lucide--trash-2] size-3"></span> Delete
-                            </summary>
-                            <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-overlay rounded-lg border border-base-content/10 w-56 mt-1 flex flex-col gap-2">
-                                <span class="font-semibold text-xs text-error">Delete {{.Channel.Moniker}}?</span>
-                                <button
-                                    type="button"
-                                    class="btn btn-error btn-xs w-full"
-                                    hx-delete="/groups/{{$.Group.Id}}/channels/{{.Channel.Id}}"
-                                >Confirm Delete</button>
-                            </div>
-                        </details>
+                        <button
+                            type="button"
+                            class="btn btn-error btn-xs gap-1 cursor-pointer"
+                            popovertarget="popover-delete-channel-{{.Channel.Id}}"
+                            style="anchor-name:--anchor-delete-channel-{{.Channel.Id}}"
+                        >
+                            <span class="icon icon-[lucide--trash-2] size-3"></span> Delete
+                        </button>
+                        <div
+                            popover
+                            id="popover-delete-channel-{{.Channel.Id}}"
+                            class="dropdown dropdown-end p-3 shadow-lg bg-surface-overlay rounded-lg border border-base-content/10 w-56 mt-1 flex flex-col gap-2"
+                            style="position-anchor:--anchor-delete-channel-{{.Channel.Id}}"
+                        >
+                            <span class="font-semibold text-xs text-error">Delete {{.Channel.Moniker}}?</span>
+                            <button
+                                type="button"
+                                class="btn btn-error btn-xs w-full"
+                                hx-delete="/groups/{{$.Group.Id}}/channels/{{.Channel.Id}}"
+                            >Confirm Delete</button>
+                        </div>
                     </div>
                 </div>
 
@@ -109,19 +117,27 @@
                         <div class="flex items-center gap-1.5">
                             <a class="btn btn-ghost btn-xs text-xs" href="/chat/groups/{{$.Group.Id}}/channels/{{.Id}}">View</a>
                             <a class="btn btn-ghost btn-xs text-xs" href="/groups/{{$.Group.Id}}/settings/channels/{{.Id}}">Edit</a>
-                            <details class="dropdown dropdown-end">
-                                <summary class="btn btn-ghost btn-xs text-error text-xs cursor-pointer">
-                                    Delete
-                                </summary>
-                                <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-overlay rounded-lg border border-base-content/10 w-56 mt-1 flex flex-col gap-2">
-                                    <span class="font-semibold text-xs text-error">Delete subchannel {{.Moniker}}?</span>
-                                    <button
-                                        type="button"
-                                        class="btn btn-error btn-xs w-full"
-                                        hx-delete="/groups/{{$.Group.Id}}/channels/{{.Id}}"
-                                    >Confirm Delete</button>
-                                </div>
-                            </details>
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-xs text-error text-xs cursor-pointer"
+                                popovertarget="popover-delete-subchannel-{{.Id}}"
+                                style="anchor-name:--anchor-delete-subchannel-{{.Id}}"
+                            >
+                                Delete
+                            </button>
+                            <div
+                                popover
+                                id="popover-delete-subchannel-{{.Id}}"
+                                class="dropdown dropdown-end p-3 shadow-lg bg-surface-overlay rounded-lg border border-base-content/10 w-56 mt-1 flex flex-col gap-2"
+                                style="position-anchor:--anchor-delete-subchannel-{{.Id}}"
+                            >
+                                <span class="font-semibold text-xs text-error">Delete subchannel {{.Moniker}}?</span>
+                                <button
+                                    type="button"
+                                    class="btn btn-error btn-xs w-full"
+                                    hx-delete="/groups/{{$.Group.Id}}/channels/{{.Id}}"
+                                >Confirm Delete</button>
+                            </div>
                         </div>
                     </div>
                     {{end}}

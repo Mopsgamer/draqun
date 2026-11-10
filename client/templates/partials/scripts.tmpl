@@ -1,3 +1,16 @@
+<script>
+    const storedTheme = location.pathname === "/docs"
+        ? "light"
+        : localStorage.getItem("theme") ?? "system";
+    document.documentElement.dataset.theme =
+        storedTheme === "dark"
+            ? "dark"
+            : storedTheme === "light"
+                ? "light"
+                : matchMedia("(prefers-color-scheme: dark)").matches
+                    ? "dark"
+                    : "light";
+</script>
 {{- range .Stylesheets -}}
 <link rel="stylesheet" href="{{ . }}">
 {{- end -}}

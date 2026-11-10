@@ -1,38 +1,48 @@
 <header id="header" class="navbar px-2 gap-2">
     <nav class="navbar-start items-center gap-1">
-        <details class="dropdown">
-            <summary class="btn btn-ghost btn-square btn-sm cursor-pointer list-none flex items-center justify-center" id="page-nav" aria-label="Open navigation">
-                <span class="icon icon-[lucide--menu] size-5" aria-hidden="true"></span>
-            </summary>
-            <ul class="dropdown-content menu menu-sm w-56 z-30 mt-2 p-1 rounded-box">
-                <li>
-                    <a href="/chat">
-                        <span class="icon icon-logo size-4" aria-hidden="true"></span>
-                        Open {{.AppName}}
-                    </a>
-                </li>
-                {{if ne .Ctx.Path "/"}}
-                <li>
-                    <a href="/">
-                        <span class="icon icon-[lucide--rocket] size-4" aria-hidden="true"></span>
-                        Landing page
-                    </a>
-                </li>
-                {{end}}
-                <li>
-                    <a href="/docs">
-                        <span class="icon icon-[lucide--code-xml] size-4" aria-hidden="true"></span>
-                        Documentation
-                    </a>
-                </li>
-                <li>
-                    <a href="#footer">
-                        <span class="icon icon-[lucide--ellipsis] size-4" aria-hidden="true"></span>
-                        More
-                    </a>
-                </li>
-            </ul>
-        </details>
+        <button
+            type="button"
+            class="btn btn-ghost btn-square btn-sm cursor-pointer flex items-center justify-center"
+            id="page-nav"
+            aria-label="Open navigation"
+            popovertarget="popover-page-nav"
+            style="anchor-name:--anchor-page-nav"
+        >
+            <span class="icon icon-[lucide--menu] size-5" aria-hidden="true"></span>
+        </button>
+        <ul
+            popover
+            id="popover-page-nav"
+            class="dropdown menu menu-sm w-56 p-1 rounded-box bg-surface-overlay text-base-content border border-base-content/10 shadow-lg"
+            style="position-anchor:--anchor-page-nav"
+        >
+            <li>
+                <a href="/chat">
+                    <span class="icon icon-logo size-4" aria-hidden="true"></span>
+                    Open {{.AppName}}
+                </a>
+            </li>
+            {{if ne .Ctx.Path "/"}}
+            <li>
+                <a href="/">
+                    <span class="icon icon-[lucide--rocket] size-4" aria-hidden="true"></span>
+                    Landing page
+                </a>
+            </li>
+            {{end}}
+            <li>
+                <a href="/docs">
+                    <span class="icon icon-[lucide--code-xml] size-4" aria-hidden="true"></span>
+                    Documentation
+                </a>
+            </li>
+            <li>
+                <a href="#footer">
+                    <span class="icon icon-[lucide--ellipsis] size-4" aria-hidden="true"></span>
+                    More
+                </a>
+            </li>
+        </ul>
         <a class="btn btn-ghost text-base font-bold gap-2 normal-case shrink-0 px-2" href="/" aria-label="{{.AppName}} home">
             <span class="icon icon-logo size-7" aria-hidden="true"></span>
             <span>{{.AppName}}</span>

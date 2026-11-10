@@ -3,6 +3,7 @@ import fsSync from "node:fs";
 import path from "node:path";
 import postcss from "postcss";
 import tailwindcss from "@tailwindcss/postcss";
+import { ms } from "@jsr/m234__ns";
 import { transform } from "lightningcss";
 import { format, type TaskRunnerReturn } from "@jsr/m234__logger";
 import { distFolder, logClientComp } from "./tool/constants.ts";
@@ -94,9 +95,9 @@ async function buildJs(
 					return;
 				}
 
-				const duration = (performance.now() - start).toFixed(0);
+				const duration = (performance.now() - start) | 0;
 				logClientComp.info(
-					`Frontend rebuilt in ${duration}ms at ${new Date().toLocaleTimeString()}${fileDesc}`,
+					`Frontend rebuilt in ${ms(duration)} at ${new Date().toLocaleTimeString()}${fileDesc}`,
 				);
 				await notifyHMR("reload");
 			} catch (err) {
@@ -194,9 +195,9 @@ async function buildCss(
 					for (const entry of cssEntries) {
 						await compileCssFile(entry.in, entry.out, minify);
 					}
-					const duration = (performance.now() - start).toFixed(0);
+					const duration = (performance.now() - start) | 0;
 					logClientComp.info(
-						`Frontend rebuilt in ${duration}ms at ${new Date().toLocaleTimeString()}${fileDesc}`,
+						`Frontend rebuilt in ${ms(duration)} at ${new Date().toLocaleTimeString()}${fileDesc}`,
 					);
 
 					const isCssOnly = relevant.every((p) => p.endsWith(".css"));
@@ -319,9 +320,9 @@ export async function runMakeFront(
 		}),
 	);
 
-	const totalMs = (performance.now() - startTime).toFixed(0);
+	const totalMs = (performance.now() - startTime) | 0;
 	if (!isQuiet) {
-		logClientComp.info(`Frontend build completed in ${totalMs}ms.`);
+		logClientComp.info(`Frontend build completed in ${ms(totalMs)}.`);
 	}
 
 	if (isWatch && !isQuiet) {

@@ -1,83 +1,103 @@
-<details class="dropdown dropdown-end">
-    <summary id="avatar-button" class="btn btn-ghost btn-sm sm:btn-md normal-case flex items-center gap-2 cursor-pointer list-none px-2">
-        <span class="hidden sm:inline truncate max-w-44 font-semibold" title={{with .User.Moniker}}{{.}}{{end}}>
-            {{if not .User.IsEmpty}}{{.User.Moniker}}{{else}}Guest{{end}}
-        </span>
-        <div class="avatar shrink-0" aria-hidden="true">
-            <div class="w-7 rounded-full">
-                <img src="{{.User.AvatarUrl}}" alt="User avatar">
-            </div>
+<button
+    type="button"
+    id="avatar-button"
+    class="btn btn-ghost btn-sm sm:btn-md normal-case flex items-center gap-2 cursor-pointer px-2"
+    popovertarget="popover-avatar-menu"
+    style="anchor-name:--anchor-avatar-menu"
+>
+    <span class="hidden sm:inline truncate max-w-44 font-semibold" title={{with .User.Moniker}}{{.}}{{end}}>
+        {{if not .User.IsEmpty}}{{.User.Moniker}}{{else}}Guest{{end}}
+    </span>
+    <div class="avatar shrink-0" aria-hidden="true">
+        <div class="w-7 rounded-full">
+            <img src="{{.User.AvatarUrl}}" alt="User avatar">
         </div>
-    </summary>
-    <ul class="dropdown-content menu menu-sm w-56 z-30 mt-2 p-1 rounded-box">
-        {{- if not .User.IsEmpty -}}
-        <li>
-            <button
-                type="button"
-                hx-get="/users/{{.User.Id}}/profile{{if .Group}}?group_id={{.Group.Id}}{{end}}"
-                hx-target="#user-profile-modal-content"
-                hx-swap="innerHTML"
-                onclick="document.getElementById('user-profile-modal').showModal()"
-            >
-                <span class="icon icon-[lucide--user] size-4" aria-hidden="true"></span>
-                My Profile
-            </button>
-        </li>
-        <li>
-            <a href="/settings">
-                <span class="icon icon-[lucide--settings] size-4" aria-hidden="true"></span>
-                Settings
-            </a>
-        </li>
-        {{- end -}}
-        {{- if ne .Ctx.Path "/docs" -}}
-        <li>
-            <details>
-                <summary>
-                    <span class="icon icon-[lucide--contrast] size-4" aria-hidden="true"></span>
-                    Theme
-                </summary>
-                <ul>
-                    <li>
-                        <label>
-                            <input type="radio" name="theme-choice" value="dark">
-                            <span class="icon icon-[lucide--moon] size-4" aria-hidden="true"></span>
-                            Dark
-                        </label>
-                    </li>
-                    <li>
-                        <label>
-                            <input type="radio" name="theme-choice" value="light">
-                            <span class="icon icon-[lucide--sun] size-4" aria-hidden="true"></span>
-                            Light
-                        </label>
-                    </li>
-                    <li>
-                        <label>
-                            <input type="radio" name="theme-choice" value="system">
-                            <span class="icon icon-[lucide--monitor] size-4" aria-hidden="true"></span>
-                            System
-                        </label>
-                    </li>
-                </ul>
-            </details>
-        </li>
-        {{- end -}}
+    </div>
+</button>
+<ul
+    popover
+    id="popover-avatar-menu"
+    class="dropdown dropdown-end menu menu-sm w-56 p-1 rounded-box bg-surface-overlay text-base-content border border-base-content/10 shadow-lg"
+    style="position-anchor:--anchor-avatar-menu"
+>
+    {{- if not .User.IsEmpty -}}
+    <li>
+        <button
+            type="button"
+            hx-get="/users/{{.User.Id}}/profile{{if .Group}}?group_id={{.Group.Id}}{{end}}"
+            hx-target="#user-profile-modal-content"
+            hx-swap="innerHTML"
+            onclick="document.getElementById('user-profile-modal').showModal()"
+        >
+            <span class="icon icon-[lucide--user] size-4" aria-hidden="true"></span>
+            My Profile
+        </button>
+    </li>
+    <li>
+        <a href="/settings">
+            <span class="icon icon-[lucide--settings] size-4" aria-hidden="true"></span>
+            Settings
+        </a>
+    </li>
+    {{- end -}}
+    {{- if ne .Ctx.Path "/docs" -}}
+    <li>
+        <button
+            type="button"
+            class="flex items-center justify-between"
+            popovertarget="popover-avatar-theme"
+            style="anchor-name:--anchor-avatar-theme"
+        >
+            <span class="flex items-center gap-2">
+                <span class="icon icon-[lucide--contrast] size-4" aria-hidden="true"></span>
+                Theme
+            </span>
+            <span class="icon icon-[lucide--chevron-right] size-3"></span>
+        </button>
+        <ul
+            popover
+            id="popover-avatar-theme"
+            class="dropdown dropdown-left menu menu-sm w-40 p-1 rounded-box bg-surface-overlay text-base-content border border-base-content/10 shadow-lg"
+            style="position-anchor:--anchor-avatar-theme"
+        >
+            <li>
+                <label>
+                    <input type="radio" name="theme-choice" value="dark">
+                    <span class="icon icon-[lucide--moon] size-4" aria-hidden="true"></span>
+                    Dark
+                </label>
+            </li>
+            <li>
+                <label>
+                    <input type="radio" name="theme-choice" value="light">
+                    <span class="icon icon-[lucide--sun] size-4" aria-hidden="true"></span>
+                    Light
+                </label>
+            </li>
+            <li>
+                <label>
+                    <input type="radio" name="theme-choice" value="system">
+                    <span class="icon icon-[lucide--monitor] size-4" aria-hidden="true"></span>
+                    System
+                </label>
+            </li>
+        </ul>
+    </li>
+    {{- end -}}
 
-        {{- if not .User.IsEmpty -}}
-        <li>
-            <button hx-put="/account/logout" hx-swap="innerHTML">
-                <span class="icon icon-[lucide--log-out] size-4" aria-hidden="true"></span>
-                Log Out
-            </button>
-        </li>
-        {{- else -}}
-        <li>
-            <a href="/login">
-                <span class="icon icon-[lucide--circle-user-round] size-4" aria-hidden="true"></span>
-                Log In
-            </a>
-        </li>
-        {{- end}}
-    </ul>
-</details>
+    {{- if not .User.IsEmpty -}}
+    <li>
+        <button hx-put="/account/logout" hx-swap="innerHTML">
+            <span class="icon icon-[lucide--log-out] size-4" aria-hidden="true"></span>
+            Log Out
+        </button>
+    </li>
+    {{- else -}}
+    <li>
+        <a href="/login">
+            <span class="icon icon-[lucide--circle-user-round] size-4" aria-hidden="true"></span>
+            Log In
+        </a>
+    </li>
+    {{- end}}
+</ul>

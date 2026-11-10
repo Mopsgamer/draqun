@@ -1,0 +1,31 @@
+{{if and .CollabSession (gt (len .CollabSession.Channels) 0)}}
+<div
+    id="collab-header-container"
+    class="flex items-center gap-1"
+    data-collab-active="true"
+    data-voice-active="true"
+    data-group-id="{{.Group.Id}}"
+>
+    <!-- Collaboration Connection Main Status Dropdown -->
+    <button
+        type="button"
+        id="collab-status-btn"
+        class="btn btn-ghost btn-square btn-sm cursor-pointer flex items-center justify-center relative"
+        aria-label="Collaboration connection settings"
+        title="In call - click for details"
+        popovertarget="collab-dropdown-menu"
+        style="anchor-name:--anchor-collab-status"
+    >
+        <div class="indicator">
+            <span class="icon icon-[lucide--phone-call] size-5" aria-hidden="true"></span>
+            <span id="collab-indicator" class="badge badge-error badge-xs indicator-item">
+                {{len .CollabSession.Channels}}
+            </span>
+        </div>
+    </button>
+
+    {{- template "partials/collab-dropdown-content" .}}
+</div>
+{{else}}
+<div id="collab-header-container" class="hidden"></div>
+{{end}}

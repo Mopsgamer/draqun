@@ -9,6 +9,7 @@ import (
 	"github.com/Mopsgamer/draqun/server/htmx"
 	"github.com/Mopsgamer/draqun/server/model"
 	"github.com/Mopsgamer/draqun/server/perms"
+	"github.com/Mopsgamer/draqun/server/session"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -72,9 +73,23 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			if isGlobalAdmin && group.Name == "draqun" {
 				channels = append(channels, model.GetOtelVirtualChannel(), model.GetConfigVirtualChannel())
 			}
+			collabMembersMap := make(map[string][]session.CollabParticipant)
 			subchannelsMap := make(map[uint64][]model.Channel)
 			for _, ch := range channels {
-				if !ch.IsTicket() && !ch.IsOtel() && !ch.IsConfig() {
+				if ch.IsCollab() {
+					rooms := session.CollabHub.GetActiveSubchannels(ch.Id)
+					for _, r := range rooms {
+						subchannelsMap[ch.Id] = append(subchannelsMap[ch.Id], model.Channel{
+							Id:      ch.Id,
+							Name:    model.Name(r),
+							Moniker: model.Moniker(r),
+							Type:    model.ChannelTypeCollab,
+						})
+						parts := session.CollabHub.GetRoomParticipants(ch.Id, r)
+						key := fmt.Sprintf("%d_%s", ch.Id, r)
+						collabMembersMap[key] = parts
+					}
+				} else if !ch.IsTicket() && !ch.IsOtel() && !ch.IsConfig() {
 					subchs, _ := model.GetSubchannels(ch.Id)
 					subchannelsMap[ch.Id] = subchs
 				}
@@ -98,13 +113,15 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			}
 
 			bind := fiber.Map{
-				"Title":          group.Moniker,
-				"Group":          group,
-				"Channels":       channels,
-				"SubchannelsMap": subchannelsMap,
-				"ActiveChannel":  activeChannel,
-				"StarredIdsMap":  starredIdsMap,
-				"IsStarred":      isStarred,
+				"Title":            group.Moniker,
+				"Group":            group,
+				"Channels":         channels,
+				"SubchannelsMap":   subchannelsMap,
+				"ActiveChannel":    activeChannel,
+				"StarredIdsMap":    starredIdsMap,
+				"IsStarred":        isStarred,
+				"CollabMembersMap": collabMembersMap,
+				"CollabSession":    session.CollabHub.GetUserSession(user.Id),
 			}
 			if activeChannel.IsWall() {
 				bind["IsWall"] = true
@@ -149,8 +166,14 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				if !isGlobalAdmin {
 					return ctx.Redirect().To(group.Url(ctx))
 				}
-			} else if !isStaff && model.GetUserPermissionLevel(group.Id, user.Id, activeChannel.Id, model.PermNameRead) == model.PermLevelDisable {
-				return ctx.Redirect().To(group.Url(ctx))
+			} else {
+				chGroup, errG := model.GetChannelGroup(activeChannel.Id)
+				if errG != nil || chGroup == nil || chGroup.Id != group.Id {
+					return ctx.Redirect().To(group.Url(ctx))
+				}
+				if !isStaff && model.GetUserPermissionLevel(group.Id, user.Id, activeChannel.Id, model.PermNameRead) == model.PermLevelDisable {
+					return ctx.Redirect().To(group.Url(ctx))
+				}
 			}
 
 			allChannels, _ := model.GetGroupChannels(group.Id)
@@ -164,9 +187,23 @@ func routePagesChat(router fiber.Router) fiber.Router {
 				channels = append(channels, model.GetOtelVirtualChannel(), model.GetConfigVirtualChannel())
 			}
 
+			collabMembersMap := make(map[string][]session.CollabParticipant)
 			subchannelsMap := make(map[uint64][]model.Channel)
 			for _, ch := range channels {
-				if !ch.IsTicket() && !ch.IsOtel() && !ch.IsConfig() {
+				if ch.IsCollab() {
+					rooms := session.CollabHub.GetActiveSubchannels(ch.Id)
+					for _, r := range rooms {
+						subchannelsMap[ch.Id] = append(subchannelsMap[ch.Id], model.Channel{
+							Id:      ch.Id,
+							Name:    model.Name(r),
+							Moniker: model.Moniker(r),
+							Type:    model.ChannelTypeCollab,
+						})
+						parts := session.CollabHub.GetRoomParticipants(ch.Id, r)
+						key := fmt.Sprintf("%d_%s", ch.Id, r)
+						collabMembersMap[key] = parts
+					}
+				} else if !ch.IsTicket() && !ch.IsOtel() && !ch.IsConfig() {
 					subchs, _ := model.GetSubchannels(ch.Id)
 					subchannelsMap[ch.Id] = subchs
 				}
@@ -185,13 +222,15 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			}
 
 			bind := fiber.Map{
-				"Title":          activeChannel.Moniker + " - " + group.Moniker,
-				"Group":          group,
-				"Channels":       channels,
-				"SubchannelsMap": subchannelsMap,
-				"ActiveChannel":  activeChannel,
-				"StarredIdsMap":  starredIdsMap,
-				"IsStarred":      isStarred,
+				"Title":            activeChannel.Moniker + " - " + group.Moniker,
+				"Group":            group,
+				"Channels":         channels,
+				"SubchannelsMap":   subchannelsMap,
+				"ActiveChannel":    activeChannel,
+				"StarredIdsMap":    starredIdsMap,
+				"IsStarred":        isStarred,
+				"CollabMembersMap": collabMembersMap,
+				"CollabSession":    session.CollabHub.GetUserSession(user.Id),
 			}
 			if activeChannel.IsOtel() {
 				bind["IsOtel"] = true

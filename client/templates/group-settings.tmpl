@@ -130,50 +130,76 @@
                     <div class="text-xs text-base-content/60">Leave as a member, or delete the group entirely if permitted.</div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                    <details class="dropdown dropdown-end">
-                        <summary class="btn btn-outline btn-error btn-xs gap-1 cursor-pointer">
-                            <span class="icon icon-[lucide--flag] size-3"></span>
-                            Report Group
-                        </summary>
-                        <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                            <span class="font-semibold text-xs text-error">Report Group</span>
-                            <form hx-post="/reports/group/{{.Group.Id}}" hx-target="#alert-container" class="flex flex-col gap-2">
-                                <input type="text" name="reason" placeholder="Reason for group report..." required class="input input-bordered input-xs w-full">
-                                <button type="submit" class="btn btn-error btn-xs w-full cursor-pointer">Submit Report</button>
-                            </form>
-                        </div>
-                    </details>
-                    <details class="dropdown dropdown-end">
-                        <summary class="btn btn-warning btn-xs gap-1">
-                            <span class="icon icon-[lucide--log-out] size-3"></span>
-                            Leave Group
-                        </summary>
-                        <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                            <span class="font-semibold text-xs">Leave this group?</span>
-                            <p class="text-[11px] text-base-content/60">Are you sure you want to leave this group?</p>
-                            <button
-                                type="button"
-                                class="btn btn-warning btn-xs w-full mt-1"
-                                hx-delete="/groups/{{.Group.Id}}/leave"
-                                hx-target="#group-leave-error"
-                            >Confirm Leave</button>
-                        </div>
-                    </details>
-                    <details class="dropdown dropdown-end">
-                        <summary class="btn btn-error btn-xs gap-1">
-                            <span class="icon icon-[lucide--trash-2] size-3"></span>
-                            Delete Group
-                        </summary>
-                        <div class="dropdown-content z-20 p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2">
-                            <span class="font-semibold text-xs text-error">Delete this group?</span>
-                            <p class="text-[11px] text-base-content/60">This action cannot be undone. All messages and data will be permanently deleted.</p>
-                            <button
-                                type="button"
-                                class="btn btn-error btn-xs w-full mt-1"
-                                hx-delete="/groups/{{.Group.Id}}"
-                            >Confirm Delete</button>
-                        </div>
-                    </details>
+                    <button
+                        type="button"
+                        class="btn btn-outline btn-error btn-xs gap-1 cursor-pointer"
+                        popovertarget="popover-report-group"
+                        style="anchor-name:--anchor-report-group"
+                    >
+                        <span class="icon icon-[lucide--flag] size-3"></span>
+                        Report Group
+                    </button>
+                    <div
+                        popover
+                        id="popover-report-group"
+                        class="dropdown dropdown-end p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2"
+                        style="position-anchor:--anchor-report-group"
+                    >
+                        <span class="font-semibold text-xs text-error">Report Group</span>
+                        <form hx-post="/reports/group/{{.Group.Id}}" hx-target="#alert-container" class="flex flex-col gap-2">
+                            <input type="text" name="reason" placeholder="Reason for group report..." required class="input input-bordered input-xs w-full">
+                            <button type="submit" class="btn btn-error btn-xs w-full cursor-pointer">Submit Report</button>
+                        </form>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-warning btn-xs gap-1 cursor-pointer"
+                        popovertarget="popover-leave-group"
+                        style="anchor-name:--anchor-leave-group"
+                    >
+                        <span class="icon icon-[lucide--log-out] size-3"></span>
+                        Leave Group
+                    </button>
+                    <div
+                        popover
+                        id="popover-leave-group"
+                        class="dropdown dropdown-end p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2"
+                        style="position-anchor:--anchor-leave-group"
+                    >
+                        <span class="font-semibold text-xs">Leave this group?</span>
+                        <p class="text-[11px] text-base-content/60">Are you sure you want to leave this group?</p>
+                        <button
+                            type="button"
+                            class="btn btn-warning btn-xs w-full mt-1 cursor-pointer"
+                            hx-delete="/groups/{{.Group.Id}}/leave"
+                            hx-target="#group-leave-error"
+                        >Confirm Leave</button>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-error btn-xs gap-1 cursor-pointer"
+                        popovertarget="popover-delete-group"
+                        style="anchor-name:--anchor-delete-group"
+                    >
+                        <span class="icon icon-[lucide--trash-2] size-3"></span>
+                        Delete Group
+                    </button>
+                    <div
+                        popover
+                        id="popover-delete-group"
+                        class="dropdown dropdown-end p-3 shadow-lg bg-surface-card rounded-xl border border-base-content/10 w-64 mt-1 flex flex-col gap-2"
+                        style="position-anchor:--anchor-delete-group"
+                    >
+                        <span class="font-semibold text-xs text-error">Delete this group?</span>
+                        <p class="text-[11px] text-base-content/60">This action cannot be undone. All messages and data will be permanently deleted.</p>
+                        <button
+                            type="button"
+                            class="btn btn-error btn-xs w-full mt-1 cursor-pointer"
+                            hx-delete="/groups/{{.Group.Id}}"
+                        >Confirm Delete</button>
+                    </div>
                 </div>
             </div>
         </section>

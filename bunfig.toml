@@ -1,2 +1,5 @@
 [fmt]
 useTabs = true
+
+[lint.rules]
+no-empty = "off"

@@ -15,7 +15,7 @@ Keep this file updated.
   - Prefer `agent-browser` CLI (`bun x agent-browser`) for frontend checks.
 - **Directory Structure & Architecture**:
   - `server/model/`: DB structs, Goqu queries, and SQL schemas (`server/model/queries/`). Avoid importing `server/model` inside `server/session` to prevent Go package import cycles.
-  - `server/session/`: Realtime state hubs (WebSockets, in-memory voice connections). Keep lightweight with primitive types.
+  - `server/session/`: Realtime state hubs (WebSockets, in-memory collab connections). Keep lightweight with primitive types.
   - `server/perms/`: Auth parsing, RBAC validation, and route middlewares.
   - `server/routes/`: Route declarations and page/api controllers (`groups.go`, `pages-chat.go`, etc.).
   - `server/htmx/` & `server/render/`: HTMX helper alerts, templates, and OOB swap renderers.
@@ -32,7 +32,7 @@ Keep this file updated.
 
 - **Header (`#header` / `header.navbar`)**:
   - `navbar-start`: Logo (`/chat`), sidebar toggle (`.group-channels-toggle`), active channel moniker trigger (`.group-members-toggle`).
-  - `navbar-end`: Notifications (`partials/notification-bell`), user menu (`partials/avatar-context-menu`).
+  - `navbar-end`: Collaboration connection & input/output controls (`partials/collab-connection-status`), notifications (`partials/notification-bell`), user menu (`partials/avatar-context-menu`).
 - **Left Column (`#channels-view` / `.secondary-view`)**:
   - Group info (avatar, moniker, `@name`), settings link (`/groups/:id/settings`).
   - Channel list (`#channels`): Top-level channels + subchannels/threads. Active channel highlighted (`bg-primary/15 text-primary`).
@@ -44,6 +44,7 @@ Keep this file updated.
     - Otel dashboard: `partials/otel-dashboard`
     - Server config: `partials/config-dashboard`
     - Wall: `partials/wall-view`
+    - Collab: Triggers header connection session without swapping main workspace view.
     - Text/default: `<main id="chat">` with `#chat-messages-:id` + `partials/chat-input`
 - **Right Column (`#members-view` / `.secondary-view`)**:
   - Active channel moniker/name, star button (`hx-post="/groups/:id/channels/:id/star"`), close toggle.
@@ -55,7 +56,7 @@ Keep this file updated.
 - Use DaisyUI components (`btn`, `btn-primary`, `btn-ghost`, `avatar`, `dropdown`, `menu`, etc.).
 - Extract repetitive utility patterns into CSS classes (`client/src/tailwindcss/components.css`).
 - **Popups & Menus**:
-  - Use `<details class="dropdown dropdown-end">` with `<summary class="btn ...">` and `<ul class="dropdown-content menu ...">`.
+  - Use popover API.
   - **Forbidden**: Native browser dialogs (`alert`, `confirm`, `prompt`) and `hx-confirm`. Use DaisyUI `<details class="dropdown">`, modals, or inline buttons.
 
 ## 3. Adding New Channel Types
@@ -105,6 +106,11 @@ Keep this file updated.
 ## 5. WebSockets & Realtime (`server/session/`)
 
 - **Route**: `GET /ws/:group_id/` in `server/routes/groups.go` (requires `PermNameRead`).
+- **Collaboration rooms** (`server/session/collab.go`, `server/routes/groups.go`):
+  - Collaboration subchannels are virtual room numbers, not channel names. Accept only positive numeric room IDs; do not treat arbitrary strings (for example, `"g"`) as room IDs.
+  - The join route allocates the next available room number for `subchannel=new` and validates explicitly requested room numbers. Keep the active-room list limited to valid numeric rooms.
+  - Signaling must use the user's actual joined room from `CollabHub`, not trust a client-supplied subchannel. RTP relay matching must use that authoritative room (as well as group and channel IDs).
+  - Room membership is in memory; restarting the server clears stale room state.
 - **Client**: `hx-ext="ws"` on `#ws-chat` in `client/templates/partials/app-group.tmpl`:
   ```html
   <div
@@ -137,12 +143,13 @@ Keep this file updated.
 
 ## 7. Key File Map
 
-| Area                 | Key Files                                                                          |
-| -------------------- | ---------------------------------------------------------------------------------- |
-| Channels             | `server/model/channel.go`, `server/model/queries/create_channels.sql`              |
-| Permissions          | `server/model/permission.go`, `server/perms/middleware.go`, `server/perms/load.go` |
-| WebSockets           | `server/session/controller_ws.go`, `server/session/connections.go`                 |
-| Group Chat & Routes  | `server/routes/pages-chat.go`, `server/routes/groups.go`                           |
-| App Shell & Partials | `client/templates/partials/app-group.tmpl`, `partials/app-group-header.tmpl`       |
-| Rendering & HTMX     | `server/render/render.go`, `server/htmx/`                                          |
-| Styles               | `client/src/tailwindcss/components.css`                                            |
+| Area                 | Key Files                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------- |
+| Channels             | `server/model/channel.go`, `server/model/queries/create_channels.sql`                 |
+| Permissions          | `server/model/permission.go`, `server/perms/middleware.go`, `server/perms/load.go`    |
+| WebSockets           | `server/session/controller_ws.go`, `server/session/connections.go`                    |
+| Group Chat & Routes  | `server/routes/pages-chat.go`, `server/routes/groups.go`                              |
+| App Shell & Partials | `client/templates/partials/app-group.tmpl`, `partials/app-group-header.tmpl`          |
+| Collab Connections   | `server/session/collab.go`, `client/templates/partials/collab-connection-status.tmpl` |
+| Rendering & HTMX     | `server/render/render.go`, `server/htmx/`                                             |
+| Styles               | `client/src/tailwindcss/components.css`                                               |

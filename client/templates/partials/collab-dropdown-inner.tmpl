@@ -1,0 +1,269 @@
+{{if and .CollabSession (gt (len .CollabSession.Channels) 0)}}
+<div id="collab-dropdown-menu-content" class="menu p-3 flex flex-col gap-3 w-full">
+    <!-- Header title + disconnect -->
+    <div class="flex items-center justify-between pb-2 border-b border-base-content/10">
+        <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold uppercase tracking-wider text-base-content/70">Collaboration</span>
+        </div>
+    </div>
+
+    <!-- Quick Controls inside Context Menu (Mic, Volume, Video) -->
+    <div id="collab-quick-controls" class="flex items-center justify-center py-1">
+        <div class="join">
+            <button
+                type="button"
+                class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.GlobalInputMuted}}text-error{{else}}text-base-content/80 hover:text-base-content{{end}}"
+                id="collab-btn-mic"
+                hx-post="/groups/{{.Group.Id}}/collab/toggle-input"
+                hx-target="#collab-dropdown-menu-content"
+                hx-swap="outerHTML"
+                aria-label="Toggle microphone"
+                title="{{if .CollabSession.GlobalInputMuted}}Microphone muted{{else}}Microphone active{{end}}"
+            >
+                <span class="icon {{if .CollabSession.GlobalInputMuted}}icon-[lucide--mic-off]{{else}}icon-[lucide--mic]{{end}} size-4"></span>
+            </button>
+
+            <button
+                type="button"
+                class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.GlobalOutputMuted}}text-error{{else}}text-base-content/80 hover:text-base-content{{end}}"
+                id="collab-btn-audio"
+                hx-post="/groups/{{.Group.Id}}/collab/toggle-output"
+                hx-target="#collab-dropdown-menu-content"
+                hx-swap="outerHTML"
+                aria-label="Toggle volume"
+                title="Toggle volume"
+            >
+                <span class="icon {{if .CollabSession.GlobalOutputMuted}}icon-[lucide--volume-x]{{else}}icon-[lucide--volume-2]{{end}} size-4"></span>
+            </button>
+
+            <!-- Share options dropdown trigger (lucide--monitor-up) -->
+            <button
+                type="button"
+                class="join-item btn btn-ghost btn-square btn-sm {{if or .CollabSession.IsCameraEnabled .CollabSession.IsScreenShared .CollabSession.IsFileShared}}text-primary{{else}}text-base-content/80 hover:text-base-content{{end}}"
+                id="collab-btn-share-menu"
+                popovertarget="popover-collab-share-options"
+                style="anchor-name:--anchor-collab-share"
+                aria-label="Share screen, files, or camera"
+                title="Share screen, files, or camera"
+            >
+                <span class="icon icon-[lucide--monitor-up] size-4"></span>
+            </button>
+            <div
+                popover
+                id="popover-collab-share-options"
+                class="dropdown dropdown-center p-2 shadow-xl bg-surface-overlay rounded-box border border-base-content/10 mt-1 z-50"
+                style="position-anchor:--anchor-collab-share"
+            >
+                <!-- Share button group (join) -->
+                <div class="join join-horizontal">
+                    <button
+                        type="button"
+                        class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.IsScreenShared}}text-primary{{else}}text-base-content/80 hover:text-base-content{{end}}"
+                        id="collab-btn-screenshare"
+                        onclick="window.collabClient?.triggerScreenShare()"
+                        aria-label="Share screen"
+                        title="{{if .CollabSession.IsScreenShared}}Stop sharing screen{{else}}Share screen{{end}}"
+                    >
+                        <span class="icon {{if .CollabSession.IsScreenShared}}icon-[lucide--screen-share-off]{{else}}icon-[lucide--screen-share]{{end}} size-4" id="collab-screenshare-icon"></span>
+                    </button>
+
+                    {{if .CollabSession.IsFileShared}}
+                    <button
+                        type="button"
+                        class="join-item btn btn-ghost btn-square btn-sm text-primary"
+                        id="collab-btn-presentation"
+                        hx-post="/groups/{{.Group.Id}}/collab/toggle-presentation"
+                        hx-target="#collab-dropdown-menu-content"
+                        hx-swap="outerHTML"
+                        aria-label="Stop presentation"
+                        title="Stop file presentation"
+                    >
+                        <span class="icon icon-[lucide--presentation] size-4"></span>
+                    </button>
+                    {{else}}
+                    <button
+                        type="button"
+                        class="join-item btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-base-content"
+                        id="collab-btn-presentation"
+                        aria-label="Share music, video, or presentation"
+                        title="Share file (music, video, presentation)"
+                        onclick="document.getElementById('collab-file-input')?.click()"
+                    >
+                        <span class="icon icon-[lucide--presentation] size-4"></span>
+                    </button>
+                    {{end}}
+
+                    <button
+                        type="button"
+                        class="join-item btn btn-ghost btn-square btn-sm {{if .CollabSession.IsCameraEnabled}}text-primary{{else}}text-base-content/80 hover:text-base-content{{end}}"
+                        id="collab-btn-video"
+                        onclick="window.collabClient?.triggerCameraToggle()"
+                        aria-label="Toggle camera"
+                        title="{{if .CollabSession.IsCameraEnabled}}Camera enabled{{else}}Camera disabled{{end}}"
+                    >
+                        <span class="icon {{if .CollabSession.IsCameraEnabled}}icon-[lucide--camera]{{else}}icon-[lucide--camera-off]{{end}} size-4"></span>
+                    </button>
+                </div>
+                <input
+                    type="file"
+                    id="collab-file-input"
+                    class="hidden"
+                    accept="audio/*,video/*,image/*,.pptx,.ppt,.pdf"
+                    onchange="window.collabClient?.handleFileInput(this)"
+                />
+            </div>
+
+            <button
+                type="button"
+                class="join-item btn btn-ghost btn-square btn-sm text-error hover:bg-error/10"
+                hx-post="/groups/{{.Group.Id}}/collab/disconnect"
+                hx-target="#collab-header-container"
+                hx-swap="outerHTML"
+                title="Disconnect from every call"
+            >
+                <span class="icon icon-[lucide--phone-off] size-4"></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Connection stats: signal strength & clickable bitrate -->
+    <div class="flex items-center justify-between bg-base-200/50 p-2 rounded-lg text-xs border border-base-content/5">
+        <div class="flex items-center gap-1 text-base-content/70">
+            {{if eq .CollabSession.SignalStrength "poor"}}
+            <span class="icon icon-[lucide--signal-low] size-3.5 text-error"></span>
+            <span>Signal: <strong class="text-error font-medium">Poor</strong></span>
+            {{else if eq .CollabSession.SignalStrength "fair"}}
+            <span class="icon icon-[lucide--signal-medium] size-3.5 text-warning"></span>
+            <span>Signal: <strong class="text-warning font-medium">Fair</strong></span>
+            {{else}}
+            <span class="icon icon-[lucide--signal-high] size-3.5 text-success"></span>
+            <span>Signal: <strong class="text-success font-medium">Good</strong></span>
+            {{end}}
+        </div>
+
+        <!-- Bitrate context menu -->
+        <button
+            type="button"
+            class="badge badge-outline badge-sm gap-1 cursor-pointer font-mono text-[11px] hover:badge-primary"
+            popovertarget="popover-collab-bitrate"
+            style="anchor-name:--anchor-collab-bitrate"
+        >
+            <span>{{.CollabSession.BitrateKbps}} kbps</span>
+            <span class="icon icon-[lucide--chevron-down] size-2.5"></span>
+        </button>
+        <ul
+            popover
+            id="popover-collab-bitrate"
+            class="dropdown dropdown-end menu p-1 shadow-lg bg-surface-overlay rounded-box w-28 text-base-content border border-base-content/10 mt-1"
+            style="position-anchor:--anchor-collab-bitrate"
+        >
+            <li><button type="button" class="text-xs py-1 cursor-pointer" hx-post="/groups/{{$.Group.Id}}/collab/bitrate?kbps=32" hx-target="#collab-dropdown-menu-content" hx-swap="outerHTML">32 kbps</button></li>
+            <li><button type="button" class="text-xs py-1 cursor-pointer" hx-post="/groups/{{$.Group.Id}}/collab/bitrate?kbps=64" hx-target="#collab-dropdown-menu-content" hx-swap="outerHTML">64 kbps</button></li>
+            <li><button type="button" class="text-xs py-1 cursor-pointer" hx-post="/groups/{{$.Group.Id}}/collab/bitrate?kbps=96" hx-target="#collab-dropdown-menu-content" hx-swap="outerHTML">96 kbps</button></li>
+            <li><button type="button" class="text-xs py-1 cursor-pointer" hx-post="/groups/{{$.Group.Id}}/collab/bitrate?kbps=128" hx-target="#collab-dropdown-menu-content" hx-swap="outerHTML">128 kbps</button></li>
+        </ul>
+    </div>
+
+    <!-- Active Channels List -->
+    <div class="flex flex-col gap-1.5">
+        <div class="text-[11px] font-bold text-base-content/60 uppercase tracking-wider">Connected Channels</div>
+        <div id="collab-channels-list" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+            {{range .CollabSession.Channels}}
+            <div
+                class="flex flex-col gap-2 p-2 rounded-lg bg-base-200/50 border border-base-content/5 text-xs channel-collab-entry"
+                data-channel-id="{{.ChannelId}}"
+                data-subchannel-name="{{.SubchannelName}}"
+            >
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5 font-medium truncate max-w-[150px]">
+                        <span class="icon icon-[lucide--users] size-3.5 text-success shrink-0"></span>
+                        <span class="truncate">{{.ChannelName}} #{{.SubchannelName}}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-square btn-xs {{if .InputMuted}}text-error{{else}}text-base-content/70 hover:text-base-content{{end}}"
+                            hx-post="/groups/{{$.Group.Id}}/collab/channels/{{.ChannelId}}/toggle-input"
+                            hx-target="#collab-dropdown-menu-content"
+                            hx-swap="outerHTML"
+                            title="{{if .InputMuted}}Channel mic disabled{{else}}Channel mic active{{end}}"
+                        >
+                            <span class="icon {{if .InputMuted}}icon-[lucide--mic-off]{{else}}icon-[lucide--mic]{{end}} size-3.5"></span>
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-square btn-xs {{if .OutputMuted}}text-error{{else}}text-base-content/70 hover:text-base-content{{end}}"
+                            hx-post="/groups/{{$.Group.Id}}/collab/channels/{{.ChannelId}}/toggle-output"
+                            hx-target="#collab-dropdown-menu-content"
+                            hx-swap="outerHTML"
+                            title="{{if .OutputMuted}}Channel output disabled{{else}}Channel output active{{end}}"
+                        >
+                            <span class="icon {{if .OutputMuted}}icon-[lucide--volume-x]{{else}}icon-[lucide--volume-2]{{end}} size-3.5"></span>
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-square btn-xs text-error/70 hover:text-error hover:bg-error/10"
+                            hx-post="/groups/{{$.Group.Id}}/collab/channels/{{.ChannelId}}/leave"
+                            hx-target="{{if eq (len $.CollabSession.Channels) 1}}#collab-header-container{{else}}#collab-dropdown-menu-content{{end}}"
+                            hx-swap="outerHTML"
+                            title="Leave channel"
+                        >
+                            <span class="icon icon-[lucide--phone-off] size-3.5"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-1 border-t border-base-content/5">
+                    <span class="text-[10px] text-base-content/60">Members:</span>
+                    <button
+                        type="button"
+                        class="avatar-group -space-x-2.5 cursor-pointer flex items-center"
+                        popovertarget="popover-collab-members-{{.ChannelId}}"
+                        style="anchor-name:--anchor-collab-members-{{.ChannelId}}"
+                    >
+                        {{range .Participants}}
+                        <div class="avatar border border-base-100 rounded-full">
+                            <div class="w-5 rounded-full {{if .OutputMuted}}opacity-40{{end}}">
+                                <img src="{{.AvatarUrl}}" alt="{{.Moniker}}" />
+                            </div>
+                        </div>
+                        {{end}}
+                    </button>
+                    <ul
+                        popover
+                        id="popover-collab-members-{{.ChannelId}}"
+                        class="dropdown dropdown-end menu p-2 shadow-lg bg-surface-overlay rounded-box w-52 text-base-content border border-base-content/10 mt-1"
+                        style="position-anchor:--anchor-collab-members-{{.ChannelId}}"
+                    >
+                        <li class="menu-title text-[10px]">Channel Members Output</li>
+                        {{range .Participants}}
+                        {{if ne .UserId $.User.Id}}
+                        <li>
+                            <button
+                                type="button"
+                                class="flex items-center justify-between text-xs py-1 cursor-pointer"
+                                hx-post="/groups/{{$.Group.Id}}/collab/users/{{.UserId}}/toggle-mute"
+                                hx-target="#collab-dropdown-menu-content"
+                                hx-swap="outerHTML"
+                            >
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <div class="avatar size-4 rounded-full overflow-hidden">
+                                        <img src="{{.AvatarUrl}}" alt="{{.Moniker}}" />
+                                    </div>
+                                    <span class="truncate">{{.Moniker}}</span>
+                                </div>
+                                <span class="icon {{if .OutputMuted}}icon-[lucide--volume-x] text-error{{else}}icon-[lucide--volume-2] text-success{{end}} size-3.5"></span>
+                            </button>
+                        </li>
+                        {{end}}
+                        {{end}}
+                    </ul>
+                </div>
+            </div>
+            {{end}}
+        </div>
+    </div>
+</div>
+{{else}}
+<div id="collab-header-container" class="hidden" hx-swap-oob="outerHTML:#collab-header-container"></div>
+{{end}}

@@ -29,6 +29,7 @@
         {{end}}
     </nav>
     <nav class="navbar-end items-center gap-1">
+        {{- template "partials/collab-connection-status" .}}
         {{- template "partials/notification-bell" .}}
         {{- template "partials/avatar-context-menu" .}}
     </nav>
