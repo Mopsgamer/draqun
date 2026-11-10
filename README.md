@@ -40,7 +40,7 @@ Primary capabilities are exposed as Channels. Different types of Channels can be
 - [ ] Survey: Creating and managing polls or tests.
 - [ ] Calendar: Schedule and manage events, goals and tasks.
 - [ ] Materials: Store and share educational resources, sell products or publish videos.
-- [ ] Voice: Communicate with other members or take interviews with ability to create multiple sound streams for recording. You can watch videos together here too.
+- [x] Voice: Communicate with other members or take interviews with ability to create multiple sound streams for recording. You can watch videos together here too.
 - [ ] Jobs: Create and manage job postings and applications.
 
 Using Permissions and Notifications settings you can enhance these channels further: news channels (Text or Wall); Private/Public feedback and reviews (Tickets); Subscriptions (assign Permissions to Roles).
