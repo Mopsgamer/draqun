@@ -1,4 +1,17 @@
 import { domLoaded } from "./lib.ts";
+import type * as HTMX from "htmx.org";
+
+type HtmxApi = Omit<typeof HTMX.default, "ajax"> & {
+	ajax: (
+		verb: Uppercase<HTMX.HttpVerb>,
+		path: string,
+		context: Element | string | HTMX.HtmxAjaxHelperContext,
+	) => Promise<void>;
+};
+
+function getHtmx(): HtmxApi | undefined {
+	return (globalThis as typeof globalThis & { htmx?: HtmxApi }).htmx;
+}
 
 // Low-level WebRTC, Audio, and Video Stream state only
 let pc: RTCPeerConnection | null = null;
@@ -10,7 +23,7 @@ let currentSubchannelName: string | null = null;
 let isStarting = false;
 let voiceDisconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let staleMediaStateChecked = false;
-let statsMonitorTimer: any = null;
+let statsMonitorTimer: ReturnType<typeof setInterval> | null = null;
 let lastReportedQuality: string | null = null;
 
 type VideoSource = "camera" | "screen" | "file";
@@ -49,7 +62,7 @@ export const collabClient = {
 	async triggerCameraToggle() {
 		const groupId = getGroupId();
 		if (!groupId) return;
-		const htmx = (globalThis as any).htmx;
+		const htmx = getHtmx();
 		const cameraButton = document.getElementById("collab-btn-video");
 		const cameraIsEnabled =
 			cameraStream !== null || cameraButton?.classList.contains("text-primary");
@@ -74,6 +87,11 @@ export const collabClient = {
 				);
 			}
 			if (success) {
+				if (!htmx) {
+					throw new Error(
+						"HTMX is unavailable; camera state could not be updated.",
+					);
+				}
 				htmx.ajax(
 					"POST",
 					`/groups/${groupId}/collab/toggle-video?enabled=true`,
@@ -89,7 +107,7 @@ export const collabClient = {
 	async triggerScreenShare() {
 		const groupId = getGroupId();
 		if (!groupId) return;
-		const htmx = (globalThis as any).htmx;
+		const htmx = getHtmx();
 		if (screenStream) {
 			await stopScreenShare();
 			if (htmx) {
@@ -111,6 +129,11 @@ export const collabClient = {
 				);
 			}
 			if (success) {
+				if (!htmx) {
+					throw new Error(
+						"HTMX is unavailable; screen-share state could not be updated.",
+					);
+				}
 				htmx.ajax(
 					"POST",
 					`/groups/${groupId}/collab/toggle-screenshare?enabled=true`,
@@ -133,7 +156,7 @@ export const collabClient = {
 				if (!groupId) {
 					throw new Error("No collaboration group is active.");
 				}
-				const htmx = (globalThis as any).htmx;
+				const htmx = getHtmx();
 				if (!htmx) {
 					throw new Error(
 						"HTMX is unavailable; presentation state could not be updated.",
@@ -175,7 +198,9 @@ export const collabClient = {
 	},
 };
 
-(globalThis as any).collabClient = collabClient;
+(
+	globalThis as typeof globalThis & { collabClient: typeof collabClient }
+).collabClient = collabClient;
 
 // WebRTC Session
 export async function startWebRTCSession(
@@ -205,7 +230,7 @@ export async function startWebRTCSession(
 				document.getElementById(id)?.classList.contains("text-primary"),
 			);
 			if (hasStaleMediaState) {
-				const htmx = (globalThis as any).htmx;
+				const htmx = getHtmx();
 				if (!htmx) {
 					throw new Error(
 						"HTMX is unavailable; stale collaboration media cannot be cleared.",
@@ -358,10 +383,15 @@ async function negotiateWebRTC(
 			return;
 		}
 
-		let timeout: ReturnType<typeof setTimeout>;
+		const timeout = window.setTimeout(() => {
+			peerConnection.removeEventListener("icegatheringstatechange", checkState);
+			reject(
+				new Error("Timed out waiting for ICE candidates before signaling."),
+			);
+		}, 10000);
 		const checkState = () => {
 			if (peerConnection.iceGatheringState === "complete") {
-				clearTimeout(timeout);
+				window.clearTimeout(timeout);
 				peerConnection.removeEventListener(
 					"icegatheringstatechange",
 					checkState,
@@ -369,12 +399,6 @@ async function negotiateWebRTC(
 				resolve();
 			}
 		};
-		timeout = setTimeout(() => {
-			peerConnection.removeEventListener("icegatheringstatechange", checkState);
-			reject(
-				new Error("Timed out waiting for ICE candidates before signaling."),
-			);
-		}, 10000);
 		peerConnection.addEventListener("icegatheringstatechange", checkState);
 		checkState();
 	});
@@ -412,13 +436,13 @@ async function negotiateWebRTC(
 
 function startStatsMonitor(groupId: string) {
 	if (statsMonitorTimer) clearInterval(statsMonitorTimer);
-	statsMonitorTimer = setInterval(async () => {
+	const timer = setInterval(async () => {
 		if (
 			!pc ||
 			pc.connectionState === "closed" ||
 			pc.connectionState === "failed"
 		) {
-			clearInterval(statsMonitorTimer);
+			clearInterval(timer);
 			statsMonitorTimer = null;
 			return;
 		}
@@ -486,7 +510,7 @@ function startStatsMonitor(groupId: string) {
 			}
 			if (quality !== lastReportedQuality) {
 				lastReportedQuality = quality;
-				const htmx = (globalThis as any).htmx;
+				const htmx = getHtmx();
 				if (htmx) {
 					htmx.ajax(
 						"POST",
@@ -502,6 +526,7 @@ function startStatsMonitor(groupId: string) {
 			console.warn("Could not read collaboration WebRTC stats:", error);
 		}
 	}, 3000);
+	statsMonitorTimer = timer;
 }
 
 export function stopWebRTCSession(preserveLocalMedia = false) {
@@ -602,7 +627,7 @@ export async function startCameraStream(): Promise<boolean> {
 				() => {
 					stopCameraStream();
 					const groupId = getGroupId();
-					const htmx = (globalThis as any).htmx;
+					const htmx = getHtmx();
 					if (groupId && htmx) {
 						htmx.ajax(
 							"POST",
@@ -660,7 +685,7 @@ export async function startScreenShare(): Promise<boolean> {
 		vTrack.addEventListener("ended", () => {
 			stopScreenShare();
 			const groupId = getGroupId();
-			const htmx = (globalThis as any).htmx;
+			const htmx = getHtmx();
 			if (groupId && htmx) {
 				htmx.ajax(
 					"POST",
@@ -1044,7 +1069,9 @@ export function checkAndSyncVoice() {
 function setupAudioMixer() {
 	try {
 		const AudioContextClass =
-			window.AudioContext || (window as any).webkitAudioContext;
+			window.AudioContext ||
+			(window as Window & { webkitAudioContext?: typeof AudioContext })
+				.webkitAudioContext;
 		if (!AudioContextClass) return;
 
 		if (!audioContext || audioContext.state === "closed") {
@@ -1082,10 +1109,7 @@ function syncOutboundAudioSender() {
 		activeAudioSender.replaceTrack(track).catch(() => {});
 	} else {
 		const senders = pc.getSenders();
-		const audioSender = senders.find(
-			(s) =>
-				(s.track && s.track.kind === "audio") || (s as any).kind === "audio",
-		);
+		const audioSender = senders.find((s) => s.track?.kind === "audio");
 		if (audioSender) {
 			activeAudioSender = audioSender;
 			audioSender.replaceTrack(track).catch(() => {});

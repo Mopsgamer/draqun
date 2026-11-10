@@ -1,6 +1,6 @@
 import "./theme.ts";
 
-import type HTMX from "htmx.org";
+import type * as HTMX from "htmx.org";
 import htmx from "htmx.org";
 import "./htmx-extension.ts";
 import { domLoaded, initAnchorHeadersFor } from "./lib.ts";
@@ -10,7 +10,7 @@ declare namespace globalThis {
 }
 globalThis.htmx = htmx as unknown as typeof HTMX.default;
 
-(htmx as unknown as typeof htmx.default).config.methodsThatUseUrlParams.length =
+(htmx as unknown as typeof HTMX.default).config.methodsThatUseUrlParams.length =
 	0;
 
 import("htmx-ext-debug");

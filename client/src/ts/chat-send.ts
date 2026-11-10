@@ -308,15 +308,13 @@ function initChatSend() {
 			if (dmMatch) dmChannelId = dmMatch[1];
 		}
 
-		let fetchUrl = "";
-		if (groupId) {
-			fetchUrl = `/groups/${groupId}/mention-autocomplete?q=${encodeURIComponent(q)}`;
-		} else if (dmChannelId) {
-			fetchUrl = `/groups/dm/channels/${dmChannelId}/mention-autocomplete?q=${encodeURIComponent(q)}`;
-		} else {
+		if (!groupId && !dmChannelId) {
 			hidePopover();
 			return;
 		}
+		const fetchUrl = groupId
+			? `/groups/${groupId}/mention-autocomplete?q=${encodeURIComponent(q)}`
+			: `/groups/dm/channels/${dmChannelId}/mention-autocomplete?q=${encodeURIComponent(q)}`;
 
 		try {
 			const res = await fetch(fetchUrl);

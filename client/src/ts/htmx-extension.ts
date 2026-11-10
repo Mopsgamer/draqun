@@ -1,4 +1,4 @@
-import htmx from "htmx.org";
+import * as htmx from "htmx.org";
 import { getFormPropData } from "./lib.ts";
 
 const onEvent: htmx.HtmxExtension["onEvent"] = (name, event): boolean => {
@@ -50,6 +50,6 @@ const onEvent: htmx.HtmxExtension["onEvent"] = (name, event): boolean => {
 	return true;
 };
 
-(htmx as unknown as typeof htmx.default).defineExtension("app", {
+htmx.default.defineExtension("app", {
 	onEvent,
 });
