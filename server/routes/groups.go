@@ -2240,10 +2240,11 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				type SignalPayload struct {
-					ChannelId      uint64 `json:"channel_id"`
-					SubchannelName string `json:"subchannel_name"`
-					SDP            string `json:"sdp"`
-					Type           string `json:"type"`
+					ChannelId      uint64            `json:"channel_id"`
+					SubchannelName string            `json:"subchannel_name"`
+					SDP            string            `json:"sdp"`
+					Type           string            `json:"type"`
+					VideoMids      map[string]string `json:"video_mids"`
 				}
 
 				var req SignalPayload
@@ -2261,7 +2262,14 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					sub = "1"
 				}
 
-				answer, err := session.WebRTCHub.HandleOffer(user.Id, group.Id, req.ChannelId, sub, offer)
+				answer, err := session.WebRTCHub.HandleOffer(
+					user.Id,
+					group.Id,
+					req.ChannelId,
+					sub,
+					req.VideoMids,
+					offer,
+				)
 				if err != nil {
 					return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 				}

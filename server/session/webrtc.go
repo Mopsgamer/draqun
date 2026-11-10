@@ -2,6 +2,7 @@ package session
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -17,9 +18,11 @@ type WebRTCClient struct {
 	SubchannelName string
 	PeerConnection *webrtc.PeerConnection
 	AudioTrack     *webrtc.TrackLocalStaticRTP
-	VideoTrack     *webrtc.TrackLocalStaticRTP
-	VideoSSRC      uint32
+	VideoTracks    map[string]*webrtc.TrackLocalStaticRTP
+	VideoSSRCs     map[string]uint32
 }
+
+var videoSourceTypes = []string{"camera", "screen", "file"}
 
 type webRTCHub struct {
 	mu      sync.RWMutex
@@ -41,10 +44,23 @@ var webrtcConfig = webrtc.Configuration{
 func (h *webRTCHub) HandleOffer(
 	userId, groupId, channelId uint64,
 	subchannel string,
+	videoMids map[string]string,
 	offer webrtc.SessionDescription,
 ) (*webrtc.SessionDescription, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
+
+	midSources := make(map[string]string, len(videoSourceTypes))
+	for _, source := range videoSourceTypes {
+		mid, ok := videoMids[source]
+		if !ok || mid == "" {
+			return nil, fmt.Errorf("missing video transceiver MID for %q", source)
+		}
+		if _, exists := midSources[mid]; exists {
+			return nil, fmt.Errorf("duplicate video transceiver MID %q", mid)
+		}
+		midSources[mid] = source
+	}
 
 	// Clean up existing client if present
 	if old, exists := h.clients[userId]; exists {
@@ -69,24 +85,28 @@ func (h *webRTCHub) HandleOffer(
 		return nil, err
 	}
 
-	videoTrack, err := webrtc.NewTrackLocalStaticRTP(
-		webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeVP8},
-		"video",
-		"draqun-collab",
-	)
-	if err != nil {
-		_ = peerConnection.Close()
-		return nil, err
-	}
-
 	// Add local tracks so client can receive forwarded media
 	if _, err = peerConnection.AddTrack(audioTrack); err != nil {
 		_ = peerConnection.Close()
 		return nil, err
 	}
-	if _, err = peerConnection.AddTrack(videoTrack); err != nil {
-		_ = peerConnection.Close()
-		return nil, err
+
+	videoTracks := make(map[string]*webrtc.TrackLocalStaticRTP, len(videoSourceTypes))
+	for _, source := range videoSourceTypes {
+		videoTrack, trackErr := webrtc.NewTrackLocalStaticRTP(
+			webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeVP8},
+			"collab-video-"+source,
+			"draqun-collab-"+source,
+		)
+		if trackErr != nil {
+			_ = peerConnection.Close()
+			return nil, trackErr
+		}
+		if _, trackErr = peerConnection.AddTrack(videoTrack); trackErr != nil {
+			_ = peerConnection.Close()
+			return nil, trackErr
+		}
+		videoTracks[source] = videoTrack
 	}
 
 	client := &WebRTCClient{
@@ -96,18 +116,32 @@ func (h *webRTCHub) HandleOffer(
 		SubchannelName: subchannel,
 		PeerConnection: peerConnection,
 		AudioTrack:     audioTrack,
-		VideoTrack:     videoTrack,
+		VideoTracks:    videoTracks,
+		VideoSSRCs:     make(map[string]uint32, len(videoSourceTypes)),
 	}
 
 	// Forward inbound RTP to other clients in same channel + subchannel
 	peerConnection.OnTrack(func(remoteTrack *webrtc.TrackRemote, receiver *webrtc.RTPReceiver) {
 		isAudio := remoteTrack.Kind() == webrtc.RTPCodecTypeAudio
 		isVideo := remoteTrack.Kind() == webrtc.RTPCodecTypeVideo
+		videoSource := ""
+		if isVideo {
+			transceiver := receiver.RTPTransceiver()
+			if transceiver == nil {
+				return
+			}
+			videoSource = midSources[transceiver.Mid()]
+			if videoSource == "" {
+				return
+			}
+		}
 
 		trackDone := make(chan struct{})
 
 		if isVideo {
-			client.VideoSSRC = uint32(remoteTrack.SSRC())
+			h.mu.Lock()
+			client.VideoSSRCs[videoSource] = uint32(remoteTrack.SSRC())
+			h.mu.Unlock()
 			_ = peerConnection.WriteRTCP([]rtcp.Packet{
 				&rtcp.PictureLossIndication{MediaSSRC: uint32(remoteTrack.SSRC())},
 			})
@@ -181,8 +215,8 @@ func (h *webRTCHub) HandleOffer(
 
 				if isAudio && peer.AudioTrack != nil {
 					_ = peer.AudioTrack.WriteRTP(packet)
-				} else if isVideo && peer.VideoTrack != nil {
-					_ = peer.VideoTrack.WriteRTP(packet)
+				} else if isVideo && peer.VideoTracks[videoSource] != nil {
+					_ = peer.VideoTracks[videoSource].WriteRTP(packet)
 				}
 			}
 			h.mu.RUnlock()
@@ -222,10 +256,14 @@ func (h *webRTCHub) HandleOffer(
 	// Notify existing video senders in room to send a keyframe for this new peer
 	for _, peer := range h.clients {
 		if peer.UserId != userId && peer.ChannelId == channelId && peer.SubchannelName == subchannel {
-			if peer.VideoSSRC != 0 && peer.PeerConnection != nil {
-				_ = peer.PeerConnection.WriteRTCP([]rtcp.Packet{
-					&rtcp.PictureLossIndication{MediaSSRC: peer.VideoSSRC},
-				})
+			if peer.PeerConnection != nil {
+				for _, ssrc := range peer.VideoSSRCs {
+					if ssrc != 0 {
+						_ = peer.PeerConnection.WriteRTCP([]rtcp.Packet{
+							&rtcp.PictureLossIndication{MediaSSRC: ssrc},
+						})
+					}
+				}
 			}
 		}
 	}

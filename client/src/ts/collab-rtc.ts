@@ -11,6 +11,10 @@ let isStarting = false;
 let statsMonitorTimer: any = null;
 let lastReportedQuality: string | null = null;
 
+type VideoSource = "camera" | "screen" | "file";
+
+const videoSources: VideoSource[] = ["camera", "screen", "file"];
+
 // Web Audio mixer
 let audioContext: AudioContext | null = null;
 let mixedAudioDestination: MediaStreamAudioDestinationNode | null = null;
@@ -24,8 +28,10 @@ let cameraStream: MediaStream | null = null;
 let screenStream: MediaStream | null = null;
 let fileStream: MediaStream | null = null;
 let activeMediaElement: HTMLVideoElement | HTMLAudioElement | null = null;
-let activeVideoSender: RTCRtpSender | null = null;
-let remoteVideoStream: MediaStream | null = null;
+let activeFileUrl: string | null = null;
+let activeFileImage: HTMLImageElement | null = null;
+let videoTransceivers: Partial<Record<VideoSource, RTCRtpTransceiver>> = {};
+let remoteVideoStreams: Partial<Record<VideoSource, MediaStream>> = {};
 
 const rtcConfig: RTCConfiguration = {
 	iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -56,7 +62,11 @@ export const collabClient = {
 			}
 		} else {
 			const success = await startCameraStream();
-			if (success && htmx) {
+			if (success && !htmx) {
+				await stopCameraStream();
+				throw new Error("HTMX is unavailable; camera state could not be updated.");
+			}
+			if (success) {
 				htmx.ajax(
 					"POST",
 					`/groups/${groupId}/collab/toggle-video?enabled=true`,
@@ -87,7 +97,11 @@ export const collabClient = {
 			}
 		} else {
 			const success = await startScreenShare();
-			if (success && htmx) {
+			if (success && !htmx) {
+				await stopScreenShare();
+				throw new Error("HTMX is unavailable; screen-share state could not be updated.");
+			}
+			if (success) {
 				htmx.ajax(
 					"POST",
 					`/groups/${groupId}/collab/toggle-screenshare?enabled=true`,
@@ -103,11 +117,17 @@ export const collabClient = {
 	async handleFileInput(input: HTMLInputElement) {
 		const file = input.files?.[0];
 		if (!file) return;
-		const groupId = getGroupId();
-		const success = await shareFile(file);
-		if (success && groupId) {
-			const htmx = (globalThis as any).htmx;
-			if (htmx) {
+		try {
+			const groupId = getGroupId();
+			const success = await shareFile(file);
+			if (success) {
+				if (!groupId) {
+					throw new Error("No collaboration group is active.");
+				}
+				const htmx = (globalThis as any).htmx;
+				if (!htmx) {
+					throw new Error("HTMX is unavailable; presentation state could not be updated.");
+				}
 				htmx.ajax(
 					"POST",
 					`/groups/${groupId}/collab/toggle-presentation?enabled=true&filename=${encodeURIComponent(file.name)}`,
@@ -117,6 +137,11 @@ export const collabClient = {
 					},
 				);
 			}
+		} catch (error) {
+			console.error("Could not start file presentation:", error);
+			await stopFileShare();
+		} finally {
+			input.value = "";
 		}
 	},
 
@@ -156,6 +181,11 @@ export async function startWebRTCSession(
 		currentSubchannelName = subchannelName;
 
 		pc = new RTCPeerConnection(rtcConfig);
+		videoTransceivers = {
+			camera: pc.addTransceiver("video", { direction: "sendrecv" }),
+			screen: pc.addTransceiver("video", { direction: "sendrecv" }),
+			file: pc.addTransceiver("video", { direction: "sendrecv" }),
+		};
 
 		remoteAudio = new Audio();
 		remoteAudio.autoplay = true;
@@ -172,8 +202,15 @@ export async function startWebRTCSession(
 				}
 			} else if (event.track.kind === "video") {
 				const stream = event.streams[0] || new MediaStream([event.track]);
-				remoteVideoStream = stream;
-				attachRemoteVideo(stream);
+				const source = videoSources.find(
+					(candidate) => event.track.id === `collab-video-${candidate}`,
+				);
+				if (!source) {
+					console.warn(`Received an unknown collaboration video track: ${event.track.id}`);
+					return;
+				}
+				remoteVideoStreams[source] = stream;
+				attachRemoteVideo(stream, source);
 			}
 		};
 
@@ -229,19 +266,8 @@ export async function startWebRTCSession(
 			pc.addTransceiver("audio", { direction: "recvonly" });
 		}
 
-		// Configure video transceiver
-		const existingVideoSender = pc
-			.getSenders()
-			.find(
-				(s) =>
-					(s.track && s.track.kind === "video") ||
-					(!s.track && (s as any).kind === "video"),
-			);
-		if (!existingVideoSender && pc.addTransceiver) {
-			pc.addTransceiver("video", { direction: "sendrecv" });
-		}
-
 		await negotiateWebRTC(groupId, channelId, subchannelName);
+		await updatePeerVideoTrack();
 
 		const videoBtn = document.getElementById("collab-btn-video");
 		const wantVideo = videoBtn?.classList.contains("text-primary") ?? false;
@@ -251,6 +277,7 @@ export async function startWebRTCSession(
 		attachAllActiveStreams();
 	} catch (e) {
 		console.warn("WebRTC startup notice:", e);
+		stopWebRTCSession();
 	} finally {
 		isStarting = false;
 	}
@@ -261,24 +288,34 @@ async function negotiateWebRTC(
 	channelId: string,
 	subchannelName: string,
 ) {
-	if (!pc) return;
-	const offer = await pc.createOffer();
-	await pc.setLocalDescription(offer);
+	const peerConnection = pc;
+	if (!peerConnection) return;
+	const offer = await peerConnection.createOffer();
+	await peerConnection.setLocalDescription(offer);
 
 	await new Promise<void>((resolve) => {
-		if (!pc || pc.iceGatheringState === "complete") {
+		if (peerConnection.iceGatheringState === "complete") {
 			resolve();
 		} else {
 			const checkState = () => {
-				if (pc?.iceGatheringState === "complete") {
-					pc.removeEventListener("icegatheringstatechange", checkState);
+				if (peerConnection.iceGatheringState === "complete") {
+					peerConnection.removeEventListener("icegatheringstatechange", checkState);
 					resolve();
 				}
 			};
-			pc.addEventListener("icegatheringstatechange", checkState);
+			peerConnection.addEventListener("icegatheringstatechange", checkState);
 			setTimeout(resolve, 1200);
 		}
 	});
+
+	const videoMids: Partial<Record<VideoSource, string>> = {};
+	for (const source of videoSources) {
+		const mid = videoTransceivers[source]?.mid;
+		if (mid === null || mid === undefined) {
+			throw new Error(`Missing ${source} video transceiver MID`);
+		}
+		videoMids[source] = mid;
+	}
 
 	const res = await fetch(`/groups/${groupId}/collab/signal`, {
 		method: "POST",
@@ -286,16 +323,18 @@ async function negotiateWebRTC(
 		body: JSON.stringify({
 			channel_id: parseInt(channelId, 10),
 			subchannel_name: subchannelName || "1",
-			sdp: pc.localDescription?.sdp,
-			type: pc.localDescription?.type,
+			sdp: peerConnection.localDescription?.sdp,
+			type: peerConnection.localDescription?.type,
+			video_mids: videoMids,
 		}),
 	});
 
-	if (res.ok) {
-		const answer = await res.json();
-		await pc.setRemoteDescription(new RTCSessionDescription(answer));
-		startStatsMonitor(groupId);
+	if (!res.ok) {
+		throw new Error(`WebRTC signaling failed (${res.status}): ${await res.text()}`);
 	}
+	const answer = await res.json();
+	await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+	startStatsMonitor(groupId);
 }
 
 function startStatsMonitor(groupId: string) {
@@ -346,6 +385,9 @@ function startStatsMonitor(groupId: string) {
 }
 
 export function stopWebRTCSession() {
+	const peerConnection = pc;
+	pc = null;
+	peerConnection?.close();
 	if (statsMonitorTimer) {
 		clearInterval(statsMonitorTimer);
 		statsMonitorTimer = null;
@@ -360,12 +402,7 @@ export function stopWebRTCSession() {
 		localAudioStream.getTracks().forEach((t) => t.stop());
 		localAudioStream = null;
 	}
-	if (pc) {
-		pc.close();
-		pc = null;
-		activeVideoSender = null;
-		activeAudioSender = null;
-	}
+	activeAudioSender = null;
 	if (remoteAudio) {
 		remoteAudio.srcObject = null;
 		remoteAudio = null;
@@ -373,57 +410,58 @@ export function stopWebRTCSession() {
 	currentGroupId = null;
 	currentChannelId = null;
 	currentSubchannelName = null;
-	remoteVideoStream = null;
+	videoTransceivers = {};
+	remoteVideoStreams = {};
 }
 
 async function updatePeerVideoTrack() {
 	if (!pc) return;
 
-	let outboundTrack: MediaStreamTrack | null = null;
-	let outboundStream: MediaStream | null = null;
-
-	if (screenStream && screenStream.getVideoTracks().length > 0) {
-		outboundTrack = screenStream.getVideoTracks()[0];
-		outboundStream = screenStream;
-	} else if (fileStream && fileStream.getVideoTracks().length > 0) {
-		outboundTrack = fileStream.getVideoTracks()[0];
-		outboundStream = fileStream;
-	} else if (cameraStream && cameraStream.getVideoTracks().length > 0) {
-		outboundTrack = cameraStream.getVideoTracks()[0];
-		outboundStream = cameraStream;
-	}
-
-	const senders = pc.getSenders();
-	const videoSender =
-		activeVideoSender ||
-		senders.find((s) => s.track && s.track.kind === "video") ||
-		senders.find((s) => !s.track && (s as any).kind === "video");
-
-	if (outboundTrack) {
-		if (videoSender) {
-			await videoSender.replaceTrack(outboundTrack);
-			activeVideoSender = videoSender;
-		} else {
-			if (outboundStream) {
-				activeVideoSender = pc.addTrack(outboundTrack, outboundStream);
+	const streams: Record<VideoSource, MediaStream | null> = {
+		camera: cameraStream,
+		screen: screenStream,
+		file: fileStream,
+	};
+	await Promise.all(
+		videoSources.map(async (source) => {
+			const sender = videoTransceivers[source]?.sender;
+			if (!sender) {
+				throw new Error(`Missing ${source} video sender`);
 			}
-		}
-		if (currentGroupId && currentChannelId && currentSubchannelName) {
-			await negotiateWebRTC(
-				currentGroupId,
-				currentChannelId,
-				currentSubchannelName,
-			);
-		}
-	} else if (videoSender) {
-		await videoSender.replaceTrack(null);
-		if (currentGroupId && currentChannelId && currentSubchannelName) {
-			await negotiateWebRTC(
-				currentGroupId,
-				currentChannelId,
-				currentSubchannelName,
-			);
-		}
+			const track = streams[source]?.getVideoTracks()[0] ?? null;
+			if (sender.track !== track) {
+				await sender.replaceTrack(track);
+			}
+		}),
+	);
+}
+
+function getMediaCaptureFunction(
+	element: HTMLVideoElement,
+): (() => MediaStream) | null {
+	const mediaElement = element as HTMLVideoElement & {
+		captureStream?: () => MediaStream;
+		mozCaptureStream?: () => MediaStream;
+	};
+	const capture = mediaElement.captureStream ?? mediaElement.mozCaptureStream;
+	return capture ? () => capture.call(mediaElement) : null;
+}
+
+function releaseActiveFileSource() {
+	if (activeFileImage) {
+		activeFileImage.src = "";
+		activeFileImage = null;
+	}
+	if (activeMediaElement) {
+		activeMediaElement.pause();
+		activeMediaElement.removeAttribute("src");
+		activeMediaElement.load();
+		activeMediaElement.remove();
+		activeMediaElement = null;
+	}
+	if (activeFileUrl) {
+		URL.revokeObjectURL(activeFileUrl);
+		activeFileUrl = null;
 	}
 }
 
@@ -432,12 +470,36 @@ export async function startCameraStream(): Promise<boolean> {
 	try {
 		if (!cameraStream) {
 			cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+			const track = cameraStream.getVideoTracks()[0];
+			track?.addEventListener(
+				"ended",
+				() => {
+					stopCameraStream();
+					const groupId = getGroupId();
+					const htmx = (globalThis as any).htmx;
+					if (groupId && htmx) {
+						htmx.ajax(
+							"POST",
+							`/groups/${groupId}/collab/toggle-video?enabled=false`,
+							{
+								target: "#collab-dropdown-menu-content",
+								swap: "outerHTML",
+							},
+						);
+					}
+				},
+				{ once: true },
+			);
 		}
 		attachCameraVideo();
 		await updatePeerVideoTrack();
 		return true;
 	} catch (e) {
 		console.warn("Could not capture camera stream:", e);
+		if (cameraStream) {
+			cameraStream.getTracks().forEach((track) => track.stop());
+			cameraStream = null;
+		}
 		return false;
 	}
 }
@@ -461,7 +523,10 @@ export async function startScreenShare(): Promise<boolean> {
 			audio: true,
 		});
 		const vTrack = displayStream.getVideoTracks()[0];
-		if (!vTrack) return false;
+		if (!vTrack) {
+			displayStream.getTracks().forEach((track) => track.stop());
+			return false;
+		}
 
 		screenStream = displayStream;
 		attachScreenVideo();
@@ -487,6 +552,11 @@ export async function startScreenShare(): Promise<boolean> {
 		return true;
 	} catch (e) {
 		console.warn("Screen share cancelled or failed:", e);
+		if (screenStream) {
+			screenStream.getTracks().forEach((track) => track.stop());
+			screenStream = null;
+			updateScreenAudioMixer();
+		}
 		return false;
 	}
 }
@@ -505,124 +575,131 @@ export async function stopScreenShare() {
 }
 
 export async function shareFile(file: File): Promise<boolean> {
-	stopFileShare();
+	await stopFileShare();
 
-	const fileType = file.type;
-	const isAudio = fileType.startsWith("audio/");
-	const isVideo = fileType.startsWith("video/");
+	const fileType = file.type.toLowerCase();
+	const fileName = file.name.toLowerCase();
+	const isAudio =
+		fileType.startsWith("audio/") || /\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(fileName);
+	const isVideo =
+		fileType.startsWith("video/") || /\.(mp4|webm|mov|m4v|ogv)$/i.test(fileName);
+	const isImage =
+		fileType.startsWith("image/") ||
+		/\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(fileName);
 	const isPresentationOrDoc =
 		fileType.includes("presentation") ||
 		fileType.includes("powerpoint") ||
 		fileType.includes("pdf") ||
-		fileType.startsWith("image/") ||
-		file.name.endsWith(".pptx") ||
-		file.name.endsWith(".ppt");
+		isImage ||
+		/\.(pptx?|pdf)$/i.test(fileName);
 
-	const fileUrl = URL.createObjectURL(file);
+	if (!isAudio && !isVideo && !isPresentationOrDoc) {
+		console.error(`Unsupported presentation file type: ${file.type || file.name}`);
+		return false;
+	}
 
-	if (isVideo || isAudio) {
-		const mediaEl = document.createElement("video");
-		mediaEl.src = fileUrl;
-		mediaEl.crossOrigin = "anonymous";
-		mediaEl.loop = true;
-		mediaEl.playsInline = true;
-		// Keep local element unmuted so the sender can hear what they are playing
-		mediaEl.muted = false;
-		activeMediaElement = mediaEl;
+	activeFileUrl = URL.createObjectURL(file);
+	try {
+		if (isVideo || isAudio) {
+			const mediaEl = document.createElement("video");
+			mediaEl.src = activeFileUrl;
+			mediaEl.preload = "auto";
+			mediaEl.loop = true;
+			mediaEl.playsInline = true;
+			activeMediaElement = mediaEl;
+			document.body.appendChild(mediaEl);
 
-		await mediaEl.play().catch(() => {});
-		const captureFn =
-			(mediaEl as any).captureStream || (mediaEl as any).mozCaptureStream;
+			try {
+				await mediaEl.play();
+			} catch (playError) {
+				mediaEl.muted = true;
+				await mediaEl.play();
+				console.warn("File playback started muted due to browser autoplay policy.", playError);
+			}
 
-		if (captureFn) {
-			let stream: MediaStream = captureFn.call(mediaEl);
+			const capture = getMediaCaptureFunction(mediaEl);
+			if (!capture) {
+				throw new Error("This browser does not support capturing media file playback.");
+			}
+			const stream = capture();
+			if (isVideo && stream.getVideoTracks().length === 0) {
+				throw new Error("The selected video did not produce a video track.");
+			}
 
-			// For audio-only files (MP3/WAV/OGG), generate a placeholder visualization canvas stream
-			// with the audio track so peers receive both the audio and a visual tile.
 			if (isAudio || stream.getVideoTracks().length === 0) {
 				const canvas = document.createElement("canvas");
 				canvas.width = 1280;
 				canvas.height = 720;
 				const ctx = canvas.getContext("2d");
-				if (ctx) {
-					ctx.fillStyle = "#1e1e24";
-					ctx.fillRect(0, 0, canvas.width, canvas.height);
-					ctx.fillStyle = "#38bdf8";
-					ctx.font = "bold 36px sans-serif";
-					ctx.textAlign = "center";
-					ctx.fillText(`🎵 Now Playing: ${file.name}`, canvas.width / 2, 340);
-					ctx.fillStyle = "#94a3b8";
-					ctx.font = "20px sans-serif";
-					ctx.fillText(
-						`Audio Stream (${Math.round(file.size / 1024)} KB)`,
-						canvas.width / 2,
-						400,
-					);
+				if (!ctx) {
+					throw new Error("Could not create the audio presentation canvas.");
 				}
-				const canvasStream = canvas.captureStream(15);
-				const vTrack = canvasStream.getVideoTracks()[0];
-				if (vTrack) {
-					stream.addTrack(vTrack);
-				}
+				ctx.fillStyle = "#1e1e24";
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				ctx.fillStyle = "#38bdf8";
+				ctx.font = "bold 36px sans-serif";
+				ctx.textAlign = "center";
+				ctx.fillText(`Now Playing: ${file.name}`, canvas.width / 2, 340);
+				ctx.fillStyle = "#94a3b8";
+				ctx.font = "20px sans-serif";
+				ctx.fillText(
+					`Audio Stream (${Math.round(file.size / 1024)} KB)`,
+					canvas.width / 2,
+					400,
+				);
+				const videoTrack = canvas.captureStream(15).getVideoTracks()[0];
+				if (videoTrack) stream.addTrack(videoTrack);
 			}
 
 			fileStream = stream;
 			updateFileAudioMixer();
-			attachFileVideo();
-			await updatePeerVideoTrack();
-			return true;
-		}
-	} else if (isPresentationOrDoc) {
-		const canvas = document.createElement("canvas");
-		canvas.width = 1280;
-		canvas.height = 720;
-		const ctx = canvas.getContext("2d");
+		} else {
+			const canvas = document.createElement("canvas");
+			canvas.width = 1280;
+			canvas.height = 720;
+			const ctx = canvas.getContext("2d");
+			if (!ctx) {
+				throw new Error("Could not create the presentation canvas.");
+			}
 
-		let animActive = true;
-		if (fileType.startsWith("image/")) {
-			const img = new Image();
-			img.src = fileUrl;
-			img.onload = () => {
-				const drawImage = () => {
-					if (!animActive) return;
-					if (ctx) {
-						ctx.fillStyle = "#1e1e24";
-						ctx.fillRect(0, 0, canvas.width, canvas.height);
-						const scale = Math.min(
-							canvas.width / img.width,
-							canvas.height / img.height,
-						);
-						const x = canvas.width / 2 - (img.width / 2) * scale;
-						const y = canvas.height / 2 - (img.height / 2) * scale;
-						ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-					}
-					requestAnimationFrame(drawImage);
-				};
-				requestAnimationFrame(drawImage);
-			};
-		} else if (ctx) {
 			ctx.fillStyle = "#1e1e24";
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			ctx.fillStyle = "#e2e8f0";
-			ctx.font = "bold 32px sans-serif";
-			ctx.textAlign = "center";
-			ctx.fillText(`Presentation: ${file.name}`, canvas.width / 2, 320);
-			ctx.font = "20px sans-serif";
-			ctx.fillStyle = "#94a3b8";
-			ctx.fillText(
-				`Sharing file (${Math.round(file.size / 1024)} KB)`,
-				canvas.width / 2,
-				380,
-			);
+			if (isImage) {
+				const image = new Image();
+				activeFileImage = image;
+				image.src = activeFileUrl;
+				await image.decode();
+				const scale = Math.min(
+					canvas.width / image.width,
+					canvas.height / image.height,
+				);
+				const x = canvas.width / 2 - (image.width / 2) * scale;
+				const y = canvas.height / 2 - (image.height / 2) * scale;
+				ctx.drawImage(image, x, y, image.width * scale, image.height * scale);
+			} else {
+				ctx.fillStyle = "#e2e8f0";
+				ctx.font = "bold 32px sans-serif";
+				ctx.textAlign = "center";
+				ctx.fillText(`Presentation: ${file.name}`, canvas.width / 2, 320);
+				ctx.font = "20px sans-serif";
+				ctx.fillStyle = "#94a3b8";
+				ctx.fillText(
+					`Sharing file (${Math.round(file.size / 1024)} KB)`,
+					canvas.width / 2,
+					380,
+				);
+			}
+			fileStream = canvas.captureStream(30);
 		}
 
-		const stream = canvas.captureStream(30);
-		fileStream = stream;
 		attachFileVideo();
 		await updatePeerVideoTrack();
 		return true;
+	} catch (error) {
+		console.error("Could not capture the selected presentation:", error);
+		await stopFileShare();
+		return false;
 	}
-	return false;
 }
 
 export async function stopFileShare() {
@@ -631,10 +708,9 @@ export async function stopFileShare() {
 		fileStream = null;
 	}
 	if (activeMediaElement) {
-		activeMediaElement.pause();
-		activeMediaElement.src = "";
-		activeMediaElement.remove();
-		activeMediaElement = null;
+		releaseActiveFileSource();
+	} else if (activeFileImage || activeFileUrl) {
+		releaseActiveFileSource();
 	}
 	const v = document.getElementById(
 		"collab-file-video",
@@ -684,10 +760,9 @@ function attachFileVideo() {
 	}
 }
 
-function attachRemoteVideo(stream: MediaStream) {
-	// Find any server-rendered remote video element that hasn't been attached or needs current stream
+function attachRemoteVideo(stream: MediaStream, source: VideoSource) {
 	const remoteVideos = document.querySelectorAll<HTMLVideoElement>(
-		"video[id^='collab-remote-video-'], #collab-remote-video, #collab-video-dock video:not(#collab-local-video):not(#collab-screen-video):not(#collab-file-video)",
+		`video[data-remote-stream-type="${source}"]`,
 	);
 	remoteVideos.forEach((video) => {
 		if (video.srcObject !== stream) {
@@ -711,8 +786,11 @@ function attachAllActiveStreams() {
 		attachCameraVideo();
 		attachScreenVideo();
 		attachFileVideo();
-		if (remoteVideoStream) {
-			attachRemoteVideo(remoteVideoStream);
+		for (const source of videoSources) {
+			const stream = remoteVideoStreams[source];
+			if (stream) {
+				attachRemoteVideo(stream, source);
+			}
 		}
 	}, 50);
 }
@@ -746,7 +824,7 @@ export function checkAndSyncVoice() {
 
 	// Sync local mic mute
 	const micBtn = document.getElementById("collab-btn-mic");
-	const isMicMuted = micBtn?.querySelector(".icon-[lucide--mic-off]") !== null;
+	const isMicMuted = micBtn?.classList.contains("text-error") ?? false;
 	if (localAudioStream) {
 		localAudioStream.getAudioTracks().forEach((track) => {
 			track.enabled = !isMicMuted;
@@ -759,7 +837,9 @@ export function checkAndSyncVoice() {
 	if (remoteAudio) {
 		remoteAudio.muted = isDeafened;
 		if (!isDeafened && remoteAudio.paused) {
-			remoteAudio.play().catch(() => {});
+			remoteAudio.play().catch((error) => {
+				console.warn("Could not resume collaboration audio playback:", error);
+			});
 		}
 	}
 
