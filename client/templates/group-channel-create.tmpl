@@ -1,3 +1,6 @@
+<div id="real-body">
+    {{- template "partials/notice-header" . -}}
+    {{- template "partials/app-group-header" . -}}
 <div class="page-container-lg">
     <div class="section-header pb-4">
         <div class="flex-row-start">
@@ -70,11 +73,13 @@
         <div id="channel-create-error"></div>
 
         <div class="form-actions">
-            <a class="btn btn-ghost btn-sm" href="/groups/{{.Group.Id}}/settings/channels">Cancel</a>
+            <a class="btn btn-ghost btn-sm" href="/app/groups/{{.Group.Id}}/settings/channels">Cancel</a>
             <button class="btn btn-primary btn-sm" type="submit">
                 <span class="icon icon-[lucide--plus] size-3.5"></span>
                 Create Channel
             </button>
         </div>
     </form>
+</div>
+
 </div>

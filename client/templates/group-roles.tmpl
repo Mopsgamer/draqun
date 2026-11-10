@@ -1,3 +1,6 @@
+<div id="real-body">
+    {{- template "partials/notice-header" . -}}
+    {{- template "partials/app-group-header" . -}}
 <div class="page-container-lg">
     <div class="section-header pb-4">
         <div class="flex-row-start">
@@ -20,7 +23,7 @@
                 <span class="icon icon-[lucide--shield-alert] size-4 text-base-content/70" aria-hidden="true"></span>
                 Role Hierarchy
             </h2>
-            <a class="btn btn-primary btn-xs gap-1.5" href="/groups/{{.Group.Id}}/settings/roles/create">
+            <a class="btn btn-primary btn-xs gap-1.5" href="/app/groups/{{.Group.Id}}/settings/roles/create">
                 <span class="icon icon-[lucide--plus] size-3.5" aria-hidden="true"></span>
                 Create Role
             </a>
@@ -110,7 +113,7 @@
                         </div>
                     </div>
 
-                    <a class="btn btn-ghost btn-xs gap-1" href="/groups/{{$.Group.Id}}/settings/roles/{{$role.Id}}">
+                    <a class="btn btn-ghost btn-xs gap-1" href="/app/groups/{{$.Group.Id}}/settings/roles/{{$role.Id}}">
                         <span class="icon icon-[lucide--pencil] size-3"></span> Edit
                     </a>
 
@@ -143,4 +146,6 @@
             {{end}}
         </div>
     </div>
+</div>
+
 </div>

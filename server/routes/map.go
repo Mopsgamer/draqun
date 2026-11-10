@@ -67,7 +67,7 @@ func MapPage(ctx fiber.Ctx, bind fiber.Map) fiber.Map {
 	var stylesheets []string
 	var scripts []string
 
-	if strings.HasPrefix(path, "/chat") {
+	if strings.HasPrefix(path, "/app") {
 		stylesheets = []string{"/static/css/main.css"}
 		scripts = []string{"/static/js/app.js"}
 	} else if strings.HasPrefix(path, "/docs") {

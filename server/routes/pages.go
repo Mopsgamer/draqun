@@ -93,7 +93,7 @@ func RoutePages(app *fiber.App) {
 		func(ctx fiber.Ctx) error {
 			user, _ := perms.UserByAuthFromCtx(ctx)
 			if !user.IsEmpty() {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 			return htmx.TryRenderPage(ctx, "login", MapPage(ctx, fiber.Map{"Title": "Log In"}), "partials/main")
 		},
@@ -103,7 +103,7 @@ func RoutePages(app *fiber.App) {
 		func(ctx fiber.Ctx) error {
 			user, _ := perms.UserByAuthFromCtx(ctx)
 			if !user.IsEmpty() {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 			return htmx.TryRenderPage(ctx, "signup", MapPage(ctx, fiber.Map{"Title": "Sign Up"}), "partials/main")
 		},
@@ -166,15 +166,15 @@ func RoutePages(app *fiber.App) {
 			if user.IsEmpty() {
 				return ctx.Redirect().To("/")
 			}
-			return htmx.TryRenderPage(ctx, "group-create", MapPage(ctx, fiber.Map{"Title": "Create Group"}), "partials/main")
+			return htmx.TryRenderPage(ctx, "group-create", MapPage(ctx, fiber.Map{"Title": "Create Group"}), "partials/layout-chat")
 		},
 	)
 	app.Get(
-		"/groups/:group_id/settings",
+		"/app/groups/:group_id/settings",
 		perms.RequirePermLevel("group_id", model.PermNameSettings, model.PermLevelAll),
 		func(ctx fiber.Ctx) error {
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
@@ -185,15 +185,15 @@ func RoutePages(app *fiber.App) {
 				"Member": member,
 				"Role":   role,
 				"Tab":    "general",
-			}), "partials/main")
+			}), "partials/layout-chat")
 		},
 	)
 	app.Get(
-		"/groups/:group_id/settings/roles",
+		"/app/groups/:group_id/settings/roles",
 		perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 		func(ctx fiber.Ctx) error {
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
@@ -206,15 +206,15 @@ func RoutePages(app *fiber.App) {
 				"Role":   role,
 				"Roles":  roles,
 				"Tab":    "roles",
-			}), "partials/main")
+			}), "partials/layout-chat")
 		},
 	)
 	app.Get(
-		"/groups/:group_id/settings/roles/create",
+		"/app/groups/:group_id/settings/roles/create",
 		perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 		func(ctx fiber.Ctx) error {
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
@@ -225,15 +225,15 @@ func RoutePages(app *fiber.App) {
 				"Member": member,
 				"Role":   role,
 				"Tab":    "roles",
-			}), "partials/main")
+			}), "partials/layout-chat")
 		},
 	)
 	app.Get(
-		"/groups/:group_id/settings/roles/:role_id",
+		"/app/groups/:group_id/settings/roles/:role_id",
 		perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 		func(ctx fiber.Ctx) error {
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
@@ -241,7 +241,7 @@ func RoutePages(app *fiber.App) {
 			roleId := fiber.Params[uint64](ctx, "role_id")
 			targetRole, err := model.NewRoleFromId(roleId, group.Id)
 			if err != nil || targetRole.IsEmpty() {
-				return ctx.Redirect().To("/groups/" + fiber.Params[string](ctx, "group_id") + "/settings/roles")
+				return ctx.Redirect().To("/app/groups/" + fiber.Params[string](ctx, "group_id") + "/settings/roles")
 			}
 			return htmx.TryRenderPage(ctx, "group-role-edit", MapPage(ctx, fiber.Map{
 				"Title":      "Edit Role - " + targetRole.Moniker,
@@ -250,15 +250,15 @@ func RoutePages(app *fiber.App) {
 				"Role":       role,
 				"TargetRole": targetRole,
 				"Tab":        "roles",
-			}), "partials/main")
+			}), "partials/layout-chat")
 		},
 	)
 	app.Get(
-		"/groups/:group_id/settings/members",
+		"/app/groups/:group_id/settings/members",
 		perms.RequirePermLevel("group_id", model.PermNameMembers, model.PermLevelAll),
 		func(ctx fiber.Ctx) error {
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
@@ -322,15 +322,15 @@ func RoutePages(app *fiber.App) {
 				"BanItems":        banItems,
 				"CanKickBanGroup": canKickBanGroup,
 				"Tab":             "members",
-			}), "partials/main")
+			}), "partials/layout-chat")
 		},
 	)
 	app.Get(
-		"/groups/:group_id/settings/audit",
+		"/app/groups/:group_id/settings/audit",
 		perms.RequirePermLevel("group_id", model.PermNameSettings, model.PermLevelAll),
 		func(ctx fiber.Ctx) error {
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
@@ -399,15 +399,15 @@ func RoutePages(app *fiber.App) {
 				"Role":       role,
 				"AuditItems": auditItems,
 				"Tab":        "audit",
-			}), "partials/main")
+			}), "partials/layout-chat")
 		},
 	)
 	app.Get(
-		"/groups/:group_id/settings/channels",
+		"/app/groups/:group_id/settings/channels",
 		perms.RequirePermLevel("group_id", model.PermNameSettings, model.PermLevelAll),
 		func(ctx fiber.Ctx) error {
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
@@ -438,15 +438,15 @@ func RoutePages(app *fiber.App) {
 				"Channels":     channels,
 				"Roles":        roles,
 				"Tab":          "channels",
-			}), "partials/main")
+			}), "partials/layout-chat")
 		},
 	)
 	app.Get(
-		"/groups/:group_id/settings/permissions",
+		"/app/groups/:group_id/settings/permissions",
 		perms.RequirePermLevel("group_id", model.PermNameRoles, model.PermLevelAll),
 		func(ctx fiber.Ctx) error {
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
@@ -459,15 +459,15 @@ func RoutePages(app *fiber.App) {
 				"Role":        role,
 				"Permissions": permissions,
 				"Tab":         "permissions",
-			}), "partials/main")
+			}), "partials/layout-chat")
 		},
 	)
 	app.Get(
-		"/groups/:group_id/settings/channels/create",
+		"/app/groups/:group_id/settings/channels/create",
 		perms.RequirePermLevel("group_id", model.PermNameSettings, model.PermLevelAll),
 		func(ctx fiber.Ctx) error {
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
@@ -480,15 +480,15 @@ func RoutePages(app *fiber.App) {
 				"Role":     role,
 				"Channels": channels,
 				"Tab":      "channels",
-			}), "partials/main")
+			}), "partials/layout-chat")
 		},
 	)
 	app.Get(
-		"/groups/:group_id/settings/channels/:channel_id",
+		"/app/groups/:group_id/settings/channels/:channel_id",
 		perms.RequirePermLevel("group_id", model.PermNameSettings, model.PermLevelAll),
 		func(ctx fiber.Ctx) error {
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 			group := fiber.Locals[model.Group](ctx, perms.LocalGroup)
 			member := fiber.Locals[model.Member](ctx, perms.LocalMember)
@@ -496,13 +496,13 @@ func RoutePages(app *fiber.App) {
 			channelId := fiber.Params[uint64](ctx, "channel_id")
 			targetChannel, err := model.NewChannelFromId(channelId)
 			if err != nil || !targetChannel.IsAvailable() {
-				return ctx.Redirect().To(fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+				return ctx.Redirect().To(fmt.Sprintf("/app/groups/%d/settings/channels", group.Id))
 			}
 
 			// Verify channel belongs to this group
 			chGroup, errG := model.GetChannelGroup(channelId)
 			if errG != nil || chGroup == nil || chGroup.Id != group.Id {
-				return ctx.Redirect().To(fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+				return ctx.Redirect().To(fmt.Sprintf("/app/groups/%d/settings/channels", group.Id))
 			}
 
 			channels, _ := model.GetGroupChannels(group.Id)
@@ -527,7 +527,7 @@ func RoutePages(app *fiber.App) {
 				"Channels":        candidateParents,
 				"CurrentParentId": currentParentId,
 				"Tab":             "channels",
-			}), "partials/main")
+			}), "partials/layout-chat")
 		},
 	)
 	routePagesChat(app)

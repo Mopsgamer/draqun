@@ -206,10 +206,10 @@ func TestTicketChannelAndIssues(t *testing.T) {
 		t.Errorf("expected progress after closing sub-task 1/1 (100%%), got %v", progressClosed)
 	}
 
-	// 9. GET /chat/groups/:id/channels/:ticketChannel.Id -> Verify ticket list page
+	// 9. GET /app/groups/:id/channels/:ticketChannel.Id -> Verify ticket list page
 	respViewTickets, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?status=open", group.Id, ticketChannel.Id))
+		Get(fmt.Sprintf("/app/groups/%d/channels/%d?status=open", group.Id, ticketChannel.Id))
 	if err != nil {
 		t.Fatalf("GET tickets list page failed: %v", err)
 	}
@@ -222,10 +222,10 @@ func TestTicketChannelAndIssues(t *testing.T) {
 		t.Errorf("expected ticket list page to contain open issue title 'Fix login button glitch', got: %s", respViewTickets.String())
 	}
 
-	// 10. GET /chat/groups/:id/channels/:issue1.Id -> Verify issue detail page
+	// 10. GET /app/groups/:id/channels/:issue1.Id -> Verify issue detail page
 	respViewDetail, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, issue1.Id))
+		Get(fmt.Sprintf("/app/groups/%d/channels/%d", group.Id, issue1.Id))
 	if err != nil {
 		t.Fatalf("GET issue detail page failed: %v", err)
 	}
@@ -383,7 +383,7 @@ func TestTicketChannelAndIssues(t *testing.T) {
 	// Verify issue detail page renders assignee moniker
 	respViewDetailAssignee, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, issue1.Id))
+		Get(fmt.Sprintf("/app/groups/%d/channels/%d", group.Id, issue1.Id))
 	if err != nil {
 		t.Fatalf("GET issue detail page with assignee failed: %v", err)
 	}
@@ -667,10 +667,10 @@ func TestTicketPermissionsAndEdgeCases(t *testing.T) {
 		t.Errorf("expected 404/not found for ticket creation on non-existent parent, got status %d, body: %s", respInvalidParent.StatusCode(), respInvalidParent.String())
 	}
 
-	// 10. Status Filter Tests: GET /chat/groups/:id/channels/:ticketChannel.Id?status=closed and status=all
+	// 10. Status Filter Tests: GET /app/groups/:id/channels/:ticketChannel.Id?status=closed and status=all
 	respClosedFilter, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?status=closed", group.Id, ticketChannel.Id))
+		Get(fmt.Sprintf("/app/groups/%d/channels/%d?status=closed", group.Id, ticketChannel.Id))
 	if err != nil {
 		t.Fatalf("GET status=closed tickets failed: %v", err)
 	}
@@ -685,7 +685,7 @@ func TestTicketPermissionsAndEdgeCases(t *testing.T) {
 
 	respAllFilter, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?status=all", group.Id, ticketChannel.Id))
+		Get(fmt.Sprintf("/app/groups/%d/channels/%d?status=all", group.Id, ticketChannel.Id))
 	if err != nil {
 		t.Fatalf("GET status=all tickets failed: %v", err)
 	}
@@ -856,7 +856,7 @@ func TestTicketChannelHeaderRefactor(t *testing.T) {
 	// 1. GET ticket channel page default: should show BOTH Root Ticket Alpha AND Sub Ticket Beta (all tickets by default)
 	respDefault, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, ch.Id))
+		Get(fmt.Sprintf("/app/groups/%d/channels/%d", group.Id, ch.Id))
 	if err != nil {
 		t.Fatalf("GET ticket channel page failed: %v", err)
 	}
@@ -876,7 +876,7 @@ func TestTicketChannelHeaderRefactor(t *testing.T) {
 	// 2. GET ticket channel page with only_parents=true: should show Root Ticket Alpha, but NOT Sub Ticket Beta
 	respParentsOnly, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?only_parents=true", group.Id, ch.Id))
+		Get(fmt.Sprintf("/app/groups/%d/channels/%d?only_parents=true", group.Id, ch.Id))
 	if err != nil {
 		t.Fatalf("GET ticket channel page with only_parents=true failed: %v", err)
 	}
@@ -893,7 +893,7 @@ func TestTicketChannelHeaderRefactor(t *testing.T) {
 	// 3. GET ticket channel search with q=Beta and default (all tickets): should match Sub Ticket Beta
 	respSearchAll, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?q=Beta", group.Id, ch.Id))
+		Get(fmt.Sprintf("/app/groups/%d/channels/%d?q=Beta", group.Id, ch.Id))
 	if err != nil {
 		t.Fatalf("GET ticket channel search with q=Beta failed: %v", err)
 	}
@@ -907,7 +907,7 @@ func TestTicketChannelHeaderRefactor(t *testing.T) {
 	// 4. GET ticket channel search with q=Beta and only_parents=true: should NOT match Sub Ticket Beta
 	respSearchRoot, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?only_parents=true&q=Beta", group.Id, ch.Id))
+		Get(fmt.Sprintf("/app/groups/%d/channels/%d?only_parents=true&q=Beta", group.Id, ch.Id))
 	if err != nil {
 		t.Fatalf("GET ticket channel search with q=Beta and only_parents=true failed: %v", err)
 	}
@@ -924,7 +924,7 @@ func TestTicketChannelHeaderRefactor(t *testing.T) {
 	// 5. GET ticket channel with created_by_me=true: should match tickets created by owner
 	respCreatedBy, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?created_by_me=true", group.Id, ch.Id))
+		Get(fmt.Sprintf("/app/groups/%d/channels/%d?created_by_me=true", group.Id, ch.Id))
 	if err != nil {
 		t.Fatalf("GET ticket channel created_by_me failed: %v", err)
 	}
@@ -941,7 +941,7 @@ func TestTicketChannelHeaderRefactor(t *testing.T) {
 	// 6. GET ticket channel with assigned_to_me=true: should match root1
 	respAssignedTo, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/chat/groups/%d/channels/%d?assigned_to_me=true", group.Id, ch.Id))
+		Get(fmt.Sprintf("/app/groups/%d/channels/%d?assigned_to_me=true", group.Id, ch.Id))
 	if err != nil {
 		t.Fatalf("GET ticket channel assigned_to_me failed: %v", err)
 	}
@@ -1043,7 +1043,7 @@ func TestPrivateSupportTicketAccessControl(t *testing.T) {
 
 	// 6. User A checks
 	// User A views private-support channel container -> Should see Ticket A, but NOT Ticket B
-	respListA, err := ts.Client.R().SetHeader("Cookie", cookieUserA).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, privSuppCh.Id))
+	respListA, err := ts.Client.R().SetHeader("Cookie", cookieUserA).Get(fmt.Sprintf("/app/groups/%d/channels/%d", draqunGroup.Id, privSuppCh.Id))
 	if err != nil {
 		t.Fatalf("User A view private support failed: %v", err)
 	}
@@ -1058,7 +1058,7 @@ func TestPrivateSupportTicketAccessControl(t *testing.T) {
 	}
 
 	// User A tries to view Ticket B directly -> Should be redirected to group URL
-	respDetailAOnB, err := ts.Client.R().SetHeader("Cookie", cookieUserA).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, ticketB.Id))
+	respDetailAOnB, err := ts.Client.R().SetHeader("Cookie", cookieUserA).Get(fmt.Sprintf("/app/groups/%d/channels/%d", draqunGroup.Id, ticketB.Id))
 	if err != nil {
 		t.Fatalf("User A view Ticket B failed: %v", err)
 	}
@@ -1084,7 +1084,7 @@ func TestPrivateSupportTicketAccessControl(t *testing.T) {
 
 	// 7. User B checks
 	// User B views private-support channel container -> Should see Ticket B, but NOT Ticket A
-	respListB, err := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, privSuppCh.Id))
+	respListB, err := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/app/groups/%d/channels/%d", draqunGroup.Id, privSuppCh.Id))
 	if err != nil {
 		t.Fatalf("User B view private support failed: %v", err)
 	}
@@ -1099,7 +1099,7 @@ func TestPrivateSupportTicketAccessControl(t *testing.T) {
 	}
 
 	// User B tries to view Ticket A directly -> Should be denied
-	respDetailBOnA, err := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, ticketA.Id))
+	respDetailBOnA, err := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/app/groups/%d/channels/%d", draqunGroup.Id, ticketA.Id))
 	if err != nil {
 		t.Fatalf("User B view Ticket A failed: %v", err)
 	}
@@ -1109,7 +1109,7 @@ func TestPrivateSupportTicketAccessControl(t *testing.T) {
 	}
 
 	// 8. Support User checks -> Should see BOTH Ticket A and Ticket B
-	respListSupp, err := ts.Client.R().SetHeader("Cookie", cookieSupport).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, privSuppCh.Id))
+	respListSupp, err := ts.Client.R().SetHeader("Cookie", cookieSupport).Get(fmt.Sprintf("/app/groups/%d/channels/%d", draqunGroup.Id, privSuppCh.Id))
 	if err != nil {
 		t.Fatalf("Support User view private support failed: %v", err)
 	}
@@ -1121,7 +1121,7 @@ func TestPrivateSupportTicketAccessControl(t *testing.T) {
 	}
 
 	// 9. Admin User checks -> Should see BOTH Ticket A and Ticket B
-	respListAdmin, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, privSuppCh.Id))
+	respListAdmin, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/app/groups/%d/channels/%d", draqunGroup.Id, privSuppCh.Id))
 	if err != nil {
 		t.Fatalf("Admin User view private support failed: %v", err)
 	}
@@ -1296,7 +1296,7 @@ func TestMoveTicketToOtherTicketChannel(t *testing.T) {
 	if respMove.StatusCode() != http.StatusOK {
 		t.Errorf("expected 200 OK with HX-Redirect for move ticket, got %d", respMove.StatusCode())
 	}
-	if hxRedirect := respMove.Header("HX-Redirect"); !strings.Contains(hxRedirect, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, ticket.Id)) {
+	if hxRedirect := respMove.Header("HX-Redirect"); !strings.Contains(hxRedirect, fmt.Sprintf("/app/groups/%d/channels/%d", group.Id, ticket.Id)) {
 		t.Errorf("expected HX-Redirect to ticket detail page, got '%s'", hxRedirect)
 	}
 
@@ -1364,11 +1364,11 @@ func TestInternalChannelAccessAndSidebarVisibility(t *testing.T) {
 		t.Fatalf("internal channel not found")
 	}
 
-	internalUrlPath := fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, internalCh.Id)
+	internalUrlPath := fmt.Sprintf("/app/groups/%d/channels/%d", draqunGroup.Id, internalCh.Id)
 
 	// 4. Regular User checks:
 	// a) Viewing group main page -> Should NOT see internal channel link in sidebar
-	respRegGroup, err := ts.Client.R().SetHeader("Cookie", cookieRegular).Get(fmt.Sprintf("/chat/groups/%d", draqunGroup.Id))
+	respRegGroup, err := ts.Client.R().SetHeader("Cookie", cookieRegular).Get(fmt.Sprintf("/app/groups/%d", draqunGroup.Id))
 	if err != nil {
 		t.Fatalf("regular user group view failed: %v", err)
 	}
@@ -1391,7 +1391,7 @@ func TestInternalChannelAccessAndSidebarVisibility(t *testing.T) {
 
 	// 5. Support User checks:
 	// a) Viewing group main page -> SHOULD see internal channel link in sidebar
-	respSuppGroup, err := ts.Client.R().SetHeader("Cookie", cookieSupport).Get(fmt.Sprintf("/chat/groups/%d", draqunGroup.Id))
+	respSuppGroup, err := ts.Client.R().SetHeader("Cookie", cookieSupport).Get(fmt.Sprintf("/app/groups/%d", draqunGroup.Id))
 	if err != nil {
 		t.Fatalf("support user group view failed: %v", err)
 	}
@@ -1414,7 +1414,7 @@ func TestInternalChannelAccessAndSidebarVisibility(t *testing.T) {
 
 	// 6. Admin User checks:
 	// Viewing group main page -> SHOULD see internal channel link in sidebar
-	respAdminGroup, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/chat/groups/%d", draqunGroup.Id))
+	respAdminGroup, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/app/groups/%d", draqunGroup.Id))
 	if err != nil {
 		t.Fatalf("admin user group view failed: %v", err)
 	}

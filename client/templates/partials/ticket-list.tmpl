@@ -4,7 +4,7 @@
             <!-- Clearable Search Input -->
             <form
                 method="GET"
-                action="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}"
+                action="/app/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}"
                 class="relative flex items-center min-w-48 sm:min-w-64 max-w-xs"
             >
                 <input type="hidden" name="status" value="{{.StatusFilter}}">
@@ -21,7 +21,7 @@
                 />
                 {{if .SearchQuery}}
                 <a
-                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status={{.StatusFilter}}{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}"
+                    href="/app/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status={{.StatusFilter}}{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}"
                     class="absolute right-2 z-10 text-base-content/50 hover:text-base-content text-xs p-0.5 font-bold cursor-pointer"
                     title="Clear search"
                 >
@@ -47,7 +47,7 @@
                         type="checkbox"
                         class="toggle toggle-primary toggle-sm"
                         {{if .OnlyParentsFilter}}checked{{end}}
-                        onchange="window.location.href='/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status={{.StatusFilter}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}' + (this.checked ? '&only_parents=true' : '')"
+                        onchange="window.location.href='/app/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status={{.StatusFilter}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}' + (this.checked ? '&only_parents=true' : '')"
                     />
                     <span class="text-xs font-medium text-base-content/80">Parents only</span>
                 </label>
@@ -57,7 +57,7 @@
                         type="checkbox"
                         class="toggle toggle-primary toggle-sm"
                         {{if .AssignedToMeFilter}}checked{{end}}
-                        onchange="window.location.href='/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status={{.StatusFilter}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}' + (this.checked ? '&assigned_to_me=true' : '')"
+                        onchange="window.location.href='/app/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status={{.StatusFilter}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}' + (this.checked ? '&assigned_to_me=true' : '')"
                     />
                     <span class="text-xs font-medium text-base-content/80">Assigned to me</span>
                 </label>
@@ -67,7 +67,7 @@
                         type="checkbox"
                         class="toggle toggle-primary toggle-sm"
                         {{if .CreatedByMeFilter}}checked{{end}}
-                        onchange="window.location.href='/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status={{.StatusFilter}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}' + (this.checked ? '&created_by_me=true' : '')"
+                        onchange="window.location.href='/app/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status={{.StatusFilter}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}' + (this.checked ? '&created_by_me=true' : '')"
                     />
                     <span class="text-xs font-medium text-base-content/80">Created by me</span>
                 </label>
@@ -80,21 +80,21 @@
         <div class="flex items-center justify-between py-2 text-xs font-medium flex-wrap gap-3">
             <div class="flex items-center gap-4 shrink-0">
                 <a
-                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=open{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}"
+                    href="/app/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=open{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}"
                     class="flex items-center gap-1.5 transition-colors {{if eq .StatusFilter "open"}}text-base-content font-bold{{else}}text-base-content/60 hover:text-base-content{{end}}"
                 >
                     <span class="icon icon-[lucide--circle-dot] size-4 text-emerald-500"></span>
                     <span>{{.OpenTicketsCount}} Open</span>
                 </a>
                 <a
-                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=closed{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}"
+                    href="/app/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=closed{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}"
                     class="flex items-center gap-1.5 transition-colors {{if eq .StatusFilter "closed"}}text-base-content font-bold{{else}}text-base-content/60 hover:text-base-content{{end}}"
                 >
                     <span class="icon icon-[lucide--check-circle-2] size-4 text-purple-500"></span>
                     <span>{{.ClosedTicketsCount}} Closed</span>
                 </a>
                 <a
-                    href="/chat/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=all{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}"
+                    href="/app/groups/{{.Group.Id}}/channels/{{.ActiveChannel.Id}}?status=all{{if .OnlyParentsFilter}}&only_parents=true{{end}}{{if .AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if .CreatedByMeFilter}}&created_by_me=true{{end}}{{if .SearchQuery}}&q={{.SearchQuery}}{{end}}"
                     class="transition-colors {{if eq .StatusFilter "all"}}text-base-content font-bold{{else}}text-base-content/60 hover:text-base-content{{end}}"
                 >
                     All
@@ -137,7 +137,7 @@
                         <div class="flex items-center gap-2 flex-wrap">
                             <a
                                 class="font-bold text-sm text-base-content hover:text-primary transition-colors truncate"
-                                href="/chat/groups/{{$groupId}}/channels/{{.Channel.Id}}?status={{$.StatusFilter}}{{if $.OnlyParentsFilter}}&only_parents=true{{end}}{{if $.AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if $.CreatedByMeFilter}}&created_by_me=true{{end}}{{if $.SearchQuery}}&q={{$.SearchQuery}}{{end}}"
+                                href="/app/groups/{{$groupId}}/channels/{{.Channel.Id}}?status={{$.StatusFilter}}{{if $.OnlyParentsFilter}}&only_parents=true{{end}}{{if $.AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if $.CreatedByMeFilter}}&created_by_me=true{{end}}{{if $.SearchQuery}}&q={{$.SearchQuery}}{{end}}"
                             >
                                 {{.Channel.Moniker}}
                             </a>

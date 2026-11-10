@@ -241,9 +241,9 @@ func TestPageChat(t *testing.T) {
 	ts := startTestServer(t, app)
 
 	// Unauthorized -> should render chat-login page
-	respUnauth, err := ts.Client.Get("/chat")
+	respUnauth, err := ts.Client.Get("/app")
 	if err != nil {
-		t.Fatalf("GET /chat failed: %v", err)
+		t.Fatalf("GET /app failed: %v", err)
 	}
 	defer respUnauth.Close()
 
@@ -261,9 +261,9 @@ func TestPageChat(t *testing.T) {
 
 	respAuth, err := ts.Client.R().
 		SetHeader("Cookie", cookie).
-		Get("/chat")
+		Get("/app")
 	if err != nil {
-		t.Fatalf("GET /chat (auth) failed: %v", err)
+		t.Fatalf("GET /app (auth) failed: %v", err)
 	}
 	defer respAuth.Close()
 
@@ -291,9 +291,9 @@ func TestPageGroupJoin(t *testing.T) {
 	// GET group join page for existing group
 	resp, err := ts.Client.R().
 		SetHeader("Cookie", cookieVisitor).
-		Get("/chat/groups/join/awesome_group")
+		Get("/app/groups/join/awesome_group")
 	if err != nil {
-		t.Fatalf("GET /chat/groups/join/awesome_group failed: %v", err)
+		t.Fatalf("GET /app/groups/join/awesome_group failed: %v", err)
 	}
 	defer resp.Close()
 
@@ -309,9 +309,9 @@ func TestPageGroupJoin(t *testing.T) {
 	// GET group join page for non-existent group -> should return 404 page
 	respNotFound, err := ts.Client.R().
 		SetHeader("Cookie", cookieVisitor).
-		Get("/chat/groups/join/adsfsdfs")
+		Get("/app/groups/join/adsfsdfs")
 	if err != nil {
-		t.Fatalf("GET /chat/groups/join/adsfsdfs failed: %v", err)
+		t.Fatalf("GET /app/groups/join/adsfsdfs failed: %v", err)
 	}
 	defer respNotFound.Close()
 
@@ -339,9 +339,9 @@ func TestPageGroup(t *testing.T) {
 	// Member GET group page -> should render 200 OK
 	respMember, err := ts.Client.R().
 		SetHeader("Cookie", cookieMember).
-		Get(fmt.Sprintf("/chat/groups/%d", group.Id))
+		Get(fmt.Sprintf("/app/groups/%d", group.Id))
 	if err != nil {
-		t.Fatalf("GET /chat/groups/:id failed: %v", err)
+		t.Fatalf("GET /app/groups/:id failed: %v", err)
 	}
 	defer respMember.Close()
 
@@ -354,13 +354,13 @@ func TestPageGroup(t *testing.T) {
 		t.Errorf("expected secrets group content, got body: %s", bodyMemberStr)
 	}
 
-	// Non-member GET group page -> should redirect to /chat
+	// Non-member GET group page -> should redirect to /app
 	respNonMember, err := ts.Client.R().
 		SetHeader("Cookie", cookieNonMember).
 		SetMaxRedirects(-1).
-		Get(fmt.Sprintf("/chat/groups/%d", group.Id))
+		Get(fmt.Sprintf("/app/groups/%d", group.Id))
 	if err != nil {
-		t.Fatalf("GET /chat/groups/:id for non-member failed: %v", err)
+		t.Fatalf("GET /app/groups/:id for non-member failed: %v", err)
 	}
 	defer respNonMember.Close()
 
@@ -538,9 +538,9 @@ func TestPageGroupSettings(t *testing.T) {
 
 	resp, err := ts.Client.R().
 		SetHeader("Cookie", cookieMember).
-		Get(fmt.Sprintf("/groups/%d/settings", group.Id))
+		Get(fmt.Sprintf("/app/groups/%d/settings", group.Id))
 	if err != nil {
-		t.Fatalf("GET /groups/:id/settings failed: %v", err)
+		t.Fatalf("GET /app/groups/:id/settings failed: %v", err)
 	}
 	defer resp.Close()
 

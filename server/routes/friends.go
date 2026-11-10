@@ -275,7 +275,7 @@ func RouteFriends(app *fiber.App) {
 			PushHomeChannelsOob(app, caller.Id)
 			PushHomeChannelsOob(app, targetUser.Id)
 
-			dmUrl := fmt.Sprintf("/chat/dm/%d", ch.Id)
+			dmUrl := fmt.Sprintf("/app/dm/%d", ch.Id)
 			if htmx.IsHtmx(ctx) {
 				htmx.Redirect(ctx, dmUrl)
 				return ctx.Render("partials/redirecting", fiber.Map{})

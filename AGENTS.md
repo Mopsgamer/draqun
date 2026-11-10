@@ -31,10 +31,10 @@ Keep this file updated.
 ### Layout Anatomy (`partials/app-group-header.tmpl`, `partials/app-group.tmpl`)
 
 - **Header (`#header` / `header.navbar`)**:
-  - `navbar-start`: Logo (`/chat`), sidebar toggle (`.group-channels-toggle`), active channel moniker trigger (`.group-members-toggle`).
+  - `navbar-start`: Logo (`/app`), sidebar toggle (`.group-channels-toggle`), active channel moniker trigger (`.group-members-toggle`).
   - `navbar-end`: Collaboration connection & input/output controls (`partials/collab-connection-status`), notifications (`partials/notification-bell`), user menu (`partials/avatar-context-menu`).
 - **Left Column (`#channels-view` / `.secondary-view`)**:
-  - Group info (avatar, moniker, `@name`), settings link (`/groups/:id/settings`).
+  - Group info (avatar, moniker, `@name`), settings link (`/app/groups/:id/settings`).
   - Channel list (`#channels`): Top-level channels + subchannels/threads. Active channel highlighted (`bg-primary/15 text-primary`).
   - Filtered by `GetUserPermissionLevel`: Channels with `PermLevelDisable` on `read` are excluded.
 - **Center Column (`#chat-view`)**:

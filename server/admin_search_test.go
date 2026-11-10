@@ -46,15 +46,15 @@ func TestAdminSearchAndAccessBypass(t *testing.T) {
 	_ = dmMsg.Insert()
 
 	// 4. Test non-staff (User B) attempting Admin Search and viewing Group A
-	respSearchDenied, err := ts.Client.R().SetHeader("Cookie", cookieUserB).Get("/chat/admin/search")
+	respSearchDenied, err := ts.Client.R().SetHeader("Cookie", cookieUserB).Get("/app/admin/search")
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusSeeOther, respSearchDenied.StatusCode()) // Redirected to /chat
+	assert.Equal(t, http.StatusSeeOther, respSearchDenied.StatusCode()) // Redirected to /app
 
-	respGrpB, err := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/chat/groups/%d", grpA.Id))
+	respGrpB, err := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/app/groups/%d", grpA.Id))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusSeeOther, respGrpB.StatusCode()) // Redirected away since not member
 
-	respDmB, err := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/chat/dm/%d", dmCh.Id))
+	respDmB, err := ts.Client.R().SetHeader("Cookie", cookieUserB).Get(fmt.Sprintf("/app/dm/%d", dmCh.Id))
 	assert.NoError(t, err)
 	// User B is participant in DM, so B can access it
 	assert.Equal(t, http.StatusOK, respDmB.StatusCode())
@@ -63,22 +63,22 @@ func TestAdminSearchAndAccessBypass(t *testing.T) {
 	cookieUserC, userC := createTestUserCookie(t, ts, "User C", "userc_s", "userc_s@example.com")
 	_ = userC
 
-	respDmC, err := ts.Client.R().SetHeader("Cookie", cookieUserC).Get(fmt.Sprintf("/chat/dm/%d", dmCh.Id))
+	respDmC, err := ts.Client.R().SetHeader("Cookie", cookieUserC).Get(fmt.Sprintf("/app/dm/%d", dmCh.Id))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusSeeOther, respDmC.StatusCode()) // Redirected away since not participant or staff
 
 	// 5. Test Global Admin (User 1) performing Admin Search and accessing private group & DM
-	respSearchAdmin, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get("/chat/admin/search?q=Secret")
+	respSearchAdmin, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get("/app/admin/search?q=Secret")
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, respSearchAdmin.StatusCode())
 	assert.Contains(t, respSearchAdmin.String(), "Secret Group A")
 
-	respGrpAdmin, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/chat/groups/%d", grpA.Id))
+	respGrpAdmin, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/app/groups/%d", grpA.Id))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, respGrpAdmin.StatusCode())
 	assert.Contains(t, respGrpAdmin.String(), "Secret Group A")
 
-	respDmAdmin, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/chat/dm/%d", dmCh.Id))
+	respDmAdmin, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/app/dm/%d", dmCh.Id))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, respDmAdmin.StatusCode())
 
@@ -102,11 +102,11 @@ func TestAdminSearchAndAccessBypass(t *testing.T) {
 	_ = raPun.Insert()
 
 	// Verify punisher staff can access admin search and read DMs
-	respSearchPun, err := ts.Client.R().SetHeader("Cookie", cookiePun).Get("/chat/admin/search?q=Secret")
+	respSearchPun, err := ts.Client.R().SetHeader("Cookie", cookiePun).Get("/app/admin/search?q=Secret")
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, respSearchPun.StatusCode())
 
-	respDmPun, err := ts.Client.R().SetHeader("Cookie", cookiePun).Get(fmt.Sprintf("/chat/dm/%d", dmCh.Id))
+	respDmPun, err := ts.Client.R().SetHeader("Cookie", cookiePun).Get(fmt.Sprintf("/app/dm/%d", dmCh.Id))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, respDmPun.StatusCode())
 }

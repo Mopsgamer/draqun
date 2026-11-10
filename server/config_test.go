@@ -32,7 +32,7 @@ func TestServerConfigVirtualChannelAndLockdown(t *testing.T) {
 	_, _ = ts.Client.R().SetHeader("Cookie", cookieRegular).Put(fmt.Sprintf("/groups/%d/join", draqunGroup.Id))
 
 	// Non-admin accessing config channel should be redirected to group page
-	respReg, err := ts.Client.R().SetHeader("Cookie", cookieRegular).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, configCh.Id))
+	respReg, err := ts.Client.R().SetHeader("Cookie", cookieRegular).Get(fmt.Sprintf("/app/groups/%d/channels/%d", draqunGroup.Id, configCh.Id))
 	if err != nil {
 		t.Fatalf("request failed: %v", err)
 	}
@@ -41,7 +41,7 @@ func TestServerConfigVirtualChannelAndLockdown(t *testing.T) {
 	}
 
 	// Global Admin accessing config channel should see dashboard with 200 OK
-	respAdmin, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, configCh.Id))
+	respAdmin, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/app/groups/%d/channels/%d", draqunGroup.Id, configCh.Id))
 	if err != nil {
 		t.Fatalf("request failed: %v", err)
 	}
@@ -93,7 +93,7 @@ func TestServerConfigVirtualChannelAndLockdown(t *testing.T) {
 	}
 
 	// 3. Verify Notice Header banner rendered on page and red (lockdown = true)
-	respPage, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get("/chat")
+	respPage, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get("/app")
 	if err != nil {
 		t.Fatalf("failed to fetch chat page: %v", err)
 	}
@@ -147,7 +147,7 @@ func TestServerConfigVirtualChannelAndLockdown(t *testing.T) {
 	}
 
 	// 6. Test Teal Notice Header when lockdown = false
-	respTeal, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get("/chat")
+	respTeal, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get("/app")
 	if err != nil {
 		t.Fatalf("failed to fetch chat page: %v", err)
 	}
@@ -161,7 +161,7 @@ func TestServerConfigVirtualChannelAndLockdown(t *testing.T) {
 	cfg.NoticeMessage = ""
 	_ = cfg.Update()
 
-	respEmptyLockdown, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get("/chat")
+	respEmptyLockdown, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get("/app")
 	if err != nil {
 		t.Fatalf("failed to fetch chat page: %v", err)
 	}
@@ -175,7 +175,7 @@ func TestServerConfigVirtualChannelAndLockdown(t *testing.T) {
 	cfg.NoticeMessage = ""
 	_ = cfg.Update()
 
-	respNoNotice, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get("/chat")
+	respNoNotice, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get("/app")
 	if err != nil {
 		t.Fatalf("failed to fetch chat page: %v", err)
 	}

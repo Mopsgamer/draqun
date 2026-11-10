@@ -8,7 +8,7 @@
             {{range .ParentChannels}}
             <a
                 class="btn btn-ghost btn-xs text-base-content/70 hover:text-base-content gap-1 cursor-pointer"
-                href="/chat/groups/{{$groupId}}/channels/{{.Id}}?status={{$.StatusFilter}}{{if $.OnlyParentsFilter}}&only_parents=true{{end}}{{if $.AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if $.CreatedByMeFilter}}&created_by_me=true{{end}}{{if $.SearchQuery}}&q={{$.SearchQuery}}{{end}}"
+                href="/app/groups/{{$groupId}}/channels/{{.Id}}?status={{$.StatusFilter}}{{if $.OnlyParentsFilter}}&only_parents=true{{end}}{{if $.AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if $.CreatedByMeFilter}}&created_by_me=true{{end}}{{if $.SearchQuery}}&q={{$.SearchQuery}}{{end}}"
             >
                 <span class="icon icon-[lucide--arrow-left] size-3.5"></span>
                 Back to {{.Moniker}}
@@ -217,7 +217,7 @@
                     {{else if eq .ActiveChannel.ClosedReason "duplicate"}}
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-500">
                         <span class="icon icon-[lucide--copy-x] size-3.5"></span>
-                        Closed (Duplicate{{if .TicketDuplicateTarget}} of <a href="/chat/groups/{{$.Group.Id}}/channels/{{.TicketDuplicateTarget.Id}}" class="underline hover:text-amber-400 font-mono">#{{.TicketDuplicateTarget.Id}}</a>{{end}})
+                        Closed (Duplicate{{if .TicketDuplicateTarget}} of <a href="/app/groups/{{$.Group.Id}}/channels/{{.TicketDuplicateTarget.Id}}" class="underline hover:text-amber-400 font-mono">#{{.TicketDuplicateTarget.Id}}</a>{{end}})
                     </span>
                     {{else}}
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-500">
@@ -312,7 +312,7 @@
                         <span class="icon icon-[lucide--circle-dot] size-3.5 text-emerald-500 shrink-0"></span>
                         {{end}}
                         <a
-                            href="/chat/groups/{{$groupId}}/channels/{{.Channel.Id}}?status={{$.StatusFilter}}{{if $.OnlyParentsFilter}}&only_parents=true{{end}}{{if $.AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if $.CreatedByMeFilter}}&created_by_me=true{{end}}{{if $.SearchQuery}}&q={{$.SearchQuery}}{{end}}"
+                            href="/app/groups/{{$groupId}}/channels/{{.Channel.Id}}?status={{$.StatusFilter}}{{if $.OnlyParentsFilter}}&only_parents=true{{end}}{{if $.AssignedToMeFilter}}&assigned_to_me=true{{end}}{{if $.CreatedByMeFilter}}&created_by_me=true{{end}}{{if $.SearchQuery}}&q={{$.SearchQuery}}{{end}}"
                             class="font-medium hover:text-primary transition-colors truncate"
                         >
                             {{.Channel.Moniker}}

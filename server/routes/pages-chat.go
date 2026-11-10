@@ -15,7 +15,7 @@ import (
 
 func routePagesChat(router fiber.Router) fiber.Router {
 	chat := router.Group(
-		"/chat",
+		"/app",
 		func(ctx fiber.Ctx) error {
 			user, _ := perms.UserByAuthFromCtx(ctx)
 			if user.IsEmpty() {
@@ -54,11 +54,11 @@ func routePagesChat(router fiber.Router) fiber.Router {
 
 			group, errGroup := model.NewGroupFromId(groupId)
 			if errGroup != nil || group.IsEmpty() || group.IsDeleted {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil && !isStaff {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 
 			isAdmin, isMod := model.IsDraqunAdminOrMod(user)
@@ -147,11 +147,11 @@ func routePagesChat(router fiber.Router) fiber.Router {
 
 			group, errGroup := model.NewGroupFromId(groupId)
 			if errGroup != nil || group.IsEmpty() || group.IsDeleted {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 
 			if err := perms.MemberByAuthAndGroupIdFromCtx(ctx, "group_id"); err != nil && !isStaff {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 
 			isAdmin, isMod := model.IsDraqunAdminOrMod(user)
@@ -317,7 +317,7 @@ func routePagesChat(router fiber.Router) fiber.Router {
 		func(ctx fiber.Ctx) error {
 			user, _ := perms.UserByAuthFromCtx(ctx)
 			if !model.IsDraqunStaff(user) {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 
 			q := strings.TrimSpace(ctx.Query("q", ""))
@@ -419,17 +419,17 @@ func routePagesChat(router fiber.Router) fiber.Router {
 			isStaff := model.IsDraqunStaff(user)
 
 			if !isStaff && !model.IsUserInDirectChannel(channelId, user.Id) {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 
 			activeChannel, err := model.NewChannelFromId(channelId)
 			if err != nil || !activeChannel.IsAvailable() {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 
 			u1, u2, errUsers := model.GetDirectChannelUsers(channelId)
 			if errUsers != nil {
-				return ctx.Redirect().To("/chat")
+				return ctx.Redirect().To("/app")
 			}
 
 			var otherUser model.User

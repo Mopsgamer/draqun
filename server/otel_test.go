@@ -30,7 +30,7 @@ func TestOtelChannelAccessAndMetrics(t *testing.T) {
 	_, _ = ts.Client.R().SetHeader("Cookie", cookieRegular).Put(fmt.Sprintf("/groups/%d/join", draqunGroup.Id))
 
 	// Non-admin accessing otel channel should be redirected to group page
-	respReg, err := ts.Client.R().SetHeader("Cookie", cookieRegular).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, otelCh.Id))
+	respReg, err := ts.Client.R().SetHeader("Cookie", cookieRegular).Get(fmt.Sprintf("/app/groups/%d/channels/%d", draqunGroup.Id, otelCh.Id))
 	if err != nil {
 		t.Fatalf("request failed: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestOtelChannelAccessAndMetrics(t *testing.T) {
 	model.RecordOtelSpan("TEST SPAN", "INTERNAL", 200, 15*time.Millisecond, map[string]string{"test": "true"})
 
 	// Global Admin accessing otel channel should get OTel dashboard with 200 OK
-	respAdmin, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/chat/groups/%d/channels/%d", draqunGroup.Id, otelCh.Id))
+	respAdmin, err := ts.Client.R().SetHeader("Cookie", cookieAdmin).Get(fmt.Sprintf("/app/groups/%d/channels/%d", draqunGroup.Id, otelCh.Id))
 	if err != nil {
 		t.Fatalf("request failed: %v", err)
 	}

@@ -127,7 +127,7 @@ func postprocessHTML(htmlInput string) string {
 					if errGc == nil && groupChannel.GroupId != 0 {
 						group, errG := model.NewGroupFromId(groupChannel.GroupId)
 						if errG == nil && !group.IsEmpty() && !group.IsDeleted && group.Mode != model.GroupModePrivate {
-							badge = fmt.Sprintf(`<a href="/chat/groups/%d/channels/%d" class="mention-badge">@%s</a>`, groupChannel.GroupId, channel.Id, template.HTMLEscapeString(moniker))
+							badge = fmt.Sprintf(`<a href="/app/groups/%d/channels/%d" class="mention-badge">@%s</a>`, groupChannel.GroupId, channel.Id, template.HTMLEscapeString(moniker))
 						} else {
 							badge = fmt.Sprintf(`<span class="mention-badge">@%s</span>`, template.HTMLEscapeString(moniker))
 						}
@@ -151,7 +151,7 @@ func postprocessHTML(htmlInput string) string {
 					if group.Mode == model.GroupModePrivate {
 						badge = fmt.Sprintf(`<span class="mention-badge">@%s</span>`, template.HTMLEscapeString(moniker))
 					} else {
-						badge = fmt.Sprintf(`<a href="/chat/groups/%d" class="mention-badge">@%s</a>`, group.Id, template.HTMLEscapeString(moniker))
+						badge = fmt.Sprintf(`<a href="/app/groups/%d" class="mention-badge">@%s</a>`, group.Id, template.HTMLEscapeString(moniker))
 					}
 				}
 			}

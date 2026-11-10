@@ -1,25 +1,25 @@
 <nav class="settings-nav-container" hx-boost="true" hx-replace-url="true">
-    <a href="/groups/{{.Group.Id}}/settings" class="nav-tab {{if eq .Tab "general"}}nav-tab-active{{end}}">
+    <a href="/app/groups/{{.Group.Id}}/settings" class="nav-tab {{if eq .Tab "general"}}nav-tab-active{{end}}">
         <span class="icon icon-[lucide--sliders-horizontal] size-4" aria-hidden="true"></span>
         General
     </a>
-    <a href="/groups/{{.Group.Id}}/settings/channels" class="nav-tab {{if eq .Tab "channels"}}nav-tab-active{{end}}">
+    <a href="/app/groups/{{.Group.Id}}/settings/channels" class="nav-tab {{if eq .Tab "channels"}}nav-tab-active{{end}}">
         <span class="icon icon-[lucide--hash] size-4" aria-hidden="true"></span>
         Channels
     </a>
-    <a href="/groups/{{.Group.Id}}/settings/roles" class="nav-tab {{if eq .Tab "roles"}}nav-tab-active{{end}}">
+    <a href="/app/groups/{{.Group.Id}}/settings/roles" class="nav-tab {{if eq .Tab "roles"}}nav-tab-active{{end}}">
         <span class="icon icon-[lucide--shield] size-4" aria-hidden="true"></span>
         Roles
     </a>
-    <a href="/groups/{{.Group.Id}}/settings/permissions" class="nav-tab {{if eq .Tab "permissions"}}nav-tab-active{{end}}">
+    <a href="/app/groups/{{.Group.Id}}/settings/permissions" class="nav-tab {{if eq .Tab "permissions"}}nav-tab-active{{end}}">
         <span class="icon icon-[lucide--key] size-4" aria-hidden="true"></span>
         Permissions
     </a>
-    <a href="/groups/{{.Group.Id}}/settings/members" class="nav-tab {{if eq .Tab "members"}}nav-tab-active{{end}}">
+    <a href="/app/groups/{{.Group.Id}}/settings/members" class="nav-tab {{if eq .Tab "members"}}nav-tab-active{{end}}">
         <span class="icon icon-[lucide--users] size-4" aria-hidden="true"></span>
         Members
     </a>
-    <a href="/groups/{{.Group.Id}}/settings/audit" class="nav-tab {{if eq .Tab "audit"}}nav-tab-active{{end}}">
+    <a href="/app/groups/{{.Group.Id}}/settings/audit" class="nav-tab {{if eq .Tab "audit"}}nav-tab-active{{end}}">
         <span class="icon icon-[lucide--history] size-4" aria-hidden="true"></span>
         Audit Log
     </a>

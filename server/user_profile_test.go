@@ -343,12 +343,12 @@ func TestBannedUserRedirectAndJoinPageReason(t *testing.T) {
 	}
 	defer respBan.Close()
 
-	// Banned user trying to open /chat/groups/:id -> should redirect to /groups/join/secret_group
+	// Banned user trying to open /app/groups/:id -> should redirect to /groups/join/secret_group
 	respChat, err := ts.Client.R().
 		SetHeader("Cookie", cookieTarget).
-		Get(fmt.Sprintf("/chat/groups/%d", group.Id))
+		Get(fmt.Sprintf("/app/groups/%d", group.Id))
 	if err != nil {
-		t.Fatalf("GET /chat/groups/:id failed: %v", err)
+		t.Fatalf("GET /app/groups/:id failed: %v", err)
 	}
 	defer respChat.Close()
 
@@ -356,14 +356,14 @@ func TestBannedUserRedirectAndJoinPageReason(t *testing.T) {
 		t.Fatalf("expected 302/303 redirect for banned user, got %d", respChat.StatusCode())
 	}
 	location := respChat.Header("Location")
-	if !strings.Contains(location, "/chat/groups/join/") {
-		t.Errorf("expected redirect location to contain /chat/groups/join/, got %s", location)
+	if !strings.Contains(location, "/app/groups/join/") {
+		t.Errorf("expected redirect location to contain /app/groups/join/, got %s", location)
 	}
 
-	// GET /chat/groups/join/secret_group as banned user -> should contain ban reason and expiration
+	// GET /app/groups/join/secret_group as banned user -> should contain ban reason and expiration
 	respJoin, err := ts.Client.R().
 		SetHeader("Cookie", cookieTarget).
-		Get(fmt.Sprintf("/chat/groups/join/%s", group.Name))
+		Get(fmt.Sprintf("/app/groups/join/%s", group.Name))
 	if err != nil {
 		t.Fatalf("GET /groups/join/:name failed: %v", err)
 	}
@@ -418,7 +418,7 @@ func TestBannedUserRedirectAndJoinPageReason(t *testing.T) {
 
 	respJoinNoReason, err := ts.Client.R().
 		SetHeader("Cookie", createTestUserCookieHeader(t, ts, noReasonUser)).
-		Get(fmt.Sprintf("/chat/groups/join/%s", group.Name))
+		Get(fmt.Sprintf("/app/groups/join/%s", group.Name))
 	if err != nil {
 		t.Fatalf("GET /groups/join/:name failed: %v", err)
 	}

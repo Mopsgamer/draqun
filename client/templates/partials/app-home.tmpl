@@ -69,7 +69,7 @@
             <div class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,14rem),1fr))] gap-4">
                 {{- if .IsDraqunStaff -}}
                 <div class="aura aura-dual min-h-36 bg-teal-600">
-                    <a href="/chat/admin/search" class="card bg-teal-600 text-white hover:brightness-95 p-4 h-full flex flex-col justify-between transition-all">
+                    <a href="/app/admin/search" class="card bg-teal-600 text-white hover:brightness-95 p-4 h-full flex flex-col justify-between transition-all">
                         <span class="inline-flex size-10 items-center justify-center rounded-lg bg-white/20" aria-hidden="true">
                             <span class="icon icon-[lucide--shield-alert] size-6"></span>
                         </span>
@@ -92,7 +92,7 @@
                 <form
                     class="card bg-surface-card p-4 min-h-36 flex flex-col justify-between border border-base-content/10"
                     id="join-group-card"
-                    onsubmit="event.preventDefault(); const val = this.querySelector('input').value.trim(); if(val) { window.location.href = '/chat/groups/join/' + encodeURIComponent(val.replace(/.*\/chat\/groups\/join\//, '')); }"
+                    onsubmit="event.preventDefault(); const val = this.querySelector('input').value.trim(); if(val) { window.location.href = '/app/groups/join/' + encodeURIComponent(val.replace(/.*\/app\/groups\/join\//, '')); }"
                 >
                     <div class="flex flex-col gap-0.5">
                         <span class="inline-flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-1" aria-hidden="true">
@@ -122,7 +122,7 @@
                     <a
                         id="my-group-{{$group.Id}}"
                         data-id="{{$group.Id}}"
-                        href="/chat/groups/{{$group.Id}}"
+                        href="/app/groups/{{$group.Id}}"
                         class="card bg-surface-card hover:bg-[var(--surface-card-hover)] p-4 h-full flex flex-col justify-between border border-base-content/10 transition-colors"
                     >
                         <div class="avatar shrink-0" aria-hidden="true">

@@ -71,7 +71,7 @@ paths:
           description: User settings page. Requires authentication.
         "302":
           description: Redirects to homepage if not authenticated.
-  /chat:
+  /app:
     get:
       tags:
         - Pages
@@ -79,7 +79,7 @@ paths:
       responses:
         "200":
           description: Main chat interface or login page if not authenticated.
-  /chat/groups/{group_id}:
+  /app/groups/{group_id}:
     get:
       tags:
         - Pages
@@ -94,8 +94,8 @@ paths:
         "200":
           description: Chat page for a specific group.
         "302":
-          description: Redirects to /chat if not a member.
-  /chat/groups/{group_id}/channels/{channel_id}:
+          description: Redirects to /app if not a member.
+  /app/groups/{group_id}/channels/{channel_id}:
     get:
       tags:
         - Pages
@@ -150,8 +150,8 @@ paths:
         "200":
           description: Chat page for a specific group channel.
         "302":
-          description: Redirects to /chat if not a member.
-  /chat/groups/join/{group_name}:
+          description: Redirects to /app if not a member.
+  /app/groups/join/{group_name}:
     get:
       tags:
         - Pages
@@ -438,7 +438,7 @@ paths:
       responses:
         "200":
           description: List of members.
-  /groups/{group_id}/settings/roles:
+  /app/groups/{group_id}/settings/roles:
     get:
       tags:
         - Pages
@@ -452,7 +452,7 @@ paths:
       responses:
         "200":
           description: Roles management page.
-  /groups/{group_id}/settings/roles/create:
+  /app/groups/{group_id}/settings/roles/create:
     get:
       tags:
         - Pages
@@ -466,7 +466,7 @@ paths:
       responses:
         "200":
           description: Role creation page.
-  /groups/{group_id}/settings/roles/{role_id}:
+  /app/groups/{group_id}/settings/roles/{role_id}:
     get:
       tags:
         - Pages
@@ -485,7 +485,7 @@ paths:
       responses:
         "200":
           description: Role editing page.
-  /groups/{group_id}/settings/members:
+  /app/groups/{group_id}/settings/members:
     get:
       tags:
         - Pages
@@ -499,7 +499,7 @@ paths:
       responses:
         "200":
           description: Members moderation page.
-  /groups/{group_id}/settings/audit:
+  /app/groups/{group_id}/settings/audit:
     get:
       tags:
         - Pages
@@ -513,7 +513,7 @@ paths:
       responses:
         "200":
           description: Audit log page.
-  /groups/{group_id}/settings/channels:
+  /app/groups/{group_id}/settings/channels:
     get:
       tags:
         - Pages
@@ -527,7 +527,7 @@ paths:
       responses:
         "200":
           description: Channels management page.
-  /groups/{group_id}/settings/channels/create:
+  /app/groups/{group_id}/settings/channels/create:
     get:
       tags:
         - Pages

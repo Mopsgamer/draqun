@@ -236,7 +236,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/permissions", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/permissions", group.Id))
 					return nil
 				}
 
@@ -268,7 +268,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/permissions", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/permissions", group.Id))
 					return nil
 				}
 
@@ -291,7 +291,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/permissions", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/permissions", group.Id))
 					return nil
 				}
 
@@ -341,7 +341,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/permissions", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/permissions", group.Id))
 					return nil
 				}
 
@@ -384,7 +384,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/permissions", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/permissions", group.Id))
 					return nil
 				}
 
@@ -414,7 +414,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/permissions", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/permissions", group.Id))
 					return nil
 				}
 
@@ -488,7 +488,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/roles", group.Id))
 					return nil
 				}
 
@@ -640,7 +640,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/channels", group.Id))
 					return nil
 				}
 
@@ -676,7 +676,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/channels", group.Id))
 					return nil
 				}
 
@@ -721,7 +721,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/channels", group.Id))
 					return nil
 				}
 
@@ -743,7 +743,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				_ = model.RemoveGroupChannel(group.Id, channelId)
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/channels", group.Id))
 					return nil
 				}
 
@@ -803,7 +803,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, channel.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/channels/%d", group.Id, channel.Id))
 					return nil
 				}
 
@@ -838,7 +838,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				_ = model.CreateAndPushNotification(app, notif)
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, channel.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/channels/%d", group.Id, channel.Id))
 					return nil
 				}
 
@@ -908,7 +908,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				_ = model.SetParentChannels(channel.Id, parentIds)
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, channel.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/channels/%d", group.Id, channel.Id))
 					return nil
 				}
 
@@ -950,7 +950,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, channel.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/channels/%d", group.Id, channel.Id))
 					return nil
 				}
 
@@ -1001,7 +1001,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, channel.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/channels/%d", group.Id, channel.Id))
 					return nil
 				}
 
@@ -1044,7 +1044,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, channel.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/channels/%d", group.Id, channel.Id))
 					return nil
 				}
 
@@ -1491,7 +1491,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				broadcastGroupMemberLeave(app, group, member.UserId)
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, "/chat")
+					htmx.Redirect(ctx, "/app")
 					return nil
 				}
 
@@ -1554,7 +1554,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				_ = actionRole.Insert()
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/roles", group.Id))
 					return nil
 				}
 
@@ -1608,7 +1608,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				_ = actionRole.Insert()
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/roles", group.Id))
 					return nil
 				}
 
@@ -1648,7 +1648,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				_ = model.Delete(model.TableRoleAssignees, goqu.Ex{"role_id": roleId})
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/roles", group.Id))
 					return nil
 				}
 
@@ -1706,7 +1706,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/roles", group.Id))
 					return nil
 				}
 
@@ -1756,7 +1756,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/roles", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/roles", group.Id))
 					return nil
 				}
 
@@ -1808,7 +1808,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				broadcastGroupMemberLeave(app, group, targetUserId)
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/members", group.Id))
 					return nil
 				}
 
@@ -1870,7 +1870,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				broadcastGroupMemberLeave(app, group, targetUserId)
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/members", group.Id))
 					return nil
 				}
 
@@ -1892,7 +1892,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				model.RecordUserLog(targetUserId, caller.Id, "unban_group", fmt.Sprintf("Unbanned from group %s", group.Moniker))
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/groups/%d/settings/members", group.Id))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/settings/members", group.Id))
 					return nil
 				}
 
@@ -1932,11 +1932,11 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				}
 
 				if htmx.IsHtmx(ctx) {
-					htmx.Redirect(ctx, fmt.Sprintf("/chat/groups/%d/channels/%d", groupId, model.ConfigVirtualChannelID))
+					htmx.Redirect(ctx, fmt.Sprintf("/app/groups/%d/channels/%d", groupId, model.ConfigVirtualChannelID))
 					return nil
 				}
 
-				return ctx.Redirect().To(fmt.Sprintf("/chat/groups/%d/channels/%d", groupId, model.ConfigVirtualChannelID))
+				return ctx.Redirect().To(fmt.Sprintf("/app/groups/%d/channels/%d", groupId, model.ConfigVirtualChannelID))
 			},
 		).
 		Get("/:group_id/channels/:channel_id/wall/edit",
@@ -2756,11 +2756,11 @@ func broadcastGroupMembersUpdate(app *fiber.App, group model.Group) {
 func broadcastGroupMemberLeave(app *fiber.App, group model.Group, userId uint64) {
 	deleteOob := render.WrapOob(fmt.Sprintf("delete:#member-%d", userId), nil)
 
-	redirectUrl := "/chat"
+	redirectUrl := "/app"
 	if group.IsBanned(userId) {
-		redirectUrl = fmt.Sprintf("/chat/groups/join/%s", group.Name)
+		redirectUrl = fmt.Sprintf("/app/groups/join/%s", group.Name)
 	}
-	redirectOob := fmt.Sprintf(`<div id="redirect-kicked" hx-swap-oob="beforeend:body"><script>if(window.location.pathname==='/chat/groups/%d'||window.location.pathname.startsWith('/chat/groups/%d/')){window.location.href='%s';}</script></div>`, group.Id, group.Id, redirectUrl)
+	redirectOob := fmt.Sprintf(`<div id="redirect-kicked" hx-swap-oob="beforeend:body"><script>if(window.location.pathname==='/app/groups/%d'||window.location.pathname.startsWith('/app/groups/%d/')){window.location.href='%s';}</script></div>`, group.Id, group.Id, redirectUrl)
 	session.UserSessionMap.PushUser(userId, redirectOob)
 
 	const MembersPagination uint = 5

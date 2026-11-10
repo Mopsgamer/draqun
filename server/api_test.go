@@ -765,13 +765,13 @@ func TestAPIMemberKickWebSocketRedirection(t *testing.T) {
 			break
 		}
 		msgStr := string(msgBytes)
-		if strings.Contains(msgStr, "window.location.href='/chat'") {
+		if strings.Contains(msgStr, "window.location.href='/app'") {
 			foundRedirect = true
 			break
 		}
 	}
 
 	if !foundRedirect {
-		t.Errorf("expected kicked user WS to receive real-time redirect payload to /chat")
+		t.Errorf("expected kicked user WS to receive real-time redirect payload to /app")
 	}
 }

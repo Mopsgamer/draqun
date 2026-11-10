@@ -10,7 +10,7 @@
 {{- range $dms -}}
 <a
     class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors {{if and $.IsDirectChat (eq .Channel.Id $activeChId)}}bg-primary/15 text-primary font-semibold{{else}}hover:bg-surface-card-hover text-base-content/80{{end}}"
-    href="/chat/dm/{{.Channel.Id}}"
+    href="/app/dm/{{.Channel.Id}}"
 >
     <div class="avatar {{if .OtherUser.IsOnline}}avatar-online{{else}}avatar-offline{{end}} shrink-0">
         <div class="w-6 h-6 rounded-full border border-base-content/10">
@@ -39,7 +39,7 @@
 {{- range $starred -}}
 <a
     class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors hover:bg-surface-card-hover text-base-content/80"
-    href="/chat/groups/{{.Group.Id}}/channels/{{.Channel.Id}}"
+    href="/app/groups/{{.Group.Id}}/channels/{{.Channel.Id}}"
 >
     <div class="flex items-center gap-2 truncate min-w-0">
         <span class="icon {{template "partials/channel-icon-class" .Channel.Type}} size-4 shrink-0" aria-hidden="true"></span>

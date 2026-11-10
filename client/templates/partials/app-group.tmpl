@@ -16,7 +16,7 @@
                 {{if not .Member.IsEmpty}}
                 <a
                     class="btn btn-ghost btn-square btn-sm text-base-content/70 hover:text-base-content"
-                    href="/groups/{{.Group.Id}}/settings"
+                    href="/app/groups/{{.Group.Id}}/settings"
                     aria-label="Group settings"
                     title="Group settings"
                 >
@@ -50,7 +50,7 @@
                 <p class="text-xs text-base-content/60">This group has no channels. Create a channel to start messaging with members.</p>
             </div>
             {{if not .Member.IsEmpty}}
-            <a class="btn btn-primary btn-sm mt-2" href="/groups/{{.Group.Id}}/settings/channels/create">
+            <a class="btn btn-primary btn-sm mt-2" href="/app/groups/{{.Group.Id}}/settings/channels/create">
                 <span class="icon icon-[lucide--plus] size-4"></span>
                 Create First Channel
             </a>

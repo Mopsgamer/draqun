@@ -61,10 +61,10 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 		t.Errorf("expected member message count to be 2, got %d", count)
 	}
 
-	// 1. GET /groups/:id/settings/roles
+	// 1. GET /app/groups/:id/settings/roles
 	respRolesPage, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/groups/%d/settings/roles", group.Id))
+		Get(fmt.Sprintf("/app/groups/%d/settings/roles", group.Id))
 	if err != nil {
 		t.Fatalf("GET roles page failed: %v", err)
 	}
@@ -77,10 +77,10 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 		t.Errorf("expected roles page to contain @everyone role, got: %s", respRolesPage.String())
 	}
 
-	// 2. GET /groups/:id/settings/roles/create
+	// 2. GET /app/groups/:id/settings/roles/create
 	respCreatePage, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/groups/%d/settings/roles/create", group.Id))
+		Get(fmt.Sprintf("/app/groups/%d/settings/roles/create", group.Id))
 	if err != nil {
 		t.Fatalf("GET role create page failed: %v", err)
 	}
@@ -117,10 +117,10 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 		t.Errorf("expected role moniker Moderator, got %s", modRole.Moniker)
 	}
 
-	// 4. GET /groups/:id/settings/roles/:role_id
+	// 4. GET /app/groups/:id/settings/roles/:role_id
 	respEditRolePage, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/groups/%d/settings/roles/%d", group.Id, modRole.Id))
+		Get(fmt.Sprintf("/app/groups/%d/settings/roles/%d", group.Id, modRole.Id))
 	if err != nil {
 		t.Fatalf("GET edit role page failed: %v", err)
 	}
@@ -240,10 +240,10 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 		t.Errorf("expected member to have role ID %d assigned, got %v", modRole.Id, roles)
 	}
 
-	// 7. GET /groups/:id/settings/members -> Verify members page renders
+	// 7. GET /app/groups/:id/settings/members -> Verify members page renders
 	respMembersPage, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/groups/%d/settings/members", group.Id))
+		Get(fmt.Sprintf("/app/groups/%d/settings/members", group.Id))
 	if err != nil {
 		t.Fatalf("GET members page failed: %v", err)
 	}
@@ -341,10 +341,10 @@ func TestRolesManagementAndModerationPages(t *testing.T) {
 	}
 	respBannedJoin.Close()
 
-	// 12. GET /groups/:id/settings/audit -> Verify audit page
+	// 12. GET /app/groups/:id/settings/audit -> Verify audit page
 	respAuditPage, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/groups/%d/settings/audit", group.Id))
+		Get(fmt.Sprintf("/app/groups/%d/settings/audit", group.Id))
 	if err != nil {
 		t.Fatalf("GET audit page failed: %v", err)
 	}

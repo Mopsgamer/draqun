@@ -96,9 +96,9 @@ func TestCollabVirtualSubchannels(t *testing.T) {
 	// 4. Test page chat rendering shows subchannels numerically ("1", "2") without "ROOMS:"
 	respPage, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/chat/groups/%d", group.Id))
+		Get(fmt.Sprintf("/app/groups/%d", group.Id))
 	if err != nil {
-		t.Fatalf("GET /chat/groups failed: %v", err)
+		t.Fatalf("GET /app/groups failed: %v", err)
 	}
 	defer respPage.Close()
 

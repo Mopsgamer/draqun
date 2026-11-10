@@ -26,10 +26,10 @@ func TestChannelsManagementAndMessaging(t *testing.T) {
 		t.Errorf("expected group to have 0 channels on creation by default, got %d", len(channels))
 	}
 
-	// 1. GET /groups/:id/settings/channels
+	// 1. GET /app/groups/:id/settings/channels
 	respChannelsPage, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/groups/%d/settings/channels", group.Id))
+		Get(fmt.Sprintf("/app/groups/%d/settings/channels", group.Id))
 	if err != nil {
 		t.Fatalf("GET channels settings page failed: %v", err)
 	}
@@ -42,10 +42,10 @@ func TestChannelsManagementAndMessaging(t *testing.T) {
 		t.Errorf("expected channels page content, got: %s", respChannelsPage.String())
 	}
 
-	// 1b. GET /groups/:id/settings/channels/create
+	// 1b. GET /app/groups/:id/settings/channels/create
 	respCreatePage, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/groups/%d/settings/channels/create", group.Id))
+		Get(fmt.Sprintf("/app/groups/%d/settings/channels/create", group.Id))
 	if err != nil {
 		t.Fatalf("GET channel create page failed: %v", err)
 	}
@@ -212,10 +212,10 @@ func TestChannelsManagementAndMessaging(t *testing.T) {
 	}
 	respSetPerm.Close()
 
-	// 7. GET /chat/groups/:id/channels/:channel_id -> View channel chat page
+	// 7. GET /app/groups/:id/channels/:channel_id -> View channel chat page
 	respViewChannel, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/chat/groups/%d/channels/%d", group.Id, mainChannel.Id))
+		Get(fmt.Sprintf("/app/groups/%d/channels/%d", group.Id, mainChannel.Id))
 	if err != nil {
 		t.Fatalf("GET chat channel page failed: %v", err)
 	}
@@ -283,10 +283,10 @@ func TestDirectMessagingFlow(t *testing.T) {
 		t.Fatalf("expected direct channel to exist in DB, got: %v (err: %v)", dmChannel, err)
 	}
 
-	// 3. GET /chat/dm/:channel_id for participants vs non-participant
+	// 3. GET /app/dm/:channel_id for participants vs non-participant
 	respViewDM1, err := ts.Client.R().
 		SetHeader("Cookie", cookie1).
-		Get(fmt.Sprintf("/chat/dm/%d", dmChannel.Id))
+		Get(fmt.Sprintf("/app/dm/%d", dmChannel.Id))
 	if err != nil || respViewDM1.StatusCode() != http.StatusOK {
 		t.Errorf("expected 200 OK for participant user1 viewing DM page, got status: %v", respViewDM1.StatusCode())
 	}
@@ -294,16 +294,16 @@ func TestDirectMessagingFlow(t *testing.T) {
 
 	respViewDM2, err := ts.Client.R().
 		SetHeader("Cookie", cookie2).
-		Get(fmt.Sprintf("/chat/dm/%d", dmChannel.Id))
+		Get(fmt.Sprintf("/app/dm/%d", dmChannel.Id))
 	if err != nil || respViewDM2.StatusCode() != http.StatusOK {
 		t.Errorf("expected 200 OK for participant user2 viewing DM page, got status: %v", respViewDM2.StatusCode())
 	}
 	respViewDM2.Close()
 
-	// Non-participant User 3 attempting to view DM page -> should redirect to /chat
+	// Non-participant User 3 attempting to view DM page -> should redirect to /app
 	respViewDM3, err := ts.Client.R().
 		SetHeader("Cookie", cookie3).
-		Get(fmt.Sprintf("/chat/dm/%d", dmChannel.Id))
+		Get(fmt.Sprintf("/app/dm/%d", dmChannel.Id))
 	if err != nil {
 		t.Fatalf("non-participant DM page view failed: %v", err)
 	}
@@ -412,10 +412,10 @@ func TestChannelStarringAndEditing(t *testing.T) {
 		t.Errorf("expected response button to contain 'Star channel', got: %s", respUnstar.String())
 	}
 
-	// 3. Edit Channel Page GET /groups/:group_id/settings/channels/:channel_id
+	// 3. Edit Channel Page GET /app/groups/:group_id/settings/channels/:channel_id
 	respEditPage, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/groups/%d/settings/channels/%d", group.Id, ch.Id))
+		Get(fmt.Sprintf("/app/groups/%d/settings/channels/%d", group.Id, ch.Id))
 	if err != nil {
 		t.Fatalf("GET channel edit page failed: %v", err)
 	}
@@ -458,7 +458,7 @@ func TestChannelStarringAndEditing(t *testing.T) {
 	_ = randomUser
 	respUnauthorized, err := ts.Client.R().
 		SetHeader("Cookie", cookieRand).
-		Get(fmt.Sprintf("/groups/%d/settings/channels/%d", group.Id, ch.Id))
+		Get(fmt.Sprintf("/app/groups/%d/settings/channels/%d", group.Id, ch.Id))
 	if err != nil {
 		t.Fatalf("unauthorized channel edit page request failed: %v", err)
 	}

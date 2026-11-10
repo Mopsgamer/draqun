@@ -48,10 +48,10 @@ func TestPermissionsEndpointsAndHTMXFlows(t *testing.T) {
 	}
 	respJoin.Close()
 
-	// 1. GET /groups/:id/settings/permissions -> Permissions Settings Page
+	// 1. GET /app/groups/:id/settings/permissions -> Permissions Settings Page
 	respPermsPage, err := ts.Client.R().
 		SetHeader("Cookie", cookieOwner).
-		Get(fmt.Sprintf("/groups/%d/settings/permissions", group.Id))
+		Get(fmt.Sprintf("/app/groups/%d/settings/permissions", group.Id))
 	if err != nil {
 		t.Fatalf("GET permissions page failed: %v", err)
 	}
