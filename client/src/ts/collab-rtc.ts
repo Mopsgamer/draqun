@@ -45,18 +45,26 @@ export const collabClient = {
 		if (cameraStream) {
 			await stopCameraStream();
 			if (htmx) {
-				htmx.ajax("POST", `/groups/${groupId}/collab/toggle-video?enabled=false`, {
-					target: "#collab-dropdown-menu-content",
-					swap: "outerHTML",
-				});
+				htmx.ajax(
+					"POST",
+					`/groups/${groupId}/collab/toggle-video?enabled=false`,
+					{
+						target: "#collab-dropdown-menu-content",
+						swap: "outerHTML",
+					},
+				);
 			}
 		} else {
 			const success = await startCameraStream();
 			if (success && htmx) {
-				htmx.ajax("POST", `/groups/${groupId}/collab/toggle-video?enabled=true`, {
-					target: "#collab-dropdown-menu-content",
-					swap: "outerHTML",
-				});
+				htmx.ajax(
+					"POST",
+					`/groups/${groupId}/collab/toggle-video?enabled=true`,
+					{
+						target: "#collab-dropdown-menu-content",
+						swap: "outerHTML",
+					},
+				);
 			}
 		}
 	},
@@ -68,18 +76,26 @@ export const collabClient = {
 		if (screenStream) {
 			await stopScreenShare();
 			if (htmx) {
-				htmx.ajax("POST", `/groups/${groupId}/collab/toggle-screenshare?enabled=false`, {
-					target: "#collab-dropdown-menu-content",
-					swap: "outerHTML",
-				});
+				htmx.ajax(
+					"POST",
+					`/groups/${groupId}/collab/toggle-screenshare?enabled=false`,
+					{
+						target: "#collab-dropdown-menu-content",
+						swap: "outerHTML",
+					},
+				);
 			}
 		} else {
 			const success = await startScreenShare();
 			if (success && htmx) {
-				htmx.ajax("POST", `/groups/${groupId}/collab/toggle-screenshare?enabled=true`, {
-					target: "#collab-dropdown-menu-content",
-					swap: "outerHTML",
-				});
+				htmx.ajax(
+					"POST",
+					`/groups/${groupId}/collab/toggle-screenshare?enabled=true`,
+					{
+						target: "#collab-dropdown-menu-content",
+						swap: "outerHTML",
+					},
+				);
 			}
 		}
 	},
@@ -92,10 +108,14 @@ export const collabClient = {
 		if (success && groupId) {
 			const htmx = (globalThis as any).htmx;
 			if (htmx) {
-				htmx.ajax("POST", `/groups/${groupId}/collab/toggle-presentation?enabled=true&filename=${encodeURIComponent(file.name)}`, {
-					target: "#collab-dropdown-menu-content",
-					swap: "outerHTML",
-				});
+				htmx.ajax(
+					"POST",
+					`/groups/${groupId}/collab/toggle-presentation?enabled=true&filename=${encodeURIComponent(file.name)}`,
+					{
+						target: "#collab-dropdown-menu-content",
+						swap: "outerHTML",
+					},
+				);
 			}
 		}
 	},
@@ -120,7 +140,6 @@ export const collabClient = {
 };
 
 (globalThis as any).collabClient = collabClient;
-
 
 // WebRTC Session
 export async function startWebRTCSession(
@@ -177,7 +196,9 @@ export async function startWebRTCSession(
 		const outboundAudioTrack = getMixedOutboundAudioTrack();
 		if (outboundAudioTrack && mixedAudioDestination) {
 			const existingSenders = pc.getSenders();
-			const audioSender = existingSenders.find(s => s.track && s.track.kind === "audio");
+			const audioSender = existingSenders.find(
+				(s) => s.track && s.track.kind === "audio",
+			);
 			if (audioSender) {
 				await audioSender.replaceTrack(outboundAudioTrack);
 				activeAudioSender = audioSender;
@@ -192,7 +213,9 @@ export async function startWebRTCSession(
 			localAudioStream.getAudioTracks().length > 0
 		) {
 			const existingSenders = pc.getSenders();
-			const audioSender = existingSenders.find(s => s.track && s.track.kind === "audio");
+			const audioSender = existingSenders.find(
+				(s) => s.track && s.track.kind === "audio",
+			);
 			if (audioSender) {
 				await audioSender.replaceTrack(localAudioStream.getAudioTracks()[0]);
 				activeAudioSender = audioSender;
@@ -207,7 +230,13 @@ export async function startWebRTCSession(
 		}
 
 		// Configure video transceiver
-		const existingVideoSender = pc.getSenders().find(s => (s.track && s.track.kind === "video") || (!s.track && (s as any).kind === "video"));
+		const existingVideoSender = pc
+			.getSenders()
+			.find(
+				(s) =>
+					(s.track && s.track.kind === "video") ||
+					(!s.track && (s as any).kind === "video"),
+			);
 		if (!existingVideoSender && pc.addTransceiver) {
 			pc.addTransceiver("video", { direction: "sendrecv" });
 		}
@@ -272,7 +301,11 @@ async function negotiateWebRTC(
 function startStatsMonitor(groupId: string) {
 	if (statsMonitorTimer) clearInterval(statsMonitorTimer);
 	statsMonitorTimer = setInterval(async () => {
-		if (!pc || pc.connectionState === "closed" || pc.connectionState === "failed") {
+		if (
+			!pc ||
+			pc.connectionState === "closed" ||
+			pc.connectionState === "failed"
+		) {
 			clearInterval(statsMonitorTimer);
 			statsMonitorTimer = null;
 			return;
@@ -298,10 +331,14 @@ function startStatsMonitor(groupId: string) {
 				lastReportedQuality = quality;
 				const htmx = (globalThis as any).htmx;
 				if (htmx) {
-					htmx.ajax("POST", `/groups/${groupId}/collab/signal-strength?quality=${quality}`, {
-						target: "#collab-dropdown-menu-content",
-						swap: "outerHTML",
-					});
+					htmx.ajax(
+						"POST",
+						`/groups/${groupId}/collab/signal-strength?quality=${quality}`,
+						{
+							target: "#collab-dropdown-menu-content",
+							swap: "outerHTML",
+						},
+					);
 				}
 			}
 		} catch (_) {}
@@ -434,10 +471,14 @@ export async function startScreenShare(): Promise<boolean> {
 			const groupId = getGroupId();
 			const htmx = (globalThis as any).htmx;
 			if (groupId && htmx) {
-				htmx.ajax("POST", `/groups/${groupId}/collab/toggle-screenshare?enabled=false`, {
-					target: "#collab-dropdown-menu-content",
-					swap: "outerHTML",
-				});
+				htmx.ajax(
+					"POST",
+					`/groups/${groupId}/collab/toggle-screenshare?enabled=false`,
+					{
+						target: "#collab-dropdown-menu-content",
+						swap: "outerHTML",
+					},
+				);
 			}
 		});
 
@@ -512,7 +553,11 @@ export async function shareFile(file: File): Promise<boolean> {
 					ctx.fillText(`🎵 Now Playing: ${file.name}`, canvas.width / 2, 340);
 					ctx.fillStyle = "#94a3b8";
 					ctx.font = "20px sans-serif";
-					ctx.fillText(`Audio Stream (${Math.round(file.size / 1024)} KB)`, canvas.width / 2, 400);
+					ctx.fillText(
+						`Audio Stream (${Math.round(file.size / 1024)} KB)`,
+						canvas.width / 2,
+						400,
+					);
 				}
 				const canvasStream = canvas.captureStream(15);
 				const vTrack = canvasStream.getVideoTracks()[0];

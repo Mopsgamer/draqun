@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"log/slog"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -2087,10 +2088,14 @@ func RouteGroups(app *fiber.App) fiber.Router {
 					defer func() {
 						session.UserSessionMap.Close(user.Id, ctxWs)
 						if !session.UserSessionMap.IsOnline(user.Id) {
-							session.CollabHub.DisconnectAll(user.Id)
-							session.WebRTCHub.Close(user.Id)
-							_ = model.DeleteAllUserCollabSessions(user.Id)
-							broadcastGroupChannelsUpdate(app, group)
+							session.UserSessionMap.ScheduleDisconnect(user.Id, session.UserDisconnectGracePeriod, func() {
+								session.CollabHub.DisconnectAll(user.Id)
+								session.WebRTCHub.Close(user.Id)
+								if err := model.DeleteAllUserCollabSessions(user.Id); err != nil {
+									slog.Error("failed to delete disconnected collaboration sessions", "user_id", user.Id, "error", err)
+								}
+								broadcastGroupChannelsUpdate(app, group)
+							})
 						}
 						broadcastGroupMembersUpdate(app, group)
 					}()

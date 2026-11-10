@@ -29,11 +29,11 @@ type RemoteStreamTile struct {
 }
 
 type CollabChannelSession struct {
-	ChannelId      uint64                       `json:"channel_id"`
-	ChannelName    string                       `json:"channel_name"`
-	SubchannelName string                       `json:"subchannel_name"` // e.g. "main", "team-a", "team-b"
-	InputMuted     bool                         `json:"input_muted"`
-	OutputMuted    bool                         `json:"output_muted"`
+	ChannelId      uint64                        `json:"channel_id"`
+	ChannelName    string                        `json:"channel_name"`
+	SubchannelName string                        `json:"subchannel_name"` // e.g. "main", "team-a", "team-b"
+	InputMuted     bool                          `json:"input_muted"`
+	OutputMuted    bool                          `json:"output_muted"`
 	Participants   map[uint64]*CollabParticipant `json:"participants"`
 }
 
