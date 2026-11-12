@@ -13,6 +13,7 @@ on:
         default: "from-commits"
         type: choice
         options:
+          - from-commits
           - patch
           - minor
           - major
@@ -33,13 +34,138 @@ on:
         type: boolean
 
 jobs:
+  native:
+    name: Native (${{ matrix.target }})
+    needs: release
+    if: needs.release.outputs.tag != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux
+            runner: ubuntu-latest
+            kind: desktop
+            artifact: dist/native-linux.tar.gz
+          - target: windows
+            runner: windows-latest
+            kind: desktop
+            artifact: dist/native-windows.zip
+          - target: macos
+            runner: macos-latest
+            kind: desktop
+            artifact: dist/native-macos.dmg
+          - target: android
+            runner: ubuntu-latest
+            kind: mobile
+            artifact: dist/native-android.apk
+          - target: ios
+            runner: macos-latest
+            kind: mobile
+            artifact: dist/native-ios.ipa
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+      - run: bun install --frozen-lockfile
+      - name: Prepare release output directory
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path dist | Out-Null
+      - name: Set up Java
+        if: matrix.target == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Set up Android SDK
+        if: matrix.target == 'android'
+        uses: android-actions/setup-android@v3
+        with:
+          packages: ""
+      - name: Install Android build tools
+        if: matrix.target == 'android'
+        run: sdkmanager "platform-tools" "build-tools;35.0.0" "platforms;android-35" "ndk;27.2.12479018"
+      - name: Install Linux WebView dependencies
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-4-dev libwebkitgtk-6.0-dev
+      - name: Build desktop client
+        if: matrix.kind == 'desktop'
+        run: bun run native:build
+      - name: Package Linux client
+        if: matrix.target == 'linux'
+        run: bun run native:package -- --target linux --output ../dist/native-linux
+      - name: Package Windows client
+        if: matrix.target == 'windows'
+        run: bun run native:package -- --target windows --output ../dist/native-windows
+      - name: Archive Windows package
+        if: matrix.target == 'windows'
+        shell: pwsh
+        run: Compress-Archive -Path dist\native-windows\* -DestinationPath dist\native-windows.zip
+      - name: Package macOS client
+        if: matrix.target == 'macos'
+        run: bun run native:package -- --target macos --signing none --archive --output ../dist/native-macos.dmg
+      - name: Package Android client
+        if: matrix.target == 'android'
+        run: bun run native:package -- --target android --output ../dist/native-android.apk
+      - name: Package iOS client
+        if: matrix.target == 'ios'
+        run: bun run native:package -- --target ios --signing none --output ../dist/native-ios.ipa
+      - name: Sign Android APK with distribution key
+        if: matrix.target == 'android'
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [[ -z "$ANDROID_KEYSTORE_BASE64" ]]; then
+            echo "::warning::No Android keystore configured; the APK will receive a Sigstore artifact signature, but not an install/update signing key."
+            exit 0
+          fi
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/draqun-release.jks"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" sign \
+            --ks "$RUNNER_TEMP/draqun-release.jks" \
+            --ks-key-alias "$ANDROID_KEY_ALIAS" \
+            --ks-pass env:ANDROID_KEYSTORE_PASSWORD \
+            --key-pass env:ANDROID_KEY_PASSWORD \
+            --out dist/native-android-signed.apk \
+            dist/native-android.apk
+          mv dist/native-android-signed.apk dist/native-android.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify dist/native-android.apk
+      - name: Archive Linux package
+        if: matrix.target == 'linux'
+        shell: bash
+        run: tar -czf dist/native-linux.tar.gz -C dist/native-linux .
+      - name: Upload native artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.target }}
+          path: ${{ matrix.artifact }}
+          if-no-files-found: error
+          retention-days: 7
+
   release:
     env:
       GOCACHE: ${{ github.workspace }}/dist/cache
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      tag: ${{ steps.release_tag.outputs.tag }}
     permissions:
       contents: write
       packages: write
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -69,3 +195,59 @@ jobs:
           else
             bun run release ${{ github.event.inputs.release_type }}
           fi
+      - name: Export release tag
+        id: release_tag
+        if: github.event.inputs.dry_run != 'true'
+        run: echo "tag=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
+      - name: Install Cosign
+        if: github.event.inputs.dry_run != 'true'
+        uses: sigstore/cosign-installer@v3
+      - name: Sign server binaries and checksums
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          shopt -s nullglob
+          for asset in dist/server-* dist/checksums.txt; do
+            [ -f "$asset" ] || continue
+            cosign sign-blob --yes --bundle "${asset}.sigstore.json" "$asset"
+          done
+      - name: Upload server signatures
+        if: github.event.inputs.dry_run != 'true'
+        run: gh release upload "${{ steps.release_tag.outputs.tag }}" dist/*.sigstore.json --clobber
+
+  publish-native:
+    name: Publish signed native artifacts
+    needs:
+      - release
+      - native
+    if: needs.release.outputs.tag != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: native-*
+          path: dist
+          merge-multiple: true
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+      - name: Create checksums and sign native artifacts
+        run: |
+          cd dist
+          sha256sum native-* > native-checksums.txt
+          shopt -s nullglob
+          for asset in native-*; do
+            [ -f "$asset" ] || continue
+            [ "$asset" = "native-checksums.txt" ] && continue
+            cosign sign-blob --yes --bundle "${asset}.sigstore.json" "$asset"
+          done
+          cosign sign-blob --yes --bundle native-checksums.txt.sigstore.json native-checksums.txt
+      - name: Upload native artifacts and signatures
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload --repo "$GITHUB_REPOSITORY" "${{ needs.release.outputs.tag }}" dist/native-* --clobber

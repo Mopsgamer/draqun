@@ -21,6 +21,7 @@ jobs:
       js_code: ${{ steps.filter.outputs.js_code }}
       frontend: ${{ steps.filter.outputs.frontend }}
       markdown: ${{ steps.filter.outputs.markdown }}
+      native: ${{ steps.filter.outputs.native }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v3
@@ -50,6 +51,11 @@ jobs:
              - 'scripts/**'
             markdown:
              - '**/*.md'
+            native:
+             - 'native/**'
+             - 'mise.toml'
+             - '.github/workflows/pr.yml'
+             - '.github/workflows/release.yml'
 
   govulncheck:
     name: Vulnerabilities
@@ -86,6 +92,36 @@ jobs:
           bun-version: ${{ env.BUN_VERSION }}
       - run: bun install
       - run: bun lint && bun fmt --check
+
+  native-validation:
+    name: Native Linux
+    needs: changes
+    if: |
+      github.event.pull_request.draft == false &&
+      (needs.changes.outputs.native == 'true' ||
+       needs.changes.outputs.js_code == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+      - name: Prepare package output directory
+        shell: bash
+        run: mkdir -p dist
+      - name: Install Linux WebView dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-4-dev libwebkitgtk-6.0-dev
+      - run: bun install --frozen-lockfile
+      - run: bun run native:check
+      - name: Build Linux client
+        run: bun run native:build
+      - name: Package Linux client
+        run: bun run native:package -- --target linux --output ../dist/native-linux
 
   fmt-go:
     name: Go Format
@@ -200,10 +236,4 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-      - run: bun run back:cross
-      - run: bun run back:cross dev
-      - name: Upload server binaries
-        uses: nanoufo/action-upload-artifacts-and-release-assets@v2
-        with:
-          path: |
-            dist/server-*
+      - run: bun run back

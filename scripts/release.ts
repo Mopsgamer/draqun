@@ -79,11 +79,26 @@ try {
 			/("version"\s*:\s*")([^"]+)(")/,
 			`$1${newVersion}$3`,
 		);
+		const nativeManifestPath = "native/app.json";
+		const nativeManifestOldContent = existsSync(nativeManifestPath)
+			? await fs.readFile(nativeManifestPath, "utf-8")
+			: undefined;
+		const nativeManifestNewContent = nativeManifestOldContent?.replace(
+			/("version"\s*:\s*")([^"]+)(")/,
+			`$1${newVersion}$3`,
+		);
 		if (!isDryRun) {
 			const task = logRelease.task({
 				text: "Writing new version to " + manifestPath,
 			});
 			await fs.writeFile(manifestPath, manifestNewContent, "utf-8");
+			if (nativeManifestNewContent !== undefined) {
+				await fs.writeFile(
+					nativeManifestPath,
+					nativeManifestNewContent,
+					"utf-8",
+				);
+			}
 			task.end("completed");
 
 			const taskGit = logRelease
@@ -184,6 +199,15 @@ function commitAndPushManifest(version: string): void {
 		logRelease.error("Failed to git add package.json");
 		process.exit(1);
 	}
+	if (existsSync("native/app.json")) {
+		const addNativeCmd = spawnSync("git", ["add", "native/app.json"], {
+			stdio: "inherit",
+		});
+		if (addNativeCmd.status !== 0) {
+			logRelease.error("Failed to git add native/app.json");
+			process.exit(1);
+		}
+	}
 	const commitCmd = spawnSync(
 		"git",
 		["commit", "-m", `chore(release): bump version to ${version}`],
@@ -226,7 +250,7 @@ async function writeChecksumsFile(): Promise<void> {
 	if (existsSync("dist")) {
 		const files = await fs.readdir("dist");
 		for (const file of files) {
-			if (!file.startsWith("server-")) continue;
+			if (!file.startsWith("server-") && !file.startsWith("native-")) continue;
 			const filePath = path.join("dist", file);
 			const stat = await fs.stat(filePath);
 			if (!stat.isFile()) continue;
@@ -272,7 +296,7 @@ async function createRelease(
 	if (existsSync("dist")) {
 		const files = await fs.readdir("dist");
 		for (const file of files) {
-			if (file.startsWith("server-")) {
+			if (file.startsWith("server-") || file.startsWith("native-")) {
 				assetsToUpload.push(path.join("dist", file));
 			}
 		}

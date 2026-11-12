@@ -9,6 +9,11 @@
 		"front": "bun run scripts/make-front.ts",
 		"back": "bun run scripts/make-back.ts",
 		"back:cross": "bun run scripts/make-back-cross.ts",
+		"native:check": "native check native",
+		"native:dev": "native dev native",
+		"native:build": "native build native",
+		"native:cross": "native build native",
+		"native:package": "cd native && native package",
 		"release": "bun run scripts/release.ts"
 	},
 	"dependencies": {
@@ -35,6 +40,7 @@
 	},
 	"devDependencies": {
 		"@jsr/m234__ns": "^1.1.0",
+		"@native-sdk/cli": "0.11.1",
 		"@types/bun": "latest",
 		"@types/node": "^22.20.5",
 		"@types/semver": "^7.8.0",
