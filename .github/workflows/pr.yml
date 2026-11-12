@@ -54,6 +54,8 @@ jobs:
             native:
              - 'native/**'
              - 'mise.toml'
+             - '.github/workflows/pr.yml'
+             - '.github/workflows/release.yml'
 
   govulncheck:
     name: Vulnerabilities
@@ -98,7 +100,31 @@ jobs:
       github.event.pull_request.draft == false &&
       (needs.changes.outputs.native == 'true' ||
        needs.changes.outputs.js_code == 'true')
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux
+            runner: ubuntu-latest
+            kind: desktop
+            artifact: dist/native-linux/**
+          - target: windows
+            runner: windows-latest
+            kind: desktop
+            artifact: dist/native-windows/**
+          - target: macos
+            runner: macos-latest
+            kind: desktop
+            artifact: dist/native-macos.app/**
+          - target: android
+            runner: ubuntu-latest
+            kind: mobile
+            artifact: dist/native-android.apk
+          - target: ios
+            runner: macos-latest
+            kind: mobile
+            artifact: dist/native-ios.ipa
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
@@ -107,13 +133,53 @@ jobs:
       - uses: jdx/mise-action@v2
         with:
           install: true
+      - name: Prepare package output directory
+        shell: bash
+        run: mkdir -p dist
+      - name: Set up Java
+        if: matrix.target == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Set up Android SDK
+        if: matrix.target == 'android'
+        uses: android-actions/setup-android@v3
+      - name: Install Android build tools
+        if: matrix.target == 'android'
+        run: sdkmanager "platform-tools" "build-tools;35.0.0" "platforms;android-35" "ndk;27.2.12479018"
       - name: Install Linux WebView dependencies
+        if: matrix.target == 'linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-4-dev libwebkitgtk-6.0-dev
       - run: bun install --frozen-lockfile
       - run: bun run native:check
-      - run: bun run native:build
+      - name: Build desktop client
+        if: matrix.kind == 'desktop'
+        run: bun run native:build
+      - name: Package Linux client
+        if: matrix.target == 'linux'
+        run: bun run native:package -- --target linux --output ../dist/native-linux
+      - name: Package Windows client
+        if: matrix.target == 'windows'
+        run: bun run native:package -- --target windows --output ../dist/native-windows
+      - name: Package macOS client
+        if: matrix.target == 'macos'
+        run: bun run native:package -- --target macos --signing none --output ../dist/native-macos.app
+      - name: Package Android client
+        if: matrix.target == 'android'
+        run: bun run native:package -- --target android --output ../dist/native-android.apk
+      - name: Package iOS client
+        if: matrix.target == 'ios'
+        run: bun run native:package -- --target ios --signing none --output ../dist/native-ios.ipa
+      - name: Upload native artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.target }}
+          path: ${{ matrix.artifact }}
+          if-no-files-found: error
+          retention-days: 7
 
   fmt-go:
     name: Go Format
