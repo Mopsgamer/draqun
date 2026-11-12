@@ -4,8 +4,7 @@
 
 1. Install required tools.
    - Git, obviously
-   - [Go](https://go.dev/doc/install) `^1.27.3`
-   - [Bun](https://bun.sh/) `^1.2.0`
+   - [mise](https://mise.jdx.dev/) to manage Go, Bun, and Zig versions
 2. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
    and
    [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
@@ -16,14 +15,15 @@
    or a [Codespace](https://docs.github.com/en/codespaces/quickstart).
 4. Open terminal. You can use built-in
    [VSC terminal](https://code.visualstudio.com/docs/terminal/getting-started).
-5. Run `bun install` to install required client dependencies.
-6. Run `go mod download` to install required server dependencies (optional).
-7. Environment (`.env`) creation, database table creation, and schema migrations
+5. Run `mise install` to install Go, Bun, and Zig versions pinned in `mise.toml`.
+6. Run `bun install` to install required client dependencies.
+7. Run `go mod download` to install required server dependencies (optional).
+8. Environment (`.env`) creation, database table creation, and schema migrations
    are executed automatically by the Go backend server upon startup. You can
    customize `.env` values (such as `JWT_KEY` or `PORT`) as needed.
-8. Run `bun run dev` to build client files and start the server.
-9. Open your browser and navigate to `http://localhost:3000` (or hold the
-   <kbd>Ctrl</kbd> key and click the link in the terminal).
+9. Run `bun run dev` to build client files and start the server.
+10. Open your browser and navigate to `http://localhost:3000` (or hold the
+    <kbd>Ctrl</kbd> key and click the link in the terminal).
 
 ## Making changes
 
@@ -41,6 +41,48 @@ bun run dev
 ```
 
 Other available VS Code tasks mirror the Bun tasks: `bun lint`, `bun fmt`, `bun run back`, and `bun run front` for one-time frontend builds.
+
+### Native client
+
+The Native SDK CLI is installed with the root development dependencies.
+After `mise install` and `bun install`, validate and build the WebView client:
+
+```bash
+bun run native:check
+bun run native:build
+```
+
+`native:build` builds for the current host. Cross-compile by passing a Zig
+target triple to the cross-build script:
+
+```bash
+bun run native:cross -- -Dtarget=x86_64-linux-gnu
+```
+
+Cross-compilation also needs the target system libraries and SDK. For example,
+the Linux WebView requires GTK 4 and WebKitGTK 6 development libraries. Use
+the release workflow's native runners when the target SDK is unavailable on
+your host.
+
+The Native SDK package command targets specific platforms:
+
+```bash
+bun run native:package -- --target windows
+bun run native:package -- --target linux
+bun run native:package -- --target macos
+bun run native:package -- --target android
+bun run native:package -- --target ios
+```
+
+Windows, Linux, and macOS can be built on their respective runners. Android
+packaging needs the Android SDK/NDK and Java; iOS packaging needs macOS and
+Xcode. Mobile targets are experimental in the Native SDK. Release workflows
+attach Sigstore keyless signatures to release artifacts. Android APKs can
+also be signed for installation when these repository secrets are configured:
+`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`,
+and `ANDROID_KEY_PASSWORD`. Sigstore signing does not replace Android's
+install/update key or Apple Developer/Windows Authenticode signing; those
+platform-specific trust credentials must be provisioned separately.
 
 ### Resources
 

@@ -21,6 +21,7 @@ Keep this file updated.
   - `server/htmx/` & `server/render/`: HTMX helper alerts, templates, and OOB swap renderers.
   - `client/templates/`: Go HTML templates (`partials/` for component chunks, root files for pages).
   - `client/src/`: Raw Tailwind CSS and browser-only TypeScript (only for DOM helpers/events, never for business/session state).
+  - `native/`: Native SDK WebView client; `src/main.zig` loads the Go-served app and `app.json` defines platform/security settings.
 - **Rules**:
   - No backward compatibility needed.
   - Do not bump `package.json` version or alter proxy configs unless requested.
@@ -153,3 +154,4 @@ Keep this file updated.
 | Collab Connections   | `server/session/collab.go`, `client/templates/partials/collab-connection-status.tmpl` |
 | Rendering & HTMX     | `server/render/render.go`, `server/htmx/`                                             |
 | Styles               | `client/src/tailwindcss/components.css`                                               |
+| Native Client        | `native/app.json`, `native/src/main.zig`                                              |

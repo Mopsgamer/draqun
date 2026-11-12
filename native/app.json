@@ -1,0 +1,28 @@
+{
+	"$schema": "https://schema.native-sdk.dev/app/v1.json",
+	"id": "com.mopsgamer.draqun",
+	"name": "draqun",
+	"display_name": "Draqun",
+	"description": "Draqun native client.",
+	"version": "0.1.0",
+	"icons": ["assets/icon.png"],
+	"platforms": ["macos", "windows", "linux", "ios", "android"],
+	"permissions": [],
+	"capabilities": ["webview"],
+	"windows": [
+		{
+			"label": "main",
+			"title": "Draqun",
+			"width": 1200,
+			"height": 800,
+			"restore_state": true
+		}
+	],
+	"security": {
+		"navigation": {
+			"allowed_origins": ["http://localhost:3000"],
+			"external_links": { "action": "deny" }
+		}
+	},
+	"web_engine": "system"
+}
