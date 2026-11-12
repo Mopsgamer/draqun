@@ -94,7 +94,7 @@ jobs:
       - run: bun lint && bun fmt --check
 
   native-validation:
-    name: Native Android
+    name: Native Linux
     needs: changes
     if: |
       github.event.pull_request.draft == false &&
@@ -112,28 +112,16 @@ jobs:
       - name: Prepare package output directory
         shell: bash
         run: mkdir -p dist
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: ""
-      - name: Install Android build tools
-        run: sdkmanager "platform-tools" "build-tools;35.0.0" "platforms;android-35" "ndk;27.2.12479018"
+      - name: Install Linux WebView dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-4-dev libwebkitgtk-6.0-dev
       - run: bun install --frozen-lockfile
       - run: bun run native:check
-      - name: Package Android client
-        run: bun run native:package -- --target android --output ../dist/native-android.apk
-      - name: Upload native artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: native-android
-          path: dist/native-android.apk
-          if-no-files-found: error
-          retention-days: 7
+      - name: Build Linux client
+        run: bun run native:build
+      - name: Package Linux client
+        run: bun run native:package -- --target linux --output ../dist/native-linux
 
   fmt-go:
     name: Go Format
@@ -248,10 +236,4 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-      - run: bun run back:cross
-      - run: bun run back:cross dev
-      - name: Upload server binaries
-        uses: nanoufo/action-upload-artifacts-and-release-assets@v2
-        with:
-          path: |
-            dist/server-*
+      - run: bun run back
