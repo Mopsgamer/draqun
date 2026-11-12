@@ -89,6 +89,8 @@ jobs:
       - name: Set up Android SDK
         if: matrix.target == 'android'
         uses: android-actions/setup-android@v3
+        with:
+          packages: ""
       - name: Install Android build tools
         if: matrix.target == 'android'
         run: sdkmanager "platform-tools" "build-tools;35.0.0" "platforms;android-35" "ndk;27.2.12479018"
