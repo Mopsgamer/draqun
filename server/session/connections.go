@@ -14,6 +14,18 @@ var UserSessionMap = make(userSessionMap)
 var sessionMu sync.RWMutex
 var disconnectMu sync.Mutex
 var pendingDisconnects = make(map[uint64]*time.Timer)
+var webSocketHandlers sync.WaitGroup
+
+// TrackWebSocketHandler tracks a handler through its deferred cleanup.
+func TrackWebSocketHandler() func() {
+	webSocketHandlers.Add(1)
+	return webSocketHandlers.Done
+}
+
+// WaitForWebSocketHandlers waits for all tracked WebSocket handlers to finish.
+func WaitForWebSocketHandlers() {
+	webSocketHandlers.Wait()
+}
 
 // Push data for each connection by user id.
 func (conns *userSessionMap) Push(data string, pick EventPick) {

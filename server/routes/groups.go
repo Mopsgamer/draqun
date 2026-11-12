@@ -2082,6 +2082,7 @@ func RouteGroups(app *fiber.App) fiber.Router {
 				user := fiber.Locals[model.User](ctx, perms.LocalAuth)
 
 				return websocket.New(func(conn *websocket.Conn) {
+					defer session.TrackWebSocketHandler()()
 					ctxWs.Conn = conn
 					session.UserSessionMap.Connect(user.Id, ctxWs)
 					broadcastGroupMembersUpdate(app, group)

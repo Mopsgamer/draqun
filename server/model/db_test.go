@@ -3,7 +3,6 @@ package model
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/Mopsgamer/draqun/server/environment"
@@ -21,12 +20,8 @@ func chdirToRoot() {
 func setupTestDB(t *testing.T) {
 	chdirToRoot()
 
-	// Use a unique temporary SQLite file for this test
-	tempDir := t.TempDir()
-	dbPath := filepath.Join(tempDir, "test_model_data.db")
-
 	os.Setenv("JWT_KEY", "test_jwt_key_that_is_long_enough_12345")
-	os.Setenv("DB_PATH", dbPath)
+	os.Setenv("DB_PATH", ":memory:")
 
 	if Sqlx != nil {
 		_ = Sqlx.Close()
@@ -42,6 +37,16 @@ func setupTestDB(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to load db: %v", err)
 	}
+	db := Sqlx
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("failed to close test db: %v", err)
+		}
+		if Sqlx == db {
+			Sqlx = nil
+			Goqu = nil
+		}
+	})
 }
 
 func TestModelUserOperations(t *testing.T) {

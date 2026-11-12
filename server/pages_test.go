@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -12,43 +13,43 @@ import (
 )
 
 var userCounter atomic.Int32
+var testPasswordHashOnce sync.Once
+var testPasswordHash model.PasswordHashed
+var testPasswordHashErr error
 
 func createTestUserCookie(t testing.TB, ts *TestServer, moniker, name, email string) (string, model.User) {
+	t.Helper()
 	count := userCounter.Add(1)
 	phone := fmt.Sprintf("1234567%03d", count)
 
-	resp, err := ts.Client.R().
-		SetFormDataWithMap(map[string]string{
-			"moniker":          moniker,
-			"name":             name,
-			"email":            email,
-			"phone":            phone,
-			"password":         "password123",
-			"confirm-password": "password123",
-		}).
-		Post("/account")
+	testPasswordHashOnce.Do(func() {
+		testPasswordHash, testPasswordHashErr = model.Password("password123").Hash()
+	})
+	if testPasswordHashErr != nil {
+		t.Fatalf("failed to create test password hash: %v", testPasswordHashErr)
+	}
+
+	user := model.NewUser(
+		model.Moniker(moniker),
+		model.Name(name),
+		model.Email(email),
+		model.Phone(phone),
+		testPasswordHash,
+		"",
+	)
+	if err := user.Validate(); err != nil {
+		t.Fatalf("invalid test user: %v", err)
+	}
+	if err := user.Insert(); err != nil {
+		t.Fatalf("failed to insert test user: %v", err)
+	}
+
+	token, err := user.GenerateToken()
 	if err != nil {
-		t.Fatalf("failed to register test user: %v", err)
-	}
-	defer resp.Close()
-
-	if resp.StatusCode() != http.StatusOK {
-		t.Fatalf("failed to register user: status %v", resp.StatusCode())
+		t.Fatalf("failed to generate test user token: %v", err)
 	}
 
-	user, err := model.NewUserFromName(model.Name(name))
-	if err != nil {
-		t.Fatalf("failed to fetch created user: %v", err)
-	}
-
-	for _, cookie := range resp.Cookies() {
-		if string(cookie.Key()) == "Authorization" {
-			return string(cookie.Key()) + "=" + string(cookie.Value()), user
-		}
-	}
-
-	t.Fatalf("Authorization cookie not found in response")
-	return "", user
+	return "Authorization=" + token, user
 }
 
 func createTestGroupDirectly(t testing.TB, creatorId int64, moniker, name string) model.Group {

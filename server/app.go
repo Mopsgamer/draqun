@@ -22,6 +22,19 @@ import (
 
 // Initialize gofiber application, including DB and view engine.
 func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
+	return newApp(
+		embedFS,
+		clientEmbedded,
+		true,
+		environment.BuildEnvironment == environment.BuildModeDevelopment,
+	)
+}
+
+func newTestApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
+	return newApp(embedFS, clientEmbedded, false, false)
+}
+
+func newApp(embedFS fs.FS, clientEmbedded, requestLogging, reloadTemplates bool) (*fiber.App, error) {
 	htmx.OnRenderError = func(name string, err error, path string) {
 		model.RecordOtelSpan(
 			"TEMPLATE ERROR: "+name,
@@ -35,7 +48,7 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 			},
 		)
 	}
-	engine := NewAppHtmlEngine(embedFS, clientEmbedded, "client/templates")
+	engine := newAppHtmlEngine(embedFS, clientEmbedded, "client/templates", reloadTemplates)
 	app := fiber.New(fiber.Config{
 		AppName:           environment.AppName,
 		Views:             engine,
@@ -78,9 +91,11 @@ func NewApp(embedFS fs.FS, clientEmbedded bool) (*fiber.App, error) {
 		},
 	})
 
-	app.Use(logger.New(logger.Config{
-		ForceColors: true,
-	}))
+	if requestLogging {
+		app.Use(logger.New(logger.Config{
+			ForceColors: true,
+		}))
+	}
 
 	app.Use(func(ctx fiber.Ctx) error {
 		start := time.Now()

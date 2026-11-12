@@ -19,6 +19,15 @@ import (
 
 // Initialize the view engine.
 func NewAppHtmlEngine(embedFS fs.FS, clientEmbedded bool, directory string) *html.Engine {
+	return newAppHtmlEngine(
+		embedFS,
+		clientEmbedded,
+		directory,
+		environment.BuildEnvironment == environment.BuildModeDevelopment,
+	)
+}
+
+func newAppHtmlEngine(embedFS fs.FS, clientEmbedded bool, directory string, reload bool) *html.Engine {
 	var engine *html.Engine
 	if !clientEmbedded {
 		engine = html.New(directory, environment.TemplateExt)
@@ -27,7 +36,7 @@ func NewAppHtmlEngine(embedFS fs.FS, clientEmbedded bool, directory string) *htm
 		engine = html.NewFileSystem(http.FS(embedTemplates), environment.TemplateExt)
 	}
 
-	if environment.BuildEnvironment == environment.BuildModeDevelopment {
+	if reload {
 		engine.Reload(true)
 	}
 

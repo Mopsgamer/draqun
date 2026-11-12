@@ -9,7 +9,7 @@ Keep this file updated.
 - **Stack**: Go (backend / Fiber), SQLite + Goqu (DB), Bun (frontend compiler), Tailwind + DaisyUI, HTMX.
 - **Commands**:
   - `bun run front`: Compile frontend assets.
-  - `go test ./server/...`: Run backend tests.
+  - `go test ./server/...`: Run backend tests; server tests use isolated process shards.
   - `go mod tidy`: Clean Go dependencies.
 - **MCP / Testing**:
   - Prefer `agent-browser` CLI (`bun x agent-browser`) for frontend checks.

@@ -19,6 +19,7 @@ func RouteNotifications(app *fiber.App) fiber.Router {
 			ctxWs := session.New(ctx)
 
 			return websocket.New(func(conn *websocket.Conn) {
+				defer session.TrackWebSocketHandler()()
 				ctxWs.Conn = conn
 				session.UserSessionMap.Connect(user.Id, ctxWs)
 				BroadcastUserPresenceUpdate(app, user.Id)

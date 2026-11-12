@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -82,6 +83,8 @@ func generateRandomKey(length int) string {
 func ensureEnvFile(path string) error {
 	if _, err := os.Stat(path); err == nil {
 		return nil
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return err
 	}
 	randomJWT := generateRandomKey(16)
 	content := `# use any online jwt generator to fill this value:
@@ -105,12 +108,37 @@ PORT=3000
 # default: app_data.db
 DB_PATH=app_data.db
 `
-	return os.WriteFile(path, []byte(content), 0644)
+	tempFile, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+"-*")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tempFile.Name())
+
+	if _, err := tempFile.Write([]byte(content)); err != nil {
+		_ = tempFile.Close()
+		return err
+	}
+	if err := tempFile.Chmod(0644); err != nil {
+		_ = tempFile.Close()
+		return err
+	}
+	if err := tempFile.Close(); err != nil {
+		return err
+	}
+	if err := os.Link(tempFile.Name(), path); err != nil {
+		if _, statErr := os.Stat(path); statErr == nil {
+			return nil
+		}
+		return err
+	}
+	return nil
 }
 
 // LoadEnv environemnt variables from the '.env' file. Exits if any errors.
 func LoadEnv(embedFS fs.FS) (errEnv error) {
-	_ = ensureEnvFile(".env")
+	if err := ensureEnvFile(".env"); err != nil {
+		return err
+	}
 
 	if err := godotenv.Load(); err != nil {
 		if os.IsNotExist(err) {
