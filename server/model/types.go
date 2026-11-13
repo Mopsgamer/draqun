@@ -20,6 +20,37 @@ func (nick Moniker) IsValid() bool {
 	return regexpNick.Match([]byte(nick))
 }
 
+func (nick Moniker) Value() (driver.Value, error) {
+	if nick == "" {
+		return "", nil
+	}
+	return EncryptStringDeterministically(string(nick))
+}
+
+func (nick *Moniker) Scan(src interface{}) error {
+	if src == nil {
+		*nick = ""
+		return nil
+	}
+	var str string
+	switch v := src.(type) {
+	case string:
+		str = v
+	case []byte:
+		str = string(v)
+	default:
+		return fmt.Errorf("unsupported Scan, storing %T into Moniker", src)
+	}
+
+	decrypted, err := DecryptStringDeterministically(str)
+	if err != nil {
+		*nick = Moniker(str)
+		return nil
+	}
+	*nick = Moniker(decrypted)
+	return nil
+}
+
 type Name string
 
 var regexpName = regexp.MustCompile(`^[a-zA-Z0-9._]{1,255}$`)
@@ -28,12 +59,74 @@ func (name Name) IsValid() bool {
 	return regexpName.Match([]byte(name))
 }
 
+func (name Name) Value() (driver.Value, error) {
+	if name == "" {
+		return "", nil
+	}
+	return EncryptStringDeterministically(string(name))
+}
+
+func (name *Name) Scan(src interface{}) error {
+	if src == nil {
+		*name = ""
+		return nil
+	}
+	var str string
+	switch v := src.(type) {
+	case string:
+		str = v
+	case []byte:
+		str = string(v)
+	default:
+		return fmt.Errorf("unsupported Scan, storing %T into Name", src)
+	}
+
+	decrypted, err := DecryptStringDeterministically(str)
+	if err != nil {
+		*name = Name(str)
+		return nil
+	}
+	*name = Name(decrypted)
+	return nil
+}
+
 type Email string
 
 var regexpEmail = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 func (email Email) IsValid() bool {
 	return regexpEmail.Match([]byte(email))
+}
+
+func (email Email) Value() (driver.Value, error) {
+	if email == "" {
+		return "", nil
+	}
+	return EncryptStringDeterministically(string(email))
+}
+
+func (email *Email) Scan(src interface{}) error {
+	if src == nil {
+		*email = ""
+		return nil
+	}
+	var str string
+	switch v := src.(type) {
+	case string:
+		str = v
+	case []byte:
+		str = string(v)
+	default:
+		return fmt.Errorf("unsupported Scan, storing %T into Email", src)
+	}
+
+	decrypted, err := DecryptStringDeterministically(str)
+	if err != nil {
+		*email = Email(str)
+		return nil
+	}
+	*email = Email(decrypted)
+	return nil
 }
 
 type Password string

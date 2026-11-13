@@ -139,7 +139,7 @@ func GetUserFriends(userId uint64) ([]User, error) {
 				),
 			),
 		),
-	).Order(goqu.I(TableUsers + ".moniker").Asc()).ToSQL()
+	).Order(goqu.I(TableUsers + ".id").Asc()).ToSQL()
 
 	if err != nil {
 		return nil, err

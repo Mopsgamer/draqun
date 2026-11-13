@@ -435,12 +435,10 @@ func (group Group) SearchUsers(query string, limit int) ([]User, error) {
 	if limit <= 0 {
 		limit = 10
 	}
-	userList := []User{}
 	queryTrimmed := strings.TrimSpace(query)
 	if queryTrimmed == "" {
 		return group.UsersPage(1, uint(limit)), nil
 	}
-	queryLower := "%" + strings.ToLower(queryTrimmed) + "%"
 
 	sql, args, err := Goqu.Select(TableUsers+".*").From(TableMembers).
 		Join(goqu.I(TableUsers), goqu.On(goqu.I(TableUsers+".id").Eq(goqu.I(TableMembers+".user_id")))).
@@ -450,24 +448,39 @@ func (group Group) SearchUsers(query string, limit int) ([]User, error) {
 				TableMembers + ".is_deleted": false,
 				TableUsers + ".is_deleted":   false,
 			},
-			goqu.Or(
-				goqu.L("LOWER("+TableUsers+".moniker) LIKE ?", queryLower),
-				goqu.L("LOWER("+TableUsers+".name) LIKE ?", queryLower),
-			),
 		).
-		Limit(uint(limit)).
 		Prepared(true).ToSQL()
 	if err != nil {
 		handleErr(err)
-		return userList, err
+		return nil, err
 	}
 
-	err = Sqlx.Select(&userList, sql, args...)
+	rows, err := Sqlx.Queryx(sql, args...)
 	if err != nil {
 		handleErr(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	queryLower := strings.ToLower(queryTrimmed)
+	matchedUsers := []User{}
+	for rows.Next() {
+		var u User
+		if err := rows.StructScan(&u); err != nil {
+			continue
+		}
+		u.SetFullfilled()
+
+		if strings.Contains(strings.ToLower(string(u.Moniker)), queryLower) ||
+			strings.Contains(strings.ToLower(string(u.Name)), queryLower) {
+			matchedUsers = append(matchedUsers, u)
+			if len(matchedUsers) >= limit {
+				break
+			}
+		}
 	}
 
-	return userList, err
+	return matchedUsers, nil
 }
 
 func (group Group) MessageFirst() *Message {

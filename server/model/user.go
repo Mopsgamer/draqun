@@ -185,37 +185,84 @@ func SearchAllUsers(query string, limit int) ([]User, error) {
 		limit = 50
 	}
 	queryTrim := strings.TrimSpace(query)
-	queryLower := "%" + strings.ToLower(queryTrim) + "%"
 
 	exs := []goqu.Expression{
 		goqu.I("is_deleted").Eq(false),
 	}
 
-	if queryTrim != "" {
-		orExprs := []goqu.Expression{
-			goqu.L("LOWER(moniker) LIKE ?", queryLower),
-			goqu.L("LOWER(name) LIKE ?", queryLower),
-			goqu.L("LOWER(email) LIKE ?", queryLower),
-			goqu.L("LOWER(phone) LIKE ?", queryLower),
+	if queryTrim == "" {
+		sql, args, err := Goqu.From(TableUsers).Where(exs...).Order(goqu.I("id").Desc()).Limit(uint(limit)).Prepared(true).ToSQL()
+		if err != nil {
+			return nil, err
 		}
-		var parsedId uint64
-		if _, err := fmt.Sscanf(queryTrim, "%d", &parsedId); err == nil && parsedId > 0 {
-			orExprs = append(orExprs, goqu.I("id").Eq(parsedId))
+		users := []User{}
+		err = Sqlx.Select(&users, sql, args...)
+		if err != nil {
+			return nil, err
 		}
-		exs = append(exs, goqu.Or(orExprs...))
+		for i := range users {
+			users[i].SetFullfilled()
+		}
+		return users, nil
 	}
 
-	sql, args, err := Goqu.From(TableUsers).Where(exs...).Order(goqu.I("id").Desc()).Limit(uint(limit)).Prepared(true).ToSQL()
+	queryLower := strings.ToLower(queryTrim)
+	var parsedId uint64
+	hasId := false
+	if _, errScan := fmt.Sscanf(queryTrim, "%d", &parsedId); errScan == nil && parsedId > 0 {
+		hasId = true
+	}
+
+	matchedUsers := []User{}
+	seenIds := make(map[uint64]bool)
+
+	// Check fast exact matches first if applicable
+	if hasId {
+		if u, err := NewUserFromId(parsedId); err == nil && !u.IsEmpty() && !u.IsDeleted {
+			matchedUsers = append(matchedUsers, u)
+			seenIds[u.Id] = true
+			if len(matchedUsers) >= limit {
+				return matchedUsers, nil
+			}
+		}
+	}
+
+	// Stream rows iteratively to avoid allocating all database users in memory
+	sql, args, err := Goqu.From(TableUsers).Where(exs...).Order(goqu.I("id").Desc()).Prepared(true).ToSQL()
 	if err != nil {
 		return nil, err
 	}
 
-	users := []User{}
-	err = Sqlx.Select(&users, sql, args...)
-	for i := range users {
-		users[i].SetFullfilled()
+	rows, err := Sqlx.Queryx(sql, args...)
+	if err != nil {
+		return nil, err
 	}
-	return users, err
+	defer rows.Close()
+
+	for rows.Next() {
+		var u User
+		if err := rows.StructScan(&u); err != nil {
+			continue
+		}
+		u.SetFullfilled()
+		if seenIds[u.Id] {
+			continue
+		}
+
+		if (hasId && u.Id == parsedId) ||
+			strings.Contains(strings.ToLower(string(u.Moniker)), queryLower) ||
+			strings.Contains(strings.ToLower(string(u.Name)), queryLower) ||
+			strings.Contains(strings.ToLower(string(u.Email)), queryLower) ||
+			strings.Contains(strings.ToLower(string(u.Phone)), queryLower) {
+			matchedUsers = append(matchedUsers, u)
+			seenIds[u.Id] = true
+			if len(matchedUsers) >= limit {
+				break
+			}
+		}
+	}
+
+	return matchedUsers, nil
 }
 
 func (user User) GroupList() []Group {
